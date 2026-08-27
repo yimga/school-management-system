@@ -44,11 +44,35 @@ _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,118}[a-z0-9]$")
 
 # Settings keys NEVER copied — these are state about the source school,
 # not template traits.
+#
+# The first three were the original list. The rest were found being cloned:
+# ``migration_intent`` is read by the School post_save receiver, which calls
+# ensure_draft_migration_bundle and gave a brand-new empty tenant a real
+# MigrationBundle labelled with the SOURCE's label plus a MIGRATING lifecycle
+# stage on day 0 (and, because the receiver records that before clone_school's
+# own REQUESTED, a timeline whose current stage disagreed with its history).
+# ``customersuccess`` carries the source's helpcenter_sources ledger — its
+# registered help URLs and uploaded filenames — and its nudges_sent log;
+# ``lifecycle`` carries creation_path/creation_path_set_at; ``provisioning``
+# carries the source's phase flags; ``rmc_public_onboarding`` carries the
+# source's signup/migration record, which also flips get_creation_path().
+#
+# Deliberately still a deny-list, not the allow-list the model side uses for
+# direct fields: settings holds open-ended per-feature template traits
+# (localization, blueprint and workflow defaults, branding extras) that an
+# allow-list would silently stop cloning. What must never travel is STATE, and
+# state is enumerable. Add to this list when a feature starts storing state
+# under settings.
 _SETTINGS_EXCLUDE = frozenset(
     {
         "offboarding",  # offboarding state machine for the source
         "incident_log",  # source-specific operational history
         "billing_state",  # source-specific reconciliation cache
+        "migration_intent",  # auto-drafts a MigrationBundle for the clone
+        "customersuccess",  # helpcenter ledger + nudge log, source-specific
+        "lifecycle",  # creation_path and its timestamp
+        "provisioning",  # the source's provisioning phase flags
+        "rmc_public_onboarding",  # the source's signup / migration record
     }
 )
 

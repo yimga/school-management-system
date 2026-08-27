@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from decimal import Decimal
 
@@ -11,6 +12,8 @@ from apps.school_events.models import (
     EventTicketTier,
     SchoolEvent,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class TicketCapacityError(Exception):
@@ -204,12 +207,31 @@ def expire_stale_reservations(
     older_than_minutes: int = 45,
     limit: int = 500,
     school=None,
+    all_schools: bool = False,
 ) -> int:
     """Release unpaid RESERVED holds older than ``older_than_minutes``.
 
     Metric #13: prevents abandoned holds from permanently consuming capacity
     when cash settle / PSP confirm never arrives.
+
+    ``school`` is not optional in effect. Under ``USE_DJANGO_TENANTS=0`` -- the
+    sovereign edge, where ONE schema holds every school's rows --
+    ``EventRegistration`` has no ``school`` column of its own (it reaches its
+    tenant through ``event``), so a queryset with no school predicate spans every
+    tenant on the box. This used to apply the school filter only when a caller
+    passed one, and its only caller defaulted ``--school-id`` to "": one operator
+    running the documented sweep CANCELLED up to ``limit`` held tickets belonging
+    to every school on the box and decremented their tiers' ``sold_quantity``.
+
+    Guessing a school would be worse, so the unscoped sweep is not removed --
+    it is made something the caller has to ASK for. ``all_schools=True`` is a
+    deliberate platform-wide sweep; the default is a refusal.
     """
+    if school is None and not all_schools:
+        raise ValueError(
+            "expire_stale_reservations requires school=<School>; pass "
+            "all_schools=True to sweep every tenant deliberately."
+        )
     minutes = max(int(older_than_minutes or 45), 1)
     cutoff = timezone.now() - timedelta(minutes=minutes)
     qs = EventRegistration.objects.filter(
@@ -331,3 +353,91 @@ def create_ticket_invoice_for_registration(
     locked.metadata = meta
     locked.save(update_fields=["metadata", "updated_at"])
     return invoice
+
+
+def _resolve_compliance_profile(school):
+    """Finance's ComplianceProfile for ``school`` (athletics/services/fees.py idiom).
+
+    Prefers the profile linked to the school's effective site settings and falls
+    back to the first active platform profile. Returns None when finance has not
+    been set up at all, which is a reason to skip invoicing -- never to fail a
+    registration.
+    """
+    try:
+        from apps.finance.models import ComplianceProfile
+        from apps.siteconfig.config_service import get_effective_site_settings
+
+        # config-resolver-allow: event-ticket-invoice-needs-compliance-profile-off-settings
+        site = get_effective_site_settings(school=school)
+        profile = getattr(site, "compliance_profile", None)
+        if profile is not None:
+            return profile
+        # tenant-isolation-allow: compliance-profile-is-platform-global-no-tenant-fk
+        return ComplianceProfile.objects.filter(is_active=True).first()
+    except Exception:  # noqa: BLE001 -- invoicing is best-effort, see caller
+        logger.debug("could not resolve a compliance profile", exc_info=True)
+        return None
+
+
+def _resolve_academic_year(school):
+    try:
+        from apps.academics.models import AcademicYear
+
+        return (
+            AcademicYear.objects.filter(school=school, is_active=True)
+            .order_by("-start_date")
+            .first()
+        )
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def ensure_ticket_invoice(*, registration):
+    """Raise the AR invoice for a RESERVED paid hold. Best-effort; never raises.
+
+    ``create_ticket_invoice_for_registration`` had ZERO non-test callers, and the
+    only in-product way to reach a paid tier is ``register_for_event``, which
+    left the row RESERVED with ``amount_due`` set and nothing owing anywhere in
+    finance. So a family registered for a paid tier, had nothing to pay, the
+    payment webhook had no invoice to settle -- and ``expire_stale_reservations``
+    cancelled the hold 45 minutes later and resold the seat. This is the missing
+    producer; ``_registration_id_for_invoice`` in finance is the consumer.
+
+    Returns the Invoice, or None when there is nothing to invoice (free tier /
+    already-confirmed hold) or finance is not configured for this tenant. A
+    failure here must never lose the registration the family just made, so every
+    exception is logged and swallowed -- the hold simply stays uninvoiced, which
+    is exactly the state it was in before.
+    """
+    if registration is None:
+        return None
+    if registration.status != EventRegistration.Status.RESERVED:
+        return None
+    if Decimal(str(registration.amount_due or 0)) <= 0:
+        return None
+    if (registration.metadata or {}).get("invoice_id"):
+        return None
+    school = getattr(registration.event, "school", None)
+    if school is None:
+        return None
+    profile = _resolve_compliance_profile(school)
+    if profile is None:
+        logger.warning(
+            "event ticket registration %s left uninvoiced: no compliance profile "
+            "configured for school %s",
+            registration.pk,
+            getattr(school, "pk", None),
+        )
+        return None
+    try:
+        return create_ticket_invoice_for_registration(
+            registration=registration,
+            profile=profile,
+            academic_year=_resolve_academic_year(school),
+        )
+    except Exception:  # noqa: BLE001 -- never lose the registration over billing
+        logger.exception(
+            "could not raise a ticket invoice for event registration %s",
+            registration.pk,
+        )
+        return None

@@ -47,6 +47,24 @@ def safeguarding_blob(school: Any) -> dict[str, Any]:
     return dict(blob) if isinstance(blob, dict) else {}
 
 
+# Role labels a ``stakeholder_pipeline`` row may carry and still be the school's
+# Designated Safeguarding Lead. Anything else named is somebody else.
+_DSL_STAKEHOLDER_ROLES = frozenset({"dsl", "designated_safeguarding_lead"})
+
+
+def _first_present(row: dict[str, Any], keys: tuple[str, ...]) -> Any:
+    """First non-None value among ``keys`` -- the id, whichever key holds it.
+
+    ``value`` is in the list because that is the key the ranked_list step's own
+    options carry; without it a roster the operator really did configure would be
+    dropped by the ``int()`` below and the school would silently have no DSL.
+    """
+    for key in keys:
+        if row.get(key) is not None:
+            return row[key]
+    return None
+
+
 def load_dsl_assignments(school: Any) -> list[DSLAssignment]:
     """Build DSLAssignment list from wizard stakeholder_pipeline + dsl_user_ids."""
     blob = safeguarding_blob(school)
@@ -66,11 +84,19 @@ def load_dsl_assignments(school: Any) -> list[DSLAssignment]:
 
     for row in blob.get("stakeholder_pipeline") or []:
         if isinstance(row, dict):
-            if str(row.get("role") or "").lower() not in {"dsl", "designated_safeguarding_lead", ""}:
-                # Accept explicit DSL role; also accept bare user_id rows.
-                if "user_id" not in row and "id" not in row:
-                    continue
-            raw_uid = row.get("user_id") if row.get("user_id") is not None else row.get("id")
+            # A row that NAMES a non-DSL role is not a DSL. The guard used to
+            # read "if the role is wrong, skip only when the row also has no
+            # id" -- so {"role": "nurse", "user_id": 42} fell through and the
+            # school nurse became an active Designated Safeguarding Lead, able
+            # to read every concern narrative and advance every concern. The
+            # presence of an id is not evidence of a role.
+            #
+            # Absent role stays accepted on purpose: the wizard's people-picker
+            # step IS the roster, and it writes bare ids with no role at all.
+            role = str(row.get("role") or "").strip().lower()
+            if role and role not in _DSL_STAKEHOLDER_ROLES:
+                continue
+            raw_uid = _first_present(row, ("user_id", "id", "value"))
         else:
             raw_uid = row
         try:
@@ -91,7 +117,7 @@ def user_is_dsl(user: Any, school: Any) -> bool:
     if getattr(user, "is_superuser", False):
         return True
     role = getattr(user, "role", None) or ""
-    if str(role).upper() in {"ADMIN", "PRINCIPAL", "OWNER"}:
+    if str(role).upper() in set(_DSL_FALLBACK_ROLES) or _is_active_owner(user, school):
         # Tenant admins can triage until a dedicated DSL roster is configured.
         assignments = load_dsl_assignments(school)
         if not assignments:
@@ -102,7 +128,23 @@ def user_is_dsl(user: Any, school: Any) -> bool:
 # Admin-tier roles that may triage safeguarding concerns until a dedicated DSL
 # roster is configured (mirrors ``user_is_dsl``'s fallback). Used as the fallback
 # recipient pool for the urgent real-time alert.
-_DSL_FALLBACK_ROLES = ("ADMIN", "PRINCIPAL", "OWNER")  # role-string-allow: safeguarding-dsl-triage-fallback-pool
+#
+# "OWNER" used to be the third entry and could never match: ``SchoolMembership.role``
+# draws its choices from ``User.Role``, which has no OWNER member. Per-school
+# ownership is the separate boolean ``SchoolMembership.is_school_owner``, so an
+# owner whose membership role is not ADMIN got no urgent alert and was refused the
+# inbox. The boolean is now checked directly, and a SUSPENDED membership -- one
+# whose authority on this school was deliberately revoked -- is excluded from both.
+_DSL_FALLBACK_ROLES = ("ADMIN", "PRINCIPAL")  # role-string-allow: safeguarding-dsl-triage-fallback-pool
+
+
+def _is_active_owner(user: Any, school: Any) -> bool:
+    from apps.schools.models import SchoolMembership
+
+    try:
+        return bool(SchoolMembership.is_active_owner(user, school))
+    except (DatabaseError, AttributeError, ValueError):
+        return False
 
 
 def resolve_dsl_recipients(school: Any) -> list:
@@ -121,11 +163,15 @@ def resolve_dsl_recipients(school: Any) -> list:
         # tenant-isolation-allow: recipients-are-this-school's-own-configured-dsl-user-ids
         return list(user_model.objects.filter(pk__in=user_ids, is_active=True))
 
+    from django.db.models import Q
+
     from apps.schools.models import SchoolMembership
 
     # tenant-isolation-allow: safeguarding-dsl-fallback-scoped-to-request-school
     memberships = SchoolMembership.objects.filter(
-        school=school, role__in=_DSL_FALLBACK_ROLES
+        Q(role__in=_DSL_FALLBACK_ROLES) | Q(is_school_owner=True),
+        school=school,
+        suspended_at__isnull=True,
     ).select_related("user")
     out: list = []
     seen: set[int] = set()

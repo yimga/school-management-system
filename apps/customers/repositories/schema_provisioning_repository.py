@@ -12,7 +12,14 @@ from django.db import connection
 
 
 _BINARY_BUFFER_TYPES = (bytes, bytearray, memoryview)
-_PG_SCHEMA_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]{0,62}$")
+
+# PostgreSQL identifier limit. Kept as a named constant, and built INTO the
+# regex, so the bound is stated once here instead of being a bare 62 inside a
+# pattern; a test pins it to ``customers.models._schema_name_max_length()``.
+SCHEMA_NAME_MAX_LENGTH = 63  # magic-number-allow: PostgreSQL identifier limit
+_PG_SCHEMA_NAME_RE = re.compile(
+    r"^[A-Za-z_][A-Za-z0-9_]{0,%d}$" % (SCHEMA_NAME_MAX_LENGTH - 1)
+)
 
 
 def _normalize_schema_name(schema_name: object) -> str | None:
@@ -51,18 +58,28 @@ def schema_exists(schema_name: str) -> bool:
         return False
 
 
-def create_schema_if_not_exists(schema_name: str) -> None:
-    """Create a missing tenant schema via django-tenants. No-op on non-PostgreSQL."""
+def create_schema_if_not_exists(schema_name: str) -> bool:
+    """Create a missing tenant schema via django-tenants.
+
+    Returns True only when a schema was actually created. There are three
+    silent no-op paths -- a non-PostgreSQL vendor, a name the PostgreSQL
+    identifier regex rejects (a hyphen, a leading digit), and no Client row
+    matching the name -- and the caller in the DEPLOY path used to print
+    "Created schema: X" for every one of them, exit 0, and be followed
+    immediately by a migrate_schemas --tenant failure whose cause the log had
+    just denied.
+    """
     normalized = _normalize_schema_name(schema_name)
     if normalized is None:
-        return
+        return False
     if connection.vendor != "postgresql":
-        return
+        return False
 
     from apps.customers.models import Client
 
     # tenant-isolation-allow: provisioning-time lookup by schema_name (no tenant context yet; reviewed 2026-05-14)
     client = Client.objects.filter(schema_name=normalized).first()
     if client is None:
-        return
+        return False
     client.create_schema(check_if_exists=True, verbosity=0)
+    return True

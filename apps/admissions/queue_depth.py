@@ -76,6 +76,14 @@ def stale_lead_cutoff(now: datetime | None = None) -> datetime:
     return base - timedelta(days=_STALE_LEAD_THRESHOLD_DAYS)
 
 
+# ``apps.accounts.urls`` is mounted under ``authentication/`` in BOTH host
+# urlconfs (config/tenant_urls.py and config/urls.py) and the route itself is
+# ``backend/applicants/``, so the full path carries the prefix. The fallback
+# used to omit it and 404'd -- the exact regression this helper exists to
+# prevent. ``dsl_notify.build_concern_deep_link`` gets the same prefix right.
+_APPLICANT_LIST_FALLBACK_PATH = "/authentication/backend/applicants/"
+
+
 def _applicant_list_base_url() -> str:
     """Resolve the real backend applicant-list route, falling back to its path.
 
@@ -89,7 +97,7 @@ def _applicant_list_base_url() -> str:
 
         return reverse("accounts:backend_applicant_list")
     except Exception:  # noqa: BLE001 — reverse may fail off-request; fall back to the known path
-        return "/backend/applicants/"
+        return _APPLICANT_LIST_FALLBACK_PATH
 
 
 def compute_admissions_queue_depth(school: Any) -> list[dict[str, Any]]:

@@ -159,6 +159,23 @@ class SocialPostOutbox(models.Model):
     )
     error_code = models.CharField(max_length=64, blank=True, default="")
     external_post_id = models.CharField(max_length=255, blank=True, default="")
+    # Retry bookkeeping. 'throttled' and 'processing' used to be TERMINAL: the only
+    # sweeper filtered status="pending", nothing anywhere moved a row back, and the
+    # caller had already been told 202 Accepted -- so a rate-limited cross-post, or
+    # one whose worker died mid-row, was silently lost with no record of why.
+    attempts = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Delivery attempts made so far. Drives the retry backoff and the give-up ceiling.",
+    )
+    # One column, two jobs, because both are the same question ("when may a worker
+    # touch this row again?"): on a 'throttled' row it is the earliest retry time;
+    # on a 'processing' row it is the worker's lease expiry, past which the drainer
+    # reaps the row back to 'pending'.
+    next_attempt_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Earliest retry time (throttled) or worker lease expiry (processing).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(null=True, blank=True)
 
@@ -167,6 +184,11 @@ class SocialPostOutbox(models.Model):
             models.Index(
                 fields=["school", "status", "priority", "created_at"],
                 name="social_post_school__4c8f21_idx",
+            ),
+            # The drainer's own predicate: status in (...) AND next_attempt_at due.
+            models.Index(
+                fields=["status", "next_attempt_at"],
+                name="social_post_status__d41a77_idx",
             ),
         ]
 
@@ -238,6 +260,24 @@ class SocialCampaignAttribution(models.Model):
     recorded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        constraints = [
+            # Idempotency at the DATABASE, not at the caller. record_utm_attribution
+            # was an unconditional objects.create() with no pre-read, so a client
+            # retry, a double-click, or a redelivered payment webhook wrote a SECOND
+            # row carrying the same transaction_id -- and pulse_timeseries_for_school
+            # sums amount_cents straight into the dashboard's revenue series, so the
+            # attributed donation total silently doubled with no way to tell.
+            #
+            # PARTIAL, because transaction_id is blank=True/default="": an unqualified
+            # unique index would let exactly ONE row per (school, provider) omit it
+            # (the blank+unique trap), which would break every legitimate attribution
+            # that has no upstream transaction to key on.
+            models.UniqueConstraint(
+                fields=["school", "provider", "transaction_id"],
+                condition=~models.Q(transaction_id=""),
+                name="uniq_social_attribution_transaction",
+            ),
+        ]
         indexes = [
             models.Index(
                 fields=["school", "provider", "recorded_at"],

@@ -48,6 +48,17 @@ def raise_kit_fee_invoice(*, membership, actor=None):
     from apps.finance.models import Invoice, InvoiceLine
     from apps.finance.services import recalculate_invoice
 
+    # Lock the membership for the life of this transaction. The idempotency
+    # below is a get_or_create on (profile, school, student, AR, reference) and
+    # finance's Invoice carries NO unique constraint over those columns, so two
+    # concurrent activations of the same membership would both miss and both
+    # insert -- double-billing the family. Serialising on the membership row is
+    # the part athletics can own; the durable guard is a unique constraint on
+    # Invoice, which lives in apps/finance.
+    from apps.athletics.models import TeamMembership
+
+    TeamMembership.objects.select_for_update().filter(pk=membership.pk).first()
+
     school = membership.school
     kit_fee = (
         TeamKitFee.objects.filter(

@@ -66,6 +66,30 @@ DEFAULT_SUBSTITUTIONS: dict[str, str] = {
     "code": "493812",
     "time": "5:30 PM",
     "date": "2026-05-21",
+    # The catalog in apps/communication spells its variables out in full, and a
+    # placeholder with no entry here falls back to 16 chars. That fallback is a
+    # fiction for a day count or a clock time, and it inflates every body that
+    # uses one -- measuring a template as over-length when it is not is the same
+    # kind of false report as missing one that is. Worst case, but the real
+    # worst case.
+    "guardian_first_name": "Aleksandra",
+    "student_name": "Aleksandra Nowak",
+    "applicant_name": "Aleksandra Nowak",
+    "school_name": "Saint Sebastien",
+    "days_overdue": "120",
+    "delay_minutes": "120",
+    "invoice_reference": "INV-2026-004821",
+    "payment_reference": "PAY-2026-004821",
+    "absent_date": "2026-05-21",
+    "closure_date": "2026-05-21",
+    "effective_date": "2026-05-21",
+    "interview_date": "2026-05-21",
+    "arrival_time": "5:30 PM",
+    "interview_time": "5:30 PM",
+    "new_eta": "5:30 PM",
+    "route_name": "North Ridge Loop",
+    "weather_event": "heavy rainfall",
+    "location": "Main Hall, Block C",
 }
 GENERIC_FALLBACK = "x" * 16
 
@@ -78,6 +102,92 @@ def _substitute(template: str) -> str:
         return DEFAULT_SUBSTITUTIONS.get(key.lower(), GENERIC_FALLBACK)
 
     return PLACEHOLDER_RE.sub(_resolve, template)
+
+
+# Declarative catalogs: a dict of entries where one key lists the channels and
+# another holds the body. These do not live in a file whose NAME says sms, and
+# they are where every SMS the platform sends is actually written.
+#   module -> (dict name, channels key, body key)
+CHANNEL_CATALOGS: dict[str, tuple[str, str, str]] = {
+    "apps/communication/template_catalog.py": (
+        "COMMUNICATION_TEMPLATES",
+        "channels",
+        "body_template",
+    ),
+}
+
+
+def _catalog_census(rel: str, spec: tuple[str, str, str]) -> list[tuple[int, int, str]]:
+    """(rendered_length, lineno, name) for EVERY catalog entry that sends over sms.
+
+    Every entry, not just the over-length ones, because a gate that prints
+    nothing when it finds nothing is indistinguishable from a gate that is not
+    looking. This scanner spent its whole life reporting a clean zero while
+    reading a file that holds no SMS bodies at all; the census is what makes its
+    zero checkable by a person.
+    """
+    dict_name, channels_key, body_key = spec
+    path = REPO_ROOT / rel
+    if not path.is_file():
+        return []
+    try:
+        tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+    except (OSError, SyntaxError):
+        return []
+    census: list[tuple[int, int, str]] = []
+    for node in tree.body:
+        targets = (
+            [node.target]
+            if isinstance(node, ast.AnnAssign)
+            else getattr(node, 'targets', [])
+        )
+        if not any(getattr(t, 'id', None) == dict_name for t in targets):
+            continue
+        if not isinstance(node.value, ast.Dict):
+            continue
+        for key_node, entry_node in zip(node.value.keys, node.value.values):
+            if not isinstance(entry_node, ast.Dict):
+                continue
+            entry = {
+                k.value: v
+                for k, v in zip(entry_node.keys, entry_node.values)
+                if isinstance(k, ast.Constant)
+            }
+            channels_node = entry.get(channels_key)
+            channels = (
+                [c.value for c in channels_node.elts if isinstance(c, ast.Constant)]
+                if isinstance(channels_node, ast.List)
+                else []
+            )
+            if "sms" not in channels:
+                continue
+            body_node = entry.get(body_key)
+            try:
+                body = ast.literal_eval(body_node)
+            except (ValueError, TypeError, SyntaxError):
+                continue
+            if not isinstance(body, str):
+                continue
+            rendered = _substitute(body)
+            name = key_node.value if isinstance(key_node, ast.Constant) else "?"
+            census.append((len(rendered), entry_node.lineno, name))
+    return census
+
+
+def _catalog_findings(rel: str, spec: tuple[str, str, str]) -> list[str]:
+    """The census entries that will not fit in a single carrier segment."""
+    findings: list[str] = []
+    for length, lineno, name in _catalog_census(rel, spec):
+        if length <= MAX_SMS_CHARS:
+            continue
+        segments = -(-length // MAX_SMS_CHARS)
+        findings.append(
+            f"{rel}:{lineno}: "
+            f"rendered len={length} > {MAX_SMS_CHARS} "
+            f"({segments} SMS segments, {segments}x carrier cost per send) "
+            f"-- catalog entry {name!r}"
+        )
+    return findings
 
 
 def _is_sms_module(path: pathlib.Path) -> bool:
@@ -173,12 +283,24 @@ def scan_all() -> list[str]:
         if not _is_sms_module(py):
             continue
         findings.extend(scan_file(py))
-    return findings
+    # The bodies that actually get sent do not live in a file whose NAME says sms.
+    for rel, spec in CHANNEL_CATALOGS.items():
+        findings.extend(_catalog_findings(rel, spec))
+    return sorted(findings)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--strict", action="store_true")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="zero tolerance: fail on ANY over-length body, not just new ones",
+    )
+    parser.add_argument(
+        "--compare",
+        action="store_true",
+        help="accepted for runner uniformity; comparing to the baseline is the default",
+    )
     parser.add_argument("--update-baseline", action="store_true")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -198,7 +320,17 @@ def main() -> int:
         except (json.JSONDecodeError, ValueError):
             baseline_total = 0
 
-    if args.update_baseline or not BASELINE_PATH.exists():
+    if not BASELINE_PATH.exists() and not args.update_baseline:
+        # Authoring the reference during a checking run is how a ratchet quietly
+        # re-anchors to a regression. Refuse, and name the deliberate command.
+        print(
+            f"FAIL: no baseline at {BASELINE_PATH}. Generate it with "
+            "--update-baseline and COMMIT it.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if args.update_baseline:
         BASELINE_PATH.write_text(
             json.dumps(
                 {"finding_count": total, "findings": findings},
@@ -223,10 +355,36 @@ def main() -> int:
         print(f"baseline: {baseline_total}")
         for f in findings[:30]:
             print(f"  {f}")
+        # A pass/fail cliff hides the body sitting one character below it. Print
+        # the tightest entries so "0 findings" can be read as a measurement
+        # rather than taken on trust.
+        census: list[tuple[int, int, str]] = []
+        for rel, spec in CHANNEL_CATALOGS.items():
+            census.extend(_catalog_census(rel, spec))
+        if census:
+            print(f"headroom (of {len(census)} sms bodies, tightest first):")
+            for length, _lineno, name in sorted(census, reverse=True)[:5]:
+                left = MAX_SMS_CHARS - length
+                note = " <-- NO HEADROOM" if 0 <= left < 10 else ""
+                print(f"  {length:4d}/{MAX_SMS_CHARS}  {left:+4d} spare  {name}{note}")
 
-    if args.strict and total > baseline_total:
-        print(f"FAIL: {total} > baseline {baseline_total}", file=sys.stderr)
+    # Enforcing only under --strict meant the runner had to remember to ask for
+    # correctness, and it did not: this gate was wired to nothing and would have
+    # printed PASS anyway. A ratchet enforces by default; --strict raises the bar
+    # from "no new ones" to "none at all".
+    limit = 0 if args.strict else baseline_total
+    if total > limit:
+        print(
+            f"FAIL: {total} over-length SMS bod(ies) > limit {limit}. Each one "
+            "costs an extra carrier segment on EVERY send.",
+            file=sys.stderr,
+        )
         return 1
+    if total < baseline_total:
+        print(
+            f"OK: down to {total} from a baseline of {baseline_total}. "
+            "Run --update-baseline and commit it."
+        )
     return 0
 
 

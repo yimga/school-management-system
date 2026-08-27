@@ -3,7 +3,9 @@
 The raw token is returned exactly once from ``mint()`` and never persisted
 (sha256 only, constant-time compare), the consent text the guardian saw is
 recorded immutably (version + sha256), decision IP/UA are server-captured
-(XFF-first), and every transition is journaled best-effort. A membership
+(through the trusted-proxy-depth ``client_ip`` parse, never the client's own
+leftmost ``X-Forwarded-For`` hop), and every transition is journaled best-effort.
+A membership
 cannot leave ``PENDING`` (become ACTIVE) except through a CONSENTED row.
 """
 
@@ -220,13 +222,23 @@ class ParticipationConsent(models.Model):
     def _stamp_request(self, request) -> None:
         if request is None:
             return
-        # XFF-first: behind the proxy REMOTE_ADDR is the load balancer, and a
-        # constant infra IP is forensically worthless as consent evidence.
-        forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
-        if forwarded:
-            self.ip_address_decision = forwarded.split(",")[0].strip() or None
-        else:
-            self.ip_address_decision = request.META.get("REMOTE_ADDR") or None
+        # ``X-Forwarded-For`` is client-controlled to the LEFT: a reverse proxy
+        # appends its own observation on the RIGHT. This used to store
+        # ``forwarded[0]``, so anyone holding the token could send
+        # ``X-Forwarded-For: 1.2.3.4`` and CHOOSE the IP recorded as evidence of
+        # their own decision -- and the decision arrives on an anonymous,
+        # unauthenticated POST, so this column is the only thing standing behind
+        # a child-participation consent. A value the decider picks is not
+        # evidence. REMOTE_ADDR alone is not the answer either (behind a load
+        # balancer it is a constant infra address), which is why the repo has one
+        # trusted-proxy-depth parse: ``XFF[-RATE_LIMIT_TRUSTED_PROXY_COUNT]``.
+        # apps/compliance's IP readers are pinned onto the same helper.
+        from apps.api.rate_limit import client_ip
+
+        resolved = (client_ip(request) or "").strip()
+        # client_ip returns the literal "unknown" when there is no peer at all;
+        # ip_address_decision is a GenericIPAddressField, so store NULL instead.
+        self.ip_address_decision = resolved if resolved and resolved != "unknown" else None
         self.user_agent_decision = (request.META.get("HTTP_USER_AGENT") or "")[:256]
 
     def _audit(self, action: str) -> None:

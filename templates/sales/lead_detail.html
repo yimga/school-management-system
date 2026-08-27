@@ -11,10 +11,25 @@
   <p class="mb-1"><a href="{% url 'sales:pipeline_board' %}">{% trans "Back to pipeline" %}</a></p>
   <h1 class="h3">{{ lead.school_name }}</h1>
   <p class="text-muted small">{% trans "Created" %}: {{ lead.created_at }} — {% trans "Updated" %}: {{ lead.updated_at }}</p>
+  {% if error %}
+  <div class="alert alert-danger py-2 small" role="alert">{{ error }}</div>
+  {% endif %}
   <form method="post" class="mb-3">
     {% csrf_token %}
     <input type="hidden" name="save_lead" value="1">
     <div class="row g-2">
+      <div class="col-md-4">
+        <label class="form-label" for="contact_name">{% trans "Contact name" %}</label>
+        <input class="form-control form-control-sm" name="contact_name" id="contact_name" value="{{ lead.contact_name }}" maxlength="200">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="email">{% trans "Email" %}</label>
+        <input class="form-control form-control-sm" type="email" name="email" id="email" value="{{ email_value|default:lead.email }}" maxlength="254">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="phone">{% trans "Phone" %}</label>
+        <input class="form-control form-control-sm" name="phone" id="phone" value="{{ lead.phone }}" maxlength="64">
+      </div>
       <div class="col-md-6">
         <label class="form-label" for="stage_id">{% trans "Stage" %}</label>
         <select class="form-select form-select-sm" id="stage_id" name="stage_id">

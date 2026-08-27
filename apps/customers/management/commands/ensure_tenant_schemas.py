@@ -11,7 +11,7 @@ and before migrate_schemas --tenant to create missing schemas.
 Usage: python manage.py ensure_tenant_schemas [--dry-run]
 """
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 
 from apps.customers.repositories.schema_provisioning_repository import (
@@ -56,9 +56,22 @@ class Command(BaseCommand):
                 self.stdout.write(
                     "Would create schema: %s (Client %s)" % (schema_name, client.name)
                 )
-            else:
-                create_schema_if_not_exists(schema_name)
-                self.stdout.write("Created schema: %s" % schema_name)
+                created += 1
+                continue
+            # Verify by asking the database, not by assuming the call worked:
+            # this command runs in render_predeploy.sh / entrypoint.web.sh
+            # BETWEEN migrate_schemas --shared and --tenant, so a schema that
+            # was silently not created has to stop the deploy here rather than
+            # surface as an opaque --tenant failure one step later.
+            if not create_schema_if_not_exists(schema_name) or not schema_exists(
+                schema_name
+            ):
+                raise CommandError(
+                    "Could not create schema %r for Client %s (id=%s). Check that "
+                    "the schema name is a legal PostgreSQL identifier."
+                    % (schema_name, client.name, client.pk)
+                )
+            self.stdout.write("Created schema: %s" % schema_name)
             created += 1
         if created:
             self.stdout.write(

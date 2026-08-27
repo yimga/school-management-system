@@ -15,7 +15,11 @@ from apps.marketplace.models import (
 )
 from apps.marketplace.services import install_app, submit_marketplace_review
 from apps.schools.models import School
-from apps.schools.tests.manager_client import bind_manager_session, login_manager_control_plane
+from apps.schools.tests.manager_client import (
+    bind_manager_session,
+    login_manager_control_plane,
+    mark_manager_mfa_verified,
+)
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
@@ -73,8 +77,12 @@ class MarketplaceGovernanceTests(TestCase):
             defaults={"confirmed": True},
         )
         login_manager_control_plane(self.client, self.manager, password="pass1234")
-        self.client.session["mfa_verified"] = True
-        self.client.session.save()
+        # ``Client.session`` builds a NEW SessionStore on every attribute access,
+        # so ``client.session[k] = v`` followed by ``client.session.save()``
+        # mutates one store and saves a different one — the flag never lands and
+        # OperatorMfaRequiredMiddleware bounced every request in this class to
+        # /authentication/mfa/verify/. Use the sanctioned manager-host helper.
+        mark_manager_mfa_verified(self.client)
         bind_manager_session(self.client)
 
     def test_install_app_audit_includes_impact_snapshot(self):

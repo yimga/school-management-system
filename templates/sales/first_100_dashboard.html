@@ -29,6 +29,54 @@
     </div>
   </div>
 
+  <section class="card border-0 shadow-sm mb-4" data-rmc-pilot-evidence="1">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "Pilot evidence" %}</h2>
+      {% if not scorecard_ok %}
+      <p class="small text-muted mb-0">{% trans "Pilot scorecard could not be read." %}</p>
+      {% elif pilot_evidence.schema_issues %}
+      <ul class="small text-danger mb-0">
+        {% for issue in pilot_evidence.schema_issues %}
+        <li>{{ issue }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if pilot_evidence.north_star_metric %}
+      <p class="small text-muted mb-2">{% trans "North star" %}: {{ pilot_evidence.north_star_metric }}</p>
+      {% endif %}
+      <div class="table-responsive">
+        <!-- large-collection-allow: dashboard-widget-capped-list -->
+        <table class="table table-sm align-middle mb-0">
+          <caption class="visually-hidden">{% trans "Pilot evidence" %}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Slot" %}</th>
+              <th scope="col">{% trans_term "School" key="school" %}</th>
+              <th scope="col">{% trans "Region" %}</th>
+              <th scope="col">{% trans "Onboarding" %}</th>
+              <th scope="col">{% trans "Verdict" %}</th>
+              <th scope="col">{% trans "Reference" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pilot in pilot_evidence.pilots %}
+            <tr>
+              <td>{{ pilot.slot|default:"—" }}</td>
+              <td>{{ pilot.school_name|default:"—" }}</td>
+              <td>{{ pilot.country_region|default:"—" }}</td>
+              <td class="small">{{ pilot.onboarding_status|default:"—" }}</td>
+              <td class="small">{{ pilot.pilot_verdict|default:"—" }}</td>
+              <td class="small text-muted">{{ pilot.display_reference_note|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">{% trans "No pilot evidence recorded yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <div class="table-responsive">
     <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">

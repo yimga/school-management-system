@@ -51,11 +51,47 @@ def route_emergency_broadcast(request, *, body: str, media_urls: list[str] | Non
             _row_index[str(row.id)] = row
 
     # Drain emergency rows immediately (before any standard backlog worker).
-    emergency_ids = [str(r.id) for r in rows]
-    for row_id in emergency_ids:
+    #
+    # Drain THROUGH the heap, which is what makes "priority 0 jumps the standard
+    # backlog" an actual property of this code rather than a comment: heappop
+    # returns the lowest priority first, so our EMERGENCY entries come out ahead of
+    # any STANDARD entries already queued. The previous loop iterated
+    # ``emergency_ids`` directly and popped only ``_row_index``, so nothing ever
+    # left ``_heap`` -- no ``heappop`` existed in the module at all -- and every
+    # broadcast leaked one entry per integration for the life of the worker.
+    #
+    # Entries belonging to someone else are set aside and pushed back afterwards
+    # (rather than re-pushed inside the loop, which would spin on a concurrent
+    # broadcast's priority-0 entry).
+    remaining = {str(r.id) for r in rows}
+    deferred: list[tuple[int, float, str]] = []
+    while remaining:
+        with _lock:
+            if not _heap:
+                break
+            entry = heapq.heappop(_heap)
+        row_id = entry[2]
+        if row_id not in remaining:
+            deferred.append(entry)
+            continue
+        remaining.discard(row_id)
         with _lock:
             row = _row_index.pop(row_id, None)
         if not row:
+            continue
+        outcome = publisher.process_outbox_row(row)
+        if outcome.get("ok"):
+            posted += 1
+        else:
+            failed += 1
+    with _lock:
+        for entry in deferred:
+            heapq.heappush(_heap, entry)
+        # Anything still unaccounted for (a peer already popped our entry) must not
+        # be abandoned in _row_index -- drain it directly and keep the dict clean.
+        stragglers = [_row_index.pop(row_id, None) for row_id in remaining]
+    for row in stragglers:
+        if row is None:
             continue
         outcome = publisher.process_outbox_row(row)
         if outcome.get("ok"):

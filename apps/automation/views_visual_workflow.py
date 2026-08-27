@@ -277,9 +277,30 @@ def visual_workflow_publish(request):
     errs = validate_workflow_for_publish(wf.pk)
     if errs:
         return JsonResponse({"ok": False, "validation_errors": errs}, status=400)
-    wf.status = Workflow.Status.PUBLISHED
-    wf.save(update_fields=["status", "updated_at"])
-    return JsonResponse({"ok": True, "workflow_id": wf.pk, "status": wf.status})
+    # Publishing MUST snapshot the graph into a WorkflowVersion (Move 2). This
+    # endpoint used to only flip `status`, so no version row was ever written from
+    # the designer: `Workflow.current_version` stayed at 1 forever, the version
+    # history an operator sees was empty, and `bind_run_to_current_version` had to
+    # lazily invent a version at FIRST RUN — snapshotting whatever the canvas
+    # happened to contain then, which is not what was published. Republishing after
+    # an edit also produced no new snapshot, so every later run stayed pinned to
+    # that first accidental version.
+    from apps.automation.visual_workflow_versioning import (
+        publish_visual_workflow_version,
+    )
+
+    version = publish_visual_workflow_version(
+        wf, published_by=getattr(request, "user", None)
+    )
+    wf.refresh_from_db()
+    return JsonResponse(
+        {
+            "ok": True,
+            "workflow_id": wf.pk,
+            "status": wf.status,
+            "version_number": version.version_number,
+        }
+    )
 
 
 @require_http_methods(["POST"])

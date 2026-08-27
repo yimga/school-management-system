@@ -86,7 +86,14 @@ def fire_manifest_workflow_hooks(
 
     ctx = dict(context or {})
     ctx["_manifest_workflow_hooks"] = hooks
-    results.extend(fire(trigger_key, school=school, context=ctx))
+    # ``trigger_dispatcher.fire`` is ``fire(trigger_key, payload, *, school=None,
+    # actor=None)`` — ``payload`` is POSITIONAL and there is no ``context`` kwarg.
+    # Calling it as ``fire(key, school=..., context=...)`` raised TypeError on every
+    # invocation; the only production caller
+    # (``automation.domain_event_bridge.dispatch_domain_event_to_triggers``) swallows
+    # it with ``except Exception``, so manifest workflow hooks silently never ran.
+    # The existing unit test patches ``fire``, so the mock accepted the bad call.
+    results.extend(fire(trigger_key, ctx, school=school))
     return results
 
 

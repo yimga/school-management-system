@@ -82,6 +82,33 @@ def _open_ticket(
         return False
 
 
+DEFAULT_HEALTH_BELOW_THRESHOLD = 50  # magic-number-allow: auto-ticket health floor
+
+
+def rule_threshold(rule) -> int:
+    """``config['threshold']`` as an int, or the default when it is not one.
+
+    ``AutoTicketRule.config`` is a plain JSONField with no shape validation on
+    the model, and the operator UI only checks that the blob is a dict -- so
+    ``{"threshold": "high"}`` persists happily through both the UI and the
+    Django admin. A bare ``int()`` on that raised ValueError out of the rule
+    evaluator, and the runner's single outer transaction then rolled back every
+    ticket the OTHER rules had already opened in the same pass.
+    """
+    config = getattr(rule, "config", None)
+    raw = config.get("threshold") if isinstance(config, dict) else None
+    if raw in (None, ""):
+        return DEFAULT_HEALTH_BELOW_THRESHOLD
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        logger.warning(
+            "AutoTicketRule %s has a non-numeric threshold %r; using %s.",
+            getattr(rule, "pk", "?"), raw, DEFAULT_HEALTH_BELOW_THRESHOLD,
+        )
+        return DEFAULT_HEALTH_BELOW_THRESHOLD
+
+
 def _evaluate_rule_health_below(rule, *, now) -> int:
     """Threshold rule: scan TenantHealthScore rows below `threshold` since last 24h."""
 
@@ -89,7 +116,7 @@ def _evaluate_rule_health_below(rule, *, now) -> int:
         from apps.customersuccess.models import TenantHealthScore
     except ImportError:
         return 0
-    threshold = int(rule.config.get("threshold") or 50)
+    threshold = rule_threshold(rule)
     recent_since = now - timedelta(hours=24)
     qs = TenantHealthScore.objects.filter(  # tenant-isolation-allow: platform-operator-health-score-sweep-all-tenants
         score__lte=threshold, computed_at__gte=recent_since
@@ -168,9 +195,17 @@ def _evaluate_rule_risk_alert_red(rule, *, now) -> int:
     return fired
 
 
-@transaction.atomic
 def run_all_rules() -> dict:
-    """Evaluate every active AutoTicketRule. Returns counts per trigger."""
+    """Evaluate every active AutoTicketRule. Returns counts per trigger.
+
+    Each rule gets its OWN savepoint rather than sharing one outer atomic block.
+    Under the old shape a single bad row -- a non-numeric threshold, a deleted
+    school, anything -- raised through the whole pass, discarded the tickets
+    earlier rules had legitimately opened, and was swallowed by the beat task's
+    ``except Exception: return {}``. One malformed rule therefore disabled the
+    entire engine every 10 minutes, forever, with a worker-log traceback as the
+    only trace. A rule that fails now fails alone and is reported.
+    """
 
     try:
         from apps.customersuccess.models import AutoTicketRule
@@ -178,11 +213,23 @@ def run_all_rules() -> dict:
         return {}
     now = timezone.now()
     counts: dict[str, int] = {}
+    failures: dict[str, str] = {}
     for rule in AutoTicketRule.objects.filter(is_active=True):
-        if rule.trigger == AutoTicketRule.Trigger.HEALTH_BELOW:
-            counts[rule.name] = _evaluate_rule_health_below(rule, now=now)
-        elif rule.trigger == AutoTicketRule.Trigger.RISK_ALERT_RED:
-            counts[rule.name] = _evaluate_rule_risk_alert_red(rule, now=now)
-        # Other triggers (workflow_failure, inactivity_days) require domain
-        # signals not implemented here yet.
+        try:
+            with transaction.atomic():
+                if rule.trigger == AutoTicketRule.Trigger.HEALTH_BELOW:
+                    counts[rule.name] = _evaluate_rule_health_below(rule, now=now)
+                elif rule.trigger == AutoTicketRule.Trigger.RISK_ALERT_RED:
+                    counts[rule.name] = _evaluate_rule_risk_alert_red(rule, now=now)
+                # Other triggers (workflow_failure, inactivity_days) require
+                # domain signals not implemented here yet.
+        except Exception as exc:  # noqa: BLE001 -- one bad rule, not the pass
+            counts[rule.name] = 0
+            failures[rule.name] = type(exc).__name__
+            logger.exception(
+                "AutoTicketRule %s (%s) failed; other rules continue.",
+                getattr(rule, "pk", "?"), rule.name,
+            )
+    if failures:
+        counts["_failed_rules"] = failures
     return counts

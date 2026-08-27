@@ -20,21 +20,65 @@ from apps.automation.workflow_limits import MAX_DOMAIN_EVENT_CHAIN_DEPTH
 _DOMAIN_EVENT_DEDUP_TTL_SECONDS = 86_400
 
 # Domain event_type may differ from workflow trigger keys (aliases).
+#
+# THIS IS AN ALIAS TABLE, NOT A RENAME. An event_type that is missing here
+# resolves to None and the bridge returns without firing anything — no
+# AutomationExecutionLog row, and no marketplace manifest workflow hook. Every
+# name a producer actually emits must appear.
+#
+# The canonical ``domain.action`` names below are the ones the product really
+# emits through ``apps.events.services.emit_event`` (see apps/finance/services.py,
+# apps/academics/signals.py, apps/people/signals.py, apps/evals/approval.py) and
+# the ones ``apps.events.catalog.EVENT_CATALOG`` declares. They were absent, so
+# EVERY live domain event fell through and the bridge fired for nothing but the
+# synthetic underscore names used in tests. ``test_domain_event_bridge_catalog_
+# coverage`` now fails if a catalog type that has a home trigger key loses it.
 _EVENT_TYPE_TO_TRIGGER: dict[str, str] = {
     "attendance_saved": "attendance_saved",
     "attendance.saved": "attendance_saved",
+    # canonical catalog name emitted by academics/people signals
+    "attendance.recorded": "attendance_saved",
+    "attendance_marked": "attendance_saved",
     "payment_success": "payment_success",
     "payment.success": "payment_success",
     "payment_received": "payment_success",
+    # canonical catalog name emitted by apps/finance/services.py
+    "payment.received": "payment_success",
     "payment_failed": "payment_failed",
     "payment.failed": "payment_failed",
     "report_generated": "report_generated",
+    "report.generated": "report_generated",
+    "report_published": "report_generated",
     "marks_submitted": "marks_submitted",
     "grade_submitted": "marks_submitted",
+    # canonical catalog name emitted by apps/evals/approval.py
+    "grade.published": "marks_submitted",
     "student_risk_detected": "student_risk_detected",
+    "student.risk_detected": "student_risk_detected",
     "app_installed": "app_installed",
+    "app.installed": "app_installed",
     "offline_action_conflict": "offline_action_conflict",
+    "offline.action_conflict": "offline_action_conflict",
 }
+
+# Catalog event types that deliberately have NO workflow trigger key: there is no
+# member of FULL_TRIGGER_CATALOG_KEYS they could route to, so resolving them would
+# mean inventing a trigger the designer cannot offer. Listed explicitly so the
+# coverage test can tell "intentionally unrouted" from "silently forgotten".
+UNROUTED_CATALOG_EVENT_TYPES: frozenset[str] = frozenset(
+    {
+        "student.created",
+        "student.updated",
+        "applicant.admitted",
+        "invoice.created",
+        "enrollment.created",
+        "blueprint.applied",
+        "parent.notified",
+        "workflow.triggered",
+        "migration.started",
+        "migration.completed",
+    }
+)
 
 
 def resolve_trigger_key(event_type: str) -> str | None:
@@ -44,6 +88,28 @@ def resolve_trigger_key(event_type: str) -> str | None:
     if et in FULL_TRIGGER_CATALOG_KEYS:
         return et
     return _EVENT_TYPE_TO_TRIGGER.get(et)
+
+
+def workflow_trigger_aliases_for_event_type(event_type: str) -> set[str]:
+    """Every trigger name a workflow could carry for this event_type.
+
+    A ``Workflow.trigger_event`` stores one of the ``Workflow.Trigger`` values
+    (``payment_success`` / ``payment_received`` / …) while a ``DomainEvent`` carries
+    the canonical catalog name (``payment.received``). Console surfaces that
+    correlate the two must compare through the alias table, not by string equality,
+    or they report "no automation listens to this event" for every real event.
+    """
+    et = (event_type or "").strip()
+    if not et:
+        return set()
+    names = {et}
+    key = resolve_trigger_key(et)
+    if key:
+        names.add(key)
+        names.update(
+            alias for alias, target in _EVENT_TYPE_TO_TRIGGER.items() if target == key
+        )
+    return names
 
 
 def _domain_event_already_dispatched(domain_event_id: Any) -> bool:
@@ -137,7 +203,9 @@ def _on_domain_event(domain_event: Any) -> None:
 
 
 __all__ = [
+    "UNROUTED_CATALOG_EVENT_TYPES",
     "dispatch_domain_event_to_triggers",
     "register_domain_event_trigger_subscriber",
     "resolve_trigger_key",
+    "workflow_trigger_aliases_for_event_type",
 ]

@@ -2,9 +2,10 @@
 """Install RunMyCampus git hooks from the version-controlled ``.githooks/`` dir.
 
 Right now this installs a single ``pre-push`` hook that runs the fast, deps-free
-architectural-boundary gates (see ``scripts/pre_push_boundary_check.py``). It is
-warn-only by default, so installing it never risks wedging a push; flip
-``RMC_PREPUSH_STRICT=1`` when you want red gates to block.
+architectural-boundary gates (see ``scripts/pre_push_boundary_check.py``). It has
+been ENFORCING by default since 2026-08-21: a red gate aborts the push, because
+nothing downstream still checks -- Actions has started no job since 2026-08-15.
+Set ``RMC_PREPUSH_STRICT=0`` to push past a gate you have already understood.
 
 Run once per clone (hooks are not themselves version-controlled — only the
 templates in ``.githooks/`` are)::
@@ -89,7 +90,7 @@ def install() -> int:
         print(f"  + {name}: installed -> {target}")
         changed += 1
     if changed:
-        print("Done. pre-push runs in WARN mode; set RMC_PREPUSH_STRICT=1 to block red pushes.")
+        print("Done. pre-push ENFORCES: red gates abort the push. Override: RMC_PREPUSH_STRICT=0.")
     else:
         print("Nothing to do; hooks already current.")
     return 0

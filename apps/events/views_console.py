@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -118,11 +119,20 @@ def event_domain_detail(request, event_id):
 
     matching_visual_workflows = []
     try:
+        from apps.automation.domain_event_bridge import (
+            workflow_trigger_aliases_for_event_type,
+        )
         from apps.automation.workflow_graph_models import Workflow
 
+        # A workflow stores a Workflow.Trigger value (`payment_success`), the event
+        # carries the canonical catalog name (`payment.received`). Comparing them
+        # with `=` made this panel permanently empty for every real event.
         matching_visual_workflows = list(
             Workflow.objects.filter(
-                school=request.school, trigger_event=ev.event_type
+                school=request.school,
+                trigger_event__in=sorted(
+                    workflow_trigger_aliases_for_event_type(ev.event_type)
+                ),
             ).order_by("-updated_at")[:8]
         )
     except Exception:
@@ -229,8 +239,16 @@ def event_replay(request):
 
     if source == "domain":
         raw_id = (request.POST.get("domain_event_id") or "").strip()
+        # DomainEvent.pk is a UUIDField: filter(pk="not-a-uuid") raises
+        # ValidationError, i.e. a 500 on a malformed POST body rather than the 404
+        # this view already produces for an id that simply is not this tenant's.
+        # The replay_domain_events management command validates the same way.
+        try:
+            event_uuid = uuid.UUID(raw_id)
+        except (ValueError, AttributeError, TypeError):
+            raise Http404("Domain event not found for this tenant.")
         ev = DomainEvent.objects.filter(
-            pk=raw_id, school_id=request.school.pk
+            pk=event_uuid, school_id=request.school.pk
         ).first()
         if ev is None:
             raise Http404("Domain event not found for this tenant.")

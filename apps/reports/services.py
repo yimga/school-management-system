@@ -1192,7 +1192,12 @@ def annual_report_context(student: StudentProfile, academic_year) -> dict:
         "demotion_average": thresholds.get("demotion_average"),
         "teacher_remark": _auto_teacher_remark(annual_average, school=school),
         "labels": labels,
-        "metadata": _school_report_metadata(),
+        # Pass the school. Without it this resolved the SHARED platform singleton
+        # (apps.siteconfig is a SHARED_APP), so every tenant's annual report card
+        # and every frozen transcript snapshot (student360.build_transcript_snapshot
+        # persists this dict) carried the platform's site_name / school_code /
+        # ministry instead of the school's own. term_report_context already passes it.
+        "metadata": _school_report_metadata(school),
         "school": school,
     }
     ctx.update(_region_display_context(school))

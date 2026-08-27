@@ -66,7 +66,35 @@ def schedule_fixture(
             end=end,
         )
 
+    if fixture.fixture_type == Fixture.FixtureType.AWAY:
+        _plan_away_travel(fixture)
+
     return fixture
+
+
+def _plan_away_travel(fixture) -> None:
+    """Open the ``FixtureTravel`` row for an away fixture (route still unset).
+
+    ``link_away_fixture_transport`` had no caller anywhere in the repo, so
+    ``FixtureTravel`` -- a first-class model on the mounted tenant admin --
+    was never created by the product and scheduling an AWAY fixture booked no
+    transport at all. The service documents ``route=None`` as a valid state
+    ("travel row without a route yet"), which is exactly what a just-scheduled
+    away fixture needs: it becomes visible to transport planning instead of
+    invisible to it, and the operator attaches the route afterwards.
+
+    Best-effort inside its own savepoint: a transport problem must not roll back
+    the fixture the coach just scheduled.
+    """
+    try:
+        with transaction.atomic():
+            from apps.athletics.services.transport import link_away_fixture_transport
+
+            link_away_fixture_transport(fixture=fixture)
+    except Exception:  # noqa: BLE001 -- transport never costs the fixture
+        logger.warning(
+            "away_fixture_travel_not_planned fixture=%s", fixture.pk, exc_info=True
+        )
 
 
 def _outcome_for_team(*, fixture_type: str, home_score: int, away_score: int) -> str:

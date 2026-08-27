@@ -193,9 +193,23 @@ def _concrete_field_names(model) -> set[str]:
 
 
 def _related_prefix_ok(column: str, allowed: set[str]) -> bool:
+    """Allow a related traversal only when NO segment of it names a secret.
+
+    ``allowed`` is the DLP-filtered set of the model's own concrete fields, so
+    checking the head alone put every secret exactly one join away. ``person``
+    (``accounts.User``) is an explicitly DENIED entity, yet
+    ``guardian_user__password`` on ``parent_guardian`` -- and ``user__password``
+    on ``student`` / ``staff`` -- were accepted as columns, landed in
+    ``.values(...)``, and shipped every guardian's password hash in the CSV. The
+    same hole let ``school__settings`` dump the tenant's whole settings blob.
+    Screening every segment keeps the deny list meaningful across a hop.
+    """
     if "__" not in column:
         return False
-    head = column.split("__", 1)[0]
+    segments = column.split("__")
+    if any(_is_secret_field(segment) for segment in segments):
+        return False
+    head = segments[0]
     return head in allowed or f"{head}_id" in allowed
 
 

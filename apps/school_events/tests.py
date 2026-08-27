@@ -273,7 +273,9 @@ class SchoolEventsTests(TestCase):
         self.tier.refresh_from_db()
         self.assertEqual(self.tier.sold_quantity, 3)
 
-        released = expire_stale_reservations(older_than_minutes=45)
+        # school= is now required (see UnscopedExpirySweepTests): with no
+        # school predicate the sweep spans every tenant sharing the schema.
+        released = expire_stale_reservations(older_than_minutes=45, school=self.school)
         self.assertEqual(released, 1)
         stale.refresh_from_db()
         fresh.refresh_from_db()
@@ -913,3 +915,249 @@ class OperationsSnapshotFanoutTests(TestCase):
         snap = self._snapshot()
         self.assertEqual(snap["open_registrations"], 3)
         self.assertEqual(snap["sponsor_commitments"], 2)
+
+
+class UnscopedExpirySweepTests(TestCase):
+    """``expire_stale_reservations`` must not sweep every tenant on the box.
+
+    Under ``USE_DJANGO_TENANTS=0`` (the sovereign edge) one schema holds every
+    school's rows, so a queryset with no school predicate is a cross-tenant
+    write. The sweep's base queryset was
+    ``EventRegistration.objects.filter(status=RESERVED, created_at__lt=cutoff)``
+    and the school filter was applied only when the caller passed one -- and its
+    only caller, the ``expire_stale_event_reservations`` command, defaults
+    ``--school-id`` to ``\"\"`` and therefore passed ``school=None``. One operator
+    running the documented sweep CANCELLED up to 500 held tickets belonging to
+    every school on the box and decremented their tiers' ``sold_quantity``.
+
+    The fix is not to guess a school: it is to make the unscoped sweep something
+    an operator has to ASK for (``--all-schools`` / ``all_schools=True``), so the
+    default is a refusal rather than a silent fan-out.
+    """
+
+    def setUp(self):
+        self.a = School.objects.create(
+            name="Sweep A", slug="sweep-a", subdomain="sweep-a", is_active=True
+        )
+        self.b = School.objects.create(
+            name="Sweep B", slug="sweep-b", subdomain="sweep-b", is_active=True
+        )
+        self.buyer = User.objects.create_user(
+            username="sweep-buyer", email="sweep@example.com", password="pass1234"
+        )
+        self.reg_a = self._stale_hold(self.a, "a")
+        self.reg_b = self._stale_hold(self.b, "b")
+
+    def _stale_hold(self, school, tag):
+        event = SchoolEvent.objects.create(
+            school=school, title=f"Gala {tag}", slug=f"gala-{tag}",
+            status=SchoolEvent.Status.PUBLISHED, organizer_name="Advancement",
+            start_at=timezone.now() + timedelta(days=4),
+            is_public=True, ticketing_enabled=True,
+        )
+        tier = EventTicketTier.objects.create(
+            event=event, name="General", code=f"gen-{tag}",
+            price=Decimal("25.00"), capacity=50, sold_quantity=0,
+        )
+        registration = register_for_tier(
+            event=event, tier=tier, purchaser=self.buyer, quantity=1
+        )
+        EventRegistration.objects.filter(pk=registration.pk).update(
+            created_at=timezone.now() - timedelta(minutes=90)
+        )
+        return registration
+
+    def test_a_sweep_with_no_school_refuses_instead_of_crossing_tenants(self):
+        from apps.school_events.services import expire_stale_reservations
+
+        with self.assertRaises(ValueError):
+            expire_stale_reservations(older_than_minutes=45)
+
+        self.reg_a.refresh_from_db()
+        self.reg_b.refresh_from_db()
+        self.assertEqual(self.reg_a.status, EventRegistration.Status.RESERVED)
+        self.assertEqual(self.reg_b.status, EventRegistration.Status.RESERVED)
+
+    def test_a_scoped_sweep_touches_only_that_school(self):
+        from apps.school_events.services import expire_stale_reservations
+
+        released = expire_stale_reservations(older_than_minutes=45, school=self.a)
+
+        self.assertEqual(released, 1)
+        self.reg_a.refresh_from_db()
+        self.reg_b.refresh_from_db()
+        self.assertEqual(self.reg_a.status, EventRegistration.Status.CANCELED)
+        self.assertEqual(
+            self.reg_b.status, EventRegistration.Status.RESERVED,
+            "school B's held ticket must survive a sweep of school A",
+        )
+
+    def test_all_schools_is_available_but_must_be_asked_for(self):
+        from apps.school_events.services import expire_stale_reservations
+
+        released = expire_stale_reservations(older_than_minutes=45, all_schools=True)
+
+        self.assertEqual(released, 2)
+
+    def test_the_management_command_will_not_sweep_every_tenant_by_default(self):
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+
+        with self.assertRaises(CommandError):
+            call_command("expire_stale_event_reservations")
+
+        self.reg_a.refresh_from_db()
+        self.reg_b.refresh_from_db()
+        self.assertEqual(self.reg_a.status, EventRegistration.Status.RESERVED)
+        self.assertEqual(self.reg_b.status, EventRegistration.Status.RESERVED)
+
+    def test_the_management_command_scoped_to_one_school_still_works(self):
+        from django.core.management import call_command
+
+        call_command("expire_stale_event_reservations", f"--school-id={self.a.pk}")
+
+        self.reg_a.refresh_from_db()
+        self.reg_b.refresh_from_db()
+        self.assertEqual(self.reg_a.status, EventRegistration.Status.CANCELED)
+        self.assertEqual(self.reg_b.status, EventRegistration.Status.RESERVED)
+
+
+class PaidTicketHasAnInvoiceTests(TestCase):
+    """Registering for a PAID tier must raise the AR invoice that settles it.
+
+    ``create_ticket_invoice_for_registration`` existed with zero non-test
+    callers. The only in-product way to reach a paid tier is
+    ``register_for_event``, which left the row RESERVED with ``amount_due`` set
+    and nothing owing anywhere in finance -- so a family had nothing to pay, the
+    webhook had no invoice to settle, and ``expire_stale_reservations`` cancelled
+    the hold 45 minutes later. The webhook side of the link
+    (``_registration_id_for_invoice``) is live now; this is the other half.
+
+    A FREE tier must NOT raise an invoice: it lands CONFIRMED with nothing due.
+    """
+
+    def setUp(self):
+        from apps.finance.models import ComplianceProfile
+
+        self.env = patch.dict(
+            os.environ,
+            {
+                "MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+                "MULTI_TENANT_LEGACY_BASE_DOMAINS": "",
+            },
+            clear=False,
+        )
+        self.env.start()
+        self.addCleanup(self.env.stop)
+        self.school = School.objects.create(
+            name="Invoice School", slug="inv-school",
+            subdomain="inv-school", is_active=True,
+        )
+        self.profile = ComplianceProfile.objects.create(
+            name="Invoice profile", country_code="CM", is_active=True
+        )
+        self.buyer = User.objects.create_user(
+            username="inv-buyer", email="inv-buyer@example.com", password="pass1234"
+        )
+        SchoolMembership.objects.create(
+            user=self.buyer, school=self.school,
+            role=User.Role.PARENT, is_primary=True,
+        )
+        self.event = SchoolEvent.objects.create(
+            school=self.school, title="Paid Gala", slug="paid-gala",
+            status=SchoolEvent.Status.PUBLISHED, organizer_name="Advancement",
+            start_at=timezone.now() + timedelta(days=6),
+            is_public=True, ticketing_enabled=True,
+        )
+        self.paid_tier = EventTicketTier.objects.create(
+            event=self.event, name="Paid", code="paid",
+            price=Decimal("25.00"), capacity=50, sold_quantity=0,
+        )
+        self.free_tier = EventTicketTier.objects.create(
+            event=self.event, name="Free", code="free",
+            price=Decimal("0.00"), capacity=50, sold_quantity=0,
+        )
+        self.client = Client(HTTP_HOST=f"{self.school.subdomain}.runmycampus.com")
+        self.client.force_login(
+            self.buyer, backend="django.contrib.auth.backends.ModelBackend"
+        )
+        session = self.client.session
+        session["mfa_verified"] = True
+        session["school_id"] = str(self.school.id)
+        session.save()
+
+    def _register(self, tier):
+        return self.client.post(
+            reverse(
+                "school_events:register_for_event",
+                kwargs={"slug": self.event.slug},
+                urlconf="config.tenant_urls",
+            ),
+            {"ticket_tier_id": str(tier.pk), "quantity": "1"},
+        )
+
+    def test_a_paid_registration_raises_an_ar_invoice_linked_back_to_it(self):
+        from apps.finance.models import Invoice
+
+        response = self._register(self.paid_tier)
+        self.assertEqual(response.status_code, 302)
+
+        registration = EventRegistration.objects.get(ticket_tier=self.paid_tier)
+        self.assertEqual(registration.status, EventRegistration.Status.RESERVED)
+        invoice_id = (registration.metadata or {}).get("invoice_id")
+        self.assertIsNotNone(
+            invoice_id,
+            "a RESERVED paid hold with no invoice can never be paid, and the "
+            "stale-hold sweep cancels it 45 minutes later",
+        )
+        invoice = Invoice.objects.get(pk=invoice_id)
+        self.assertEqual(invoice.school_id, self.school.id)
+        self.assertEqual(invoice.total_amount, Decimal("25.00"))
+
+    def test_the_invoice_raised_by_the_product_settles_the_hold_on_a_webhook(self):
+        """End to end: the two halves of the link must meet."""
+        from apps.finance.models import Invoice
+        from apps.finance.views_payments import _maybe_confirm_event_registration
+
+        self._register(self.paid_tier)
+        registration = EventRegistration.objects.get(ticket_tier=self.paid_tier)
+        invoice = Invoice.objects.get(pk=registration.metadata["invoice_id"])
+
+        _maybe_confirm_event_registration(
+            payload={},  # a real gateway callback carries no registration id
+            invoice=invoice,
+            amount=Decimal("25.00"),
+            method="psp",
+            reference="psp-e2e-1",
+        )
+
+        registration.refresh_from_db()
+        self.assertEqual(registration.status, EventRegistration.Status.CONFIRMED)
+
+    def test_a_free_registration_raises_no_invoice(self):
+        from apps.finance.models import Invoice
+
+        self._register(self.free_tier)
+
+        registration = EventRegistration.objects.get(ticket_tier=self.free_tier)
+        self.assertEqual(registration.status, EventRegistration.Status.CONFIRMED)
+        self.assertIsNone((registration.metadata or {}).get("invoice_id"))
+        self.assertEqual(Invoice.objects.count(), 0)
+
+    def test_a_non_numeric_tier_id_is_a_form_error_not_a_500(self):
+        """``get_object_or_404`` converts DoesNotExist -- not ValueError.
+
+        ``ticket_tier_id=abc`` reached ``AutoField.get_prep_value`` and raised
+        ValueError out of the view as an unhandled 500 (quantity had a
+        try/except; the tier id did not).
+        """
+        response = self.client.post(
+            reverse(
+                "school_events:register_for_event",
+                kwargs={"slug": self.event.slug},
+                urlconf="config.tenant_urls",
+            ),
+            {"ticket_tier_id": "abc", "quantity": "1"},
+        )
+        self.assertIn(response.status_code, (302, 404))
+        self.assertEqual(EventRegistration.objects.count(), 0)

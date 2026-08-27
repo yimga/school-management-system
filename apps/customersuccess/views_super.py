@@ -216,6 +216,8 @@ def api_intervention_suggestions(request):
 def api_tenant_health(request):
     """GET: Tenant health scores. Query: school_id (optional). Computes and stores if missing for today."""
     school_id = request.GET.get("school_id", "").strip()
+    from django.db.models import OuterRef, Subquery
+
     from .services import ensure_health_score_record
     from .models import TenantHealthScore
 
@@ -245,36 +247,47 @@ def api_tenant_health(request):
         )
 
     # All tenants: page through active schools instead of silently truncating at 200.
+    #
+    # READ-ONLY. This used to call ensure_health_score_record() per school, and
+    # that call is 10-14 queries plus up to 5 INSERTs (health score, two risk
+    # signal syncs, the inactivity alert). At ?limit=1000 a single GET issued on
+    # the order of ten thousand queries and thousands of row creations, which
+    # the request timeout cut off partway and left a half-swept alert set. The
+    # daily beat (customersuccess-sweep-tenant-health) is the writer; this
+    # endpoint reports what the beat persisted, via one annotated query.
     limit = _bounded_limit(request.GET.get("limit"), 200, 1000)
     try:
         offset = max(0, int(request.GET.get("offset", 0)))
     except (TypeError, ValueError):
         offset = 0
-    schools = School.objects.filter(is_active=True).order_by("name")
-    total_count = schools.count()
+    latest_score = TenantHealthScore.objects.filter(school_id=OuterRef("pk")).order_by(
+        "-computed_at"
+    )
+    schools = (
+        School.objects.filter(is_active=True)
+        .order_by("name")
+        .annotate(
+            latest_health_score=Subquery(latest_score.values("score")[:1]),
+            latest_health_dimensions=Subquery(latest_score.values("dimensions")[:1]),
+            latest_health_at=Subquery(latest_score.values("computed_at")[:1]),
+        )
+    )
+    total_count = School.objects.filter(is_active=True).count()
     out = []
     for school in schools[offset : offset + limit]:
-        try:
-            ensure_health_score_record(school)
-            latest = (
-                TenantHealthScore.objects.filter(school=school)
-                .order_by("-computed_at")
-                .first()
-            )
-        except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
+        if school.latest_health_at is None:
             continue
-        if latest:
-            _append_if_serializable(
-                out,
-                lambda school=school, latest=latest: {
-                    "school_id": str(school.id),
-                    "name": school.name,
-                    "slug": school.slug,
-                    "score": str(latest.score),
-                    "dimensions": latest.dimensions,
-                    "computed_at": latest.computed_at.isoformat(),
-                },
-            )
+        _append_if_serializable(
+            out,
+            lambda school=school: {
+                "school_id": str(school.id),
+                "name": school.name,
+                "slug": school.slug,
+                "score": str(school.latest_health_score),
+                "dimensions": school.latest_health_dimensions,
+                "computed_at": school.latest_health_at.isoformat(),
+            },
+        )
     return JsonResponse(
         {
             "tenants": out,
@@ -361,11 +374,9 @@ def customer_success_dashboard(request):
         lambda: list(School.objects.filter(is_active=True).order_by("name")[:dashboard_limit]),
         [],
     )
-    for school in active_schools:
-        try:
-            ensure_health_score_record(school)
-        except CUSTOMER_SUCCESS_VIEW_SOFT_FAILURES:
-            pass
+    # READ-ONLY, like api_tenant_health: this loop recomputed and INSERTed a
+    # health score plus risk signals for up to 200 schools on the operator's
+    # default landing page. The daily sweep task owns that write.
 
     alerts = _safe_customer_success_dashboard_section(
         lambda: list(

@@ -87,25 +87,57 @@ def _rollback_students(run, rollback_run) -> dict[str, Any]:
 @register_rollback_handler("grades")
 def _rollback_grades(run, rollback_run) -> dict[str, Any]:
     """
-    Delete Evaluation records that were created or updated in this migration run.
-    rollback_snapshot: {"created_ids": [...], "updated_ids": [...]} from evals apply_import.
+    Delete Evaluation records this run CREATED. Rows it merely UPDATED are left alone.
+
+    rollback_snapshot: {"created_ids": [...], "updated_ids": [...]} from
+    ``apps.evals.importers.apply_import_from_preview``. That importer appends to
+    ``updated_ids`` the pks of Evaluation rows that ALREADY EXISTED and were
+    upserted in place (``was_created is False``) — a pre-existing grade whose score
+    the import refreshed. Deleting those is not a revert, it is destruction of data
+    the migration never created: a rollback of a grades import that touched 500
+    existing evaluations used to delete all 500 rows outright, and the prior scores
+    are unrecoverable because the importer snapshots no old values.
+
+    So: created rows are deleted (school-scoped, like every other handler), and
+    in-place updates are reported honestly as not automatically revertible — the
+    same contract ``_rollback_finance`` and ``_rollback_alumni`` already state.
     """
     from apps.evals.models import Evaluation
 
     snapshot = run.rollback_snapshot or {}
     created_ids = snapshot.get("created_ids") or []
     updated_ids = snapshot.get("updated_ids") or []
-    ids = list(created_ids) + list(updated_ids)
-    if not ids:
+    if not created_ids and not updated_ids:
         return {
             "success": True,
             "message": "No created_ids/updated_ids in snapshot; nothing to revert.",
             "reverted_count": 0,
         }
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    qs = Evaluation.objects.filter(pk__in=ids)
-    count = qs.count()
-    qs.delete()
+
+    count = 0
+    if created_ids:
+        school = getattr(run, "school", None)
+        if not school:
+            return {"success": False, "message": "Run has no school.", "reverted_count": 0}
+        # Evaluation has no direct school FK; scope through the student, the same
+        # field-aware scoping the guardians handler uses, so a rollback can never
+        # reach another school's marks.
+        qs = Evaluation.objects.filter(  # tenant-isolation-allow: scoped via student__school=school
+            pk__in=created_ids, student__school=school
+        )
+        count = qs.count()
+        qs.delete()
+
+    if updated_ids:
+        note = (
+            f"Deleted {count} grade record(s) created by this run. "
+            f"{len(updated_ids)} pre-existing evaluation(s) were updated in place and are "
+            "NOT reverted — the importer records no prior score, so deleting them would "
+            "destroy grades this migration did not create. Re-import the correct marks "
+            "to restore them."
+        )
+        return {"success": True, "message": note, "reverted_count": count}
+
     return {
         "success": True,
         "message": f"Deleted {count} grade record(s).",
