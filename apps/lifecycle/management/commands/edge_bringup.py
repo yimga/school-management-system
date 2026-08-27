@@ -85,7 +85,18 @@ class Command(BaseCommand):
                 self.stdout.write("  (no prep actions — verification + sync gate only)")
             for i, a in enumerate(actions, 1):
                 self.stdout.write(f"  {i}. {a['key']}: manage.py {a['cmd']} {' '.join(a['args'])}")
-            self.stdout.write("  -> then: run_verification_suite + MANDATORY sync gate")
+            # A dry run that under-describes what follows is worse than none:
+            # somebody reads it to decide whether to let the real one proceed.
+            self.stdout.write("  -> then: run_verification_suite + self-heal")
+            self.stdout.write("  -> then: MANDATORY pre-offline sync gate (dry)")
+            if not options["skip_go_dark"]:
+                self.stdout.write(
+                    "  -> then: ONE LIVE sync round-trip, then the go-dark checklist"
+                )
+            else:
+                self.stdout.write(
+                    "  -> --skip-go-dark: stops after the gate; cannot report converged"
+                )
             return
 
         report = run_edge_bringup(
