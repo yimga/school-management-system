@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-08-23T09:43:04.974207+00:00",
+  "generated_at": "2026-08-23T17:23:04.571213+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -216,6 +216,30 @@
       "classification": "migration_safe",
       "file": "apps/accounts/migrations/0045_rls_policy_default_deny.py",
       "line": "38",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/accounts/migrations/0062_rls_feature_permission_scope.py",
+      "line": "22",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/accounts/migrations/0062_rls_feature_permission_scope.py",
+      "line": "30",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/accounts/migrations/0062_rls_feature_permission_scope.py",
+      "line": "38",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/accounts/migrations/0062_rls_feature_permission_scope.py",
+      "line": "55",
       "pattern": "connection_cursor"
     },
     {
@@ -1660,6 +1684,18 @@
     },
     {
       "classification": "migration_safe",
+      "file": "apps/school_events/migrations/0004_rls_fk_scoped_children.py",
+      "line": "88",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/school_events/migrations/0004_rls_fk_scoped_children.py",
+      "line": "112",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/schoolops/migrations/0002_materialize_tenant_tables.py",
       "line": "10",
       "pattern": "connection_cursor"
@@ -2603,6 +2639,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 433
+    "hits": 439
   }
 }
