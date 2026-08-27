@@ -1831,9 +1831,20 @@ class TheBootstrapStoppedAskingForThingsTests(SimpleTestCase):
     def test_the_closing_notes_admit_the_two_files_start_out_together(self):
         # They do, and pretending otherwise is worse than the arrangement itself:
         # together in one place the encryption bought you nothing.
+        #
+        # 2026-08-27: the wording this used to pin ("so they stop sitting together")
+        # was replaced because it was ACTIVELY HARMFUL. It said "move ONE of these",
+        # and an operator who moved the PASSPHRASE was punished for it -- the next run
+        # found no passphrase file, minted a new one, re-encrypted the bundle and
+        # overwrote it, so the copy they had carefully stored opened nothing. Moving
+        # the BUNDLE is safe; moving the passphrase was not, and nothing said so.
+        # The property this test exists for is unchanged; the banner now also names
+        # which of the two to take.
         script = self._script()
         self.assertIn("$PASSPHRASE_FILE", script)
-        self.assertIn("so they stop sitting together", script)
+        self.assertIn("the encryption bought you nothing", script)
+        self.assertIn("Move the BUNDLE off this machine -- not the passphrase", script)
+        self.assertNotIn("Move ONE of these off this machine", script)
 
     def test_the_console_payloads_are_written_every_run(self):
         script = self._script()

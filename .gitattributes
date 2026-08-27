@@ -1,5 +1,11 @@
 * text=auto
 
+# A shell script with CRLF does not run on Linux: bash reports $'\r': command not
+# found on the first line that matters, which reads as a missing binary rather than a
+# line-ending problem. These are checked out and executed on the box, so the WORKING
+# TREE must be LF everywhere -- text=auto only normalises the index.
+*.sh text eol=lf
+
 # CI/gates compare these artifacts byte-for-byte; enforce LF.
 requirements.txt text eol=lf
 docs/generated/*.md text eol=lf

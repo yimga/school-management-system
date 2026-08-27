@@ -68,12 +68,32 @@ command -v docker >/dev/null 2>&1 || die "docker is not on PATH."
 # event log. What changed is that not having one is no longer a reason to stop: an
 # operator who is made to invent a secret here either picks a weak one or loses it,
 # and both of those end with an unrecoverable box.
+SKIP_CA_EXPORT=0
 if [ -z "${RMC_EDGE_TLS_CA_PASSPHRASE:-}" ]; then
   if [ -s "$PASSPHRASE_FILE" ]; then
     # Reused, not regenerated. A second passphrase would re-encrypt the bundle and
     # silently strand whatever copy is already off the box.
     RMC_EDGE_TLS_CA_PASSPHRASE="$(tr -d '\r\n' < "$PASSPHRASE_FILE")"
     ok "passphrase read from $PASSPHRASE_FILE"
+  elif [ -s "$OUT_DIR/box-ca-bundle.p12" ]; then
+    # A bundle exists and its passphrase does not. That is NOT a fresh box: it is a
+    # box whose operator did exactly what this script's closing banner asked, and
+    # moved the passphrase somewhere safer.
+    #
+    # The branch below used to catch this case and mint a new passphrase -- which
+    # re-encrypts the bundle, overwrites it, and silently invalidates the copy the
+    # operator is holding. They would discover it during a restore, which is the
+    # worst moment to discover anything. The comment three lines up already knew a
+    # second passphrase strands an off-box copy; it just could not tell a fresh box
+    # from a secured one, and guessed "fresh".
+    #
+    # So: change nothing. The CA on disk is untouched either way (edge_bootstrap
+    # refuses to mint a second CA), and `--no-backup` is itself REFUSED unless a
+    # verified backup is already on record -- so this branch cannot be used to skip
+    # a backup that was never taken in the first place.
+    SKIP_CA_EXPORT=1
+    ok "a CA backup exists and its passphrase is not on this box -- leaving both alone"
+    ok "(that is the arrangement you want; nothing here re-encrypts a bundle it cannot open)"
   else
     RMC_EDGE_TLS_CA_PASSPHRASE="$(new_passphrase)"
     [ "${#RMC_EDGE_TLS_CA_PASSPHRASE}" -ge 32 ] || die "could not generate a passphrase
@@ -100,8 +120,16 @@ ok "web is running"
 # second CA on a box that recorded a different one, refuses to back up into the
 # certificate directory, and reads the backup back before calling it a backup.
 say "Certificate, trust anchor and backup"
+# `--no-backup` when the operator has already secured the passphrase off this box.
+# The command refuses that flag unless this CA has a VERIFIED backup on record, so
+# the safe path cannot become a way to quietly ship a box with no backup at all.
+if [ "$SKIP_CA_EXPORT" = "1" ]; then
+  BACKUP_ARGS=(--no-backup)
+else
+  BACKUP_ARGS=(--backup-to "$BUNDLE_IN_BOX")
+fi
 "${COMPOSE[@]}" exec -T -e RMC_EDGE_TLS_CA_PASSPHRASE web \
-  python manage.py edge_bootstrap --backup-to "$BUNDLE_IN_BOX" --terminator '' \
+  python manage.py edge_bootstrap "${BACKUP_ARGS[@]}" --terminator '' \
   || die "edge_bootstrap refused. Nothing has been changed. Read the reason above --
   it is a precondition, not a transient failure, and re-running will not clear it."
 
@@ -145,10 +173,16 @@ ok "started and restarted, so it is holding the current certificate"
 
 # --- 5. get the CA and the backup off the box -------------------------------
 say "Off-box copies"
-"${COMPOSE[@]}" cp "web:$BUNDLE_IN_BOX" "$OUT_DIR/box-ca-bundle.p12" >/dev/null
-ok "$OUT_DIR/box-ca-bundle.p12   (encrypted CA backup -- move this OFF this machine)"
-"${COMPOSE[@]}" exec -T web rm -f "$BUNDLE_IN_BOX" >/dev/null 2>&1 || true
-ok "removed the bundle from inside the container"
+if [ "$SKIP_CA_EXPORT" = "1" ]; then
+  # Overwriting here is the same mistake as re-encrypting: the bundle on disk is the
+  # one the operator's stored passphrase opens, and a fresh export would not be.
+  ok "$OUT_DIR/box-ca-bundle.p12   (existing backup KEPT -- its passphrase is off this box)"
+else
+  "${COMPOSE[@]}" cp "web:$BUNDLE_IN_BOX" "$OUT_DIR/box-ca-bundle.p12" >/dev/null
+  ok "$OUT_DIR/box-ca-bundle.p12   (encrypted CA backup -- move this OFF this machine)"
+  "${COMPOSE[@]}" exec -T web rm -f "$BUNDLE_IN_BOX" >/dev/null 2>&1 || true
+  ok "removed the bundle from inside the container"
+fi
 "${COMPOSE[@]}" cp "web:/app/var/edge-tls/ca.crt" "$OUT_DIR/box-ca.crt" >/dev/null
 ok "$OUT_DIR/box-ca.crt          (public CA certificate -- this is what devices install)"
 
@@ -207,6 +241,23 @@ if [ -z "$TRUST_URL" ]; then
   TRUST_URL="(this box has no reachable address -- see ALLOWED_HOSTS)"
 fi
 
+# What item 1 of the closing banner should say depends on what the operator has
+# already done. Telling somebody to move a file they have already moved is how a
+# banner teaches people to stop reading banners.
+if [ "$SKIP_CA_EXPORT" = "1" ]; then
+  CA_NOTE="  1. Nothing to move -- the passphrase is already off this machine.
+     Keep a copy of $OUT_DIR/box-ca-bundle.p12 somewhere else too. A backup that
+     shares a disk with the box it protects is not a backup of the box, and the CA
+     private key inside it is the only artefact here that cannot be regenerated."
+else
+  CA_NOTE="  1. Move the BUNDLE off this machine -- not the passphrase:
+       $OUT_DIR/box-ca-bundle.p12       <- move or copy THIS one
+       $PASSPHRASE_FILE
+     Side by side, the encryption bought you nothing. Take the bundle and leave the
+     passphrase, or take both to different places; taking only the passphrase leaves
+     the box holding a file nobody can open. The bundle carries the CA PRIVATE KEY,
+     is never the file you hand to a device, and cannot be regenerated."
+fi
 cat <<BANNER
 
 $(printf '\033[32m== Box is ready.\033[0m')
@@ -236,12 +287,7 @@ apps -- so there this is not the convenient route, it is the only one.
 
 Two things still need a person, and neither can be automated from here:
 
-  1. Move ONE of these off this machine, so they stop sitting together:
-       $OUT_DIR/box-ca-bundle.p12       the encrypted CA backup
-       $PASSPHRASE_FILE
-     In one place the encryption bought you nothing. The bundle carries the CA
-     PRIVATE KEY and is never the file you hand to a device. It is also the only
-     artefact on this box that cannot be regenerated.
+$CA_NOTE
   2. Re-enrol offline PIN on each device at the https origin. Nothing carries over
      from the old one, and it could never have sealed there anyway.
 
