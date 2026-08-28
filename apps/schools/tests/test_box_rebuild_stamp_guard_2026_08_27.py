@@ -663,3 +663,495 @@ class TheAuditMustReadTheFileComposeMountsTests(SimpleTestCase):
         for ln in greps:
             self.assertIn("$CADDY_", ln, ln)
             self.assertNotIn("deploy/selfhost/", ln, ln)
+
+
+# --- the second trap: "Done" answers a narrower question than the one asked ----
+
+
+def _need_git_and_timeout(case):
+    _need_bash(case)
+    probe = subprocess.run(
+        ["bash", "-c", "command -v git >/dev/null && command -v timeout >/dev/null"],
+        capture_output=True,
+    )
+    if probe.returncode != 0:
+        case.skipTest("these run the real git paths; bash needs git and timeout")
+
+
+def _section(first: str, last: str, path=None) -> str:
+    """Lift a contiguous run of a real box script, from one whole line to another.
+
+    Whole lines, not substrings: every one of these anchors also appears inside the
+    scripts' own prose, and a boundary that can drift into a comment is a test that
+    quietly starts asserting about nothing.
+    """
+    lines = (path or REBUILD).read_text(encoding="utf-8").splitlines()
+    i = lines.index(first)
+    j = lines.index(last, i)
+    return "\n".join(lines[i : j + 1]) + "\n"
+
+
+def _posix(path) -> str:
+    return str(path).replace(chr(92), "/")
+
+
+def _git(*args, cwd=None):
+    return subprocess.run(
+        [
+            "git",
+            "-c", "user.email=t@t.com",
+            "-c", "user.name=t",
+            "-c", "init.defaultBranch=main",
+            "-c", "commit.gpgsign=false",
+            *args,
+        ],
+        cwd=None if cwd is None else str(cwd),
+        capture_output=True,
+        text=True,
+    )
+
+
+class TheSummaryMustSayWhetherTheCodeIsCurrentTests(SimpleTestCase):
+    """Step 7 proves the image matches the CHECKOUT. Nobody asked that question.
+
+    Somebody typing `box-rebuild.sh` is asking for the latest CODE. The two answers
+    coincide only when the checkout itself reached the remote, and step 3 is the only
+    place that can know.
+
+    MEASURED on the Gilead box on 2026-08-28. The fetch failed for want of a stored
+    credential. The script warned, correctly built the code already on disk, and then
+    -- eight minutes of build log later -- printed "Done. This box is running its own
+    checkout." Every word of that is true. It was read as "updated", and the next
+    command typed was a management-command flag that exists only in the commit which
+    never arrived: `unrecognized arguments: --explain`.
+
+    A warning that scrolled past before a long build is not a caveat anyone still
+    has on screen. So the verdict has to survive to the summary.
+
+    These RUN the real blocks against real git repositories. A test that only read
+    the source would have stayed green through the entire episode above.
+    """
+
+    STEP3 = ('step "Update the checkout"', "bar 3")
+    SUMMARY = (
+        "# THE SUMMARY MUST NOT FORGET STEP 3. This is where somebody decides whether to",
+        "fi",
+    )
+
+    def setUp(self):
+        _need_git_and_timeout(self)
+        self.dir = pathlib.Path(tempfile.mkdtemp(prefix="box-upstream-"))
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.origin = self.dir / "origin.git"
+        self.repo = self.dir / "repo"
+        _git("init", "-q", "--bare", _posix(self.origin))
+        _git("clone", "-q", _posix(self.origin), _posix(self.repo))
+        _git("symbolic-ref", "HEAD", "refs/heads/main", cwd=self.repo)
+        (self.repo / "a.txt").write_text("one\n", encoding="utf-8")
+        _git("add", "a.txt", cwd=self.repo)
+        _git("commit", "-qm", "one", cwd=self.repo)
+        push = _git("push", "-q", "-u", "origin", "main", cwd=self.repo)
+        self.assertEqual(push.returncode, 0, push.stderr)
+
+    # -- fixtures ------------------------------------------------------------
+
+    def _head(self, cwd=None):
+        return _git("rev-parse", "HEAD", cwd=cwd or self.repo).stdout.strip()
+
+    def _advance_origin(self):
+        """Put a commit on origin that the checkout does not have."""
+        other = self.dir / "other"
+        _git("clone", "-q", _posix(self.origin), _posix(other))
+        _git("commit", "-q", "--allow-empty", "-m", "remote work", cwd=other)
+        push = _git("push", "-q", "origin", "HEAD:main", cwd=other)
+        self.assertEqual(push.returncode, 0, push.stderr)
+
+    def _go_offline(self):
+        _git("remote", "set-url", "origin", _posix(self.dir / "gone.git"), cwd=self.repo)
+
+    # -- running the real blocks ---------------------------------------------
+
+    _SHIMS = (
+        "set -uo pipefail\n"
+        'B=""; N=""; G=""; Y=""\n'
+        "step() { printf '[step] %s\\n' \"$*\"; }\n"
+        "ok()   { printf '  OK   %s\\n' \"$*\"; }\n"
+        "warn() { printf '  WARN %s\\n' \"$*\"; }\n"
+        "bar()  { :; }\n"
+        "short() { printf '%.9s' \"$1\"; }\n"
+        'checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }\n'
+    )
+
+    def _run_step3(self, do_pull=1):
+        script = (
+            self._SHIMS
+            + 'REPO_ROOT="' + _posix(self.repo) + '"\n'
+            + "DO_PULL=" + str(do_pull) + "\n"
+            + 'HEAD_COMMIT="$(checkout_commit)"\n'
+            + _section(*self.STEP3)
+            + 'printf "\\nUPSTREAM=[%s]\\nNOTE=[%s]\\nHEAD=[%s]\\n"'
+            + ' "$UPSTREAM" "$CHECKOUT_NOTE" "$HEAD_COMMIT"\n'
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    def _run_summary(self, upstream="", note="", branch="main"):
+        script = (
+            self._SHIMS
+            + 'REPO_ROOT="/srv/rmc"\n'
+            + 'AFTER_COMMIT="102e0e510ee2edb4f2426ce176f27ba13bb40646"\n'
+            + 'UPSTREAM="' + upstream + '"\n'
+            + 'CHECKOUT_NOTE="' + note + '"\n'
+            + 'BRANCH="' + branch + '"\n'
+            + _section(*self.SUMMARY)
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    # -- step 3 establishes the verdict, or says it could not ----------------
+
+    def test_a_checkout_already_level_with_origin_is_confirmed(self):
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[level]", out)
+        self.assertIn("already level with origin/main", out)
+
+    def test_a_checkout_that_fast_forwards_is_confirmed_and_moves(self):
+        was = self._head()
+        self._advance_origin()
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[advanced]", out)
+        # The build stamps $HEAD_COMMIT, so a fast-forward that did not update it
+        # would bake the new code under the old commit's name.
+        self.assertNotIn("HEAD=[%s]" % was, out)
+        self.assertIn("HEAD=[%s]" % self._head(), out)
+
+    def test_being_offline_leaves_the_verdict_unestablished(self):
+        # Offline is the NORMAL state for a box in a school. It must not become a
+        # failure -- and it must not become a silent success either.
+        self._go_offline()
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[]", out)
+        self.assertIn("could not be reached", out)
+
+    def test_a_dirty_checkout_leaves_the_verdict_unestablished(self):
+        (self.repo / "a.txt").write_text("edited\n", encoding="utf-8")
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[]", out)
+        self.assertIn("uncommitted changes", out)
+
+    def test_no_pull_leaves_the_verdict_unestablished(self):
+        out = self._run_step3(do_pull=0)
+        self.assertIn("UPSTREAM=[]", out)
+        self.assertIn("--no-pull", out)
+
+    def test_a_diverged_checkout_leaves_the_verdict_unestablished(self):
+        self._advance_origin()
+        _git("commit", "-q", "--allow-empty", "-m", "local work", cwd=self.repo)
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[]", out)
+        self.assertIn("diverged", out)
+
+    def test_every_unestablished_path_says_which_one_it_was(self):
+        # "Not updated" with no reason is a dead end for whoever has to fix it, and
+        # the four reasons need four different actions.
+        self._go_offline()
+        offline = self._run_step3()
+        nopull = self._run_step3(do_pull=0)
+        for out in (offline, nopull):
+            note = out.split("NOTE=[", 1)[1].split("]", 1)[0]
+            self.assertTrue(note.strip(), out)
+
+    # -- the summary reads it back -------------------------------------------
+
+    def test_a_confirmed_checkout_is_reported_as_up_to_date(self):
+        out = self._run_summary(upstream="level")
+        self.assertIn("Up to date", out)
+        self.assertIn("origin/main", out)
+        self.assertNotIn("NOT updated", out)
+
+    def test_an_unconfirmed_checkout_is_told_so_plainly(self):
+        out = self._run_summary(note="the git remote could not be reached")
+        self.assertIn("The checkout was NOT updated", out)
+        self.assertIn("the git remote could not be reached", out)
+        self.assertIn("has NOT been established", out)
+        self.assertNotIn("Up to date", out)
+
+    def test_an_unconfirmed_checkout_is_handed_the_next_command(self):
+        # The operator on the box is not going to derive this, and the whole failure
+        # is that they walked away instead.
+        out = self._run_summary(note="offline")
+        self.assertIn("fetch origin", out)
+        self.assertIn("status -sb", out)
+
+    def test_a_path_that_sets_no_note_still_does_not_claim_currency(self):
+        # A future branch added to step 3 that forgets CHECKOUT_NOTE must degrade to
+        # "unknown", never to "current". Empty is not evidence of being up to date.
+        out = self._run_summary()
+        self.assertIn("NOT updated", out)
+        self.assertNotIn("Up to date", out)
+        self.assertNotIn("--  .", out)
+
+    def test_the_summary_reads_step_threes_variable_rather_than_a_constant(self):
+        # Behavioural tests above drive $UPSTREAM directly, so they would all pass on
+        # a summary that step 3 no longer feeds. This is the wire between them.
+        block = _section(*self.SUMMARY)
+        self.assertIn('if [ -n "$UPSTREAM" ]; then', block)
+        step3 = _section(*self.STEP3)
+        self.assertIn('UPSTREAM="level"', step3)
+        self.assertIn('UPSTREAM="advanced"', step3)
+
+    def test_the_summary_is_the_last_thing_printed_before_the_next_steps(self):
+        text = REBUILD.read_text(encoding="utf-8")
+        self.assertLess(text.index("$UPSTREAM"), text.index("Next, if TLS or trust changed"))
+
+
+class TheCheckMustAskTheRemoteWithoutTouchingAnythingTests(SimpleTestCase):
+    """`--check` is the command for "is this box current?", and it knew half the answer.
+
+    The image can match the checkout perfectly while the CHECKOUT sits commits behind
+    origin -- and CURRENT invited the operator to skip the rebuild that would not have
+    moved it anyway. So it asks the remote too, read-only: --check promises to change
+    NOTHING, and a fetch writes remote-tracking refs.
+    """
+
+    BLOCK = ('if [ "$CHECK_ONLY" = "1" ]; then', "fi")
+
+    def setUp(self):
+        _need_git_and_timeout(self)
+        self.dir = pathlib.Path(tempfile.mkdtemp(prefix="box-check-"))
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.origin = self.dir / "origin.git"
+        self.repo = self.dir / "repo"
+        _git("init", "-q", "--bare", _posix(self.origin))
+        _git("clone", "-q", _posix(self.origin), _posix(self.repo))
+        _git("symbolic-ref", "HEAD", "refs/heads/main", cwd=self.repo)
+        (self.repo / "a.txt").write_text("one\n", encoding="utf-8")
+        _git("add", "a.txt", cwd=self.repo)
+        _git("commit", "-qm", "one", cwd=self.repo)
+        _git("push", "-q", "-u", "origin", "main", cwd=self.repo)
+
+    def _run(self, drifted=0):
+        script = (
+            "set -uo pipefail\n"
+            'G=""; N=""; Y=""\n'
+            "CHECK_ONLY=1\n"
+            "ok()   { printf '  OK   %s\\n' \"$*\"; }\n"
+            "warn() { printf '  WARN %s\\n' \"$*\"; }\n"
+            "short() { printf '%.9s' \"$1\"; }\n"
+            'HERE="/srv/rmc/deploy/selfhost"\n'
+            'REPO_ROOT="' + _posix(self.repo) + '"\n'
+            + 'HEAD_COMMIT="$(git -C "$REPO_ROOT" rev-parse HEAD)"\n'
+            + "DRIFTED=" + str(drifted) + "\n"
+            + _section(*self.BLOCK)
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        return proc.returncode, proc.stdout
+
+    def _advance_origin(self):
+        other = self.dir / "other"
+        _git("clone", "-q", _posix(self.origin), _posix(other))
+        _git("commit", "-q", "--allow-empty", "-m", "remote work", cwd=other)
+        _git("push", "-q", "origin", "HEAD:main", cwd=other)
+
+    def test_a_checkout_level_with_origin_reports_current_and_says_so(self):
+        rc, out = self._run()
+        self.assertEqual(rc, 0, out)
+        self.assertIn("CURRENT", out)
+        self.assertIn("level", out)
+
+    def test_a_checkout_behind_origin_is_not_current(self):
+        # The failure this closes: image == checkout, so the old --check said CURRENT
+        # while the box ran code three commits old.
+        self._advance_origin()
+        rc, out = self._run()
+        self.assertEqual(rc, 1, out)
+        self.assertIn("BEHIND", out)
+        self.assertNotIn("CURRENT", out)
+
+    def test_a_checkout_behind_origin_is_told_a_rebuild_alone_will_not_fix_it(self):
+        self._advance_origin()
+        _rc, out = self._run()
+        self.assertIn("pull", out)
+
+    def test_image_drift_is_reported_ahead_of_checkout_drift(self):
+        # Both are true at once on a neglected box. Naming the one a rebuild fixes
+        # first is the order that gets somebody unstuck.
+        self._advance_origin()
+        rc, out = self._run(drifted=1)
+        self.assertEqual(rc, 1, out)
+        self.assertIn("DRIFTED", out)
+        self.assertNotIn("BEHIND --", out)
+
+    def test_an_unreachable_remote_is_not_a_failure(self):
+        # Boxes in schools are offline for days. Exiting non-zero here would make
+        # --check useless exactly where this product is deployed.
+        _git("remote", "set-url", "origin", _posix(self.dir / "gone.git"), cwd=self.repo)
+        rc, out = self._run()
+        self.assertEqual(rc, 0, out)
+        self.assertIn("CURRENT", out)
+        self.assertIn("NOT checked", out)
+
+    def test_an_unreachable_remote_never_hangs_on_a_credential_prompt(self):
+        block = _section(*self.BLOCK)
+        self.assertIn("GIT_TERMINAL_PROMPT=0", block)
+        self.assertIn("timeout ", block)
+
+    def test_check_reads_the_remote_without_writing_to_git(self):
+        # `ls-remote` writes nothing; `fetch` writes remote-tracking refs. --check
+        # documents itself as changing NOTHING, and that has to include .git.
+        # Comment lines out first: this block's own prose explains WHY it does not
+        # fetch, and a naive substring search would fail on the explanation.
+        code = re.sub(r"(?m)^\s*#.*$", "", _section(*self.BLOCK))
+        self.assertIn("ls-remote", code)
+        self.assertNotIn("fetch", code)
+        self.assertNotIn("merge", code)
+
+
+class TheHelpTextMustSurviveAnEditedHeaderTests(SimpleTestCase):
+    """`sed -n '2,28p'` meant "the header" only while the header was 28 lines long."""
+
+    def test_help_prints_the_whole_header_and_no_shell_code(self):
+        _need_bash(self)
+        proc = subprocess.run(
+            ["bash", str(REBUILD), "--help"], capture_output=True, text=True
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("Rebuild this box onto the code in its own checkout", proc.stdout)
+        self.assertIn("--no-pull", proc.stdout)
+        # The first line of code after the header. Seeing it means the range ran on.
+        self.assertNotIn("set -uo pipefail", proc.stdout)
+        self.assertNotIn("BASH_SOURCE", proc.stdout)
+
+    def test_the_range_is_anchored_to_a_marker_not_a_line_number(self):
+        text = REBUILD.read_text(encoding="utf-8")
+        help_line = [ln for ln in text.splitlines() if "--help)" in ln][0]
+        self.assertNotIn("2,28p", help_line)
+        self.assertIn("set -uo pipefail", help_line)
+
+
+class TheAuditMustNotCallAStaleRefCurrentTests(SimpleTestCase):
+    """`box-audit.sh` printed "[ OK ] level with origin/main" on a box that was behind.
+
+    Section A ran `git fetch`, threw the exit status away, and compared HEAD against
+    whatever origin/main happened to be sitting in .git. On a box that fetched
+    successfully last week and has been offline since, that ref is last week's, HEAD
+    matches it, and the audit reports a green PASS about a comparison it never made.
+
+    REPRODUCED, not reasoned about: box level and fetched, cloud moves one commit on,
+    box loses its remote, old code says "[ OK ] level with origin/main". That is the
+    Gilead box's exact state on 2026-08-28, and the audit is the command somebody runs
+    to decide whether the box is fine.
+
+    Offline is the NORMAL state for a box in a school, so this was the common path.
+    Same defect as the rebuild summary one file over: a report about a proxy for the
+    thing, printed with the confidence owed to the thing.
+    """
+
+    BLOCK = ('branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"', "fi")
+
+    def setUp(self):
+        _need_git_and_timeout(self)
+        self.dir = pathlib.Path(tempfile.mkdtemp(prefix="box-audit-a-"))
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.origin = self.dir / "origin.git"
+        self.repo = self.dir / "repo"
+        _git("init", "-q", "--bare", _posix(self.origin))
+        _git("clone", "-q", _posix(self.origin), _posix(self.repo))
+        _git("symbolic-ref", "HEAD", "refs/heads/main", cwd=self.repo)
+        (self.repo / "a.txt").write_text("one\n", encoding="utf-8")
+        _git("add", "a.txt", cwd=self.repo)
+        _git("commit", "-qm", "one", cwd=self.repo)
+        push = _git("push", "-q", "-u", "origin", "main", cwd=self.repo)
+        self.assertEqual(push.returncode, 0, push.stderr)
+        # The box has fetched successfully at least once -- which is what leaves the
+        # ref on disk that the old code went on to trust.
+        _git("fetch", "origin", "--quiet", cwd=self.repo)
+
+    def _cloud_moves_on(self, branch="main"):
+        other = self.dir / "other"
+        if not other.exists():
+            _git("clone", "-q", _posix(self.origin), _posix(other))
+        _git("commit", "-q", "--allow-empty", "-m", "cloud work", cwd=other)
+        push = _git("push", "-q", "origin", "HEAD:" + branch, cwd=other)
+        self.assertEqual(push.returncode, 0, push.stderr)
+
+    def _go_offline(self):
+        _git("remote", "set-url", "origin", _posix(self.dir / "gone.git"), cwd=self.repo)
+
+    def _run(self):
+        script = (
+            "set -uo pipefail\n"
+            "ok()   { printf '  [ OK ] %s\\n' \"$*\"; }\n"
+            "warn() { printf '  [WARN] %s\\n' \"$*\"; }\n"
+            + _section(*self.BLOCK, path=AUDIT)
+        )
+        proc = subprocess.run(
+            ["bash", "-c", script], cwd=str(self.repo), capture_output=True, text=True
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    def test_a_checkout_level_with_a_reachable_origin_is_reported_as_level(self):
+        out = self._run()
+        self.assertIn("[ OK ]", out)
+        self.assertIn("level with origin/main", out)
+
+    def test_a_checkout_behind_a_reachable_origin_says_how_far(self):
+        self._cloud_moves_on()
+        self._cloud_moves_on()
+        out = self._run()
+        self.assertIn("[WARN]", out)
+        self.assertIn("behind origin/main by 2 commit(s)", out)
+
+    def test_an_unreachable_remote_is_never_reported_as_level(self):
+        # THE BUG. The stale ref matches HEAD, so the comparison "succeeds" and says
+        # the opposite of the truth.
+        self._cloud_moves_on()
+        self._go_offline()
+        out = self._run()
+        self.assertNotIn("[ OK ]", out)
+        self.assertIn("could not reach the git remote", out)
+        self.assertIn("cannot tell", out)
+
+    def test_the_stale_ref_really_would_have_said_level(self):
+        # Proves the fixture reproduces the defect rather than merely exercising the
+        # fix -- without this, the test above could pass on any fixture at all.
+        self._cloud_moves_on()
+        self._go_offline()
+        head = _git("rev-parse", "HEAD", cwd=self.repo).stdout.strip()
+        stale = _git("rev-parse", "origin/main", cwd=self.repo).stdout.strip()
+        self.assertEqual(head, stale, "the fixture does not reproduce the stale ref")
+        remote = _git("ls-remote", _posix(self.origin), "refs/heads/main").stdout.split()[0]
+        self.assertNotEqual(head, remote, "the cloud did not actually move on")
+
+    def test_the_branch_is_read_rather_than_assumed_to_be_main(self):
+        # A box on any other branch was being measured against a ref that says
+        # nothing about it.
+        _git("checkout", "-q", "-b", "boxline", cwd=self.repo)
+        push = _git("push", "-q", "-u", "origin", "boxline", cwd=self.repo)
+        self.assertEqual(push.returncode, 0, push.stderr)
+        out = self._run()
+        self.assertIn("origin/boxline", out)
+        self.assertNotIn("origin/main", out)
+
+    def test_a_branch_the_remote_does_not_have_is_a_cannot_compare(self):
+        # Not "level", and not "behind by ?" either -- neither is what happened.
+        _git("checkout", "-q", "-b", "never-pushed", cwd=self.repo)
+        out = self._run()
+        self.assertIn("cannot compare", out)
+        self.assertNotIn("[ OK ]", out)
+
+    def test_the_fetch_decides_the_branch_rather_than_being_ignored(self):
+        code = re.sub(r"(?m)^\s*#.*$", "", _section(*self.BLOCK, path=AUDIT))
+        self.assertIn("if GIT_TERMINAL_PROMPT=0 timeout 30 git fetch", code)
+        # The old form: run it, discard the status, read the ref anyway.
+        self.assertNotIn("git fetch origin --quiet 2>/dev/null\n", code)
+
+    def test_the_audit_cannot_hang_waiting_for_a_credential(self):
+        # An audit runs unattended before a rebuild. A prompt nobody answers is an
+        # audit that never finishes.
+        code = _section(*self.BLOCK, path=AUDIT)
+        self.assertIn("GIT_TERMINAL_PROMPT=0", code)
+        self.assertIn("timeout 30", code)

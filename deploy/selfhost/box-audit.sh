@@ -25,9 +25,30 @@ sec()  { printf '\n=== %s\n' "$*"; }
 sec "A. repo and code state"
 head="$(git rev-parse --short HEAD)"
 echo "     HEAD $head   $(git log -1 --format=%s | cut -c1-64)"
-git fetch origin --quiet 2>/dev/null
-behind="$(git rev-list --count HEAD..origin/main 2>/dev/null || echo '?')"
-[ "$behind" = "0" ] && ok "level with origin/main" || warn "behind origin/main by $behind commit(s)"
+# THE FETCH'S EXIT STATUS IS THE WHOLE POINT. It used to be discarded, and the
+# comparison then read the origin/main left on disk by the last fetch that worked.
+# An offline box therefore reported "[ OK ] level with origin/main" against a ref
+# that could be a week old -- a green that means nothing, counted as a pass. Offline
+# is the NORMAL state for a box in a school, so that was the common path, not a
+# corner. Bounded and prompt-free because an audit must never sit waiting for a
+# credential nobody is there to type; if `timeout` is missing the fetch simply fails
+# and we say we could not tell, which is the safe direction to be wrong in.
+#
+# The branch is read, not assumed: a box on any branch but main was being measured
+# against a ref that says nothing about it.
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+if GIT_TERMINAL_PROMPT=0 timeout 30 git fetch origin --quiet 2>/dev/null; then
+  behind="$(git rev-list --count "HEAD..origin/$branch" 2>/dev/null || echo '?')"
+  if [ "$behind" = "0" ]; then
+    ok "level with origin/$branch"
+  elif [ "$behind" = "?" ]; then
+    warn "origin/$branch is not a ref this checkout knows -- cannot compare"
+  else
+    warn "behind origin/$branch by $behind commit(s)"
+  fi
+else
+  warn "could not reach the git remote -- cannot tell whether this checkout is current"
+fi
 # By CONTENT, never by remembered hash -- hashes are not stable in a shared checkout.
 grep -q "handle @trust" apps/schools/edge_tls.py \
   && ok "port-80 trust exemption present in source" \

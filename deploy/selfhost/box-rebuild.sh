@@ -18,6 +18,16 @@
 # and REFUSE to report success if they disagree. A rebuild that silently no-ops is
 # the failure mode; a rebuild that says it worked when it did not is worse.
 #
+# THE SECOND TRAP, MEASURED ON THE SAME BOX ON 2026-08-28. Step 7 proves the image
+# matches the CHECKOUT. Somebody typing this command is asking for the latest CODE,
+# which is a different question, and step 3 is the only place that can answer it.
+# That day the fetch failed for want of a stored credential; the script correctly
+# built what was already on disk, and then printed "Done. This box is running its
+# own checkout." Every word true. It was read as "updated", and the next command
+# typed was a management-command flag that only exists in the commit which never
+# arrived. So the summary now carries step 3's verdict to the end, and --check asks
+# the remote itself -- read-only -- instead of reporting only on the image.
+#
 # Usage:
 #   ./box-rebuild.sh --check     report drift, change NOTHING, exit 1 if behind
 #   ./box-rebuild.sh             pull, rebuild, recreate, verify
@@ -37,7 +47,11 @@ for arg in "$@"; do
   case "$arg" in
     --check)    CHECK_ONLY=1 ;;
     --no-pull)  DO_PULL=0 ;;
-    -h|--help)  sed -n '2,28p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    # Derived from the header, not from a line range. '2,28p' meant "the header"
+    # only for as long as the header was 28 lines; one paragraph more and --help
+    # starts printing shell code. The marker cannot drift.
+    -h|--help)  awk 'NR == 1 {next} /^set -uo pipefail/ {exit} {print}' "${BASH_SOURCE[0]}" \
+                  | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown argument: $arg (try --help)" >&2; exit 2 ;;
   esac
 done
@@ -153,20 +167,69 @@ fi
 bar 2
 
 if [ "$CHECK_ONLY" = "1" ]; then
+  # "Is this box current?" has two answers and step 2 only knows one of them. The
+  # image can match the checkout perfectly while the CHECKOUT sits commits behind
+  # origin -- and a rebuild, the thing CURRENT invites you to skip, would not move
+  # it either. So ask the remote too.
+  #
+  # --check promises to change NOTHING, so this must not `fetch`: a fetch writes
+  # remote-tracking refs into .git. `ls-remote` reads and writes nothing. It is
+  # bounded and never prompts, because a box in a school office is usually offline
+  # and an unreachable remote is not an error here -- it is one fewer thing known.
+  BEHIND_UPSTREAM=0
+  BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+  REMOTE_TIP="$(GIT_TERMINAL_PROMPT=0 timeout 20 git -C "$REPO_ROOT" \
+    ls-remote origin "refs/heads/$BRANCH" 2>/dev/null | awk 'NR == 1 {print $1}')"
+  if [ -z "$REMOTE_TIP" ]; then
+    warn "could not reach the git remote -- cannot tell whether the checkout is current"
+  elif [ "$REMOTE_TIP" = "$HEAD_COMMIT" ]; then
+    ok "the checkout is level with origin/$BRANCH"
+  else
+    warn "the checkout is behind origin/$BRANCH, which is at $(short "$REMOTE_TIP")"
+    BEHIND_UPSTREAM=1
+  fi
+
   printf '\n'
   if [ "$DRIFTED" = "1" ]; then
     printf '%sDRIFTED%s -- this box is not running its own checkout. Rebuild with:\n' "$Y" "$N"
     printf '    %s\n\n' "$HERE/box-rebuild.sh"
     exit 1
   fi
-  printf '%sCURRENT%s -- the running image matches the checkout. Nothing to do.\n\n' "$G" "$N"
+  if [ "$BEHIND_UPSTREAM" = "1" ]; then
+    # A rebuild alone cannot fix this, so do not print the word that means "run a
+    # rebuild". The checkout has to move first.
+    printf '%sBEHIND%s -- the image matches the checkout, but the checkout is behind\n' "$Y" "$N"
+    printf 'origin/%s. Move the checkout first, then rebuild:\n' "$BRANCH"
+    printf '    git -C %s pull && %s/box-rebuild.sh\n\n' "$REPO_ROOT" "$HERE"
+    exit 1
+  fi
+  if [ -n "$REMOTE_TIP" ]; then
+    printf '%sCURRENT%s -- the image matches the checkout, and the checkout is level\n' "$G" "$N"
+    printf 'with origin/%s. Nothing to do.\n\n' "$BRANCH"
+  else
+    printf '%sCURRENT%s -- the image matches the checkout. Whether the checkout itself\n' "$G" "$N"
+    printf 'is the latest was NOT checked; the remote was unreachable.\n\n'
+  fi
   exit 0
 fi
 
 # --- 3. move the checkout ----------------------------------------------------
 step "Update the checkout"
+# WHAT THIS STEP CAN ESTABLISH THAT NO LATER STEP CAN. Step 7 proves the running
+# image matches the checkout. That is not the question somebody asks by typing this
+# command -- they are asking for the latest code -- and the two answers only
+# coincide when the checkout itself reached the remote. This is the only step that
+# can know, so it records the verdict and the summary reads it back.
+#
+# UPSTREAM is set ONLY on a path that actually compared against the remote. Empty
+# means "not established", which is different from "behind" and must never be
+# rendered as "up to date".
+UPSTREAM=""
+CHECKOUT_NOTE=""
+BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
 if [ "$DO_PULL" = "0" ]; then
   ok "--no-pull: building from the checkout exactly as it stands"
+  CHECKOUT_NOTE="--no-pull was given, so the remote was never consulted"
 elif ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
   # Never discard work this script did not create. A dirty tree here is usually a
   # rendered artefact (Caddyfile.edge) but it can be somebody's edit, and guessing
@@ -174,19 +237,31 @@ elif ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
   warn "the checkout has uncommitted changes -- NOT pulling over them"
   git -C "$REPO_ROOT" status --short 2>/dev/null | sed 's/^/       /' | head -10
   warn "resolve those first, or re-run with --no-pull to build them as they are"
+  CHECKOUT_NOTE="the checkout has uncommitted changes, so it was not pulled"
 elif ! GIT_TERMINAL_PROMPT=0 timeout 60 git -C "$REPO_ROOT" fetch origin >/dev/null 2>&1; then
   # Offline is the normal state for a box in a school. It is not an error, and it
   # must never block a rebuild of code that is already on disk.
   warn "could not reach the git remote (offline, or no stored credential)"
   ok "building from the checkout as it stands"
+  CHECKOUT_NOTE="the git remote could not be reached (offline, or no stored credential)"
 else
-  BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+  BEFORE_PULL="$HEAD_COMMIT"
   if git -C "$REPO_ROOT" merge --ff-only "origin/$BRANCH" >/dev/null 2>&1; then
     HEAD_COMMIT="$(checkout_commit)"
-    ok "fast-forwarded to $(short "$HEAD_COMMIT")"
+    # A successful ff-merge means BOTH "moved" and "was already there", and those
+    # are worth telling apart: only one of them is news. Either way the checkout
+    # has now been compared against the remote, which is what UPSTREAM records.
+    if [ "$HEAD_COMMIT" = "$BEFORE_PULL" ]; then
+      UPSTREAM="level"
+      ok "the checkout is already level with origin/$BRANCH"
+    else
+      UPSTREAM="advanced"
+      ok "fast-forwarded to $(short "$HEAD_COMMIT")"
+    fi
   else
     warn "cannot fast-forward $BRANCH -- the checkout has diverged from origin"
     ok "building from the checkout as it stands"
+    CHECKOUT_NOTE="the checkout has diverged from origin/$BRANCH and could not be fast-forwarded"
   fi
 fi
 bar 3
@@ -273,7 +348,19 @@ if [ -n "$BEFORE_COMMIT" ] && [ "$BEFORE_COMMIT" != "$AFTER_COMMIT" ]; then
 fi
 bar 7
 
-printf '\n%sDone.%s This box is running its own checkout.\n\n' "$G" "$N"
+# THE SUMMARY MUST NOT FORGET STEP 3. This is where somebody decides whether to
+# walk away. "Done" means one thing here -- the image matches the checkout -- and it
+# is read as another. A warning printed four steps and several minutes of build log
+# ago is not a caveat anybody still has on screen.
+printf '\n%sDone.%s This box is running its own checkout, %s.\n' "$G" "$N" "$(short "$AFTER_COMMIT")"
+if [ -n "$UPSTREAM" ]; then
+  printf '%sUp to date%s with origin/%s.\n\n' "$G" "$N" "$BRANCH"
+else
+  printf '\n%sThe checkout was NOT updated%s -- %s.\n' "$Y" "$N" "${CHECKOUT_NOTE:-the remote was not consulted}"
+  printf 'So this box is running the code that was already on disk. Whether that is\n'
+  printf 'the latest has NOT been established. To find out:\n'
+  printf '    git -C %s fetch origin && git -C %s status -sb\n\n' "$REPO_ROOT" "$REPO_ROOT"
+fi
 printf 'Next, if TLS or trust changed:\n'
 printf '    %s/edge-bootstrap.sh\n' "$HERE"
 printf 'To confirm at any time without changing anything:\n'
