@@ -123,6 +123,55 @@ def get_admissions_policy(school) -> Dict[str, Any]:
     return out.get("admissions") or {}
 
 
+def render_admission_number(
+    policy: Dict[str, Any],
+    *,
+    year_2digit: str,
+    school_code: str,
+    seq_4digit: str,
+    spec_code: str,
+    class_segment: str,
+    node_code: str,
+) -> str:
+    """THE shape of an admission number. One implementation, deliberately.
+
+    The preview a school configures against and the number it is actually issued used to
+    be built by two separate copies of this logic, and they had already drifted: the
+    preview knew nothing about the node mark, so a school would have set its
+    `admission_number_pattern` against a sample that no real enrolment could match, and a
+    template using {node_code} raised KeyError into a bare `except: pass` and silently
+    produced a number of an entirely different shape.
+
+    A format the school validates against has to be the format the school is given.
+    """
+    template = (policy.get("admission_number_template") or "").strip()
+    if template:
+        try:
+            return template.format(
+                year_2digit=year_2digit,
+                school_code=school_code,
+                seq_4digit=seq_4digit,
+                spec_code=spec_code,
+                class_segment=class_segment,
+                node_code=node_code,
+            )
+        except (KeyError, IndexError):
+            # A placeholder this version does not offer. Falling through to a built-in
+            # strategy keeps enrolment working rather than failing it on a config typo.
+            pass
+
+    strategy = policy.get("admission_number_strategy") or "FULL"
+    if strategy == "YEAR_SEQ":
+        return f"{year_2digit}{school_code}{node_code}{seq_4digit}"
+    if strategy == "SEQ_ONLY":
+        # Even here. SEQ_ONLY is the shortest form a school can choose, and it is exactly
+        # the form two nodes are most certain to collide on.
+        return f"{node_code}{seq_4digit}"
+    return (
+        f"{year_2digit}{school_code}{node_code}{seq_4digit}{spec_code}{class_segment}"
+    )
+
+
 def preview_admission_number(
     school,
     *,
@@ -139,25 +188,54 @@ def preview_admission_number(
     school_code = (
         school_code or policy.get("school_code") or default_school_code_for(school)
     ).upper()
-    template = (policy.get("admission_number_template") or "").strip()
-    if template:
-        try:
-            return template.format(
-                year_2digit=year_2digit,
-                school_code=school_code,
-                seq_4digit=seq_4digit,
-                spec_code=spec_code,
-                class_segment=class_segment,
-            )
-        except KeyError:
-            pass
-    strategy = policy.get("admission_number_strategy") or "FULL"
-    if strategy == "YEAR_SEQ":
-        return f"{year_2digit}{school_code}{seq_4digit}"
-    if strategy == "SEQ_ONLY":
-        return seq_4digit
-    return f"{year_2digit}{school_code}{seq_4digit}{spec_code}{class_segment}"
+    # The mark THIS node would really issue, not a placeholder: the whole point of a
+    # preview is that a school can set its pattern against what it will actually get.
+    return render_admission_number(
+        policy,
+        year_2digit=year_2digit,
+        school_code=school_code,
+        seq_4digit=seq_4digit,
+        spec_code=spec_code,
+        class_segment=class_segment,
+        node_code=node_identifier_namespace(school, policy=policy),
+    )
 
+
+def pattern_accepts_own_numbers(school, *, policy=None) -> tuple:
+    """Would this school's own pattern reject the numbers this node now issues?
+
+    A school stores `admission_number_pattern` and `StudentProfile.clean()` enforces it.
+    Adding the node mark makes every issued number one character longer, so a pattern
+    written before the mark existed -- one pinning an exact length, say -- now rejects
+    the very numbers this code generates. Every enrolment of the term would fail
+    validation against a rule the school itself set, and the message would point at the
+    number rather than at the pattern.
+
+    Returns ``(ok, sample, pattern)``. ``ok`` is True when there is no pattern to fail,
+    when the pattern is unusable as a regex (validation cannot enforce what it cannot
+    compile), or when the sample matches. Checking rather than assuming, because the
+    answer is per school and nobody can eyeball 500 of them.
+    """
+    policy = policy if policy is not None else get_admissions_policy(school)
+    pattern = (policy.get("admission_number_pattern") or "").strip()
+    mark = node_identifier_namespace(school, policy=policy)
+    sample = render_admission_number(
+        policy,
+        year_2digit="26",
+        school_code=(
+            policy.get("school_code") or default_school_code_for(school)
+        ).upper(),
+        seq_4digit="0001",
+        spec_code="GEN",
+        class_segment="F1",
+        node_code=mark,
+    )
+    if not pattern:
+        return True, sample, pattern
+    try:
+        return bool(re.match(pattern, sample)), sample, pattern
+    except re.error:
+        return True, sample, pattern
 
 def validate_admission_number(school, value: str) -> bool:
     """Return True if value matches the policy pattern for this school."""

@@ -685,15 +685,22 @@ class StudentProfile(models.Model):
         classroom: Classroom,
         school=None,
     ) -> str:
-        """
-        Configurable generation: admissions shape from get_effective_policy(school) when present, else defaults from _get_admissions_policy.
-        Placeholders: year_2digit, school_code, seq_4digit, spec_code, class_segment.
+        """Issue the next admission number for this school-year, on THIS node.
+
+        Shape comes from get_effective_policy(school)["admissions"], else the platform
+        defaults in _get_admissions_policy. Placeholders: year_2digit, school_code,
+        seq_4digit, spec_code, class_segment, node_code.
+
+        The shape itself lives in ``identifier_policy_service.render_admission_number``,
+        shared with the setup preview, because a format a school validates against has to
+        be the format the school is given.
         """
         school = school or getattr(academic_year, "school", None)
         admissions = cls._get_admissions_policy(school)
         from apps.siteconfig.identifier_policy_service import (
             default_school_code_for,
             node_identifier_namespace,
+            render_admission_number,
         )
 
         school_code = (
@@ -708,34 +715,47 @@ class StudentProfile(models.Model):
         year_str = (academic_year.name or "")[:4]
         yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"
 
-        seq = cls.objects.filter(academic_year=academic_year).count() + 1
-        seq_str = f"{seq:04d}"
-
         spec_segment = (specialty.code or "XX").upper()[:6] if specialty else "XX"
         class_segment = cls._class_segment(classroom)
         spec_segment = re.sub(r"[^A-Z0-9]", "", spec_segment)
         class_segment = re.sub(r"[^A-Z0-9]", "", class_segment)
 
-        template = (admissions.get("admission_number_template") or "").strip()
-        if template:
-            return template.format(
+        def _render(seq: int) -> str:
+            return render_admission_number(
+                admissions,
                 year_2digit=yy,
                 school_code=school_code,
-                seq_4digit=seq_str,
+                seq_4digit=f"{seq:04d}",
                 spec_code=spec_segment,
                 class_segment=class_segment,
                 node_code=node_code,
             )
 
-        strategy = admissions.get("admission_number_strategy") or "FULL"
-        if strategy == "YEAR_SEQ":
-            return f"{yy}{school_code}{node_code}{seq_str}"
-        if strategy == "SEQ_ONLY":
-            # Even here. SEQ_ONLY is the shortest form a school can choose, and it is
-            # exactly the form two nodes are most certain to collide on.
-            return f"{node_code}{seq_str}"
+        if school is None:
+            # No school means no counter to key, and no per-school uniqueness to defend.
+            # This is a preview-shaped call, not an enrolment; give it the sample number
+            # rather than allocating a real one nobody will use.
+            return _render(1)
 
-        return f"{yy}{school_code}{node_code}{seq_str}{spec_segment}{class_segment}"
+        # NOT `count() + 1`. A count goes DOWN when a row is deleted, so the next arrival
+        # was handed a departed student's number, and two concurrent enrolments read the
+        # same count and both believed they were issuing it. The counter row survives the
+        # delete and is claimed under a lock.
+        from apps.people.models_identifier_sequence import allocate_admission_seq
+
+        # What must be unique is the rendered NUMBER, not the sequence -- two strategies
+        # can map different sequences onto the same string. A school that has deleted
+        # students has issued numbers above its row count, so a counter seeded from that
+        # count can start on one somebody already holds.
+        seq = allocate_admission_seq(
+            school,
+            academic_year,
+            node_code,
+            is_taken=lambda candidate: cls.objects.filter(
+                school=school, admission_number=_render(candidate)
+            ).exists(),
+        )
+        return _render(seq)
 
     def save(self, *args, **kwargs):
         # A plan's student cap refuses THIS enrolment, not the school's whole
@@ -2017,4 +2037,8 @@ from apps.people.models_merge import (  # noqa: E402,F401
 from apps.people.models_school_batch import (  # noqa: E402,F401
     BatchStateError,
     SchoolTransferBatch,
+)
+from apps.people.models_identifier_sequence import (  # noqa: E402,F401
+    AdmissionNumberSequence,
+    allocate_admission_seq,
 )
