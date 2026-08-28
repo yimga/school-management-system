@@ -142,8 +142,27 @@ confirmation, cutover/finance banners on review page.
 |------|--------|
 | MAA v2.0 flip | **BLOCKED** — counsel signoff PDF (`docs/MAA_V2_PROMOTION_CHECKLIST.md`) |
 | FACTS/Skyward write paths | **BLOCKED** — `docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md` |
-| HSM audit root signatures | **PARTIAL** — `local-env-key` works; cloud HSM bridges reserved |
+| HSM audit root signatures | **PARTIAL** — `local-env-key` AND `hashicorp-vault` are implemented (`services/hsm_vault.py`, v3.40.0). `aws-kms` / `azure-keyvault` / `gcp-kms` remain reserved and raise `NotImplementedError`. This row previously said all cloud bridges were reserved; verified against `RESERVED_BACKENDS_HSM` on 2026-08-28. |
 | Live vendor connector certification | **BLOCKED** — needs sandbox credentials per vendor |
+
+Verified 2026-08-28 that each of these is blocked ONLY externally — a thing
+can be waiting on counsel and also be missing the code that would make the
+signature useful:
+
+* **MAA v2.0** — `resolve_active_version_for_tenant` and
+  `resolve_preview_version_for_tenant` are wired, `promote_maa_v2` exists,
+  `MIGRATION_CLOUD_MAA_DEFAULT_VERSION` is `v1.0` and `v2.0` is in the draft
+  set. `docs/legal/maa_v2_signoff.pdf` is absent. One config flip away.
+* **FACTS / Skyward** — the block holds. Both companion vendor modules still
+  carry their `honest-stub` write markers and no feature flag routes round
+  them. The 2026-08-28 wave added `Courses.csv` / `courses.csv` column maps to
+  both accelerators and seeded both connector profiles, all read-direction:
+  `supported_methods: ["file_export"]`, `known_limitations: "Read-path CSV
+  only; write paths counsel-blocked."` Both sit at `PILOT_READY`, the same
+  level as PowerSchool / Blackbaud / Veracross, so no new claim was made.
+* **Live vendor certification** — still needs sandbox credentials per vendor.
+  Seven vendor mapping templates exist; none has been run against a live
+  tenant of that vendor.
 
 ## Hard rules — definition of done
 

@@ -35,14 +35,38 @@ MAX_AUTO_REMEDIATE_PASSES = 2
 
 
 def auto_dismiss_informational(bundle, *, user=None) -> dict[str, Any]:
-    """Dismiss rows that never needed operator action (deleted-in-source, duplicate)."""
+    """Dismiss rows that never needed operator action (deleted-in-source, duplicate).
+
+    This is the ONE rule whose evidence is the class itself. The others re-read
+    the source row and decide from what is in it, so a mis-guessed class costs
+    them nothing; here the class IS the finding, and dismissing on it says "this
+    row is already applied, or was never meant to apply" without looking at the
+    row at all.
+
+    So it acts only on a class the lander DECLARED. ``orchestrator.py`` records
+    ``reason_source`` for exactly this and says so in its own comment: a
+    remediation pass must be able to refuse to act automatically on a guess.
+
+    What the guess costs, measured: no lander declares ``DUPLICATE`` anywhere, so
+    every row that reaches that class got there through ``classify_message``,
+    whose rule is ``"duplicate" in e or "unique" in e or "already exists" in e``.
+    That matches a real write FAILURE -- ``UNIQUE constraint failed:
+    finance_invoice.reference`` is a row that did not land -- and closed it as
+    though it had. A guessed no-action class now keeps the row held for a person,
+    which is the correct answer to "we are not sure this landed".
+    """
     from apps.automation.quarantine_services import mark_repaired
 
     qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
         issue_class__in=QUARANTINE_NO_ACTION_CLASSES
     )
     dismissed = 0
+    held_on_guess = 0
     for rec in qs.iterator():
+        payload = rec.payload if isinstance(rec.payload, dict) else {}
+        if str(payload.get("reason_source") or "fallback") != "declared":
+            held_on_guess += 1
+            continue
         mark_repaired(
             rec,
             {
@@ -52,7 +76,14 @@ def auto_dismiss_informational(bundle, *, user=None) -> dict[str, Any]:
             },
         )
         dismissed += 1
-    return {"dismissed": dismissed}
+    if held_on_guess:
+        logger.info(
+            "auto_remediate: bundle %s kept %s no-action row(s) held — the class was "
+            "guessed from the error text, not declared by the lander",
+            getattr(bundle, "pk", None),
+            held_on_guess,
+        )
+    return {"dismissed": dismissed, "held_on_guessed_class": held_on_guess}
 
 
 def auto_dismiss_pdf_noise_holds(bundle, *, user=None) -> dict[str, Any]:
@@ -602,6 +633,7 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
     by_rule: dict[str, int] = {}
     held_breakdown: dict[str, int] = {}
     guessed_class_auto = 0
+    held_on_guess = 0
 
     for rec in quarantine_queryset_for_bundle(bundle, pending_only=True).iterator():
         payload = rec.payload if isinstance(rec.payload, dict) else {}
@@ -616,6 +648,7 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
             domain=domain,
             source_row=source_row,
             artifact=artifact,
+            reason_source=reason_source,
         )
 
         counts[outcome] += 1
@@ -623,6 +656,8 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
         if outcome == "needs_person":
             cell = f"{issue_class}|{domain}|{artifact.rsplit('/', 1)[-1] or '—'}"
             held_breakdown[cell] = held_breakdown.get(cell, 0) + 1
+            if rule == "guessed_no_action":
+                held_on_guess += 1
         elif reason_source != "declared":
             # The class this decision rests on was GUESSED from the error text.
             # orchestrator.py's own comment says a remediation pass should be able
@@ -651,15 +686,28 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
             sorted(held_breakdown.items(), key=lambda kv: -kv[1])
         ),
         "auto_decided_on_guessed_class": guessed_class_auto,
+        "held_because_class_was_guessed": held_on_guess,
         "rows": rows,
     }
 
 
 def _preview_one(
-    *, issue_class: str, domain: str, source_row: dict, artifact: str
+    *,
+    issue_class: str,
+    domain: str,
+    source_row: dict,
+    artifact: str,
+    reason_source: str,
 ) -> tuple[str, str, str]:
     """Mirror of the rule order in ``auto_remediate_on_review_open``. Read-only."""
     if issue_class in QUARANTINE_NO_ACTION_CLASSES:
+        if reason_source != "declared":
+            return (
+                "needs_person",
+                "guessed_no_action",
+                f"class {issue_class} was guessed from the error text, not declared "
+                "by the lander, and a guess is not evidence the row already landed",
+            )
         return "auto_close", "informational", "no import action was ever required"
 
     if issue_class == "missing_required":

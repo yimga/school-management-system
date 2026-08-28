@@ -9,7 +9,7 @@ against a live predicate or a live code path before it was written down, and
 every fix carries a test proven to fail without it.
 
 The commit's own 38 tests pass. So do the 124 orchestrator / finance / cutover /
-reconciliation tests. The three findings are all things no existing test asked.
+reconciliation tests. The four findings are all things no existing test asked.
 
 ---
 
@@ -129,18 +129,82 @@ Tests: `apps/migration_cloud/tests/test_review_open_is_not_csrf_reachable_2026_0
 
 ---
 
+## 4. A failed write was auto-closed as an already-applied row
+
+**Severity: silent data loss on the class that is hardest to notice.**
+
+`orchestrator.py` records `reason_source` on every held row -- `declared` when
+the lander named the class, `fallback` when `classify_message` guessed it from
+the error text -- and its own comment states the contract: *a remediation pass
+must be able to tell a class the lander asserted from one a matcher guessed, and
+to refuse to act automatically on a guess.* Nothing consulted it.
+
+Four of the five autopilot rules survive that, because they re-read the source
+row and decide from what is in it -- the class is a pre-filter, not the
+evidence. `auto_dismiss_informational` does not: it closes the row on the class
+alone, without looking at the row, on the grounds that `source_deletion` and
+`duplicate` mean "already handled".
+
+What that cost, measured on this tree:
+
+* **No lander declares `DUPLICATE`.** Zero sites -- the only two mentions in
+  `landers/` are comments. So every row that reaches that class got there
+  through `classify_message`, whose entire rule is
+  `"duplicate" in e or "unique" in e or "already exists" in e`.
+* That matches a real write **failure**. Run against real strings:
+
+```
+duplicate  AUTO-DISMISSED  UNIQUE constraint failed: finance_invoice.reference
+duplicate  AUTO-DISMISSED  duplicate key value violates unique constraint ...
+duplicate  AUTO-DISMISSED  admission number must be unique within the school
+duplicate  AUTO-DISMISSED  a staff member with this email already exists
+```
+
+A row that did not land was closed as though it had -- the data dropped, the
+queue reporting success, and now on page open.
+
+**Fixed.** `auto_dismiss_informational` acts only on a class the lander
+declared; a guessed no-action class keeps the row held for a person and is
+logged and counted (`held_on_guessed_class`). `SOURCE_DELETION`, declared at two
+sites, keeps clearing automatically -- that is the case the rule was written
+for. A payload predating `reason_source` reads as `fallback` and stays held,
+which is the right direction for a rule about doubt.
+
+The other four rules were deliberately left acting on a guessed class: their
+evidence is the row, and a replay that should not have run simply fails and
+leaves the row held. The preview counts them separately so the distinction is
+visible rather than assumed.
+
+Tests: `apps/migration_cloud/tests/test_no_action_requires_declared_class_2026_08_28.py`
+(7), including two that pin the premise -- that the matcher really does call a
+`UNIQUE` violation a duplicate, and that no lander declares `DUPLICATE` -- so if
+either changes, the fixture is revisited instead of quietly losing its point.
+
+---
+
 ## Not fixed — reported
 
-**`reason_source` is recorded and never read.** `orchestrator.py` stores whether
-a held row's `issue_class` was *declared* by the lander or *guessed* by matching
-the error string, and its own comment states the contract: "a remediation pass
-must be able to tell a class the lander asserted from one a matcher guessed, and
-to refuse to act automatically on a guess." No remediation pass consults it.
-`auto_dismiss_pdf_noise_holds`, `auto_dismiss_unstructured_fragments` and
-`auto_enrich_and_replay_missing_required` all filter on
-`issue_class="missing_required"` and act identically on a guess. Honouring it
-would be a one-line filter, but it could stop clearing rows the zero-touch pass
-is currently expected to clear, so it is a product call, not a defect fix.
+**Rows beyond `QUARANTINE_RECORD_CAP` are still lost, not just uncounted.**
+The cap is 2000 per artifact (was 200). Beyond it, `result.errors[:CAP]` keeps
+the first 2000 and the rest are discarded with the process -- `quarantine_caps`
+records how many vanished, and the export reads the database, so nothing can
+recover them afterwards. The spec ticks this box for *displaying* the gap and
+says in the same breath that reporting a gap is not closing it.
+
+Closing it means persisting the overflow at apply time, and every option
+changes what the platform writes per import:
+
+| option | cost |
+|---|---|
+| raise the cap | moves the cliff, does not remove it |
+| overflow rows into `mapping_summary` | unbounded JSON on a hot row; a 5k-row artifact would bloat every read of the bundle |
+| one durable overflow file per artifact | needs a storage + retention + PII decision, since the rows are tenant data |
+
+A 2000-failure artifact is a broken mapping rather than 2000 individual
+judgements, so the third option is probably right and the file probably wants
+the same retention as the bundle. That is a product decision about what is
+persisted on a live tenant, not a defect fix, so it is left here rather than
+taken.
 
 **Bundle 8's 88 rows could not be checked here.** The local development database
 holds zero `MigrationBundle` rows, so "they should clear on first page open" is a
@@ -189,4 +253,4 @@ over-claim -- three tests go red.
 and `GuardianLanderRelinkTests.test_no_identity_quarantines_precisely` both fail
 here. Verified pre-existing by running the module at the parent commit; both are
 already registered in `var/known-red-tests.json`. `scripts/triage_test_run.py`
-reports **NEW: 0** across the 367-test relevant run.
+reports **NEW: 0** across the 374-test relevant run.

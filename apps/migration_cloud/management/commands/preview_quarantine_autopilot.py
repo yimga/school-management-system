@@ -72,7 +72,16 @@ class Command(BaseCommand):
         if guessed:
             self.stdout.write(
                 f"\n{guessed} automated decision(s) rest on an issue_class GUESSED from "
-                "the error text (reason_source != declared), not one the lander declared."
+                "the error text (reason_source != declared). Those rules re-read the "
+                "source row, so the class is a pre-filter and not the evidence."
+            )
+
+        withheld = report["held_because_class_was_guessed"]
+        if withheld:
+            self.stdout.write(
+                f"\n{withheld} row(s) stay held because their no-action class was a "
+                "GUESS. A UNIQUE-constraint failure reads as duplicate to the fallback "
+                "matcher, and a failed write is not an already-applied row."
             )
 
         if report["needs_person_breakdown"]:
