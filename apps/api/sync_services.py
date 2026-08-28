@@ -1113,15 +1113,20 @@ def _same_field_value(model, name, current, incoming) -> bool:
     coercer = getattr(target or field, "to_python", None)
     if coercer is None:
         return False
+    from django.core.exceptions import ValidationError
+
     try:
         coerced = coercer(incoming)
-    except Exception:  # noqa: BLE001 - an optimisation must never be the failure
+    except (ValidationError, TypeError, ValueError, ArithmeticError):
+        # Named rather than blanket: these are what a to_python raises on a value it
+        # cannot accept, and a wider net would swallow a programming error in this
+        # function and report it as "the row changed".
         return False
     try:
         from apps.sync_engine.parity import _canonical
 
         return _canonical(current) == _canonical(coerced)
-    except Exception:  # noqa: BLE001
+    except (ImportError, TypeError, ValueError, AttributeError, ArithmeticError):
         return False
 
 
