@@ -66,13 +66,16 @@ class InferFieldFlagsDomainTests(SimpleTestCase):
 
 
 class HeldReviewCardTemplateTests(SimpleTestCase):
-    def test_anomaly_nudge_uses_card_stack_not_wide_table(self):
+    def test_anomaly_nudge_held_rows_first_and_mapping_collapsed(self):
         source = get_template("migration_cloud/anomaly_nudge.html").template.source
         held = get_template("migration_cloud/partials/quarantine_held_rows.html").template.source
         self.assertIn("quarantine_held_rows.html", source)
         self.assertIn("rmc-quarantine-cards", held)
         self.assertNotIn("rmc-quarantine-table", source)
-        self.assertNotIn("<table", held)
+        self.assertIn("section-held", source)
+        self.assertIn("section-mapping", source)
+        self.assertIn("run_autopilot", source)
+        self.assertLess(source.index("section-held"), source.index("section-mapping"))
 
     def test_held_rows_partial_has_no_seven_column_table(self):
         source = get_template("migration_cloud/partials/quarantine_held_rows.html").template.source
@@ -83,3 +86,18 @@ class HeldReviewCardTemplateTests(SimpleTestCase):
 class AutoDismissPdfNoiseCallableTests(SimpleTestCase):
     def test_auto_dismiss_pdf_noise_is_exported(self):
         self.assertTrue(callable(auto_dismiss_pdf_noise_holds))
+
+    def test_review_open_autopilot_is_exported(self):
+        from apps.migration_cloud.auto_remediate import auto_remediate_on_review_open
+
+        self.assertTrue(callable(auto_remediate_on_review_open))
+
+    def test_maybe_autopilot_redirect_helper(self):
+        from apps.migration_cloud.views import maybe_autopilot_held_review
+
+        self.assertTrue(callable(maybe_autopilot_held_review))
+
+    def test_run_autopilot_action_registered(self):
+        from apps.migration_cloud.quarantine_resolution import _RESOLUTION_ACTIONS
+
+        self.assertIn("run_autopilot", _RESOLUTION_ACTIONS)

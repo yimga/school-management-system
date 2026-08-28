@@ -167,7 +167,7 @@ services:
       # service AND the worker. The first build after enabling is ~2-3 min slower
       # (binary download). Runbook: docs/MIGRATION_CLOUD_OCR.md.
       - key: RMC_OCR_ENABLED
-        value: "0"
+        value: "1"
       - key: COLLABORA_BASE_URL
         value: ""
       - key: WOPI_SHARED_SECRET
@@ -348,7 +348,7 @@ services:
       # to "1" to enable) so async / Celery-driven Migration Cloud ingest can OCR
       # too. See the web service's RMC_OCR_ENABLED note + docs/MIGRATION_CLOUD_OCR.md.
       - key: RMC_OCR_ENABLED
-        value: "0"
+        value: "1"
       - key: DJANGO_SETTINGS_MODULE
         value: "config.settings"
       - key: MULTI_TENANT_BASE_DOMAIN

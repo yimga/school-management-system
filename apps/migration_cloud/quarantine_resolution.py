@@ -88,6 +88,8 @@ _RESOLUTION_ACTIONS = frozenset(
         "waive_all_pending",
         "deny_all_pending",
         "clear_queue",
+        "run_autopilot",
+        "reopen_auto",
     }
 )
 
@@ -135,9 +137,11 @@ def infer_field_flags(
     domain: str = "",
 ) -> list[dict[str, str]]:
     """Structured hints for the operator — what looks missing or inconsistent."""
+    from apps.migration_cloud.landers._helpers import _flatten_source_row
+
     flags: list[dict[str, str]] = []
     err = (error or "").lower()
-    row = source_row or {}
+    row = _flatten_source_row(source_row or {})
     domain_key = str(domain or "").strip().lower()
 
     def _empty(*keys: str) -> bool:
@@ -437,27 +441,99 @@ def apply_quarantine_action(
         return {"ok": False, "error": "invalid_action", "updated": 0}
 
     note = (note or "").strip()[:1000]
-    updated = 0
-    skipped = 0
-    updated_ids: list[int] = []
-
-    if action == "dismiss_informational":
-        qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
-            issue_class__in=QUARANTINE_NO_ACTION_CLASSES
-        )
-    elif action in ("waive_all_pending", "deny_all_pending", "clear_queue"):
-        qs = quarantine_queryset_for_bundle(bundle, pending_only=True)
-        if action == "clear_queue":
-            # Phase 1: informational rows — handled in-loop below via dual pass.
-            pass
-    else:
-        ids = [int(i) for i in (record_ids or []) if str(i).isdigit()]
-        if not ids:
-            return {"ok": False, "error": "record_ids_required", "updated": 0}
-        qs = _scoped_records(bundle, ids)
-
     now = timezone.now()
+
+    if action == "run_autopilot":
+        from .auto_remediate import auto_remediate_on_review_open
+
+        results = auto_remediate_on_review_open(bundle, user=user)
+        remaining = pending_quarantine_count(bundle)
+        return {
+            "ok": True,
+            "action": action,
+            "updated": int(results.get("auto_resolved_total") or 0),
+            "pending_remaining": remaining,
+            "auto_remediate": results,
+            "queue_reimport": remaining == 0,
+        }
+
+    if action == "reopen_auto":
+        run_ids = quarantine_runs_for_bundle(bundle)
+        qs_reopen = MigrationQuarantineRecord.objects.filter(
+            migration_run_id__in=run_ids,
+            status=MigrationQuarantineRecord.Status.REPAIRED,
+        )
+        if getattr(bundle, "school_id", None):
+            qs_reopen = qs_reopen.filter(school_id=bundle.school_id)
+        ids = [int(i) for i in (record_ids or []) if str(i).isdigit()]
+        if ids:
+            qs_reopen = qs_reopen.filter(pk__in=ids)
+        reopened = 0
+        skipped = 0
+        updated_ids: list[int] = []
+        for rec in qs_reopen.iterator():
+            resolution = (
+                rec.resolution_payload if isinstance(rec.resolution_payload, dict) else {}
+            )
+            if not any(str(key).startswith("auto_") for key in resolution):
+                skipped += 1
+                continue
+            rec.status = MigrationQuarantineRecord.Status.PENDING
+            rec.resolved_at = None
+            rec.resolution_payload = {
+                **resolution,
+                "reopened_by": getattr(user, "pk", None),
+                "reopened_at": now.isoformat(),
+                "reopen_note": note or "Reopened for human review",
+            }
+            rec.save(update_fields=["status", "resolved_at", "resolution_payload"])
+            reopened += 1
+            updated_ids.append(rec.pk)
+            try:
+                from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
+
+                slug = str(getattr(getattr(bundle, "school", None), "slug", "") or "")
+                MigrationCloudAuditEvent.objects.record(
+                    slug,
+                    "migration.quarantine.reopened",
+                    actor=user,
+                    subject=rec.pk,
+                    payload_summary={
+                        "bundle_id": bundle.pk,
+                        "record_id": rec.pk,
+                        "issue_class": rec.issue_class,
+                    },
+                )
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "quarantine_resolution: reopen audit failed record=%s",
+                    rec.pk,
+                    exc_info=True,
+                )
+        return {
+            "ok": True,
+            "action": action,
+            "updated": reopened,
+            "skipped": skipped,
+            "pending_remaining": pending_quarantine_count(bundle),
+        }
+
     if action == "clear_queue":
+        from .auto_remediate import (
+            auto_dismiss_informational,
+            auto_dismiss_pdf_noise_holds,
+            auto_dismiss_unstructured_fragments,
+            auto_enrich_and_replay_missing_required,
+            auto_replay_invalid_ref_holds,
+        )
+
+        auto_dismiss_pdf_noise_holds(bundle, user=user)
+        auto_dismiss_unstructured_fragments(bundle, user=user)
+        auto_dismiss_informational(bundle, user=user)
+        auto_replay_invalid_ref_holds(bundle, user=user)
+        auto_enrich_and_replay_missing_required(bundle, user=user)
+        auto_dismiss_pdf_noise_holds(bundle, user=user)
+        auto_dismiss_unstructured_fragments(bundle, user=user)
         info_outcome = apply_quarantine_action(
             bundle=bundle,
             user=user,
@@ -481,6 +557,22 @@ def apply_quarantine_action(
             "waived": waive_outcome.get("updated"),
             "queue_reimport": remaining == 0,
         }
+
+    updated = 0
+    skipped = 0
+    updated_ids = []
+
+    if action == "dismiss_informational":
+        qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
+            issue_class__in=QUARANTINE_NO_ACTION_CLASSES
+        )
+    elif action in ("waive_all_pending", "deny_all_pending"):
+        qs = quarantine_queryset_for_bundle(bundle, pending_only=True)
+    else:
+        ids = [int(i) for i in (record_ids or []) if str(i).isdigit()]
+        if not ids:
+            return {"ok": False, "error": "record_ids_required", "updated": 0}
+        qs = _scoped_records(bundle, ids)
 
     for rec in qs.iterator():
         if action == "deny_all_pending" or action == "deny":

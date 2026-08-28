@@ -541,10 +541,17 @@ def enrich_missing_required_row(
 
     if domain_key == "academics":
         name = str(
-            flat.get("subject_name") or flat.get("name") or flat.get("title") or ""
+            flat.get("subject_name")
+            or flat.get("course_name")
+            or flat.get("name")
+            or flat.get("title")
+            or ""
         ).strip()
         code = str(
-            flat.get("subject_code") or flat.get("code") or flat.get("course_code") or ""
+            flat.get("subject_code")
+            or flat.get("code")
+            or flat.get("course_code")
+            or ""
         ).strip()
         if not name and code:
             enriched["subject_name"] = code

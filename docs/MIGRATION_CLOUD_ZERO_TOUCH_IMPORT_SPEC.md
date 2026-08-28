@@ -108,7 +108,7 @@ such so the backlog is visible.
 > `"not found"` nor `"no such"`, so a wave-ordering reference failure — the one
 > class step 3 can replay without asking anybody — read as a crash.
 
-**3 — A remediation pass runs before a human is ever shown anything.**
+**3 — A remediation pass runs before a human is ever shown anything. ✅ DONE 2026-08-28 (repo-scope)**
 Machine-resolvable classes resolve themselves:
 - `source_deletion` — correct outcome, auto-closed, never shown
 - `duplicate` — landers upsert by external id, so this is already-applied,
@@ -116,29 +116,51 @@ Machine-resolvable classes resolve themselves:
 - `invalid_ref` where the referent landed later in the same bundle — replay the
   row, since wave ordering is the cause, not the data
 - `missing_required` where the field has a defensible default — apply it, audited
+- PDF/stat lines with no importable identity — auto-dismissed (not waived)
+
+> Shipped in `apps/migration_cloud/auto_remediate.py`:
+> `auto_remediate_after_apply` (post-apply + pre-repair),
+> `auto_remediate_on_review_open` (held-review GET + API `?autopilot=1` +
+> `run_autopilot` action), bounded by `MAX_AUTO_REMEDIATE_PASSES = 2`.
+> Audit: `migration.quarantine.auto_resolved` events + `mapping_summary.auto_remediation`.
+> Reversal: `reopen_auto` action restores auto-resolved rows to `PENDING`.
 
 **4 — Only genuinely ambiguous rows reach a person**, with the source row shown,
-the reason in plain language, and a one-click decision that writes back.
+the reason in plain language, and a one-click decision that writes back. **✅ DONE 2026-08-28 (repo-scope)**
+— held-first card stack, autopilot-on-open, inline edit + accept/replay, missing-field
+highlighting on edit grid, toast errors (no raw `window.alert`), mapping/drift in
+collapsed `<details>` only when held work remains.
 
-**5 — The counters cannot disagree.** Held total, durable records, and rows shown
-are one number or the difference is displayed.
+**5 — The counters cannot disagree.** **✅ DONE 2026-08-28 (repo-scope)**
+— `quarantine_caps` per artifact when engine cap truncates (banner + export CTA),
+`review_gap` when apply held ≠ DB pending, inferred control totals flagged for
+confirmation, cutover/finance banners on review page.
+
+## External / counsel-blocked (cannot close in-repo)
+
+| Item | Status |
+|------|--------|
+| MAA v2.0 flip | **BLOCKED** — counsel signoff PDF (`docs/MAA_V2_PROMOTION_CHECKLIST.md`) |
+| FACTS/Skyward write paths | **BLOCKED** — `docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md` |
+| HSM audit root signatures | **PARTIAL** — `local-env-key` works; cloud HSM bridges reserved |
+| Live vendor connector certification | **BLOCKED** — needs sandbox credentials per vendor |
 
 ## Hard rules — definition of done
 
-- [ ] **No count may exceed what is durably recorded** without displaying the gap.
-- [ ] **A class that needs nobody is never counted as needing someone.**
-- [ ] **Auto-remediation is idempotent and reversible**, and every automated
+- [x] **No count may exceed what is durably recorded** without displaying the gap.
+      (`quarantine_caps` on bundle + `review_gap` banner.)
+- [x] **A class that needs nobody is never counted as needing someone.**
+      (Autopilot dismiss/replay before held-review render.)
+- [x] **Auto-remediation is idempotent and reversible**, and every automated
       resolution is audited with what it changed and why.
-- [ ] **No new retry loop without a stated, tested ceiling.**
-      See `docs/ENGINEERING_STANDARD_PROVE_THE_OUTCOME.md` — a self-heal that
-      cannot give up is a loop, and one already cost a tenant 24 hours.
-- [ ] **Remediation must not depend on the LLM being reachable.** As of
-      2026-08-21 the cloud deployment is pointed at `ollama` — a local-only
-      provider that does not exist on Render — so every AI call fails, the
-      circuit opens, and everything falls back to rules. Deterministic rules are
-      the product; AI is an enhancement on top, never the mechanism.
+      (`migration.quarantine.auto_resolved` + `reopen_auto`.)
+- [x] **No new retry loop without a stated, tested ceiling.**
+      (`MAX_AUTO_REMEDIATE_PASSES = 2`.)
+- [x] **Remediation must not depend on the LLM being reachable.**
+      (Rules-only path in `auto_remediate.py`; AI explain is optional overlay.)
 - [ ] **Every claim about behaviour is backed by a state read**, not by reading
       the code and reasoning about it.
+      (Use `profile_bundle_quarantine` + held-review GET against live bundles.)
 
 ## The prompt
 

@@ -8,7 +8,11 @@ from unittest import mock
 from django.test import SimpleTestCase, TestCase
 
 from apps.migration_cloud.auto_remediate import sync_reconciliation_closure
-from apps.migration_cloud.guardrails import compute_observed_totals, evaluate_expected_totals
+from apps.migration_cloud.guardrails import (
+    auto_infer_expected_totals,
+    compute_observed_totals,
+    evaluate_expected_totals,
+)
 from apps.migration_cloud.mapping_template_registry import (
     load_profile_template_entry,
     persist_confirmed_connector_mappings,
@@ -40,19 +44,21 @@ from apps.schools.models import School
 
 class MappingTemplateRegistryTests(TestCase):
     def setUp(self):
-        self.profile = MigrationConnectorProfile.objects.create(
+        self.profile, _ = MigrationConnectorProfile.objects.update_or_create(
             key="powerschool",
-            display_name="PowerSchool",
-            mapping_template={
-                "by_artifact": {
-                    "students.csv": {
-                        "domain": "students",
-                        "canonical_mappings": {
-                            "Student_Number": "external_id",
-                            "First_Name": "first_name",
-                        },
+            defaults={
+                "display_name": "PowerSchool",
+                "mapping_template": {
+                    "by_artifact": {
+                        "students.csv": {
+                            "domain": "students",
+                            "canonical_mappings": {
+                                "Student_Number": "external_id",
+                                "First_Name": "first_name",
+                            },
+                        }
                     }
-                }
+                },
             },
         )
 
@@ -252,6 +258,46 @@ class CutoverSignoffGateTests(TestCase):
         bundle.refresh_from_db()
         self.assertEqual(bundle.status, BundleStatus.APPLIED)
         self.assertTrue(any("Cutover sign-off pending" in n for n in report.notes))
+
+
+class AutoInferExpectedTotalsTests(TestCase):
+    def test_auto_infer_populates_from_observed_and_flags_confirmation(self):
+        school = School.objects.create(
+            name="Infer School",
+            slug="infer-school",
+            subdomain="infer-school",
+            is_active=True,
+            is_approved=True,
+            country_code="CM",
+            settings={},
+        )
+        bundle = MigrationBundle.objects.create(
+            label="infer",
+            intake_method=IntakeMethod.FILE_UPLOAD,
+            idempotency_key="infer-1",
+            status=BundleStatus.APPLIED,
+            school=school,
+            expected_totals={},
+        )
+        for idx in range(3):
+            MigrationIdMapping.objects.create(
+                bundle=bundle,
+                school=school,
+                domain="students",
+                legacy_namespace="test",
+                legacy_id=f"s{idx}",
+                canonical_model="people.StudentProfile",
+                canonical_pk=1000 + idx,
+            )
+        with mock.patch(
+            "apps.migration_cloud.guardrails.compute_observed_totals",
+            return_value={"students.count": "3", "finance.invoice_count": "0"},
+        ):
+            inferred = auto_infer_expected_totals(bundle=bundle)
+        bundle.refresh_from_db()
+        self.assertEqual(inferred, {"students.count": "3"})
+        self.assertEqual(bundle.expected_totals.get("students.count"), "3")
+        self.assertTrue(bundle.mapping_summary.get("expected_totals_requires_confirmation"))
 
 
 class PayrollGuardrailTotalsTests(TestCase):

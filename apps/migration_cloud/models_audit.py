@@ -430,6 +430,14 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "migration.conflict.resolved",
         "Migration upsert conflict resolved (field-level decision)",
     )
+    QUARANTINE_AUTO_RESOLVED = (
+        "migration.quarantine.auto_resolved",
+        "Held row auto-resolved by zero-touch remediation pass",
+    )
+    QUARANTINE_REOPENED = (
+        "migration.quarantine.reopened",
+        "Auto-resolved held row reopened for human review",
+    )
     ONBOARDING_WAIVER_APPLIED = (
         "onboarding.waiver.applied",
         "Onboarding waiver applied (no data to migrate / launch without roster)",

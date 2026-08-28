@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.core.management.base import BaseCommand
 
-from apps.migration_cloud.mapping_template_registry import build_powerschool_mapping_template
+from apps.migration_cloud.mapping_template_registry import VENDOR_MAPPING_TEMPLATE_BUILDERS
 from apps.migration_cloud.models_connectors import (
     ConnectorCertificationStatus,
     MigrationConnectorProfile,
@@ -63,6 +63,32 @@ PROFILES = [
         "display_name": "Veracross",
         "supported_methods": ["file_export"],
         "certification_status": ConnectorCertificationStatus.PILOT_READY,
+    },
+    {
+        "key": "alma",
+        "display_name": "Alma",
+        "vendor_name": "Alma",
+        "supported_methods": ["file_export"],
+        "certification_status": ConnectorCertificationStatus.PILOT_READY,
+        "supported_entities": ["students", "staff", "guardians", "courses", "sections"],
+    },
+    {
+        "key": "facts",
+        "display_name": "FACTS / RenWeb",
+        "vendor_name": "FACTS",
+        "supported_methods": ["file_export"],
+        "certification_status": ConnectorCertificationStatus.PILOT_READY,
+        "known_limitations": "Read-path CSV only; write paths counsel-blocked.",
+        "supported_entities": ["students", "guardians", "staff", "finance", "courses"],
+    },
+    {
+        "key": "skyward",
+        "display_name": "Skyward",
+        "vendor_name": "Skyward",
+        "supported_methods": ["file_export"],
+        "certification_status": ConnectorCertificationStatus.PILOT_READY,
+        "known_limitations": "Read-path CSV only; write paths counsel-blocked.",
+        "supported_entities": ["students", "guardians", "staff", "courses"],
     },
     {
         "key": "open_sis",
@@ -127,8 +153,8 @@ def seed_connector_profiles(model=None) -> tuple[int, int]:
             created += 1
 
     # Seed deterministic column maps for repeat supplier CSV (~0% mapping review).
-    ps_template = build_powerschool_mapping_template()
-    model.objects.filter(key="powerschool").update(mapping_template=ps_template)
+    for profile_key, builder in VENDOR_MAPPING_TEMPLATE_BUILDERS.items():
+        model.objects.filter(key=profile_key).update(mapping_template=builder())
 
     return len(PROFILES), created
 

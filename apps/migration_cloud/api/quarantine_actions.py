@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
 from rest_framework import serializers, status
@@ -26,6 +27,8 @@ from rest_framework.response import Response
 from apps.migration_cloud.reliability import idempotent_post, safe_500
 
 logger = logging.getLogger(__name__)
+
+QUARANTINE_API_PAGE_SIZE = 25  # magic-number-allow: quarantine-api-page-size
 
 
 def _require_quarantine_tenant_admin(request, *, detail: str):
@@ -74,6 +77,41 @@ def _resolve_payload(request) -> dict:
     return {}
 
 
+def _quarantine_summary_fields(bundle) -> dict:
+    from apps.migration_cloud.auto_remediate import import_closure_banner
+    from apps.migration_cloud.models_cutover import cutover_signoff_pending_for_bundle
+    from apps.migration_cloud.quarantine_profile import profile_quarantine_distribution
+    from apps.migration_cloud.quarantine_resolution import pending_quarantine_count
+
+    mapping_summary = getattr(bundle, "mapping_summary", None) or {}
+    apply_held = int((mapping_summary.get("apply_totals") or {}).get("quarantined") or 0)
+    pending = pending_quarantine_count(bundle)
+    auto = mapping_summary.get("auto_remediation") or {}
+    pdf_noise_candidates = 0
+    try:
+        pdf_noise_candidates = int(
+            profile_quarantine_distribution(bundle, pending_only=True).get(
+                "pdf_noise_candidates"
+            )
+            or 0
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("quarantine api: pdf noise profile failed", exc_info=True)
+
+    closure = import_closure_banner(bundle)
+    return {
+        "pending": pending,
+        "apply_held_total": apply_held,
+        "review_gap": max(0, apply_held - pending) if apply_held else 0,
+        "reconciliation_status": str(getattr(bundle, "reconciliation_status", "") or ""),
+        "cutover_signoff_pending": cutover_signoff_pending_for_bundle(bundle),
+        "pdf_noise_candidates": pdf_noise_candidates,
+        "auto_remediation": auto,
+        "import_closure": closure,
+        "quarantine_caps": mapping_summary.get("quarantine_caps") or {},
+    }
+
+
 def _apply_resolve(*, bundle, user, payload: dict) -> tuple[dict, int]:
     from apps.migration_cloud.quarantine_resolution import apply_quarantine_action
     from apps.migration_cloud.repair import repair_bundle
@@ -101,6 +139,8 @@ def _apply_resolve(*, bundle, user, payload: dict) -> tuple[dict, int]:
         "waive_all_pending",
         "deny_all_pending",
         "clear_queue",
+        "run_autopilot",
+        "reopen_auto",
     }
     if action_name in bulk_actions:
         outcome = apply_quarantine_action(
@@ -108,11 +148,13 @@ def _apply_resolve(*, bundle, user, payload: dict) -> tuple[dict, int]:
             user=user,
             action=action_name,
             note=str(payload.get("note") or ""),
+            record_ids=payload.get("record_ids"),
         )
         if payload.get("auto_retry") or outcome.get("queue_reimport"):
             repair_result = repair_bundle(bundle_id=bundle.pk, off_http=True)
             outcome["retry_queued"] = repair_result.queued or repair_result.ran
             outcome["retry_message"] = repair_result.message
+        outcome.update(_quarantine_summary_fields(bundle))
         return outcome, status.HTTP_200_OK
 
     record_ids = payload.get("record_ids") or []
@@ -142,6 +184,7 @@ def _apply_resolve(*, bundle, user, payload: dict) -> tuple[dict, int]:
         repair_result = repair_bundle(bundle_id=bundle.pk, off_http=True)
         outcome["retry_queued"] = repair_result.queued or repair_result.ran
         outcome["retry_message"] = repair_result.message
+    outcome.update(_quarantine_summary_fields(bundle))
     return outcome, status.HTTP_200_OK
 
 
@@ -153,8 +196,8 @@ def quarantine_list_action_factory():
         summary="List held rows awaiting review",
         description=(
             "Returns pending quarantine records enriched for display, plus "
-            "counts and issue-class breakdown. Tenant-scoped via the bundle "
-            "lookup."
+            "counts and issue-class breakdown. Pass ``?autopilot=1`` to run "
+            "the zero-touch triage pass before listing. Paginate with ``page``."
         ),
         responses={
             200: OpenApiResponse(description="Held-row list + summary JSON"),
@@ -169,31 +212,35 @@ def quarantine_list_action_factory():
             return denied
         from apps.migration_cloud.quarantine_resolution import (
             enrich_quarantine_row,
-            pending_quarantine_count,
             quarantine_breakdown,
             quarantine_queryset_for_bundle,
         )
 
         bundle = self.get_object()
+        if request.query_params.get("autopilot") == "1":
+            from apps.migration_cloud.auto_remediate import auto_remediate_on_review_open
+
+            auto_remediate_on_review_open(bundle, user=request.user)
+
         pending_qs = quarantine_queryset_for_bundle(bundle, pending_only=True).order_by(
             "issue_class", "domain", "row_index", "pk"
         )
-        rows = [enrich_quarantine_row(rec) for rec in pending_qs[:200]]
-        apply_held = int(
-            ((bundle.mapping_summary or {}).get("apply_totals") or {}).get("quarantined") or 0
+        page_obj = Paginator(pending_qs, QUARANTINE_API_PAGE_SIZE).get_page(
+            request.query_params.get("page") or 1
         )
-        pending = pending_quarantine_count(bundle)
-        return Response(
-            {
-                "bundle_id": bundle.pk,
-                "pending": pending,
-                "total": quarantine_queryset_for_bundle(bundle, pending_only=False).count(),
-                "breakdown": quarantine_breakdown(bundle, pending_only=True),
-                "apply_held_total": apply_held,
-                "review_gap": max(0, apply_held - pending) if apply_held else 0,
-                "rows": rows,
-            }
-        )
+        rows = [enrich_quarantine_row(rec) for rec in page_obj.object_list]
+        payload = {
+            "bundle_id": bundle.pk,
+            "total": quarantine_queryset_for_bundle(bundle, pending_only=False).count(),
+            "breakdown": quarantine_breakdown(bundle, pending_only=True),
+            "rows": rows,
+            "page": page_obj.number,
+            "page_size": QUARANTINE_API_PAGE_SIZE,
+            "num_pages": page_obj.paginator.num_pages,
+            "rows_shown": len(rows),
+        }
+        payload.update(_quarantine_summary_fields(bundle))
+        return Response(payload)
 
     return quarantine_list
 
@@ -207,7 +254,8 @@ def quarantine_resolve_action_factory():
             "action": serializers.CharField(
                 help_text=(
                     "dismiss|waive|deny|accept_edit|dismiss_informational|"
-                    "waive_all_pending|deny_all_pending|clear_queue|retry_import"
+                    "waive_all_pending|deny_all_pending|clear_queue|"
+                    "run_autopilot|reopen_auto|retry_import"
                 ),
             ),
             "record_ids": serializers.ListField(

@@ -335,6 +335,39 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
     return totals
 
 
+def auto_infer_expected_totals(*, bundle: Any) -> dict[str, str]:
+    """Populate missing ``expected_totals`` from post-apply observed counts.
+
+    Closes the gap where finance/students/payroll land but cutover stays blocked
+    because nobody typed control totals upfront. Inferred keys are stored on the
+    bundle and flagged for operator confirmation — they are NOT a substitute for
+    a deliberate control total when the source provides one.
+    """
+    observed = compute_observed_totals(bundle=bundle)
+    if not observed:
+        return {}
+    current = dict(bundle.expected_totals or {})
+    inferred: dict[str, str] = {}
+    for key, val in observed.items():
+        if current.get(key):
+            continue
+        text = str(val or "").strip()
+        if not text or text in {"0", "0.0", "0.00"}:
+            continue
+        current[key] = text
+        inferred[key] = text
+    if not inferred:
+        return {}
+    summary = dict(bundle.mapping_summary or {})
+    summary["expected_totals_auto_inferred"] = inferred
+    summary["expected_totals_requires_confirmation"] = True
+    summary.pop("finance_landed_unverified", None)
+    bundle.expected_totals = current
+    bundle.mapping_summary = summary
+    bundle.save(update_fields=["expected_totals", "mapping_summary", "updated_at"])
+    return inferred
+
+
 def enforce_financial_guardrail(*, bundle: Any) -> GuardrailReport:
     """Compute observed totals and raise FinancialMismatchError on failure.
 
