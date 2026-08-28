@@ -326,6 +326,25 @@ class CutoverRunbook(models.Model):
             )
 
 
+def cutover_signoff_pending_for_bundle(bundle) -> bool:
+    """True when this bundle is the real cutover bundle awaiting operator sign-off."""
+    if not bundle or not getattr(bundle, "pk", None):
+        return False
+    try:
+        from apps.migration_cloud.models_cutover import (
+            CutoverRunbook,
+            CutoverRunbookStatus,
+        )
+    except ImportError:  # pragma: no cover
+        return False
+    return CutoverRunbook.objects.filter(
+        real_bundle_id=bundle.pk,
+    ).exclude(
+        status=CutoverRunbookStatus.SIGNED_OFF,
+        signed_off_at__isnull=False,
+    ).exists()
+
+
 __all__ = [
     "CutoverRunbook",
     "CutoverRunbookStatus",
@@ -334,4 +353,5 @@ __all__ = [
     "CutoverRunbookNotReadyError",
     "CutoverRunbookImmutableError",
     "compute_scorecard_sha256",
+    "cutover_signoff_pending_for_bundle",
 ]

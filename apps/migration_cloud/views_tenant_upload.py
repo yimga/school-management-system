@@ -1363,6 +1363,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             quarantine_breakdown,
             quarantine_preview_rows,
         )
+        from .auto_remediate import import_closure_banner
 
         q_pending = pending_quarantine_count(bundle)
         q_breakdown = quarantine_breakdown(bundle, pending_only=True) if q_pending else []
@@ -1418,6 +1419,10 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "held_preview_rows": held_preview_rows,
             "apply_held_total": apply_held,
             "quarantine_review_gap": max(0, apply_held - q_pending) if apply_held else 0,
+            "import_closure": import_closure_banner(bundle) if not q_pending else None,
+            "reconciliation_status": getattr(bundle, "reconciliation_status", "") or "",
+            "financial_guardrail_variance": _build_financial_guardrail_variance(bundle),
+            "cutover_signoff_pending": _cutover_signoff_pending(bundle),
             "rollback": _build_rollback(bundle),
             "rollback_url": _connector_reverse(request, "bundle-rollback", bundle_id=bundle.pk),
             "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
@@ -1496,6 +1501,51 @@ def _build_verification(bundle):
 _ACTIONABLE_REPAIR_BLOCKERS = frozenset(
     {"financial_guardrail_failed", "finance_requires_atomic", "tenant_schema_drift"}
 )
+
+
+def _build_financial_guardrail_variance(bundle):
+    """Expected vs observed control totals for tenant Review & Import."""
+    report = (getattr(bundle, "mapping_summary", None) or {}).get("financial_guardrail") or {}
+    if not report:
+        size = getattr(bundle, "size_summary", None) or {}
+        if not size.get("financial_guardrail_failed"):
+            return None
+        try:
+            from .guardrails import compute_observed_totals, evaluate_expected_totals
+
+            observed = compute_observed_totals(bundle=bundle)
+            report = evaluate_expected_totals(bundle=bundle, observed=observed).to_dict()
+        except Exception:  # noqa: BLE001
+            return None
+    checks = report.get("checks") or []
+    if not checks and not (bundle.expected_totals or {}):
+        return None
+    rows = []
+    for check in checks:
+        rows.append(
+            {
+                "key": check.get("key"),
+                "expected": check.get("expected"),
+                "observed": check.get("observed"),
+                "delta": check.get("delta"),
+                "passed": bool(check.get("passed")),
+                "unreadable_expected": check.get("unreadable_expected"),
+            }
+        )
+    return {
+        "ok": bool(report.get("ok")),
+        "rows": rows,
+        "failed": report.get("failed") or [],
+    }
+
+
+def _cutover_signoff_pending(bundle) -> bool:
+    try:
+        from .models_cutover import cutover_signoff_pending_for_bundle
+
+        return cutover_signoff_pending_for_bundle(bundle)
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _last_import_summary(bundle):

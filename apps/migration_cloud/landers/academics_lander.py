@@ -33,6 +33,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     record_row_error,
+    row_is_pdf_noise_hold,
     row_is_unstructured_text_fragment,
     row_marks_deletion,
 )
@@ -78,7 +79,10 @@ class AcademicsLander(Lander):
             # code when a source only carries a code.
             name = name or code
             if not name:
-                if row_is_unstructured_text_fragment(row):
+                artifact_path = str(getattr(ctx, "artifact_path", "") or "")
+                if row_is_unstructured_text_fragment(row, artifact=artifact_path) or row_is_pdf_noise_hold(
+                    "academics", row, artifact_path
+                ):
                     result.skipped += 1
                     continue
                 record_row_error(

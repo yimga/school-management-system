@@ -603,10 +603,28 @@ def _apply_bundle_inner(
         logger.warning("orchestrator: financial guardrail aborted apply: %s", exc)
         _emit_progress(bundle_id=bundle_id, kind="warning", stage="APPLYING",
                        message=f"Financial guardrail failure — apply aborted: {exc}")
+        try:
+            from .guardrails import compute_observed_totals, evaluate_expected_totals
+
+            observed = compute_observed_totals(bundle=bundle)
+            report = evaluate_expected_totals(bundle=bundle, observed=observed)
+            bundle.mapping_summary = {
+                **(bundle.mapping_summary or {}),
+                "financial_guardrail": report.to_dict(),
+            }
+            bundle.save(update_fields=["mapping_summary", "updated_at"])
+        except Exception:  # noqa: BLE001 — report persist must not mask abort
+            logger.debug("orchestrator: failed guardrail report persist", exc_info=True)
         bundle.mark_status(
             BundleStatus.FAILED,
             summary_patch={"financial_guardrail_failed": True, "error": str(exc)},
         )
+        try:
+            from .auto_remediate import sync_reconciliation_closure
+
+            sync_reconciliation_closure(bundle)
+        except Exception:  # noqa: BLE001
+            logger.debug("orchestrator: closure sync after guardrail failed", exc_info=True)
         if not atomic_mode:
             _rollback_all_runs(outcomes)
         # Partner lifecycle event (G-5): fires on BOTH the API and UI paths.
@@ -915,6 +933,9 @@ def _maybe_check_financial_guardrail(
     students_landed = any(
         o.domain == "students" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
     )
+    payroll_landed = any(
+        o.domain == "payroll" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
+    )
     if not bundle.expected_totals:
         # #4b: money landed with NO operator control totals = UNVERIFIED. Don't pass
         # it off silently. Warn loudly by default (recorded on the bundle + logged);
@@ -925,7 +946,7 @@ def _maybe_check_financial_guardrail(
             _handle_unverified_finance(bundle)
         return
     # Only enforce when something happened in a domain the guardrail observes.
-    if not (finance_landed or students_landed):
+    if not (finance_landed or students_landed or payroll_landed):
         return
     bundle.refresh_from_db()
     report = enforce_financial_guardrail(bundle=bundle)
@@ -1873,6 +1894,7 @@ def _run_lander_under_schema(
         schema_name=bundle.schema_name,
         bundle_id=bundle.pk,
         artifact_id=artifact.pk,
+        artifact_path=str(getattr(artifact, "path_within_bundle", "") or ""),
         dry_run=dry_run,
         # Operator transform preferences chosen on the review page (currently the
         # combined-name order). LanderContext has always carried this field; it

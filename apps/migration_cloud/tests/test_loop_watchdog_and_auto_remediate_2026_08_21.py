@@ -75,6 +75,10 @@ class AutoRemediateImportTests(unittest.TestCase):
 
         if not settings.configured:
             django.setup()
-        from apps.migration_cloud.auto_remediate import auto_remediate_before_repair
+        from apps.migration_cloud.auto_remediate import (
+            auto_remediate_after_apply,
+            auto_remediate_before_repair,
+        )
 
         self.assertTrue(callable(auto_remediate_before_repair))
+        self.assertTrue(callable(auto_remediate_after_apply))

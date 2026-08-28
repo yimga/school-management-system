@@ -69,6 +69,14 @@ def confirm_mappings(
         source_connection=connection,
         metadata={"entity_type": entity_type, "count": updated},
     )
+    try:
+        from apps.migration_cloud.mapping_template_registry import (
+            persist_confirmed_connector_mappings,
+        )
+
+        persist_confirmed_connector_mappings(connection=connection, entity_type=entity_type)
+    except Exception:  # noqa: BLE001 — registry persist must not block confirm
+        pass
     return updated
 
 

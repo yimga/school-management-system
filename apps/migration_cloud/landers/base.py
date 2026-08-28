@@ -61,6 +61,7 @@ class LanderContext:
     schema_name: str
     bundle_id: int
     artifact_id: int
+    artifact_path: str = ""
     dry_run: bool = False
     transformer_options: dict[str, Any] = field(default_factory=dict)
 

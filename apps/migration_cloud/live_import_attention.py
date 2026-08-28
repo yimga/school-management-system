@@ -294,6 +294,29 @@ def _aborted_remediator(bundle: Any) -> dict[str, Any] | None:
     }
 
 
+def _cutover_signoff_remediator(bundle: Any) -> dict[str, Any] | None:
+    try:
+        from .models_cutover import cutover_signoff_pending_for_bundle
+
+        if not cutover_signoff_pending_for_bundle(bundle):
+            return None
+    except Exception:  # noqa: BLE001
+        return None
+    return {
+        "title": _("Issue Remediator — Awaiting cutover sign-off"),
+        "steps": [
+            _(
+                "Your school's live cutover bundle is imported, but domain sign-off "
+                "on the operator cutover runbook is still pending. Your operator "
+                "must record sign-off before this migration is fully sealed."
+            )
+        ],
+        "action_label": _("Contact your operator"),
+        "show_repair": False,
+        "kind": "cutover_signoff",
+    }
+
+
 def remediator_for(
     bundle: Any,
     *,
@@ -346,6 +369,34 @@ def remediator_for(
             "show_repair": True,
             "kind": "failed",
         }
+    cutover = _cutover_signoff_remediator(bundle)
+    if cutover is not None and issues == 0:
+        return cutover
+    try:
+        from .auto_remediate import import_closure_banner
+        from .models import ReconciliationClosureStatus
+
+        closure = import_closure_banner(bundle)
+        if (
+            issues == 0
+            and closure
+            and str(getattr(bundle, "reconciliation_status", "") or "")
+            == ReconciliationClosureStatus.CLOSED
+            and int(closure.get("auto_resolved_total") or 0) > 0
+        ):
+            steps = [closure["headline"]]
+            if closure.get("detail"):
+                steps.append(closure["detail"])
+            return {
+                "title": _("Issue Remediator — Import closed"),
+                "steps": steps,
+                "action_label": _("View import summary"),
+                "show_repair": False,
+                "kind": "closed_auto",
+                "import_closed": True,
+            }
+    except Exception:  # noqa: BLE001
+        pass
     if issues > 0:
         held_step = ngettext(
             "1 record is held for review and was not imported.",

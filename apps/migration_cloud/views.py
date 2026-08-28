@@ -637,6 +637,21 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
             "finance.invoice_total_amount",
             "Expected invoice total",
         )
+        clean_count(
+            "expected_payroll_row_count",
+            "payroll.row_count",
+            "Expected payroll rows",
+        )
+        clean_money(
+            "expected_payroll_gross_total",
+            "payroll.gross_total_amount",
+            "Expected payroll gross total",
+        )
+        clean_money(
+            "expected_payroll_net_total",
+            "payroll.net_total_amount",
+            "Expected payroll net total",
+        )
 
         diff_mode = str(form.get("diff_mode") or "full").lower()
         if diff_mode not in ("full", "since"):
@@ -1254,6 +1269,23 @@ class MigrationCloudFeedbackView(LoginRequiredMixin, View):
                     }
                     bundle.save(update_fields=["mapping_summary", "updated_at"])
                     applied_to_bundle = True
+                    for path in artifacts_updated:
+                        domain_entry = (
+                            (bundle.discovery_summary or {}).get("per_artifact_domain") or {}
+                        ).get(path) or {}
+                        try:
+                            from apps.migration_cloud.mapping_template_registry import (
+                                persist_bundle_mappings_to_profile,
+                            )
+
+                            persist_bundle_mappings_to_profile(
+                                bundle=bundle,
+                                artifact_path=path,
+                                mappings=per_artifact.get(path) or [],
+                                domain=str(domain_entry.get("domain") or ""),
+                            )
+                        except Exception:  # noqa: BLE001
+                            pass
                     # If the bundle was already applied, the operator must
                     # re-run Apply for the override to reach landed data.
                     reapply_required = bundle.status in (
@@ -1644,6 +1676,14 @@ def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dic
     except Exception:  # noqa: BLE001
         logger.debug("anomaly_nudge: quarantine fetch failed", exc_info=True)
 
+    import_closure = None
+    try:
+        from .auto_remediate import import_closure_banner
+
+        import_closure = import_closure_banner(bundle)
+    except Exception:  # noqa: BLE001
+        logger.debug("anomaly_nudge: closure banner failed", exc_info=True)
+
     reconciliation = bundle.reconciliation_summary or {}
     drift_domains = [
         d
@@ -1704,6 +1744,8 @@ def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dic
         "threshold": threshold,
         "apply_held_total": apply_held,
         "quarantine_review_gap": quarantine_review_gap,
+        "import_closure": import_closure,
+        "reconciliation_status": getattr(bundle, "reconciliation_status", "") or "",
         "ai_explain_url": ai_explain_url,
         "progress_stream_url": progress_stream_url,
         "page_title": f"Review queue — {bundle.label or bundle.idempotency_key}",

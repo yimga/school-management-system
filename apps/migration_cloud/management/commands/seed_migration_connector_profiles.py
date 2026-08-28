@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.core.management.base import BaseCommand
 
+from apps.migration_cloud.mapping_template_registry import build_powerschool_mapping_template
 from apps.migration_cloud.models_connectors import (
     ConnectorCertificationStatus,
     MigrationConnectorProfile,
@@ -124,6 +125,11 @@ def seed_connector_profiles(model=None) -> tuple[int, int]:
         )
         if was_created:
             created += 1
+
+    # Seed deterministic column maps for repeat supplier CSV (~0% mapping review).
+    ps_template = build_powerschool_mapping_template()
+    model.objects.filter(key="powerschool").update(mapping_template=ps_template)
+
     return len(PROFILES), created
 
 

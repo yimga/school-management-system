@@ -272,6 +272,17 @@ def reconcile_bundle(
         return report
 
     if not scoped_readonly and not notes and bundle.status == BundleStatus.APPLIED:
+        from .models_cutover import cutover_signoff_pending_for_bundle
+
+        if cutover_signoff_pending_for_bundle(bundle):
+            notes.append(
+                "Cutover sign-off pending — reconcile sealed until the operator "
+                "records domain sign-off on the cutover runbook."
+            )
+            report.notes = notes
+            bundle.reconciliation_summary = _report_to_dict(report)
+            bundle.save(update_fields=["reconciliation_summary", "updated_at"])
+            return report
         bundle.mark_status(BundleStatus.RECONCILED)
         # Partner lifecycle event (G-5): nothing emitted bundle.reconciled before —
         # partners had no signal the migration was verified + sealed. Best-effort.
@@ -322,12 +333,12 @@ def run_post_apply_verification(*, bundle_id: int) -> None:
             message="Verifying imported records are visible in your school…",
         )
         try:
-            from .auto_remediate import auto_remediate_before_repair
+            from .auto_remediate import auto_remediate_after_apply
             from .models import MigrationBundle
 
             bundle = MigrationBundle.objects.filter(pk=bundle_id).first()
             if bundle is not None:
-                auto_remediate_before_repair(bundle)
+                auto_remediate_after_apply(bundle)
         except Exception:  # noqa: BLE001
             logger.debug(
                 "migration_cloud: post-apply auto-remediate skipped for bundle %s",

@@ -387,12 +387,20 @@ _ACADEMICS_IDENTITY_KEYS = (
 )
 
 
-def row_is_unstructured_text_fragment(row: dict | None) -> bool:
+_PDF_STAT_METADATA_KEYS = frozenset(
+    {"page", "line", "column", "sheet", "table", "row", "cell", "block", "stats"}
+)
+
+
+def row_is_unstructured_text_fragment(row: dict | None, *, artifact: str = "") -> bool:
     """True when a row is only a PDF/stat-sheet text line with no domain identity.
 
     PDF tabularisation emits ``raw_line`` rows when a page has no grade-table or
     key/value structure (headers, footers, column titles). Those lines are not
     importable course records and should be skipped — not held for review.
+
+    Also catches ``school_stats*.pdf`` metadata-only rows (page/line keys, no
+    subject/student identity) that never carried a ``raw_line`` field.
     """
     if not isinstance(row, dict):
         return False
@@ -407,7 +415,29 @@ def row_is_unstructured_text_fragment(row: dict | None) -> bool:
         or flat.get("raw_line")
         or (custom_fields.get("raw_line") if isinstance(custom_fields, dict) else None)
     )
+    artifact_name = str(artifact or "").lower()
     if not str(raw_line or "").strip():
+        if artifact_name.endswith(".pdf") or "school_stats" in artifact_name:
+            for key in _ACADEMICS_IDENTITY_KEYS:
+                if str(flat.get(key) or "").strip():
+                    return False
+            for key in _STUDENT_IDENTITY_KEYS:
+                if str(flat.get(key) or "").strip():
+                    return False
+            meaningful = {
+                key: value
+                for key, value in flat.items()
+                if key != "custom_fields"
+                and value not in (None, "", [], {})
+                and str(value).strip()
+            }
+            if not meaningful:
+                return True
+            return all(
+                key in _PDF_STAT_METADATA_KEYS
+                or key.startswith("custom_fields.")
+                for key in meaningful
+            )
         return False
     for key in _ACADEMICS_IDENTITY_KEYS:
         if str(flat.get(key) or "").strip():
@@ -426,6 +456,126 @@ def row_is_unstructured_text_fragment(row: dict | None) -> bool:
         key in allowed_keys or key.startswith("custom_fields.")
         for key in meaningful
     )
+
+
+_STUDENT_IDENTITY_KEYS = (
+    "external_id",
+    "student_external_id",
+    "admission_number",
+    "student_code",
+    "first_name",
+    "last_name",
+    "full_name",
+)
+
+_DOMAIN_IDENTITY_KEYS: dict[str, tuple[str, ...]] = {
+    "academics": _ACADEMICS_IDENTITY_KEYS,
+    "students": _STUDENT_IDENTITY_KEYS,
+    "enrollment": _STUDENT_IDENTITY_KEYS,
+    "grades": _STUDENT_IDENTITY_KEYS + ("subject_code", "subject_name", "score", "letter_grade"),
+    "attendance": _STUDENT_IDENTITY_KEYS,
+    "behavior": _STUDENT_IDENTITY_KEYS,
+    "staff": ("staff_id", "employee_number", "email", "first_name", "last_name", "full_name"),
+}
+
+
+def _flatten_source_row(row: dict | None) -> dict[str, Any]:
+    if not isinstance(row, dict):
+        return {}
+    flat: dict[str, Any] = dict(row)
+    custom_fields = row.get("custom_fields")
+    if isinstance(custom_fields, dict):
+        for key, value in custom_fields.items():
+            flat.setdefault(f"custom_fields.{key}", value)
+            flat.setdefault(key, value)
+    return flat
+
+
+def row_has_domain_identity(domain: str, source_row: dict | None) -> bool:
+    """True when at least one domain-specific identity field is populated."""
+    keys = _DOMAIN_IDENTITY_KEYS.get(str(domain or "").strip().lower(), ())
+    if not keys:
+        return False
+    flat = _flatten_source_row(source_row)
+    for key in keys:
+        val = flat.get(key)
+        if val is None:
+            continue
+        if str(val).strip().lower() in {"", "nan", "none", "null"}:
+            continue
+        return True
+    return False
+
+
+def row_is_pdf_noise_hold(domain: str, source_row: dict | None, artifact: str = "") -> bool:
+    """PDF/stat rows with no domain identity — not reviewable records.
+
+    Closes the gap where PDF tabularisation emits lines that land in
+    ``missing_required`` because subject/student ids are empty, but the row was
+    never an importable record (headers, stats blocks, footers).
+    """
+    if row_is_unstructured_text_fragment(source_row, artifact=artifact):
+        return True
+    artifact_name = str(artifact or "").lower()
+    if "school_stats" in artifact_name and not row_has_domain_identity(domain, source_row):
+        return True
+    if not artifact_name.endswith(".pdf"):
+        return False
+    return not row_has_domain_identity(domain, source_row)
+
+
+def enrich_missing_required_row(
+    domain: str,
+    row: dict | None,
+) -> tuple[dict[str, Any], list[str]]:
+    """Apply defensible defaults when evidence exists in the same row.
+
+    Returns ``(enriched_row, evidence)`` — empty evidence means do not auto-enrich.
+    """
+    if not isinstance(row, dict):
+        return {}, []
+    enriched = dict(row)
+    evidence: list[str] = []
+    flat = _flatten_source_row(row)
+    domain_key = str(domain or "").strip().lower()
+
+    if domain_key == "academics":
+        name = str(
+            flat.get("subject_name") or flat.get("name") or flat.get("title") or ""
+        ).strip()
+        code = str(
+            flat.get("subject_code") or flat.get("code") or flat.get("course_code") or ""
+        ).strip()
+        if not name and code:
+            enriched["subject_name"] = code
+            evidence.append("subject_name←subject_code")
+        elif name and not code:
+            enriched["subject_code"] = name[:120]  # magic-number-allow: Subject.name max_length
+            evidence.append("subject_code←subject_name")
+
+    elif domain_key in {"students", "enrollment", "grades", "attendance", "behavior"}:
+        ext = str(
+            flat.get("external_id")
+            or flat.get("student_external_id")
+            or flat.get("admission_number")
+            or flat.get("student_code")
+            or ""
+        ).strip()
+        admission = str(flat.get("admission_number") or "").strip()
+        if not ext and admission:
+            enriched["external_id"] = admission
+            enriched["student_external_id"] = admission
+            evidence.append("external_id←admission_number")
+        first = str(flat.get("first_name") or "").strip()
+        last = str(flat.get("last_name") or "").strip()
+        full = str(flat.get("full_name") or "").strip()
+        if not full and first and last:
+            enriched["full_name"] = f"{first} {last}".strip()
+            evidence.append("full_name←first_name+last_name")
+
+    if not evidence:
+        return row, []
+    return enriched, evidence
 
 
 # Canonical enrollment_status token → StudentProfile.Status value. Kept here so
@@ -525,6 +675,49 @@ def coerce_decimal(v: Any) -> Decimal | None:
 
 
 # --- ID mapping / asset / conflict helpers (sms-v3.7) -----------------------
+
+def record_bundle_scoped_key(
+    *,
+    ctx,
+    legacy_id: str,
+    domain: str,
+    canonical_pk: str,
+) -> None:
+    """Persist a bundle-scoped identity without a first-class model (e.g. payroll DFV).
+
+    Best-effort — never raises.
+    """
+    if not legacy_id or not canonical_pk:
+        return
+    try:
+        from apps.migration_cloud.models import MigrationBundle, MigrationIdMapping
+    except Exception:  # noqa: BLE001
+        return
+    try:
+        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).only(  # tenant-isolation-allow: PK lookup by internal bundle id
+            "pk", "school_id", "discovery_summary"
+        ).first()
+        if bundle is None:
+            return
+        namespace = ((bundle.discovery_summary or {}).get("source") or {}).get(
+            "chosen"
+        ) or "unknown_custom"
+        with row_savepoint():
+            MigrationIdMapping.objects.update_or_create(
+                legacy_namespace=namespace,
+                legacy_id=str(legacy_id)[:128],
+                canonical_model="migration_cloud.bundle_scoped",
+                school_id=bundle.school_id,
+                domain=domain[:32],
+                defaults={
+                    "bundle": bundle,
+                    "canonical_pk": str(canonical_pk)[:64],
+                },
+            )
+    except Exception:  # noqa: BLE001
+        import logging
+        logging.getLogger(__name__).debug("record_bundle_scoped_key skipped", exc_info=True)
+
 
 def record_id_mapping(
     *,
