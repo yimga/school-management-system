@@ -260,3 +260,73 @@ class ItMustHonourItsOwnBoundsTests(_Fixture):
         self._conflict(entity="subject")
         report = self._json(apply=True, entity="department")
         self.assertEqual(report["examined"], 1)
+
+
+class ItMustSayWhatActuallyDisagreesTests(_Fixture):
+    """Counts tell you HOW MANY are real. They do not tell you what happened.
+
+    389 student conflicts is either one bulk operation on the cloud that never landed, or
+    389 separate human decisions -- and the remedy is completely different. The only thing
+    that separates them is WHICH fields disagree, so the sweep tallies every differing
+    field rather than the first one, which would only report whichever column sorts
+    earliest.
+    """
+
+    def test_it_tallies_every_differing_field_not_just_the_first(self):
+        self._conflict(client={"name": "Renamed", "code": "CHANGED"})
+        report = self._json(explain=True)
+        self.assertEqual(
+            report["differing_fields"]["department"], {"name": 1, "code": 1}
+        )
+
+    def test_a_field_that_disagrees_on_every_row_stands_out_by_count(self):
+        # The bulk-operation signature: one column, every conflicted row.
+        for _ in range(4):
+            self._conflict(client={"name": "Sciences", "code": "MOVED"})
+        report = self._json(explain=True)
+        self.assertEqual(report["differing_fields"]["department"], {"code": 4})
+
+    def test_identical_conflicts_contribute_nothing_to_the_tally(self):
+        self._conflict()
+        self._conflict(client={"name": "Renamed"})
+        report = self._json(explain=True)
+        self.assertEqual(report["differing_fields"]["department"], {"name": 1})
+
+    def test_the_tally_is_absent_unless_asked_for(self):
+        self._conflict(client={"name": "Renamed"})
+        self.assertEqual(self._json()["differing_fields"], {})
+
+    def test_the_human_report_names_the_fields(self):
+        self._conflict(client={"name": "Renamed"})
+        out = self._run(explain=True)
+        self.assertIn("what actually disagrees", out)
+        self.assertIn("name", out)
+
+
+class ItMustNotPrintTenantValuesUnlessAskedTests(_Fixture):
+    """Samples carry names and codes to a terminal. That has to be a deliberate flag."""
+
+    def test_no_samples_by_default(self):
+        self._conflict(client={"name": "Renamed"})
+        self.assertEqual(self._json(explain=True)["samples"], [])
+
+    def test_a_sample_carries_both_sides_and_both_stamps(self):
+        self._conflict(client={"name": "Renamed"})
+        sample = self._json(sample=5)["samples"][0]
+        self.assertEqual(sample["entity"], "department")
+        self.assertEqual(sample["id"], self.dept.pk)
+        self.assertEqual(
+            sample["fields"]["name"], {"incoming": "Renamed", "local": "Sciences"}
+        )
+        self.assertIn("incoming_stamp", sample)
+        self.assertIn("local_stamp", sample)
+
+    def test_the_sample_cap_is_honoured(self):
+        for _ in range(6):
+            self._conflict(client={"name": "Renamed"})
+        self.assertEqual(len(self._json(sample=2)["samples"]), 2)
+
+    def test_identical_conflicts_are_never_sampled(self):
+        for _ in range(3):
+            self._conflict()
+        self.assertEqual(self._json(sample=5)["samples"], [])

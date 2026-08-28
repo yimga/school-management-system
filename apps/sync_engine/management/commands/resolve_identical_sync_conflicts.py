@@ -95,6 +95,24 @@ class Command(BaseCommand):
             default=1000,
             help="Rows per batch. Bounds both the row prefetch and the write.",
         )
+        parser.add_argument(
+            "--explain",
+            action="store_true",
+            help=(
+                "For the conflicts that genuinely DIFFER, tally which fields disagree. "
+                "Field names only, no values."
+            ),
+        )
+        parser.add_argument(
+            "--sample",
+            type=int,
+            default=0,
+            help=(
+                "Print N differing conflicts in full, INCLUDING VALUES. This is tenant "
+                "data (names, codes, ids) -- it goes to your terminal, so choose where "
+                "you run it. 0 = print none."
+            ),
+        )
         parser.add_argument("--json", action="store_true", help="Emit JSON only.")
 
     # -- helpers ---------------------------------------------------------------
@@ -105,21 +123,31 @@ class Command(BaseCommand):
         return _get_entity_config(include_derived=True)
 
     def _classify(self, conflict, instance, allowed):
-        """``(outcome, detail)`` for one conflict against the row as it stands now."""
+        """``(outcome, differing_fields)`` for one conflict against the row as it stands.
+
+        EVERY differing field, not the first. A per-field tally is how you tell a bulk
+        cloud operation from a scatter of human edits -- 389 rows all disagreeing about
+        ``classroom_id`` is one promotion that never landed, while 389 rows disagreeing
+        about a spread of columns is 389 separate decisions. Reporting only the first
+        difference would bias that tally toward whichever field sorts earliest, which is
+        an artefact of the alphabet rather than a fact about the data.
+        """
         from apps.api.sync_services import _same_value
 
         if instance is None:
-            return ROW_MISSING, ""
+            return ROW_MISSING, ()
         payload = conflict.client_data if isinstance(conflict.client_data, dict) else {}
         comparable = {k: v for k, v in payload.items() if k in allowed}
         if not comparable:
-            return NO_COMPARABLE_FIELDS, ""
-        for key, incoming in sorted(comparable.items()):
-            if not _same_value(getattr(instance, key, None), incoming):
-                # Name the first field that actually differs. A conflict left PENDING
-                # with no reason is the thing this command exists to stop producing.
-                return DIFFERS, key
-        return IDENTICAL, ""
+            return NO_COMPARABLE_FIELDS, ()
+        differing = tuple(
+            key
+            for key, incoming in sorted(comparable.items())
+            if not _same_value(getattr(instance, key, None), incoming)
+        )
+        if differing:
+            return DIFFERS, differing
+        return IDENTICAL, ()
 
     def _load_rows(self, model, school_id, pks):
         """``{str(pk): instance}``, scoped to ``school_id`` when the model carries it.
@@ -148,6 +176,8 @@ class Command(BaseCommand):
         limit = max(0, int(options["limit"]))
         do_apply = bool(options["apply"])
         as_json = bool(options["json"])
+        explain = bool(options["explain"])
+        sample_cap = max(0, int(options["sample"]))
 
         config = self._config()
 
@@ -175,6 +205,11 @@ class Command(BaseCommand):
 
         outcomes: dict[str, int] = {}
         by_entity: dict[str, dict] = {}
+        # {entity: {field: count}} over the conflicts that genuinely differ, and a bounded
+        # list of worked examples. Collected only when asked for: the tally costs nothing,
+        # but the samples carry tenant values.
+        differing_fields: dict[str, dict] = {}
+        samples: list = []
         examined = 0
         resolved = 0
 
@@ -217,6 +252,7 @@ class Command(BaseCommand):
                 resolved += self._run_batch(
                     batch, model, allowed, school_id, entity,
                     outcomes, by_entity, do_apply,
+                    differing_fields, samples, sample_cap,
                 )
             if limit and examined >= limit:
                 break
@@ -227,13 +263,16 @@ class Command(BaseCommand):
                 "resolved": resolved,
                 "outcomes": outcomes,
                 "by_entity": by_entity,
+                "differing_fields": differing_fields if explain else {},
+                "samples": samples,
             },
             do_apply,
             as_json,
         )
 
     def _run_batch(
-        self, batch, model, allowed, school_id, entity, outcomes, by_entity, do_apply
+        self, batch, model, allowed, school_id, entity, outcomes, by_entity, do_apply,
+        differing_fields=None, samples=None, sample_cap=0,
     ):
         from apps.siteconfig.models import SyncConflict
 
@@ -241,13 +280,45 @@ class Command(BaseCommand):
         slot = by_entity.setdefault(entity, {})
         to_resolve = []
         for conflict in batch:
-            outcome, _detail = self._classify(
-                conflict, rows.get(str(conflict.entity_id)), allowed
-            )
+            instance = rows.get(str(conflict.entity_id))
+            outcome, fields = self._classify(conflict, instance, allowed)
             outcomes[outcome] = outcomes.get(outcome, 0) + 1
             slot[outcome] = slot.get(outcome, 0) + 1
             if outcome == IDENTICAL:
                 to_resolve.append(conflict)
+            elif outcome == DIFFERS and differing_fields is not None:
+                tally = differing_fields.setdefault(entity, {})
+                for field in fields:
+                    tally[field] = tally.get(field, 0) + 1
+                if samples is not None and len(samples) < sample_cap:
+                    payload = (
+                        conflict.client_data
+                        if isinstance(conflict.client_data, dict)
+                        else {}
+                    )
+                    samples.append(
+                        {
+                            "entity": entity,
+                            "id": conflict.entity_id,
+                            "incoming_stamp": (
+                                conflict.client_updated_at.isoformat()
+                                if conflict.client_updated_at
+                                else None
+                            ),
+                            "local_stamp": (
+                                conflict.server_updated_at.isoformat()
+                                if conflict.server_updated_at
+                                else None
+                            ),
+                            "fields": {
+                                f: {
+                                    "incoming": payload.get(f),
+                                    "local": getattr(instance, f, None),
+                                }
+                                for f in fields
+                            },
+                        }
+                    )
 
         if not do_apply:
             # A dry run still reports what it WOULD close, so the number the operator
@@ -302,6 +373,25 @@ class Command(BaseCommand):
                     f"{k}={v}" for k, v in sorted(counts.items(), key=lambda kv: -kv[1])
                 )
                 w(f"  {entity:<22} {parts}")
+
+        if summary.get("differing_fields"):
+            w("")
+            w("what actually disagrees (real conflicts only, field names):")
+            for entity, tally in sorted(summary["differing_fields"].items()):
+                total = max(tally.values())
+                for field, n in sorted(tally.items(), key=lambda kv: (-kv[1], kv[0])):
+                    # A field that disagrees on nearly every conflicted row of an entity is
+                    # one bulk operation, not N decisions -- the shape is the finding.
+                    shape = "  <-- on nearly every one" if n == total and len(tally) > 1 else ""
+                    w(f"  {entity:<22} {field:<24} {n:>8}{shape}")
+
+        for example in summary.get("samples") or []:
+            w("")
+            w(f"  {example['entity']} #{example['id']}")
+            w(f"    incoming stamp {example['incoming_stamp']}")
+            w(f"    local stamp    {example['local_stamp']}")
+            for field, pair in sorted(example["fields"].items()):
+                w(f"    {field}: incoming={pair['incoming']!r}  local={pair['local']!r}")
 
         if not do_apply:
             w("")
