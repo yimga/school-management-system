@@ -379,6 +379,12 @@ def _get_entity_config(include_derived=False):
                 "first_name",
                 "last_name",
                 "student_code",
+                # WITHOUT this the receiver gets the code but not the value it came
+                # from, so `save()` regenerates admission_number from its OWN row count
+                # -- and nothing ever reports it, because a field that is not on the
+                # rail is never compared. The two nodes then disagree, permanently and
+                # silently, about the number printed on the child's documents.
+                "admission_number",
                 "classroom_id",
                 "academic_year_id",
                 "specialty_id",
