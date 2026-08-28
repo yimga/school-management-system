@@ -1,0 +1,175 @@
+{
+  "rule": "",
+  "tests": {
+    "apps.finance.tests.test_approved_fee_invoice_executor.ForceExecuteGateTests.test_force_execute_generates_and_does_not_queue": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_approved_fee_invoice_executor.ForceExecuteGateTests.test_force_execute_overrides_not_due_gate": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_approved_fee_invoice_executor.ForceExecuteGateTests.test_scheduled_path_parks_enriched_row_and_does_not_generate": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_dashboard_consolidation_2026_08_02.FinanceDashboardConsolidationRenderTests.test_dashboard_renders_200": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_dashboard_consolidation_2026_08_02.FinanceDashboardConsolidationRenderTests.test_kept_bands_and_money_center_wiring_present": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_dashboard_consolidation_2026_08_02.FinanceDashboardConsolidationRenderTests.test_removed_bands_absent": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_form_draft_templates.FinanceFormDraftTemplateTests.test_access_bulk_form_draft_wired": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_form_draft_templates.FinanceFormDraftTemplateTests.test_expense_vs_budget_table_headers_have_scope_col": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_form_draft_templates.FinanceFormDraftTemplateTests.test_invoice_detail_loads_draft_script_and_keys": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_form_draft_templates.FinanceFormDraftTemplateTests.test_printable_receipt_accessible_logo_and_table_label": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_form_draft_templates.FinanceFormDraftTemplateTests.test_receipt_print_template_table_scopes_and_lang": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_finance_form_draft_templates.FinanceFormDraftTemplateTests.test_suspense_queue_claim_forms_draft_wired": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_payment_readiness_dashboard.PaymentReadinessDashboardHttpTests.test_dashboard_200_with_school_and_staff": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_payment_readiness_dashboard.PaymentReadinessDashboardHttpTests.test_dashboard_403_without_school_context": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_payment_readiness_dashboard.PaymentReadinessDashboardHttpTests.test_tenant_cannot_see_other_school_health_messages": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_split_allocation.SplitAllocationTests.test_custom_split_creates_payer_shares": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.finance.tests.test_split_allocation.SplitAllocationTests.test_split_allocation_creates_invoice_and_payment": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_api_pull_intake.APIPullIntakeTests.test_api_pull_ingest": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_canonical_headers_consistency_v3_39.CanonicalHeadersDriftScannerOnRealTreeTests.test_scanner_exits_zero_on_real_tree": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_landers_fk_resolution.GradesLanderFKResolutionTests.test_assignment_without_teacher_quarantines": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_landers_fk_resolution.GuardianLanderRelinkTests.test_no_identity_quarantines_precisely": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_maa_counsel_activate.MigrationAndSingletonTests.test_singleton_row_seeded_by_migration": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_mapping_summary_no_clobber_2026_08_16.MappingSummaryNoClobberTests.test_finalize_preserves_lander_dedup_writes": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_mc_recover_import_2026_08_20.McRecoverImportCommandTests.test_live_import_is_not_reclaimed": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_tier1c_guardian_phone_dedup_2026_08_08.GuardianPhoneDedupTests.test_no_email_no_phone_still_quarantines": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_tier1c_guardian_phone_dedup_2026_08_08.GuardianPhoneDedupTests.test_phone_dedup_is_school_scoped": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_dispatcher_headers_v3_35.WebhookDispatcherHeaderMigrationV35Tests.test_deprecation_header_present": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_dispatcher_headers_v3_35.WebhookDispatcherHeaderMigrationV35Tests.test_dual_emit_both_header_families_present_by_default": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_dispatcher_headers_v3_35.WebhookDispatcherHeaderMigrationV35Tests.test_legacy_off_setting_drops_legacy_family": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_dispatcher_headers_v3_35.WebhookDispatcherHeaderMigrationV35Tests.test_new_and_legacy_signatures_are_byte_identical": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_dispatcher_headers_v3_35.WebhookDispatcherHeaderMigrationV35Tests.test_tampered_body_fails_signature_on_both_families": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_header_migration_v3_37.WebhookHeaderMigrationV37Tests.test_flag_true_emits_both_families_with_identical_signatures": {
+      "class": "unclassified",
+      "kind": "FAIL",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_header_migration_v3_37.WebhookHeaderMigrationV37Tests.test_header_values_byte_identical_across_families": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    },
+    "apps.migration_cloud.tests.test_webhook_header_migration_v3_37.WebhookHeaderMigrationV37Tests.test_timestamp_and_delivery_id_consistent_across_families": {
+      "class": "unclassified",
+      "kind": "ERROR",
+      "reason": "Pre-existing at 8099c6595 in a 3391-test run of apps.migration_cloud + apps.finance + apps.academics (2026-08-28). Cause NOT established. Three clusters were re-run in isolation and still fail, so these are standing reds and not run-order artifacts of a combined run."
+    }
+  }
+}
