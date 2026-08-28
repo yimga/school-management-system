@@ -1,18 +1,19 @@
 {
-  "build_id": "2026-08-20-v22.0",
-  "cache_bust": "20260820-tenant-admin-sidebar-v22",
-  "sw_version": "sms-v4.06.71-tenant-admin-sidebar-server-preferences-2026-08-20",
-  "seal": "2026-08-20-tenant-admin-sidebar-v22",
+  "build_id": "2026-08-27-v23.0",
+  "cache_bust": "20260827-admin-navigation-v23",
+  "sw_version": "sms-v4.06.81-admin-navigation-v3-2026-08-27",
+  "seal": "2026-08-27-admin-navigation-v23",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-form-quality-before-after-2026-08-07.html",
-    "var/design-previews/admin-emergency-full-canvas-and-provisioning-before-after-approval-2026-08-09.html"
+    "var/design-previews/admin-emergency-full-canvas-and-provisioning-before-after-approval-2026-08-09.html",
+    "var/design-previews/admin-audit-automation-and-tenant-sidebar-v3-before-after-approval-2026-08-27.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-08-20-v22.0\"",
-    "v22.0 · Full canvas · operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-08-27-v23.0\"",
+    "v23.0 · Full canvas · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",
@@ -23,11 +24,15 @@
     "rmc_info_tag",
     "Native Django tables remain tables",
     "data-rmc-admin-layout-owner=\"emergency-v17\"",
-    "admin_v1_index_surface_previews.html"
+    "admin_v1_index_surface_previews.html",
+    "rmc-admin-sidebar-v3.css",
+    "rmc-admin-sidebar-v3.js",
+    "revision_conflict",
+    "data-rmc-admin-command-open"
   ],
   "hosts": [
     "operator",
     "tenant"
   ],
-  "rule": "One terminal layout owner. Operator uses minmax(0,1fr) minmax(9.2rem,17%) 2.35rem; tenant uses minmax(0,1fr) minmax(9.5rem,18%) 2.35rem; every archetype is one column at or below 1024px."
+  "rule": "One terminal layout owner. Operator uses minmax(0,1fr) minmax(9.2rem,17%) 2.35rem; tenant uses minmax(0,1fr) minmax(9.5rem,18%) 2.35rem; every archetype is one column at or below 1024px. One permission-derived navigation contract owns tenant and operator sidebars, command search, pinned/recent state and semantic offline replay."
 }

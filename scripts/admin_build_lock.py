@@ -48,9 +48,9 @@ _SW_DECLARATION = re.compile(r'const\s+CACHE_VERSION\s*=\s*"(?P<value>[^"]+)"\s*
 #: The v22 build is a tenant-sidebar build and its seal belongs in the sidebar sheet;
 #: a gate that looks in only the terminal canvas file is asking the wrong file.
 SEAL_SEARCH_PATHS = (
+    "static/css/rmc-admin-sidebar-v3.css",
     "static/css/rmc-admin-emergency-full-canvas-v17.css",
     "static/css/rmc-admin-django-canvas-contract.css",
-    "static/css/rmc-tenant-admin-sidebar-v2.css",
     "static/css/rmc-admin-approval-surface-v15.css",
 )
 

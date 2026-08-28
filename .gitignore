@@ -245,6 +245,11 @@ mdm/
 # can only ever catch something that was pasted in rather than authored here.
 *.b64
 
+# Real-host browser evidence is a build artifact, never a committed one: a
+# committed file is exactly how render-contract PROXY evidence satisfied
+# scripts/verify_admin_playwright_sweep_audit.py before 2026-08-27.
+docs/generated/admin_playwright_sweep_audit.json
+
 # Rendered by deploy/selfhost/edge-bootstrap.sh from THIS box's own config.
 # It used to be written over the tracked Caddyfile.edge, which left every box
 # permanently dirty and therefore unable to `git pull`.

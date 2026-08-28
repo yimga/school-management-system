@@ -11,11 +11,11 @@ def read(path: str) -> str:
 
 
 def main() -> int:
-    tenant_nav = read("templates/admin/sidebar_inner.html") + read("templates/admin/app_list.html")
-    tenant_js = read("static/js/rmc-tenant-admin-sidebar-v2.js")
-    operator_nav = read("templates/partials/manager_platform_admin_sidebar.html")
+    sidebar_body = read("templates/admin/sidebar_v3_body.html")
+    tenant_nav = read("templates/admin/sidebar_inner.html") + sidebar_body
+    sidebar_js = read("static/js/rmc-admin-sidebar-v3.js")
+    operator_nav = read("templates/partials/manager_platform_admin_sidebar.html") + sidebar_body
     operator_context = read("templates/partials/cp_sidebar_operator_identity.html")
-    operator_js = read("static/js/rmc-operator-admin-sidebar-v2.js")
     dashboard = read("templates/accounts/backend_dashboard.html")
     portal_shell = read("templates/portal_base.html")
     dashboard_css = "\n".join(
@@ -28,20 +28,20 @@ def main() -> int:
         )
     )
     requirements = {
-        "tenant context": (tenant_nav, "rmc-tenant-admin-sidebar-context"),
-        "tenant search": (tenant_nav, "rmcTenantAdminNavSearch"),
-        "tenant pins": (tenant_nav, "admin-sidebar-pinned-list"),
+        "tenant scope": (tenant_nav, 'data-rmc-admin-sidebar-scope="tenant"'),
+        "tenant command search": (tenant_nav, "data-rmc-admin-command-open"),
+        "tenant pins": (tenant_nav, "data-rmc-admin-pinned-wrap"),
         "tenant recents": (tenant_nav, "data-rmc-admin-recent-wrap"),
-        "tenant setup zone": (tenant_nav, "School setup"),
-        "tenant offline": (tenant_js, 'addEventListener("offline"'),
-        "tenant keyboard": (tenant_js, "function focusables"),
+        "tenant work areas": (tenant_nav, "data-rmc-admin-work-areas"),
+        "sidebar offline queue": (sidebar_js, 'addEventListener("offline"'),
+        "sidebar keyboard": (sidebar_js, 'event.key === "ArrowDown"'),
         "operator context": (operator_context, "data-rmc-sidebar-workspace-context"),
         "operator connectivity": (operator_context, "data-operator-connection-status"),
-        "operator search": (operator_nav, "rmcOperatorAdminNavSearch"),
-        "operator quick access": (operator_nav, "PINNED_CONTROL_PLANE_ITEMS"),
-        "operator recents": (operator_nav, "data-operator-recent-wrap"),
-        "operator keyboard": (operator_js, "function focusables"),
-        "operator offline": (operator_js, 'addEventListener("offline"'),
+        "operator scope": (operator_nav, 'data-rmc-admin-sidebar-scope="operator"'),
+        "operator command search": (operator_nav, "data-rmc-admin-command-open"),
+        "operator recents": (operator_nav, "data-rmc-admin-recent-wrap"),
+        "sidebar conflict rebase": (sidebar_js, "revision_conflict"),
+        "sidebar base revision": (sidebar_js, "expected_revision"),
         "dashboard page owner": (dashboard, 'data-shell-surface="backend-dashboard"'),
         "dashboard role home": (dashboard, 'data-rmc-backend-role-home-panel="1"'),
         "dashboard primary action": (dashboard, 'data-rmc-backend-role-home-primary="1"'),

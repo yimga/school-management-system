@@ -1,0 +1,138 @@
+{% load i18n %}
+<section class="rmc-admin-sidebar-v3__workspace" aria-label="{% trans 'Current admin workspace' %}">
+  <div>
+    <span>{% if is_manager_host %}{% trans "Operator workspace" %}{% else %}{% trans "School workspace" %}{% endif %}</span>
+    <strong>{% firstof admin_surface_profile.role_label site_header %}</strong>
+  </div>
+  <span class="rmc-admin-sidebar-v3__sync" data-rmc-admin-sync role="status">
+    <span aria-hidden="true"></span><span data-rmc-admin-sync-label>{% trans "Local ready" %}</span>
+    <button type="button" data-rmc-admin-retry hidden>{% trans "Retry" %}</button>
+  </span>
+</section>
+
+<div class="rmc-admin-sidebar-v3__commands">
+  <button type="button" class="rmc-admin-sidebar-v3__command" data-rmc-admin-command-open aria-haspopup="dialog">
+    <span aria-hidden="true">⌕</span>
+    <span>{% trans "Find a page, record or action" %}</span>
+    <kbd aria-hidden="true">Ctrl K</kbd>
+  </button>
+  <button type="button" class="rmc-admin-sidebar-v3__focus" data-rmc-admin-focus aria-pressed="false">
+    <span aria-hidden="true">◎</span><span>{% trans "Focus" %}</span>
+  </button>
+  <button type="button" class="rmc-admin-sidebar-v3__focus" data-rmc-admin-mode aria-pressed="false">
+    <span aria-hidden="true">◫</span><span data-rmc-admin-mode-label>{% trans "Compact" %}</span>
+  </button>
+</div>
+
+<section class="rmc-admin-sidebar-v3__section rmc-admin-sidebar-v3__now" data-rmc-admin-ambient data-rmc-admin-now{% if not admin_navigation_contract.recommendations %} hidden{% endif %}>
+  <div class="rmc-admin-sidebar-v3__section-head">
+    <h2>{% trans "Now" %}</h2>
+    <span>{% trans "Recommended" %}</span>
+  </div>
+  <div data-rmc-admin-recommendations>
+    {% for recommendation in admin_navigation_contract.recommendations %}
+    <article class="rmc-admin-sidebar-v3__recommendation" data-rmc-recommendation-id="{{ recommendation.id }}">
+      <a href="{{ recommendation.path }}">{{ recommendation.title }}</a>
+      <details><summary>{% trans "Why" %}</summary><p>{{ recommendation.reason }}</p><small>{{ recommendation.source_timestamp }}</small></details>
+      {% if recommendation.dismissible %}<button type="button" data-rmc-admin-dismiss-recommendation="{{ recommendation.id }}" aria-label="{% trans 'Dismiss recommendation' %}">×</button>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="rmc-admin-sidebar-v3__section" data-rmc-admin-this-page>
+  <div class="rmc-admin-sidebar-v3__section-head">
+    <h2>{% trans "This page" %}</h2>
+    <span>{{ admin_navigation_contract.page.archetype|capfirst }}</span>
+  </div>
+  <a class="rmc-admin-sidebar-v3__current" href="{{ admin_navigation_contract.page.path }}" aria-current="page">
+    <span aria-hidden="true">◈</span><span>{{ admin_navigation_contract.page.title }}</span>
+  </a>
+  {% for action in admin_navigation_contract.page.actions %}
+  <a class="rmc-admin-sidebar-v3__page-action" href="{{ action.path }}">{{ action.label }}</a>
+  {% endfor %}
+  <button type="button" class="rmc-admin-sidebar-v3__pin-page" data-rmc-admin-pin-current>
+    <span aria-hidden="true">⌖</span><span>{% trans "Pin this page" %}</span>
+  </button>
+</section>
+
+<section class="rmc-admin-sidebar-v3__section" data-rmc-admin-pinned-wrap data-rmc-admin-ambient>
+  <div class="rmc-admin-sidebar-v3__section-head">
+    <h2>{% trans "Pinned" %}</h2><span data-rmc-admin-pinned-count>0</span>
+  </div>
+  <ol class="rmc-admin-sidebar-v3__saved" data-rmc-admin-pinned-list></ol>
+  <p class="rmc-admin-sidebar-v3__empty" data-rmc-admin-pinned-empty>{% trans "Pin frequently used pages for one-click access." %}</p>
+</section>
+
+{% if admin_navigation_contract.workAreas %}
+<section class="rmc-admin-sidebar-v3__section rmc-admin-sidebar-v3__areas" data-rmc-admin-work-areas>
+  <div class="rmc-admin-sidebar-v3__section-head"><h2>{% trans "Work areas" %}</h2></div>
+  <ol>
+    {% for area in admin_navigation_contract.workAreas %}
+    <li{% if area.current %} class="is-current"{% endif %}>
+      <a href="{{ area.path }}"{% if area.current %} aria-current="location"{% endif %}>
+        <span aria-hidden="true">{{ area.icon }}</span><span>{{ area.label }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+<nav class="rmc-admin-sidebar-v3__rail" aria-label="{% trans 'Admin work areas' %}">
+  {% for area in admin_navigation_contract.workAreas|slice:':6' %}
+  <a href="{{ area.path }}" title="{{ area.label }}" aria-label="{{ area.label }}"{% if area.current %} aria-current="location"{% endif %}>{{ area.icon }}</a>
+  {% endfor %}
+</nav>
+{% endif %}
+
+{% comment %}
+  Libraries & help. This lived in admin/app_list.html until 2026-08-27, when that
+  file was reduced to the Django model catalog and these links went with it --
+  the admin sidebar lost its help centre, knowledge base and control-plane
+  bridge on BOTH hosts. It belongs here because the shared body is what both
+  scopes mount.
+
+  Every destination uses the `{% url ... as var %}` guarded form rather than a
+  hard reverse: this partial renders on the tenant admin host AND the operator
+  host, and `super:` / `manager_help_center` / `feedback:` / `kb:` are each
+  mounted on only one of them. A hard reverse here is a 500 on the other host,
+  raised while rendering the sidebar of a page that had already succeeded.
+{% endcomment %}
+{% url 'super:dashboard' as admin_control_plane_url %}
+{% url 'super:platform_operator_hub' as admin_operator_hub_url %}
+{% url 'studio_os:output' as admin_report_library_url %}
+{% url 'manager_help_center' as admin_manager_help_url %}
+{% url 'feedback:help_center' as admin_tenant_help_url %}
+{% url 'kb:kb_home' as admin_kb_url %}
+{% if admin_control_plane_url or admin_operator_hub_url or admin_report_library_url or admin_manager_help_url or admin_tenant_help_url or admin_kb_url %}
+<section class="rmc-admin-sidebar-v3__section" data-rmc-admin-ambient data-rmc-admin-libraries>
+  <div class="rmc-admin-sidebar-v3__section-head"><h2>{% trans "Libraries & help" %}</h2></div>
+  <ol>
+    {% if is_manager_host %}
+    {% if admin_control_plane_url %}<li><a href="{{ admin_control_plane_url }}"><span aria-hidden="true">&#9635;</span><span>{% trans "Control plane" %}</span></a></li>{% endif %}
+    {% if admin_operator_hub_url %}<li><a href="{{ admin_operator_hub_url }}"><span aria-hidden="true">&#9638;</span><span>{% trans "Platform operator hub" %}</span></a></li>{% endif %}
+    {% if admin_report_library_url %}<li><a href="{{ admin_report_library_url }}"><span aria-hidden="true">&#9636;</span><span>{% trans "Report Library" %}</span></a></li>{% endif %}
+    {% if admin_manager_help_url %}<li><a href="{{ admin_manager_help_url }}"><span aria-hidden="true">&#9737;</span><span>{% trans "Help center" %}</span></a></li>{% endif %}
+    {% else %}
+    {% if PORTAL_DOCUMENT_LIBRARY_MANAGE_URL %}<li><a href="{{ PORTAL_DOCUMENT_LIBRARY_MANAGE_URL }}"><span aria-hidden="true">&#9636;</span><span>{% trans "Document library" %}</span></a></li>{% endif %}
+    {% if admin_tenant_help_url %}<li><a href="{{ admin_tenant_help_url }}?section=support"><span aria-hidden="true">&#9737;</span><span>{% trans "Help center" %}</span></a></li>{% endif %}
+    {% if admin_kb_url %}<li><a href="{{ admin_kb_url }}"><span aria-hidden="true">&#9635;</span><span>{% trans "Knowledge Base" %}</span></a></li>{% endif %}
+    {% endif %}
+  </ol>
+</section>
+{% endif %}
+
+<section class="rmc-admin-sidebar-v3__section" data-rmc-admin-ambient data-rmc-admin-recent-wrap hidden>
+  <div class="rmc-admin-sidebar-v3__section-head">
+    <h2>{% trans "Recent" %}</h2><button type="button" data-rmc-admin-recent-clear>{% trans "Clear" %}</button>
+  </div>
+  <ol class="rmc-admin-sidebar-v3__saved" data-rmc-admin-recent-list></ol>
+</section>
+
+<div class="rmc-admin-sidebar-v3__preference-tools">
+  <button type="button" data-rmc-admin-reset>{% trans "Reset navigation" %}</button>
+  <span>{% trans "Resets this workspace only; records and permissions stay unchanged." %}</span>
+</div>
+
+<div class="rmc-admin-sidebar-v3__undo" data-rmc-admin-undo hidden role="status">
+  <span data-rmc-admin-undo-label></span><button type="button" data-rmc-admin-undo-action>{% trans "Undo" %}</button>
+</div>

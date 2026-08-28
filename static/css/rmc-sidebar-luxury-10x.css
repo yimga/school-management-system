@@ -145,6 +145,32 @@ body.admin-manager-shell nav[data-rmc-platform-admin-sidebar="1"],
   text-decoration: underline;
 }
 
+/* Workspace scope + connectivity only. Personal identity, profile, security
+   and logout stay with the canonical header Account Center; this block must
+   never grow those back. */
+.cp-sidebar__workspace-context {
+  display: block;
+}
+
+.cp-sidebar__connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  white-space: nowrap;
+}
+
+.cp-sidebar__connection i {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--success, #38d98a);
+}
+
+.cp-sidebar__connection[data-operator-connection-status="offline"] i {
+  background: var(--warning, #f4c84a);
+}
+
 .cp-sidebar__scope {
   display: flex;
   align-items: center;

@@ -1,42 +1,40 @@
 """
-End-to-end platform seed: public-schema catalogs + per-tenant demo data in one
-idempotent command. This is the canonical entry point for "seed everything on
-the platform". It is a superset of ``bootstrap_runmycampus_platform`` (which
-only seeds the public-schema catalog steps used at deploy).
+Canonical, idempotent public-catalog and active-tenant seed reconciliation.
+
+This is the deployment entry point for seeding everything. It reconciles both
+public catalogs and every active tenant without overwriting manual configuration.
 
 Steps, in order:
 
   1. Public-schema bootstrap (delegates to ``bootstrap_platform_catalog --all``).
-  2. Extra public-schema seeds that the bootstrap orchestrator does not include:
+  2. Extra public-schema catalogs not owned by the foundational bootstrap:
      marketplace scopes, first-party + phase-9 + ultra-high-end packages,
      process definitions, business glossary, entity catalog, office documents,
      report-platform / br10 plan SKUs, regions (i18n grading scales), preview
-     fixtures, cursor twelve-phase, siteconfig→metadata sync.
-  3. Account/role bootstrap: ensure_superadmin → ensure_default_tenant_admin →
-     backfill_user_roles (idempotent role wiring for existing users).
-  4. Per-tenant fan-out (for every active ``School``):
-        - seed_demo_tenant_users  (demo.admin / demo.teacher / demo.parent)
-        - seed_demo               (DEBUG-only: academic year + classrooms +
-                                   students + teachers + evaluations)
-        - seed_testdata_2425      (DEBUG-only: synthetic 2024/25 data)
-  5. Health checks: verify_registry_coverage, verify_region_coverage.
+     fixtures, cursor twelve-phase and siteconfig-to-metadata sync.
+  3. Access-catalog reconciliation: permissions, global roles, SUPERADMIN grants
+     and existing-user bindings. It never creates users or resets passwords.
+  4. Per-tenant reconciliation (for every active ``School``):
+        - geography, localization and country-derived defaults
+        - education systems, levels and approved education profile
+        - plan assignment and academic baseline
+        - explicit demo fixtures only when DEBUG is enabled
+  5. Strict registry, regional and complete seed-manifest verification.
 
-Per-tenant steps that fail (e.g. seed_demo collisions when re-running across
-tenants in single-schema SQLite) are logged as WARNING and skipped — the
-remaining tenants still get their share. Public-schema failures abort the
-run unless ``--continue-on-error`` is set.
+Tenant failures retain school identity and processing continues so every tenant
+receives a repair attempt. The final verifier still fails while any tenant is
+incomplete. Public failures abort unless ``--continue-on-error`` is explicit.
 
-Use ``--skip-tenants`` to seed only the public schema; useful in production
-where tenant data is real and demo seeders should never run.
+Use ``--skip-tenants`` only for an intentional public-catalog-only operation.
+Production reconciliation never installs DEBUG-only demo fixtures.
 
 Reference-school seeds (``seed_buea_synthetic``) are intentionally NOT in
-the standard fan-out — they install a specific dual-curriculum Cameroon
-school dataset that only some demos want. Run those manually per tenant:
+the standard fan-out. They install a specific dual-curriculum Cameroon dataset
+that only some demos need. Run those manually per tenant:
 ``python manage.py seed_buea_synthetic --school=<slug>``.
 
-Honors [[feedback_no_hardcoding]]: every value sourced by the underlying
-seed commands routes through RuntimeDefaults / registries / fixtures; this
-command introduces no new hardcoded values, only orchestration.
+Every value is owned by an authoritative registry, fixture or country profile;
+this command only orchestrates and verifies those sources.
 """
 
 from __future__ import annotations
@@ -85,9 +83,10 @@ _PUBLIC_EXTRA_STEPS = [
 ]
 
 _ACCOUNT_STEPS = [
-    ("ensure_superadmin", "Platform super-admin user"),
-    ("ensure_default_tenant_admin", "Per-tenant default admin"),
-    ("backfill_user_roles", "Backfill role assignments for existing users"),
+    (
+        "reconcile_access_catalog",
+        "Permission, global AccessRole, SUPERADMIN, and existing-user role bindings",
+    ),
 ]
 
 # Gates per-tenant work on Postgres + django-tenants (provisions missing tenant
@@ -105,17 +104,34 @@ _TENANT_STEPS_DEBUG_ONLY = [
     ("seed_testdata_2425", "Synthetic 2024/25 academic data"),
 ]
 
+_TENANT_RECONCILIATION_STEPS = [
+    (
+        "reconcile_tenant_seed_baseline",
+        "Localization, education classification/profile, and default plan",
+    ),
+    ("align_tenant_config", "Compiled tenant configuration and feature projection"),
+    (
+        "backfill_country_baseline",
+        "Academic year, terms, grading, structure, and subjects",
+    ),
+]
+
 _VERIFY_STEPS = [
-    ("verify_registry_coverage", "Verify country registry coverage"),
-    ("verify_region_coverage", "Verify RegionConfig coverage"),
+    ("verify_registry_coverage", [], "Verify country registry coverage"),
+    ("verify_region_coverage", ["--strict"], "Verify RegionConfig coverage"),
+    (
+        "verify_platform_seed_completeness",
+        [],
+        "Verify exact catalogs and every active tenant baseline",
+    ),
 ]
 
 
 class Command(BaseCommand):
     help = (
-        "End-to-end platform seed (public catalogs + per-tenant demo). "
+        "End-to-end platform seed (public catalogs + tenant reconciliation). "
         "Superset of bootstrap_runmycampus_platform. Idempotent. "
-        "Use --skip-tenants in production."
+        "DEBUG additionally receives demo fixtures."
     )
 
     def add_arguments(self, parser):
@@ -127,7 +143,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--skip-tenants",
             action="store_true",
-            help="Skip per-tenant fan-out. Recommended in production.",
+            help="Explicitly skip active-tenant reconciliation and DEBUG demo fan-out.",
         )
         parser.add_argument(
             "--skip-verify",
@@ -159,10 +175,10 @@ class Command(BaseCommand):
         if not options["skip_tenants"]:
             self._tenant_phase(verbosity, continue_on_error, only_tenant)
         else:
-            self._note("Skipping per-tenant fan-out (--skip-tenants).")
+            self._note("Skipping active-tenant reconciliation (--skip-tenants).")
 
         if not options["skip_verify"]:
-            self._verify_phase(verbosity, continue_on_error)
+            self._verify_phase(verbosity, continue_on_error, only_tenant)
         else:
             self._note("Skipping verification (--skip-verify).")
 
@@ -193,19 +209,9 @@ class Command(BaseCommand):
             self._run_step(cmd_name, [], description, verbosity, continue_on_error)
 
     def _tenant_phase(self, verbosity, continue_on_error, only_tenant):
-        # Tenant schema provisioning runs regardless of DEBUG so a fresh Postgres
-        # tenant gets its schema created before any per-tenant work; on SQLite
-        # the command is a documented no-op.
         self._heading("Tenant infrastructure")
         for cmd_name, description in _TENANT_INFRA_STEPS:
             self._run_step(cmd_name, [], description, verbosity, continue_on_error)
-
-        if not settings.DEBUG:
-            self._note(
-                "DEBUG=False; demo seeders refuse to run. "
-                "Use --skip-tenants in production to silence this notice."
-            )
-            return
 
         from apps.schools.models import School
 
@@ -214,28 +220,50 @@ class Command(BaseCommand):
             qs = qs.filter(slug=only_tenant)
         tenants = list(qs.values_list("slug", flat=True))
         if not tenants:
-            self._note("No active tenants found; skipping per-tenant fan-out.")
+            self._note("No active tenants found; skipping tenant reconciliation.")
             return
 
-        self._heading(f"Per-tenant fan-out ({len(tenants)} tenant(s))")
+        self._heading(f"Active-tenant reconciliation ({len(tenants)} tenant(s))")
         for slug in tenants:
-            self.stdout.write(f"\n— tenant: {slug}")
-            for cmd_name, description in _TENANT_STEPS_DEBUG_ONLY:
-                args = self._tenant_args_for(cmd_name, slug)
+            self.stdout.write(f"\ntenant: {slug}")
+            for cmd_name, description in _TENANT_RECONCILIATION_STEPS:
                 self._run_step(
                     cmd_name,
-                    args,
+                    self._tenant_args_for(cmd_name, slug),
                     f"{description} (tenant={slug})",
                     verbosity,
-                    # Tenant collisions in shared-schema SQLite are expected;
-                    # never abort the run on a per-tenant failure.
+                    continue_on_error,
+                )
+
+        if not settings.DEBUG:
+            self._note(
+                "DEBUG=False; production-safe tenant reconciliation completed; "
+                "demo fixture seeders were not run."
+            )
+            return
+
+        self._heading(f"DEBUG demo fan-out ({len(tenants)} tenant(s))")
+        for slug in tenants:
+            self.stdout.write(f"\ndemo tenant: {slug}")
+            for cmd_name, description in _TENANT_STEPS_DEBUG_ONLY:
+                self._run_step(
+                    cmd_name,
+                    self._tenant_args_for(cmd_name, slug),
+                    f"{description} (tenant={slug})",
+                    verbosity,
+                    # Demo fixtures are optional and can collide in shared-schema SQLite.
                     continue_on_error=True,
                 )
 
-    def _verify_phase(self, verbosity, continue_on_error):
+    def _verify_phase(self, verbosity, continue_on_error, only_tenant=""):
         self._heading("Verification")
-        for cmd_name, description in _VERIFY_STEPS:
-            self._run_step(cmd_name, [], description, verbosity, continue_on_error)
+        for cmd_name, args, description in _VERIFY_STEPS:
+            step_args = list(args)
+            if cmd_name == "verify_platform_seed_completeness" and only_tenant:
+                step_args.append(f"--only-tenant={only_tenant}")
+            self._run_step(
+                cmd_name, step_args, description, verbosity, continue_on_error
+            )
 
     # ------------------------------------------------------------------
     # Helpers
@@ -247,10 +275,16 @@ class Command(BaseCommand):
             return [f"--school-slug={slug}"]
         if cmd_name in ("seed_demo", "seed_testdata_2425"):
             return [f"--school={slug}"]
+        if cmd_name == "reconcile_tenant_seed_baseline":
+            return [f"--school={slug}"]
+        if cmd_name == "align_tenant_config":
+            return [f"--slug={slug}"]
+        if cmd_name == "backfill_country_baseline":
+            return [f"--school={slug}", "--strict"]
         return []
 
     def _run_step(self, cmd_name, extra_args, description, verbosity, continue_on_error):
-        self.stdout.write(f"  → {cmd_name}  ({description})")
+        self.stdout.write(f"  -> {cmd_name}  ({description})")
         try:
             call_command(cmd_name, *extra_args, verbosity=max(verbosity - 1, 0))
         except _STEP_ERRORS as exc:

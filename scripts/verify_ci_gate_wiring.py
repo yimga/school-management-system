@@ -172,8 +172,7 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/verify_admin_production_upgrade.py", "architectural-boundaries.yml"),
     ("scripts/verify_admin_replacement_roadmap.py", "architectural-boundaries.yml"),
     ("scripts/verify_admin_super_help_nav_bridge.py", "architectural-boundaries.yml"),
-    ("scripts/verify_operator_admin_sidebar_v2.py", "architectural-boundaries.yml"),
-    ("scripts/verify_tenant_admin_sidebar_v2.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_sidebar_v3.py", "architectural-boundaries.yml"),
     # Added 2026-08-21 after being fixed rather than excused. Three of these
     # pinned an exact service-worker version and so reddened on every wave by
     # construction; one was missing the product escape link its 33 sibling

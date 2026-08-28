@@ -7,7 +7,6 @@
            data-rmc-complete-sidebar-group="{{ group.group_id|default:forloop.counter }}">
     <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{% trans group.label %}</summary>
     {% for item in group.items %}
-      {% if item.id not in PINNED_CONTROL_PLANE_IDS %}
       <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
          href="{{ item.url }}"
          {% if item.is_current %}aria-current="page"{% endif %}
@@ -17,13 +16,7 @@
           <i class="bi {{ item.icon|default:'bi-circle' }} cp-nav-icon" aria-hidden="true"></i>
           <span class="cp-nav-label">{{ item.label }}</span>
         </span>
-        {% if PINNED_CONTROL_PLANE_IDS is not None %}
-        <button type="button" class="cp-sidebar__pin cp-pin-btn{% if item.id in PINNED_CONTROL_PLANE_IDS %} cp-pin-pinned{% endif %}" data-cp-pin-id="{{ item.id }}" aria-label="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}" title="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}">
-          <i class="bi bi-pin-angle{% if item.id in PINNED_CONTROL_PLANE_IDS %}-fill{% endif %}" aria-hidden="true"></i>
-        </button>
-        {% endif %}
       </a>
-      {% endif %}
     {% endfor %}
   </details>
   {% endif %}

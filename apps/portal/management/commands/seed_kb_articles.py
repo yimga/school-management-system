@@ -47,6 +47,24 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """Seed deterministically without requiring a live embedding provider.
+
+        Embedding refresh is a derived indexing concern.  Running it from every
+        ``KBArticle.save()`` made the canonical platform bootstrap depend on
+        Ollama/network availability and could leave the remaining registries
+        unseeded.  The dedicated knowledge-index command remains responsible
+        for refreshing vectors after catalog data exists.
+        """
+        from django.conf import settings as dj_settings
+
+        prior_auto_refresh = getattr(dj_settings, "KB_EMBEDDING_AUTO_REFRESH", True)
+        dj_settings.KB_EMBEDDING_AUTO_REFRESH = False
+        try:
+            return self._handle_seed(*args, **options)
+        finally:
+            dj_settings.KB_EMBEDDING_AUTO_REFRESH = prior_auto_refresh
+
+    def _handle_seed(self, *args, **options):
         verbosity = int(options.get("verbosity", 1))
         verbose_existing = bool(options.get("verbose_existing")) or verbosity >= 2
         if options.get("dry_run"):

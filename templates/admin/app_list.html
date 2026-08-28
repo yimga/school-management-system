@@ -1,235 +1,40 @@
-{% load i18n static %}
-{% comment %}
-  Sidebar structure: Start, School setup, Libraries & help, then Apps.
-  Tenant state is initialized by the server-owned navigation preference contract.
-{% endcomment %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div id="nav-sidebar-apps" class="admin-sidebar-apps {% if platform_admin_sidebar_embed %}admin-sidebar-apps--embed{% else %}h-0 grow overflow-auto d-flex flex-column{% endif %}" role="navigation" aria-label="{% trans 'Applications' %}">
-  {% if not platform_admin_sidebar_embed %}
-  <div class="admin-sidebar-nav-block" id="admin-sidebar-pinned-wrap">
-    <div class="rmc-tenant-admin-sidebar-section-head"><h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Pinned" %}</h2><span data-rmc-pinned-count aria-label="{% trans 'Pinned count' %}">0</span></div>
-    <ul class="admin-sidebar-quick-list admin-sidebar-pinned-list" id="admin-sidebar-pinned-list" style="list-style: none; margin: 0; padding: 0;"></ul>
-    <p class="rmc-tenant-admin-sidebar-empty" data-rmc-pinned-empty>{% trans "Pin frequently used pages for one-click access." %}</p>
-    <p class="admin-sidebar-pin-this mb-0 mt-1">
-      <button type="button" class="btn btn-link btn-sm p-0 text-muted admin-pin-this-page d-inline-flex align-items-center gap-1" id="admin-pin-this-page" aria-label="{% trans 'Pin this page' %}" title="{% trans 'Add this page to your Pinned list above' %}">
-        <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="m5 17 4-4V5l-2-2h10l-2 2v8l4 4z"/></svg></span>
-        <span>{% trans "Pin this page" %}</span>
-      </button>
-    </p>
-  </div>
-
-  <div class="admin-sidebar-nav-block rmc-tenant-admin-recent" data-rmc-admin-recent-wrap hidden>
-    <div class="rmc-tenant-admin-sidebar-section-head"><h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Recent" %}</h2><button type="button" data-rmc-admin-recent-clear>{% trans "Clear" %}</button></div>
-    <ol class="admin-sidebar-quick-list" data-rmc-admin-recent-list></ol>
-  </div>
-
-  <div class="admin-sidebar-nav-block admin-sidebar-quick-access" x-data="(window.getQuickAccessState && window.getQuickAccessState()) || { startOpen: true, setupOpen: true, setupAdvancedOpen: false, librariesOpen: false }">
-    <h2 class="admin-sidebar-section-title">{% trans "Start" %}</h2>
-    <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
-      <li>
-        <a href="{% url 'admin:index' %}" class="admin-sidebar-link {% if request.path == '/admin/' or request.path == '/admin' %}active{% endif %}" aria-current="{% if request.path == '/admin/' or request.path == '/admin' %}page{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Dashboard" %}</span>
-        </a>
-      </li>
-      {% if is_manager_host %}
-      <li>
-        <a href="{% url 'super:dashboard' %}" class="admin-sidebar-link" target="_self">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Control plane" %}</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'super:platform_operator_hub' %}" class="admin-sidebar-link {% if '/super/platform-operator-hub' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Platform operator hub" %}</span>
-        </a>
-      </li>
-      {% else %}
-      <li>
-        <a href="{% url 'accounts:backend_dashboard' %}" class="admin-sidebar-link {% if '/authentication/backend' in request.path %}active{% endif %}" aria-current="{% if '/authentication/backend' in request.path %}page{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Admin Home" %}</span>
-        </a>
-      </li>
-      {% endif %}
-    </ul>
-
-    {% if CAN_MANAGE_SETTINGS %}
-    <h2 class="admin-sidebar-section-title">{% trans "School setup" %}</h2>
-    <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
-      <li>
-        <a href="{% url 'siteconfig:console_domains_hub' %}" class="admin-sidebar-link {% if '/siteconfig/console' in request.path or '/config' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Config center" %}</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'siteconfig:theme_colors' %}" class="admin-sidebar-link {% if '/siteconfig/theme-colors' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2"/><circle cx="17.5" cy="10.5" r="2"/><circle cx="8.5" cy="7.5" r="2"/><circle cx="6.5" cy="12.5" r="2"/><circle cx="12" cy="14" r="2"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Theme & Experience" %}</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-sidebar-link {% if 'feature-control' in request.path %}active{% endif %}" aria-current="{% if 'feature-control' in request.path %}page{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="10" rx="5"/><circle cx="9" cy="15" r="3"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Feature Control" %}</span>
-        </a>
-      </li>
-    </ul>
-    <div class="admin-sidebar-quick-group" role="group" aria-label="{% trans 'Advanced setup' %}">
-      <h3 class="admin-sidebar-quick-group-title" @click="setupAdvancedOpen = !setupAdvancedOpen; window.rmcTenantAdminNavigationChanged({advancedOpen: setupAdvancedOpen})" :aria-expanded="setupAdvancedOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Advanced setup' %}" @keydown.enter.prevent="setupAdvancedOpen = !setupAdvancedOpen; window.rmcTenantAdminNavigationChanged({advancedOpen: setupAdvancedOpen})" @keydown.space.prevent="setupAdvancedOpen = !setupAdvancedOpen; window.rmcTenantAdminNavigationChanged({advancedOpen: setupAdvancedOpen})">
-        <span class="admin-sidebar-quick-group-label">{% trans "Advanced" %}</span>
-        <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': setupAdvancedOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
-      </h3>
-      <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;" x-show="setupAdvancedOpen" x-transition.50ms>
-        <li>
-          {% if integrations_changelist_url %}<a href="{{ integrations_changelist_url }}" class="admin-sidebar-link {% if 'integrations_marketplace/integration' in request.path %}active{% endif %}" aria-current="{% if 'integrations_marketplace/integration' in request.path %}page{% endif %}">
-            <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M17.5 14.5a2.5 2.5 0 1 0 0 5h3"/><path d="M20.5 17h-3"/></svg></span>
-            <span class="admin-sidebar-link-text">{% trans "Integrations" %}</span>
-          </a>{% endif %}
-        </li>
-      </ul>
-    </div>
-
-    <h2 class="admin-sidebar-section-title">{% trans "Libraries & help" %}</h2>
-    <ul class="admin-sidebar-quick-list" style="list-style: none; margin: 0; padding: 0;">
-      {% if is_manager_host %}
-      <li>
-        <a href="{% url 'studio_os:output' %}" class="admin-sidebar-link {% if '/studio/output' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Report Library" %}</span>
-        </a>
-      </li>
-      {% endif %}
-      {% if is_manager_host %}
-      <li>
-        <a href="{% url 'super:blueprint_marketplace' %}" class="admin-sidebar-link {% if '/super/blueprints' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 2h8v14H4z"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Blueprint Marketplace" %}</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'manager_help_center' %}" class="admin-sidebar-link {% if '/help-center/' in request.path or '/help/' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Help center" %}</span>
-        </a>
-      </li>
-      {% else %}
-      {% if PORTAL_DOCUMENT_LIBRARY_MANAGE_URL %}
-      <li>
-        <a href="{{ PORTAL_DOCUMENT_LIBRARY_MANAGE_URL }}" class="admin-sidebar-link {% if '/portal/backend/documents' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6l2 2h8v14H4z"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Document Library" %}</span>
-        </a>
-      </li>
-      {% endif %}
-      <li>
-        <a href="{% url 'feedback:help_center' %}?section=support" class="admin-sidebar-link {% if '/help/' in request.path and '/kb/' not in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Help center" %}</span>
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'kb:kb_home' %}" class="admin-sidebar-link {% if '/kb/' in request.path %}active{% endif %}">
-          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
-          <span class="admin-sidebar-link-text">{% trans "Knowledge Base" %}</span>
-        </a>
-      </li>
-      {% endif %}
-    </ul>
-    {% endif %}
-  </div>
-  {% endif %}
-
+{% load i18n %}
+<div id="nav-sidebar-apps" class="admin-sidebar-apps rmc-admin-sidebar-v3__catalog h-0 grow overflow-auto d-flex flex-column" role="navigation" aria-label="{% trans 'Django models' %}">
   {% if app_list %}
-  {% if platform_admin_sidebar_embed %}
-  <div class="admin-sidebar-app-groups admin-sidebar-app-groups--embed" role="group" aria-label="{% trans 'Apps' %}">
-  {% else %}
-  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: (window.getAdminAppsState && window.getAdminAppsState({% if request.path != '/admin/' and request.path != '/admin' %}true{% else %}false{% endif %})) || {% if request.path != '/admin/' and request.path != '/admin' %}true{% else %}false{% endif %} }" role="group" aria-label="{% trans 'Apps' %}" data-rmc-admin-all-apps>
-    <h2 class="admin-sidebar-section-title admin-sidebar-section-title--secondary">
-      <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen; window.rmcTenantAdminNavigationChanged({appsOpen: allAppsOpen})" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen; window.rmcTenantAdminNavigationChanged({appsOpen: allAppsOpen})" @keydown.space.prevent="allAppsOpen = !allAppsOpen; window.rmcTenantAdminNavigationChanged({appsOpen: allAppsOpen})">
-        <span>{% trans "Apps" %}</span>
-        <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': allAppsOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
-      </button>
-    </h2>
-    <div class="admin-sidebar-app-groups" role="group" x-show="allAppsOpen" x-transition.50ms>
-  {% endif %}
-    {% comment %} v4.00.26 sidebar dedup by display name; pairs with admin-quickaction.js dedup. {% endcomment %}
-    {% regroup app_list by name as app_name_groups %}
-    {% for app_group in app_name_groups %}
-    {% with app=app_group.list.0 %}
-    {% ifchanged app.section %}
-      {% if not forloop.first %}<hr class="admin-sidebar-section-divider" aria-hidden="true">{% endif %}
-      <h2 class="admin-sidebar-section-heading">
-        {% if app.section == 'people' %}{% trans "People" %}
-        {% elif app.section == 'academic' %}{% trans "Academic" %}
-        {% elif app.section == 'financial' %}{% trans "Financial" %}
-        {% elif app.section == 'operations' %}{% trans "Operations" %}
-        {% elif app.section == 'system' %}{% trans "System & configuration" %}
-        {% elif app.section %}{{ app.section|capfirst }}
-        {% else %}{% trans "Other" %}{% endif %}
-      </h2>
-    {% endifchanged %}
-    <div class="app-{{ app.app_label }} module admin-sidebar-app-group{% if app.app_url in request.path %} current-app{% endif %}"
-         x-data="{ open: {% if app.app_url in request.path %}true{% else %}false{% endif %} }">
-      {% if app.models and not app.hidden %}
-      <div class="admin-sidebar-app-title d-flex align-items-center gap-1">
-        <a href="{{ app.app_url }}" class="block truncate flex-grow-1"
-           title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">
-          {{ app.name }}
-        </a>
-        <button type="button" class="btn btn-link p-0 border-0 admin-sidebar-app-toggle"
-                x-on:click="open = !open"
-                :aria-expanded="open"
-                aria-label="{% blocktranslate with name=app.name %}Toggle {{ name }}{% endblocktranslate %}">
-          <span class="admin-sidebar-chevron inline-flex items-center justify-center" aria-hidden="true"
-                :class="{ 'rotate-90': open }">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-          </span>
-        </button>
-      </div>
-      <ol class="admin-sidebar-model-list flex flex-col gap-1 px-0 mx-0" style="list-style: none; margin-left: 0; padding-left: 0;" x-show="open" x-transition.50ms role="list" :aria-hidden="!open">
-        {% for model in app.models %}
-        {% if not model.hidden %}
-        <li class="model-{{ model.object_name|lower }}{% if model.admin_url and model.admin_url in request.path %} current-model{% endif %}" role="listitem">
-          {% if model.header %}
-          <h3 class="font-medium my-2 text-base-900 text-sm dark:text-base-200">{{ model.header }}</h3>
-          {% endif %}
-          {% if model.admin_url %}
-          <a href="{{ model.admin_url }}"
-             id="link-{{ app.app_label }}-{{ model.object_name|lower }}"
-             class="admin-sidebar-model-link truncate {% if model.admin_url in request.path %}active{% endif %}"
-             data-admin-search="{{ app.name|lower }} {{ app.app_label|lower }} {{ model.name|lower }} {{ model.object_name|lower }}"
-             {% if model.admin_url in request.path %}aria-current="page"{% endif %}>
-            <span class="admin-sidebar-icon admin-sidebar-model-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-            <span class="admin-sidebar-model-link-text">{{ model.name }}</span>
-          </a>
-          {% else %}
-          {{ model.name }}
-          {% endif %}
-        </li>
+  <details class="rmc-admin-sidebar-v3__models" data-rmc-admin-models>
+    <summary>{% trans "All Django models" %}</summary>
+    <div class="admin-sidebar-app-groups" role="group" aria-label="{% trans 'Applications and models' %}">
+      {% regroup app_list by section as section_groups %}
+      {% for section_group in section_groups %}
+      <section class="rmc-admin-sidebar-v3__work-area" data-rmc-admin-ambient>
+        <h2>{% if section_group.grouper %}{{ section_group.grouper }}{% else %}{% trans "Other" %}{% endif %}</h2>
+        {% for app in section_group.list %}
+        {% if app.models and not app.hidden %}
+        <details class="admin-sidebar-app-group app-{{ app.app_label }}"{% if app.app_url in request.path %} open{% endif %}>
+          <summary class="admin-sidebar-app-title">
+            <span>{{ app.name }}</span><span aria-hidden="true">›</span>
+          </summary>
+          <ol class="admin-sidebar-model-list" role="list">
+            {% for model in app.models %}
+            {% if not model.hidden %}
+            <li class="model-{{ model.object_name|lower }}{% if model.admin_url and model.admin_url in request.path %} current-model{% endif %}">
+              {% if model.admin_url %}
+              <a href="{{ model.admin_url }}" class="admin-sidebar-model-link{% if model.admin_url in request.path %} active{% endif %}"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>
+                <span aria-hidden="true">◇</span><span>{{ model.name }}</span>
+              </a>
+              {% else %}<span>{{ model.name }}</span>{% endif %}
+            </li>
+            {% endif %}
+            {% endfor %}
+          </ol>
+        </details>
         {% endif %}
         {% endfor %}
-      </ol>
-      {% endif %}
+      </section>
+      {% endfor %}
     </div>
-    {% endwith %}
-    {% endfor %}
-    </div>
-  {% if not platform_admin_sidebar_embed %}
-  </div>
-  {% endif %}
+  </details>
   {% else %}
-  <p class="px-4 py-3 text-sm">
-    {% trans "You don't have permission to view or edit anything." as error_message %}
-    {% include "unfold/helpers/messages/error.html" with error=error_message %}
-  </p>
-  {% endif %}
-  {% if not platform_admin_sidebar_embed %}
-  <section class="rmc-tenant-admin-sidebar-no-results" data-rmc-admin-search-empty hidden aria-live="polite">
-    <strong>{% trans "No matching admin destination" %}</strong>
-    <span>{% trans "Try an app, model, or task name." %}</span>
-  </section>
+  <p class="rmc-admin-sidebar-v3__empty">{% trans "You do not have permission to view any Django models." %}</p>
   {% endif %}
 </div>

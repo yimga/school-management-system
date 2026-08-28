@@ -1,8 +1,8 @@
 {
   "version": "2026-05-18",
-  "count": 709,
-  "operator_count": 518,
-  "admin_changelist_count": 191,
+  "count": 804,
+  "operator_count": 596,
+  "admin_changelist_count": 208,
   "routes": [
     {
       "path": "/",
@@ -107,6 +107,18 @@
       "sweep": true
     },
     {
+      "path": "/admin/billing/billingpromotion/",
+      "name": "billing_billingpromotion_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/countrybillingprofile/",
+      "name": "billing_countrybillingprofile_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
       "path": "/admin/billing/entitlement/",
       "name": "billing_entitlement_changelist",
       "tier": "admin_changelist",
@@ -119,8 +131,20 @@
       "sweep": true
     },
     {
+      "path": "/admin/billing/platforminvoice/",
+      "name": "billing_platforminvoice_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
       "path": "/admin/billing/platformledgerentry/",
       "name": "billing_platformledgerentry_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/processorrevenueshareaccrual/",
+      "name": "billing_processorrevenueshareaccrual_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },
@@ -139,6 +163,12 @@
     {
       "path": "/admin/billing/stripeplanprice/",
       "name": "billing_stripeplanprice_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/billing/subscriptiongrant/",
+      "name": "billing_subscriptiongrant_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },
@@ -211,6 +241,54 @@
     {
       "path": "/admin/compliance/auditlog/",
       "name": "compliance_auditlog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/countryaccessrule/",
+      "name": "compliance_countryaccessrule_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/ipaccessrule/",
+      "name": "compliance_ipaccessrule_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/threatdetectionconfig/",
+      "name": "compliance_threatdetectionconfig_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/customers/client/",
+      "name": "customers_client_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/customers/domain/",
+      "name": "customers_domain_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/events/domainevent/",
+      "name": "events_domainevent_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/events/webhookdelivery/",
+      "name": "events_webhookdelivery_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/events/webhooksubscription/",
+      "name": "events_webhooksubscription_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },
@@ -713,6 +791,12 @@
       "sweep": true
     },
     {
+      "path": "/admin/platform_runtime/scheduledjobheartbeat/",
+      "name": "platform_runtime_scheduledjobheartbeat_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
       "path": "/admin/platform_runtime/workflowautopilotapplylog/",
       "name": "platform_runtime_workflowautopilotapplylog_changelist",
       "tier": "admin_changelist",
@@ -1169,6 +1253,24 @@
       "sweep": true
     },
     {
+      "path": "/admin/social_media/socialmediaintegration/",
+      "name": "social_media_socialmediaintegration_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialpostoutbox/",
+      "name": "social_media_socialpostoutbox_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/studio_os/experienceregionapproval/",
+      "name": "studio_os_experienceregionapproval_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
       "path": "/automation/outcomes/",
       "name": "outcomes_console",
       "tier": "operator",
@@ -1439,6 +1541,18 @@
       "sweep": true
     },
     {
+      "path": "/orchestration/runs/retry/",
+      "name": "retry_run",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/orchestration/workbench/",
+      "name": "operator_workbench",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/platform-runtime/implementation/",
       "name": "implementation_command_center",
       "tier": "operator",
@@ -1643,8 +1757,26 @@
       "sweep": true
     },
     {
+      "path": "/platform-runtime/workflow-progress/healing-status/",
+      "name": "workflow_progress_healing_status",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/platform-runtime/workflow-progress/incidents/bulk-apply/",
       "name": "workflow_progress_incident_bulk_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/kickoff/",
+      "name": "workflow_progress_kickoff_live",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/platform-runtime/workflow-progress/simulate/",
+      "name": "workflow_progress_simulate",
       "tier": "operator",
       "sweep": true
     },
@@ -1751,6 +1883,12 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/billing/invoice/pdf/",
+      "name": "billing_invoice_pdf",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/billing/plan/",
       "name": "billing_plan_readonly",
       "tier": "operator",
@@ -1759,6 +1897,12 @@
     {
       "path": "/siteconfig/billing/portal/",
       "name": "billing_customer_portal",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/command-palette/settings/",
+      "name": "command_palette_settings",
       "tier": "operator",
       "sweep": true
     },
@@ -1799,6 +1943,12 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/currency-settings/",
+      "name": "currency_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/curriculum/templates/",
       "name": "curriculum_templates",
       "tier": "operator",
@@ -1829,6 +1979,24 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/dashboard/prefs/",
+      "name": "dashboard_prefs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/dashboard/settings/",
+      "name": "dashboard_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/detail-views/settings/",
+      "name": "detail_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/dev/mascot/",
       "name": "mascot_storybook",
       "tier": "operator",
@@ -1837,6 +2005,12 @@
     {
       "path": "/siteconfig/domains/",
       "name": "custom_domain_wizard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/empty-states/settings/",
+      "name": "empty_settings",
       "tier": "operator",
       "sweep": true
     },
@@ -1867,6 +2041,12 @@
     {
       "path": "/siteconfig/feedback-roadmap/",
       "name": "feedback_roadmap",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/forms/settings/",
+      "name": "form_settings",
       "tier": "operator",
       "sweep": true
     },
@@ -1943,6 +2123,12 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/loading/settings/",
+      "name": "loading_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/maintenance/",
       "name": "maintenance",
       "tier": "operator",
@@ -1973,14 +2159,32 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/modals/settings/",
+      "name": "modal_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/modules/",
       "name": "module_market",
       "tier": "operator",
       "sweep": true
     },
     {
+      "path": "/siteconfig/notifications/settings/",
+      "name": "notification_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/onboarding/",
       "name": "onboarding",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/onboarding/fragment/",
+      "name": "onboarding_fragment",
       "tier": "operator",
       "sweep": true
     },
@@ -1999,6 +2203,12 @@
     {
       "path": "/siteconfig/preferences/",
       "name": "user_preferences",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/preferences/dashboard-preset/",
+      "name": "quick_set_dashboard_visual_preset",
       "tier": "operator",
       "sweep": true
     },
@@ -2147,6 +2357,12 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/school-region-settings/",
+      "name": "school_region_settings",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/school-theme/",
       "name": "school_theme_settings",
       "tier": "operator",
@@ -2167,6 +2383,18 @@
     {
       "path": "/siteconfig/schools/group-hierarchy/",
       "name": "school_group_hierarchy",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sidebar/badges/",
+      "name": "sidebar_badges",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sidebar/settings/",
+      "name": "sidebar_settings",
       "tier": "operator",
       "sweep": true
     },
@@ -2213,6 +2441,24 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/super/configure/cockpit/live-banner/draft-emergency/",
+      "name": "live_banner_draft_emergency",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/cockpit/live-banner/suggest-program/",
+      "name": "live_banner_suggest_program",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/cockpit/login-canvas/gallery-upload/",
+      "name": "login_canvas_gallery_upload",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/super/configure/cockpit/previews/",
       "name": "cockpit_previews",
       "tier": "operator",
@@ -2255,8 +2501,80 @@
       "sweep": true
     },
     {
+      "path": "/siteconfig/sync-center/bulk-resolve/",
+      "name": "sync_center_bulk_resolve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/conflicts/",
+      "name": "sync_conflicts",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/pair/approve/",
+      "name": "sync_center_pair_approve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/pair/deny/",
+      "name": "sync_center_pair_deny",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/policy/",
+      "name": "sync_policy_save",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/probe/",
+      "name": "sync_center_probe",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/request-resync/",
+      "name": "sync_center_request_resync",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/siteconfig/sync-center/resolve/",
       "name": "sync_center_resolve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/schedule/",
+      "name": "sync_schedule_save",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/schedule/preview/",
+      "name": "sync_schedule_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/status/",
+      "name": "sync_center_status",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/sync-center/sync-now/",
+      "name": "sync_center_sync_now",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/tables/settings/",
+      "name": "table_settings",
       "tier": "operator",
       "sweep": true
     },
@@ -2455,6 +2773,12 @@
     {
       "path": "/studio/experience/",
       "name": "experience",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/studio/experience/approve-region/",
+      "name": "experience_approve_region",
       "tier": "operator",
       "sweep": true
     },
@@ -2759,6 +3083,12 @@
       "sweep": true
     },
     {
+      "path": "/super/ai/mode/",
+      "name": "ai_mode",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/analytics/",
       "name": "analytics_overview",
       "tier": "operator",
@@ -2779,6 +3109,18 @@
     {
       "path": "/super/billing/",
       "name": "billing_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/billing/holding-currency-rollups/",
+      "name": "holding_currency_rollup_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/billing/subscription/",
+      "name": "tenant_subscription_manage",
       "tier": "operator",
       "sweep": true
     },
@@ -2981,6 +3323,18 @@
       "sweep": true
     },
     {
+      "path": "/super/edge-fleet/",
+      "name": "edge_fleet_console",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/edge-onboarding/",
+      "name": "edge_onboarding_runbook",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/education-systems/",
       "name": "education_systems",
       "tier": "operator",
@@ -3049,6 +3403,12 @@
     {
       "path": "/super/founder/",
       "name": "founder_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/funding/",
+      "name": "funding_overview",
       "tier": "operator",
       "sweep": true
     },
@@ -3335,6 +3695,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/archive-source/",
+      "name": "bundle_archive_source",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/assets/",
       "name": "bundle_assets",
       "tier": "operator",
@@ -3413,6 +3779,84 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/connectors/bundle/abandon/",
+      "name": "bundle-abandon",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/activate-people/",
+      "name": "bundle-activate-people",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/ai-explain/",
+      "name": "bundle-ai-explain",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/apply/",
+      "name": "bundle-apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/archive-source/",
+      "name": "bundle-archive-source",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/held/",
+      "name": "bundle-held-review",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/progress/",
+      "name": "bundle-progress",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/progress/stream/",
+      "name": "bundle-progress-stream",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/quarantine/",
+      "name": "bundle-quarantine-resolve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/repair/",
+      "name": "bundle-repair",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/retry/",
+      "name": "bundle-retry",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/review/",
+      "name": "bundle-review",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/bundle/rollback/",
+      "name": "bundle-rollback",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/connectors/connect/",
       "name": "connector-connect",
       "tier": "operator",
@@ -3443,6 +3887,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/connectors/inbox/",
+      "name": "migration-inbox",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/connectors/operator/",
       "name": "connector_operator_dashboard",
       "tier": "operator",
@@ -3467,6 +3917,42 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/connectors/tokens/",
+      "name": "provisioning-tokens",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/tokens/mint/",
+      "name": "provisioning-token-mint",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/tokens/revoke/",
+      "name": "provisioning-token-revoke",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/upload/",
+      "name": "upload",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/webhooks/",
+      "name": "provisioning-webhooks",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/connectors/webhooks/deactivate/",
+      "name": "provisioning-webhook-deactivate",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/cost-estimate/",
       "name": "bundle_cost_estimate",
       "tier": "operator",
@@ -3475,6 +3961,12 @@
     {
       "path": "/super/migration/csv-diff/",
       "name": "migration_csv_diff",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/cutover/",
+      "name": "cutover_runbook",
       "tier": "operator",
       "sweep": true
     },
@@ -3719,6 +4211,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/quarantine/",
+      "name": "bundle_quarantine_resolve",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/reconcile/",
       "name": "bundle_reconcile",
       "tier": "operator",
@@ -3731,8 +4229,20 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/repair/",
+      "name": "bundle_repair",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/review/",
       "name": "bundle_review",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/migration/rollback-all/",
+      "name": "bundle_rollback_all",
       "tier": "operator",
       "sweep": true
     },
@@ -3803,6 +4313,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/template/.xlsx/",
+      "name": "canonical_template_xlsx",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/template/picker/",
       "name": "canonical_template_picker",
       "tier": "operator",
@@ -3853,6 +4369,18 @@
     {
       "path": "/super/orchestration/",
       "name": "orchestration_workbench",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/orchestration/definitions/start/",
+      "name": "orchestration_start_run",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/orchestration/runs/",
+      "name": "orchestration_run_detail",
       "tier": "operator",
       "sweep": true
     },
@@ -4001,6 +4529,18 @@
       "sweep": true
     },
     {
+      "path": "/super/schools/resend-owner-setup-email/",
+      "name": "resend_owner_setup_email",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/schools/reveal-owner-setup-link/",
+      "name": "reveal_owner_setup_link",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/security/",
       "name": "security_hub",
       "tier": "operator",
@@ -4013,8 +4553,20 @@
       "sweep": true
     },
     {
+      "path": "/super/security/schools/mfa-policy/",
+      "name": "tenant_mfa_policy",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/security/surface/",
       "name": "security_surface_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/sidebar/badges/",
+      "name": "sidebar_badges",
       "tier": "operator",
       "sweep": true
     },
@@ -4033,6 +4585,12 @@
     {
       "path": "/super/signup/diagnostics/",
       "name": "signup_diagnostics",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/superadmin/",
+      "name": "superadmin_console",
       "tier": "operator",
       "sweep": true
     },
@@ -4069,6 +4627,12 @@
     {
       "path": "/super/support/csat/",
       "name": "support_csat_dashboard",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/support/live/",
+      "name": "support_live_console",
       "tier": "operator",
       "sweep": true
     },
@@ -4153,6 +4717,12 @@
     {
       "path": "/super/team/reactivate/",
       "name": "operator_team_reactivate",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/team/reset-password/",
+      "name": "operator_team_reset_password",
       "tier": "operator",
       "sweep": true
     },

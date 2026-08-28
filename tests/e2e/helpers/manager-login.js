@@ -101,6 +101,12 @@ async function loginManager(page, opts = {}) {
 
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password);
+  // The production login form intentionally rejects verified sub-second
+  // submissions as automation/bot traffic. Exercise the real human timing
+  // contract instead of creating a failed-attempt/PoW loop in browser proofs.
+  await page.waitForTimeout(
+    Math.max(1100, Number(process.env.VISUAL_QA_LOGIN_SETTLE_MS || 1200))
+  );
 
   const leftLogin = page.waitForURL(
     (url) => !/\/authentication\/login\/?$/i.test(url.pathname),
@@ -135,11 +141,42 @@ async function loginManager(page, opts = {}) {
     pathnameAfterLogin = '';
   }
   if (/mfa\/verify/i.test(pathnameAfterLogin)) {
+    const otpRoot = page.locator('[data-rmc-mfa-otp]');
+    const legacyTokenInput = page.locator(
+      'input[name="token"]:not([type="hidden"])'
+    );
+    await Promise.race([
+      otpRoot.waitFor({ state: 'visible', timeout: 60000 }),
+      legacyTokenInput.waitFor({ state: 'visible', timeout: 60000 }),
+    ]);
     const tokenInput = page.locator('input[name="token"]');
-    await tokenInput.waitFor({ state: 'visible', timeout: 60000 });
+    const fillMfaToken = async (token) => {
+      const digits = String(token || '').replace(/\D/g, '');
+      const filled = await page.evaluate((code) => {
+        const root = document.querySelector('[data-rmc-mfa-otp]');
+        if (!root) return false;
+        const hidden = root.querySelector('[data-rmc-mfa-otp-value]');
+        const cells = root.querySelectorAll('.rmc-mfa-otp__cell');
+        if (!cells.length) return false;
+        const value = String(code || '').replace(/\D/g, '').slice(0, cells.length);
+        cells.forEach((cell, index) => {
+          cell.value = value[index] || '';
+          cell.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        if (hidden) {
+          hidden.value = value;
+          hidden.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return value.length >= cells.length;
+      }, digits);
+      if (filled) return;
+      if (await legacyTokenInput.count()) {
+        await legacyTokenInput.fill(digits);
+      }
+    };
     const submitMfa = async () => {
       const token = fetchManagerTotpToken(username);
-      await tokenInput.fill(token);
+      await fillMfaToken(token);
       const leftMfa = page
         .waitForURL((url) => !/\/authentication\/mfa\/verify/i.test(url.pathname), {
           timeout: 90000,
