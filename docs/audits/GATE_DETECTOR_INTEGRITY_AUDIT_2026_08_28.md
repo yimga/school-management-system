@@ -46,12 +46,11 @@ Two structural rules make it hold its shape:
 
 | verdict | count | meaning |
 | --- | --- | --- |
-| PROVEN | 41 | planted its own defect, gate went red |
+| PROVEN | 42 | planted its own defect, gate went red |
 | DEAD (confirmed) | 3 | gate stayed green, blindness reproduced by hand |
 | DEAD (unadjudicated) | 10 | gate stayed green, cause not yet established |
 | DRIFTED | 2 | the mutation's anchor no longer exists in the tree |
 | EXEMPT | 8 | no single-file defect models the contract; reason written down |
-| pending | 1 | `gates-can-fail-coverage`, provable once this commit is HEAD |
 
 65 gates. Full run 241s in a reused worktree; the `--list` completeness arm,
 which is the part wired into pre-push, runs in 0.15s.
