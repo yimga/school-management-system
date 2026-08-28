@@ -239,6 +239,17 @@ class Command(BaseCommand):
     def _ensure_academic_year(
         self, name: str, start: date, end: date, *, active: bool
     ) -> AcademicYear:
+        if active:
+            # The school already has an active year -- onboarding creates one --
+            # and it is almost never named the same as ours. get_or_create keys on
+            # (school, name), so it would happily add a SECOND active year and trip
+            # uniq_active_academicyear_per_school (UNIQUE on school_id WHERE
+            # is_active). That is the constraint doing its job; the seeder has to
+            # stand down the incumbent first, which is what AcademicYear.clean()
+            # already says: "Only one academic year can be active for a school."
+            AcademicYear.objects.filter(
+                school=self.school, is_active=True
+            ).exclude(name=name).update(is_active=False)
         year, _ = AcademicYear.objects.get_or_create(
             school=self.school,
             name=name,
