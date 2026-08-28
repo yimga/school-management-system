@@ -322,6 +322,126 @@ class ReconcileFromSourceTests(TestCase):
         with self.assertRaises((CommandError, SystemExit)):
             self._run_silent(derived_split="whatever-you-think")
 
+    def test_the_convention_reaches_only_the_fields_that_prove_the_crossover(self):
+        """A row can be unsettled on a name pair AND on something else entirely.
+
+        The crossover is evidence about the NAMES. It says nothing whatever about a
+        third field the roster left blank, so deciding that one by a rule about name
+        splits is "believe one node" for a field no evidence covers -- the timestamp
+        guess wearing a flag, which is what the fence exists to prevent. What is left
+        over keeps the row whole, by the same all-or-nothing rule as everything else.
+        """
+        self.year.name = "ALPHA"
+        self.year.lock_reason = "BETA"
+        self.year.save(update_fields=["name", "lock_reason"])
+        conflict = self._conflict(
+            {"name": "BETA", "lock_reason": "ALPHA", "start_date": "2027-01-15"}
+        )
+
+        text = self._run(
+            _roster("Ends,Starts\n2027-07-31,\n"),
+            match=["Ends=end_date:date"],
+            authoritative=["Starts=start_date"],
+            derived_split="keep-incoming",
+            apply=True,
+        )
+
+        # The names crossed over; start_date did not, and the roster cell was empty.
+        self.assertNotIn("convention_applied", text)
+        conflict.refresh_from_db()
+        self.assertEqual(conflict.status, "PENDING")
+        self.assertEqual(self._reread().name, "ALPHA")
+        self.assertEqual(str(self._reread().start_date), "2026-09-01")
+
+    # -- the register contradicting itself -------------------------------------
+
+    CONTESTED = (
+        "Term,Official Name\n"
+        "2026-09-01,YEAR 2026/2027\n"
+        "2027-09-01,YEAR 2026/2027\n"
+    )
+
+    def test_a_value_two_lines_claim_settles_neither_of_them(self):
+        """The mirror of an ambiguous key, and just as much a non-answer.
+
+        One row reaching two roster lines is already refused. This is the same defect
+        from the other side: one roster VALUE claimed by two different lines. A real
+        register did it eight times -- two students, one admission number -- and either
+        way round it is the register disagreeing with itself, so it is evidence for
+        neither and settles nothing.
+        """
+        conflict = self._conflict({"name": "YEAR 2026/2027"})
+        text = self._run(_roster(self.CONTESTED), apply=True)
+
+        self.assertIn("contested_source", text)
+        self.assertEqual(self._reread().name, "PROVISIONAL")
+        conflict.refresh_from_db()
+        self.assertEqual(conflict.status, "PENDING")
+
+    def test_a_contested_value_is_refused_even_with_no_collision_to_notice(self):
+        """The quiet half, and the reason a unique constraint is not the guard.
+
+        When only ONE of the pair is in conflict nothing collides -- the write lands, and
+        a contested number is recorded as though the register had confirmed it. There is
+        no IntegrityError to catch and nothing in the audit trail to look wrong.
+        """
+        conflict = self._conflict({"name": "YEAR 2026/2027"})
+        # No second conflicted row anywhere; the other claimant is simply a line in the
+        # file. A constraint would never fire here.
+        self._run(_roster(self.CONTESTED), apply=True)
+
+        self.assertEqual(self._reread().name, "PROVISIONAL")
+        conflict.refresh_from_db()
+        self.assertEqual(conflict.status, "PENDING")
+
+    def test_the_same_line_twice_is_one_claim_not_two(self):
+        # Identity is the match key, not the line number: a register that lists a student
+        # twice identically has said one thing once, and must still be able to settle it.
+        from apps.sync_engine.management.commands import (
+            reconcile_sync_conflicts_from_source as cmd,
+        )
+        from apps.sync_engine.source_authority import KeySpec
+
+        specs = [KeySpec("term", "start_date", "date")]
+        rows = [
+            {"term": "2026-09-01", "official name": "YEAR 2026/2027"},
+            {"term": "2026-09-01", "official name": "YEAR 2026/2027"},
+        ]
+        contested = cmd.Command()._contested_values(
+            rows, specs, {"name": "official name"}
+        )
+        self.assertEqual(contested["official name"], frozenset())
+
+    def test_a_blank_cell_is_not_contested_however_many_lines_carry_it(self):
+        # Otherwise every roster with two empty cells in a column would report its whole
+        # column as contradictory, and the finding would be worthless.
+        from apps.sync_engine.management.commands import (
+            reconcile_sync_conflicts_from_source as cmd,
+        )
+        from apps.sync_engine.source_authority import KeySpec
+
+        specs = [KeySpec("term", "start_date", "date")]
+        rows = [
+            {"term": "2026-09-01", "official name": ""},
+            {"term": "2027-09-01", "official name": "nan"},
+            {"term": "2028-09-01", "official name": "."},
+        ]
+        contested = cmd.Command()._contested_values(
+            rows, specs, {"name": "official name"}
+        )
+        self.assertEqual(contested["official name"], frozenset())
+
+    def test_a_lone_dot_in_the_roster_settles_nothing(self):
+        # The register's mark for "not issued yet". Written as a value it would be a
+        # student's official code, and two of them would collide on a unique column.
+        conflict = self._conflict({"name": "YEAR 2026/2027"})
+        text = self._run(_roster("Term,Official Name\n2026-09-01,.\n"), apply=True)
+
+        self.assertIn("source_silent", text)
+        self.assertEqual(self._reread().name, "PROVISIONAL")
+        conflict.refresh_from_db()
+        self.assertEqual(conflict.status, "PENDING")
+
     def test_a_row_the_school_does_not_own_is_never_read(self):
         # A roster belongs to one school; matching across schools would let one tenant's
         # file rewrite another's rows.

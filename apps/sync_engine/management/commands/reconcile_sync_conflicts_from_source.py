@@ -62,6 +62,7 @@ SOURCE_SILENT = "source_silent"
 DERIVED_SPLIT = "derived_split"
 NO_SOURCE_ROW = "no_source_row"
 AMBIGUOUS_SOURCE = "ambiguous_source"
+CONTESTED_SOURCE = "contested_source"
 NO_KEY = "no_key"
 ROW_MISSING = "row_missing"
 NOT_DIFFERENT = "not_different"
@@ -85,6 +86,7 @@ _EXPLAIN = {
     DERIVED_SPLIT: "the same value under different field names -- one splitter vs another",
     NO_SOURCE_ROW: "no line in the roster matches this row",
     AMBIGUOUS_SOURCE: "several roster lines match; the key does not identify a student",
+    CONTESTED_SOURCE: "two roster lines claim this value; the register contradicts itself",
     NO_KEY: "the row cannot produce a match key, so the roster was never asked",
     ROW_MISSING: "the row is gone; whether the deletion or the change wins is a decision",
     NOT_DIFFERENT: "nothing differs any more -- resolve_identical_sync_conflicts closes these",
@@ -203,16 +205,22 @@ class Command(BaseCommand):
             payload,
         )
 
-    def _is_derived_split(self, instance, payload, fields):
-        """Do the two sides hold the SAME value under DIFFERENT field names?
+    def _derived_split_fields(self, instance, payload, fields):
+        """WHICH fields hold the SAME value under DIFFERENT field names on the two sides.
 
         That is the signature of one splitter disagreeing with another rather than of two
         people editing a record. ``first_last`` and ``last_first`` both put token 0
         somewhere -- one calls it the first name, the other the last -- so the value
         survives and only its label moves. Two independent human edits would not do that.
+
+        It returns the participating fields rather than a yes/no because the answer is
+        per-field evidence, and the caller may act only where the evidence reaches. A row
+        can differ on a name pair AND on a code the roster left blank; the crossover
+        demonstrates something about the names and nothing whatever about the code.
         """
         from apps.sync_engine.source_authority import _m_exact
 
+        involved: set[str] = set()
         for local_field in fields:
             local_value = _m_exact(getattr(instance, local_field, None))
             if local_value is None:
@@ -221,8 +229,43 @@ class Command(BaseCommand):
                 if incoming_field == local_field:
                     continue
                 if _m_exact(payload.get(incoming_field)) == local_value:
-                    return True
-        return False
+                    involved.add(local_field)
+                    involved.add(incoming_field)
+        return tuple(sorted(involved))
+
+    def _contested_values(self, rows, specs, authoritative):
+        """``{column: {value, ...}}`` the source assigns to more than one distinct line.
+
+        The join already refuses when one row matches several roster lines. This is the
+        same defect seen from the other side: one roster VALUE claimed by several lines.
+        A real 431-line register did it eight times -- two different students, one
+        admission number -- and either way round it is the register contradicting itself,
+        so it is evidence for neither student and settles nothing.
+
+        Unchecked, the pleasant failure is an IntegrityError against the unique column
+        that rolls back every unrelated row sharing the batch. The unpleasant one is
+        quieter: when only ONE of the pair is in conflict there is no collision at all,
+        and a contested number is written as though the register had confirmed it.
+
+        Identity is the match KEY, not the line number, so a student listed twice
+        identically is one claim, not two.
+        """
+        from apps.sync_engine.source_authority import is_blank, source_key
+
+        claims: dict[str, dict[str, set]] = {c: {} for c in authoritative.values()}
+        for row in rows:
+            key = source_key(row, specs)
+            if key is None:
+                continue  # never returned by a lookup, so it can contest nothing
+            for column, by_value in claims.items():
+                raw = row.get(column)
+                if is_blank(raw):
+                    continue
+                by_value.setdefault(str(raw).strip().casefold(), set()).add(key)
+        return {
+            column: frozenset(v for v, keys in by_value.items() if len(keys) > 1)
+            for column, by_value in claims.items()
+        }
 
     def _coerce(self, model, field_name, raw):
         """The roster's text as the column's Python type, or None when it will not go."""
@@ -314,6 +357,10 @@ class Command(BaseCommand):
             )
 
         index = SourceIndex(rows, specs)
+        # Built once, beside the index, because it is the same question asked the
+        # other way round: the index refuses when one row reaches many lines, this
+        # refuses when one value is claimed by many lines.
+        contested = self._contested_values(rows, specs, authoritative)
         fingerprint = source_fingerprint(source_path)
         note_stem = "source:%s#%s" % (source_path.name[:60], fingerprint)
 
@@ -342,7 +389,7 @@ class Command(BaseCommand):
             examined += len(batch)
             closed += self._run_batch(
                 batch, model, allowed, options["school"], index, authoritative,
-                bool(options["apply"]), note_stem, outcomes, settled_fields,
+                contested, bool(options["apply"]), note_stem, outcomes, settled_fields,
                 samples, sample_cap, diagnostics, convention,
                 _same_field_value=_same_field_value, _is_blank=is_blank,
             )
@@ -367,7 +414,7 @@ class Command(BaseCommand):
         )
 
     def _run_batch(
-        self, batch, model, allowed, school_id, index, authoritative, do_apply,
+        self, batch, model, allowed, school_id, index, authoritative, contested, do_apply,
         note_stem, outcomes, settled_fields, samples, sample_cap, diagnostics, convention,
         *, _same_field_value, _is_blank,
     ):
@@ -408,10 +455,18 @@ class Command(BaseCommand):
             # not settled, and one unsettled field means the whole row stays for a human.
             updates = {}
             unsettled = []
+            contested_here = []
             for field in fields:
                 column = authoritative.get(field)
                 raw = row.get(column) if column else None
                 if column is None or _is_blank(raw):
+                    unsettled.append(field)
+                    continue
+                if str(raw).strip().casefold() in contested.get(column, ()):
+                    # Another line claims this same value. The register is disagreeing
+                    # with itself, and an unresolved disagreement is exactly what this
+                    # module refuses to launder into an answer.
+                    contested_here.append(field)
                     unsettled.append(field)
                     continue
                 value = self._coerce(model, field, raw)
@@ -428,7 +483,8 @@ class Command(BaseCommand):
                 # that remainder is the SAME single decision as a row where the roster
                 # settled nothing. Counting only the latter reports N decisions where
                 # there is one -- which is the whole finding, inverted.
-                split_like = self._is_derived_split(instance, payload, unsettled)
+                split_fields = self._derived_split_fields(instance, payload, unsettled)
+                split_like = bool(split_fields)
                 if split_like:
                     diagnostics["derived_split_like"] = (
                         diagnostics.get("derived_split_like", 0) + 1
@@ -440,9 +496,20 @@ class Command(BaseCommand):
                 # guess wearing a flag, but "these two rows are one row decomposed twice,
                 # and a human has said which decomposition the school uses". A genuine
                 # disagreement never reaches here, because its values do not cross over.
-                if split_like and convention != LEAVE:
+                #
+                # And ONLY to the fields that demonstrate the crossover. A row can be
+                # unsettled on a name pair AND on a code the roster left blank; the
+                # evidence for the names says nothing whatever about the code, so
+                # deciding the code by a rule about name splits is "believe one node"
+                # for a field no evidence covers. Anything left over keeps the row
+                # whole, under the same all-or-nothing rule as everything else.
+                # The guard is the FIELD SET, not a separate boolean: a genuine
+                # disagreement produces no crossing-over fields, so there is nothing
+                # here to decide. Asking `split_like` as well would read as a second
+                # check while being unable to fail on its own.
+                if split_fields and convention != LEAVE:
                     resolved_here = {}
-                    for field in unsettled:
+                    for field in split_fields:
                         if convention == KEEP_LOCAL:
                             continue  # the row already holds it; nothing to write
                         value = self._coerce(model, field, payload.get(field))
@@ -452,15 +519,23 @@ class Command(BaseCommand):
                         resolved_here[field] = value
                     if resolved_here is not None:
                         updates.update(resolved_here)
-                        from_convention = tuple(unsettled)
-                        unsettled = []
+                        from_convention = tuple(split_fields)
+                        unsettled = [f for f in unsettled if f not in from_convention]
 
             if unsettled:
-                outcome = (
-                    DERIVED_SPLIT
-                    if split_like and not updates
-                    else (PARTIAL if updates else SOURCE_SILENT)
-                )
+                if contested_here:
+                    # Reported ahead of the others because it is the only one naming a
+                    # defect in the SOURCE. The rest describe what the register does not
+                    # say; this one says the register is wrong, and no amount of
+                    # re-running fixes it -- someone has to repair the register.
+                    outcome = CONTESTED_SOURCE
+                    diagnostics["contested_source"] = (
+                        diagnostics.get("contested_source", 0) + 1
+                    )
+                elif split_like and not updates:
+                    outcome = DERIVED_SPLIT
+                else:
+                    outcome = PARTIAL if updates else SOURCE_SILENT
                 self._tally(outcomes, outcome)
                 self._sample(samples, sample_cap, outcome, conflict, instance, payload, fields)
                 continue

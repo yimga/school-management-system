@@ -73,6 +73,16 @@ class TheMatchersTests(SimpleTestCase):
             self.assertIsNone(sa._m_exact(raw), raw)
             self.assertTrue(sa.is_blank(raw), raw)
 
+    def test_a_lone_dot_is_a_blank_cell(self):
+        """Its own test because it is not hypothetical and it fails worse than most.
+
+        A real 431-line register marked "no admission number yet" with ".". Read as a
+        value it is worse than a blank: two students carrying it collide on a unique
+        column, and the one that lands reads as data in the audit trail forever.
+        """
+        self.assertTrue(sa.is_blank("."))
+        self.assertIsNone(sa._m_exact("."))
+
     def test_name_tokens_is_order_independent(self):
         self.assertEqual(sa._m_name_tokens("ADA DECLAN LOVELACE"),
                          sa._m_name_tokens("LOVELACE ADA DECLAN"))

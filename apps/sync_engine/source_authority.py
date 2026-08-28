@@ -47,7 +47,11 @@ from typing import Any, Callable, Iterable, Sequence
 #: through pandas write the STRING "nan" for a missing cell, and a roster typed by hand
 #: uses a dash. Treating either as a value would let this module overwrite a real name
 #: with the word "nan" -- so they are absences, and an absence never settles anything.
-_DEFAULT_BLANK_TOKENS = ("", "nan", "none", "null", "n/a", "na", "-", "--", "?")
+#: A lone "." belongs here for the same reason, and it is not hypothetical: a real
+#: 431-line register used it as the mark for "no admission number yet" on two students.
+#: Read as a value it is worse than a blank, because two cells holding it collide on a
+#: unique column and it looks like data in the audit trail.
+_DEFAULT_BLANK_TOKENS = ("", ".", "nan", "none", "null", "n/a", "na", "-", "--", "?")
 
 _WS = re.compile(r"\s+")
 _NON_WORD = re.compile(r"[^0-9a-z]+")
