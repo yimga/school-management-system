@@ -246,13 +246,13 @@ def persist_confirmed_connector_mappings(
     return True
 
 
-def build_powerschool_mapping_template() -> dict[str, Any]:
-    """Seed template from the PowerSchool accelerator file map."""
-    from apps.migration_cloud.accelerators.powerschool import POWERSCHOOL_FILE_MAP
-
+def build_mapping_template_from_file_map(
+    file_map: dict[str, tuple[str, dict[str, str]]],
+) -> dict[str, Any]:
+    """Build ``mapping_template`` JSON from an accelerator ``*_FILE_MAP``."""
     by_artifact: dict[str, Any] = {}
     by_domain: dict[str, dict[str, str]] = {}
-    for filename, (domain, mappings) in POWERSCHOOL_FILE_MAP.items():
+    for filename, (domain, mappings) in file_map.items():
         by_artifact[filename] = {
             "domain": domain,
             "canonical_mappings": dict(mappings),
@@ -263,8 +263,69 @@ def build_powerschool_mapping_template() -> dict[str, Any]:
     return {"by_artifact": by_artifact, "by_domain": by_domain}
 
 
+def build_powerschool_mapping_template() -> dict[str, Any]:
+    """Seed template from the PowerSchool accelerator file map."""
+    from apps.migration_cloud.accelerators.powerschool import POWERSCHOOL_FILE_MAP
+
+    return build_mapping_template_from_file_map(POWERSCHOOL_FILE_MAP)
+
+
+def build_blackbaud_mapping_template() -> dict[str, Any]:
+    from apps.migration_cloud.accelerators.blackbaud import BLACKBAUD_FILE_MAP
+
+    return build_mapping_template_from_file_map(BLACKBAUD_FILE_MAP)
+
+
+def build_veracross_mapping_template() -> dict[str, Any]:
+    from apps.migration_cloud.accelerators.veracross import VERACROSS_FILE_MAP
+
+    return build_mapping_template_from_file_map(VERACROSS_FILE_MAP)
+
+
+def build_alma_mapping_template() -> dict[str, Any]:
+    from apps.migration_cloud.accelerators.alma import ALMA_FILE_MAP
+
+    return build_mapping_template_from_file_map(ALMA_FILE_MAP)
+
+
+def build_facts_mapping_template() -> dict[str, Any]:
+    from apps.migration_cloud.accelerators.facts import FACTS_FILE_MAP
+
+    return build_mapping_template_from_file_map(FACTS_FILE_MAP)
+
+
+def build_skyward_mapping_template() -> dict[str, Any]:
+    from apps.migration_cloud.accelerators.skyward import SKYWARD_FILE_MAP
+
+    return build_mapping_template_from_file_map(SKYWARD_FILE_MAP)
+
+
+def build_oneroster_mapping_template() -> dict[str, Any]:
+    from apps.migration_cloud.accelerators.oneroster_v1p2 import ONEROSTER_FILE_MAP
+
+    return build_mapping_template_from_file_map(ONEROSTER_FILE_MAP)
+
+
+VENDOR_MAPPING_TEMPLATE_BUILDERS: dict[str, Any] = {
+    "powerschool": build_powerschool_mapping_template,
+    "blackbaud": build_blackbaud_mapping_template,
+    "veracross": build_veracross_mapping_template,
+    "alma": build_alma_mapping_template,
+    "facts": build_facts_mapping_template,
+    "skyward": build_skyward_mapping_template,
+    "oneroster_csv": build_oneroster_mapping_template,
+}
+
 __all__ = [
+    "VENDOR_MAPPING_TEMPLATE_BUILDERS",
+    "build_alma_mapping_template",
+    "build_blackbaud_mapping_template",
+    "build_facts_mapping_template",
+    "build_mapping_template_from_file_map",
+    "build_oneroster_mapping_template",
     "build_powerschool_mapping_template",
+    "build_skyward_mapping_template",
+    "build_veracross_mapping_template",
     "load_profile_template_entry",
     "merge_template_mappings",
     "persist_bundle_mappings_to_profile",

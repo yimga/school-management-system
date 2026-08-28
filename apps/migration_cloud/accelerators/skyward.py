@@ -51,6 +51,17 @@ SKYWARD_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
             "Department": "department",
         },
     ),
+    "courses.csv": (
+        "academics",
+        {
+            "CourseKey": "subject_code",
+            "CourseCode": "subject_code",
+            "CourseName": "subject_name",
+            "CourseTitle": "subject_name",
+            "Department": "department",
+            "CreditValue": "credits",
+        },
+    ),
 }
 
 

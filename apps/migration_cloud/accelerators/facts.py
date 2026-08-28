@@ -72,6 +72,16 @@ FACTS_FILE_MAP: dict[str, tuple[str, dict[str, str]]] = {
             "Balance": "balance",
         },
     ),
+    "Courses.csv": (
+        "academics",
+        {
+            "CourseID": "subject_code",
+            "CourseName": "subject_name",
+            "CourseTitle": "subject_name",
+            "Department": "department",
+            "Credits": "credits",
+        },
+    ),
     # Sacrament data is faith-school-specific — preserve as custom_fields.
     "Sacraments.csv": ("custom_fields", {}),
     "Religion.csv": ("custom_fields", {}),

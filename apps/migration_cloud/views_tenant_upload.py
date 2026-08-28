@@ -2015,9 +2015,12 @@ class TenantMigrationHeldReviewView(_TenantAdminRequiredMixin, View):
     template_name = "migration_cloud/anomaly_nudge.html"
 
     def get(self, request, bundle_id: int, **kwargs):
-        from .views import build_anomaly_nudge_context
+        from .views import build_anomaly_nudge_context, maybe_autopilot_held_review
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
+        redirect_response = maybe_autopilot_held_review(request, bundle, user=request.user)
+        if redirect_response is not None:
+            return redirect_response
         ctx = build_anomaly_nudge_context(request, bundle, shell="portal")
         # anomaly_nudge.html authors body in cp_shell_page; _wizard_base only exposes
         # connector_body, which leaves a blank page. build_anomaly_nudge_context already
@@ -2144,6 +2147,8 @@ class TenantMigrationQuarantineResolveView(_TenantAdminWriteRequiredMixin, View)
             "waive_all_pending",
             "deny_all_pending",
             "clear_queue",
+            "run_autopilot",
+            "reopen_auto",
         }
         if action in bulk_actions:
             outcome = apply_quarantine_action(

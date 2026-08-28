@@ -9,90 +9,94 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--migration-cloud-review" id="main" data-rmc-scroll-policy="paginate" data-rmc-migration-cloud-surface="1">
+<main class="rmc-page rmc-page--migration-cloud-review" id="main" data-rmc-scroll-policy="paginate" data-rmc-migration-cloud-surface="1"{% if quarantine_pending %} data-rmc-page-fold-nav="required"{% endif %}>
   <header class="rmc-page__header">
     <a class="rmc-back"
        href="{% if back_url %}{{ back_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
       {% trans "← Back to bundle" %}
     </a>
     <h1 class="rmc-h1">{% trans "Review queue" %}</h1>
-    <p class="rmc-muted">{% blocktrans with name=bundle.label|default:bundle.idempotency_key %}Anomalies + low-confidence decisions for {{ name }}.{% endblocktrans %}</p>
+    <p class="rmc-muted">{% blocktrans with name=bundle.label|default:bundle.idempotency_key %}Anomalies + held rows for {{ name }}.{% endblocktrans %}</p>
   </header>
 
-  <section class="rmc-card rmc-reveal">
-    <h2 class="rmc-h2">
-      {% trans "Low-confidence mappings" %}
-      <span class="rmc-muted">({{ low_conf_mappings|length }} {% trans "below" %} {{ threshold|floatformat:2 }})</span>
-    </h2>
-    {% if low_conf_mappings %}
-      <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
-        <caption class="visually-hidden">{% trans "Review queue" %}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{% trans "Artifact" %}</th>
-            <th scope="col">{% trans "Source column" %}</th>
-            <th scope="col">{% trans "Canonical" %}</th>
-            <th scope="col">{% trans "Confidence" %}</th>
-            <th scope="col">{% trans "Method" %}</th>
-            <th scope="col">{% trans "Reasoning" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for m in low_conf_mappings %}
-          <tr>
-            <td>{{ m.artifact }}</td>
-            <td>{{ m.source_column }}</td>
-            <td>{{ m.canonical_field }}</td>
-            <td>{{ m.confidence|floatformat:2 }}</td>
-            <td><span class="rmc-mapping__method-tag">{{ m.method }}</span></td>
-            <td class="rmc-muted">{{ m.reasoning|default:"—" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="rmc-empty rmc-empty--inline">
-        <p>{% trans "No low-confidence mappings — every column cleared the threshold." %}</p>
-      </div>
+  {% if expected_totals_requires_confirmation %}
+  <div class="rmc-alert rmc-alert--info mb-3" role="status">
+    <strong>{% trans "Control totals were inferred from what landed." %}</strong>
+    <p class="mb-0 mt-1 rmc-muted">{% trans "Confirm or edit them before cutover sign-off — inferred totals match observed counts but are not a substitute for source-provided control figures." %}</p>
+    {% if expected_totals_url %}
+    <p class="mb-0 mt-2"><a class="rmc-btn rmc-btn--sm rmc-btn--ghost" href="{{ expected_totals_url }}">{% trans "Review control totals" %}</a></p>
     {% endif %}
-  </section>
+  </div>
+  {% elif finance_landed_unverified %}
+  <div class="rmc-alert rmc-alert--warn mb-3" role="status">
+    <strong>{% trans "Finance landed without verified control totals." %}</strong>
+    <p class="mb-0 mt-1 rmc-muted">{% trans "Add expected invoice count and total before cutover, or re-import with guardrails on the intake form." %}</p>
+  </div>
+  {% endif %}
 
-  <section class="rmc-card rmc-reveal">
-    <h2 class="rmc-h2">
-      {% trans "Tracked custom fields" %}
-      <span class="rmc-muted">({{ tracked_custom_mappings|length }} {% trans "captured · will import" %})</span>
-    </h2>
-    {% if tracked_custom_mappings %}
-      <p class="rmc-muted">{% trans "These columns have no standard field in RunMyCampus, so they are captured verbatim and imported as tracked custom fields — nothing is dropped." %}</p>
-      <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
-        <caption class="visually-hidden">{% trans "Tracked custom fields" %}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{% trans "Artifact" %}</th>
-            <th scope="col">{% trans "Source column" %}</th>
-            <th scope="col">{% trans "Status" %}</th>
-            <th scope="col">{% trans "Reasoning" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for m in tracked_custom_mappings %}
-          <tr>
-            <td>{{ m.artifact }}</td>
-            <td>{{ m.source_column }}</td>
-            <td><span class="rmc-pill rmc-pill--info" title="{% trans 'Captured verbatim and imported as a tracked custom field' %}">{% trans "Tracked · will import" %}</span></td>
-            <td class="rmc-muted">{{ m.reasoning|default:"—" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="rmc-empty rmc-empty--inline">
-        <p>{% trans "No custom fields — every column mapped to a standard field." %}</p>
-      </div>
+  {% if cutover_signoff_pending %}
+  <div class="rmc-alert rmc-alert--warn mb-3" role="status">
+    <strong>{% trans "Cutover sign-off is still required." %}</strong>
+    <p class="mb-0 mt-1 rmc-muted">{% trans "Held rows and control totals must be resolved before this bundle can close the migration runbook." %}</p>
+  </div>
+  {% endif %}
+
+  {% if quarantine_caps %}
+  <div class="rmc-alert rmc-alert--warn mb-3" role="status">
+    <strong>{% trans "Some held rows could not be stored for review." %}</strong>
+    <ul class="mb-0 mt-1">
+      {% for artifact_key, cap in quarantine_caps.items %}
+        <li class="rmc-muted">{% blocktrans with file=artifact_key held=cap.held recorded=cap.recorded dropped=cap.dropped %}{{ file }}: {{ held }} held, {{ recorded }} stored, {{ dropped }} not reviewable{% endblocktrans %}</li>
+      {% endfor %}
+    </ul>
+    <p class="mb-0 mt-2 rmc-muted">{% trans "Export CSV or fix the source file, then re-import — rows without durable records cannot be replayed." %}</p>
+  </div>
+  {% endif %}
+
+  {% if autopilot_done %}
+  <div class="rmc-alert rmc-alert--success mb-3 rmc-review-autopilot-banner" role="status">
+    <strong>{% blocktrans with count=autopilot_done %}Autopilot closed {{ count }} row(s) automatically.{% endblocktrans %}</strong>
+    {% if autopilot_pdf_closed %}
+      <p class="mb-0 mt-1 rmc-muted">{% blocktrans with pdf=autopilot_pdf_closed %}Included {{ pdf }} PDF/stat lines that were not importable records.{% endblocktrans %}</p>
     {% endif %}
-  </section>
+  </div>
+  {% elif pdf_noise_candidates and quarantine_pending %}
+  <div class="rmc-card rmc-review-summary-strip mb-3" id="section-summary">
+    <div class="rmc-review-summary-strip__metrics">
+      <span class="rmc-review-summary-strip__metric">
+        <strong>{{ quarantine_pending }}</strong>
+        <span class="rmc-muted">{% trans "awaiting review" %}</span>
+      </span>
+      {% if pdf_noise_candidates %}
+      <span class="rmc-review-summary-strip__metric">
+        <strong>{{ pdf_noise_candidates }}</strong>
+        <span class="rmc-muted">{% trans "PDF lines auto-closable" %}</span>
+      </span>
+      {% endif %}
+    </div>
+    <div class="rmc-review-summary-strip__actions">
+      <button type="button" class="rmc-btn rmc-btn--primary rmc-btn--sm" data-rmc-q-bulk="run_autopilot">
+        {% if pdf_noise_candidates %}
+          {% blocktrans with n=pdf_noise_candidates %}Run autopilot (close {{ n }} PDF lines){% endblocktrans %}
+        {% else %}
+          {% trans "Run autopilot" %}
+        {% endif %}
+      </button>
+    </div>
+  </div>
+  {% endif %}
 
-  <section class="rmc-card rmc-reveal rmc-quarantine-workspace" id="rmc-quarantine-workspace">
+  {% if quarantine_pending %}
+  <nav class="rmc-section-nav rmc-page-fold-nav mb-3" aria-label="{% trans 'Review sections' %}">
+    <a href="#section-held" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Held rows" %}</a>
+    {% if low_conf_total or tracked_custom_total %}
+    <a href="#section-mapping" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Mapping intel" %}</a>
+    {% endif %}
+    <a href="#section-drift" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Drift & log" %}</a>
+  </nav>
+  {% endif %}
+
+  <section class="rmc-card rmc-reveal rmc-quarantine-workspace" id="section-held" data-rmc-section-anchor>
     <h2 class="rmc-h2">
       {% if import_closure and not quarantine_pending %}
       {% trans "Import closure" %}
@@ -107,9 +111,32 @@
       {% if import_closure.detail %}<p class="mb-0 mt-1">{{ import_closure.detail }}</p>{% endif %}
     </div>
     {% else %}
-    <p class="rmc-lede">
-      {% trans "These rows did not pass validation and were not written into your school. Each row shows the source values we read, why it was held, and actions you can take — dismiss, skip, edit & re-import, or deny." %}
-    </p>
+    {% if quarantine_pending %}
+      <p class="rmc-lede rmc-quarantine-workspace__lede">
+        {% blocktrans count counter=quarantine_action_needed trimmed %}
+          <strong>{{ counter }}</strong> row needs your decision. Autopilot runs when you open this page — PDF stat lines close automatically.
+        {% plural %}
+          <strong>{{ counter }}</strong> rows need your decision. Autopilot runs when you open this page — PDF stat lines close automatically.
+        {% endblocktrans %}
+      </p>
+      <ul class="rmc-quarantine-breakdown">
+        {% for b in quarantine_breakdown %}
+          <li>
+            <span class="rmc-pill rmc-pill--{{ b.tone|default:'warn' }}">{{ b.count }}</span>
+            {{ b.label }}
+          </li>
+        {% endfor %}
+      </ul>
+      <div class="rmc-quarantine-legend rmc-button-row mb-3" aria-label="{% trans 'Issue type legend' %}">
+        <span class="rmc-muted">{% trans "Colour key:" %}</span>
+        <span class="rmc-pill rmc-pill--info">{% trans "Informational" %}</span>
+        <span class="rmc-pill rmc-pill--warn">{% trans "Missing data" %}</span>
+        <span class="rmc-pill rmc-pill--danger">{% trans "Broken link" %}</span>
+      </div>
+    {% else %}
+      <p class="rmc-muted">{% trans "Nothing is waiting on you — mapping intel and drift are below if you want to inspect them." %}</p>
+    {% endif %}
+
     {% if quarantine_review_gap %}
     <div class="rmc-alert rmc-alert--warn mb-3" role="status">
       {% blocktrans with gap=quarantine_review_gap total=apply_held_total pending=quarantine_pending %}
@@ -118,32 +145,8 @@
       {% endblocktrans %}
     </div>
     {% endif %}
+
     {% if quarantine_pending %}
-      <p class="rmc-lede">
-        {% blocktrans count counter=quarantine_action_needed trimmed %}
-          <strong>{{ counter }}</strong> row needs your decision before this import is complete.
-        {% plural %}
-          <strong>{{ counter }}</strong> rows need your decision before this import is complete.
-        {% endblocktrans %}
-      </p>
-      <ul class="rmc-quarantine-breakdown">
-        {% for b in quarantine_breakdown %}
-          <li>
-            <span class="rmc-pill rmc-pill--{{ b.tone|default:'warn' }}">
-              {{ b.count }}
-            </span>
-            {{ b.label }}
-          </li>
-        {% endfor %}
-      </ul>
-
-      <div class="rmc-quarantine-legend rmc-button-row mb-3" aria-label="{% trans 'Issue type legend' %}">
-        <span class="rmc-muted">{% trans "Colour key:" %}</span>
-        <span class="rmc-pill rmc-pill--info">{% trans "Informational" %}</span>
-        <span class="rmc-pill rmc-pill--warn">{% trans "Missing data" %}</span>
-        <span class="rmc-pill rmc-pill--danger">{% trans "Broken link" %}</span>
-      </div>
-
       {% include "migration_cloud/partials/quarantine_held_rows.html" %}
       {% if quarantine_page_obj.paginator.num_pages > 1 %}
         {% include "components/pagination.html" with page_obj=quarantine_page_obj page_query_param="q_page" %}
@@ -160,7 +163,7 @@
     {% endif %}
 
     {% if quarantine_resolved %}
-    <details class="mt-4">
+    <details class="mt-4 rmc-review-secondary">
       <summary class="rmc-h3">{% trans "Recently resolved" %} ({{ quarantine_resolved|length }})</summary>
       <ul class="rmc-stack">
         {% for q in quarantine_resolved %}
@@ -175,51 +178,143 @@
     {% endif %}
   </section>
 
-  {% if progress_url %}
-  <section class="rmc-card rmc-reveal mb-4" id="mc-live-board" aria-live="polite"
-           data-mc-live-board="1"
-           data-progress-url="{{ progress_url }}"
-           {% if progress_stream_url %}data-progress-stream-url="{{ progress_stream_url }}"{% endif %}
-           data-importing="{% if import_flight.in_flight %}1{% else %}0{% endif %}">
-    {% if live_import %}{{ live_import|json_script:"mc-live-import-seed" }}{% endif %}
-    <h2 class="rmc-h2">{% trans "Import activity log" %}</h2>
-    <p class="rmc-muted">{% trans "Live events from this import — updates automatically while apply or repair is running." %}</p>
-    {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="migration_bundle_apply" task_type="MIGRATION_INGESTION" %}
-  </section>
-  {% endif %}
+  <details class="rmc-card rmc-reveal rmc-review-secondary" id="section-mapping" data-rmc-section-anchor>
+    <summary class="rmc-h2 rmc-review-secondary__summary">
+      {% trans "Mapping intelligence" %}
+      <span class="rmc-muted">({{ low_conf_total }} {% trans "low-confidence" %} · {{ tracked_custom_total }} {% trans "custom fields" %})</span>
+    </summary>
+    <div class="rmc-review-secondary__body">
+      <section class="rmc-review-mapping-block">
+        <h3 class="rmc-h3">
+          {% trans "Low-confidence mappings" %}
+          <span class="rmc-muted">({{ low_conf_total }} {% trans "below" %} {{ threshold|floatformat:2 }})</span>
+        </h3>
+        {% if low_conf_total %}
+          <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+            <caption class="visually-hidden">{% trans "Low-confidence mappings" %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Artifact" %}</th>
+                <th scope="col">{% trans "Source column" %}</th>
+                <th scope="col">{% trans "Canonical" %}</th>
+                <th scope="col">{% trans "Confidence" %}</th>
+                <th scope="col">{% trans "Method" %}</th>
+                <th scope="col">{% trans "Reasoning" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in low_conf_mappings %}
+              <tr>
+                <td>{{ m.artifact }}</td>
+                <td>{{ m.source_column }}</td>
+                <td>{{ m.canonical_field }}</td>
+                <td>{{ m.confidence|floatformat:2 }}</td>
+                <td><span class="rmc-mapping__method-tag">{{ m.method }}</span></td>
+                <td class="rmc-muted">{{ m.reasoning|default:"—" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% if low_conf_page_obj.paginator.num_pages > 1 %}
+            {% include "components/pagination.html" with page_obj=low_conf_page_obj page_query_param="m_page" %}
+          {% endif %}
+        {% else %}
+          <div class="rmc-empty rmc-empty--inline">
+            <p>{% trans "No low-confidence mappings — every column cleared the threshold." %}</p>
+          </div>
+        {% endif %}
+      </section>
 
-  <section class="rmc-card rmc-reveal">
-    <h2 class="rmc-h2">{% trans "Reconciliation drift" %}</h2>
-    {% if drift_domains %}
-      <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
-        <caption class="visually-hidden">{% trans "Reconciliation drift" %}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{% trans "Domain" %}</th>
-            <th scope="col">{% trans "Source" %}</th>
-            <th scope="col">{% trans "Created" %}</th>
-            <th scope="col">{% trans "Quarantined" %}</th>
-            <th scope="col">{% trans "Parity %" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for d in drift_domains %}
-          <tr>
-            <td>{{ d.domain }}</td>
-            <td>{{ d.source_count }}</td>
-            <td>{{ d.target_created }}</td>
-            <td>{{ d.quarantined }}</td>
-            <td>{{ d.parity_pct }}%</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="rmc-empty rmc-empty--inline">
-        <p>{% trans "Every domain met the 99% parity bar (or reconciliation has not run yet)." %}</p>
-      </div>
-    {% endif %}
-  </section>
+      <section class="rmc-review-mapping-block mt-4">
+        <h3 class="rmc-h3">
+          {% trans "Tracked custom fields" %}
+          <span class="rmc-muted">({{ tracked_custom_total }} {% trans "captured · will import" %})</span>
+        </h3>
+        {% if tracked_custom_total %}
+          <p class="rmc-muted">{% trans "Non-standard columns import as tracked custom fields — nothing is dropped." %}</p>
+          <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+            <caption class="visually-hidden">{% trans "Tracked custom fields" %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Artifact" %}</th>
+                <th scope="col">{% trans "Source column" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Reasoning" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in tracked_custom_mappings %}
+              <tr>
+                <td>{{ m.artifact }}</td>
+                <td>{{ m.source_column }}</td>
+                <td><span class="rmc-pill rmc-pill--info">{% trans "Tracked · will import" %}</span></td>
+                <td class="rmc-muted">{{ m.reasoning|default:"—"|truncatewords:24 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% if custom_page_obj.paginator.num_pages > 1 %}
+            {% include "components/pagination.html" with page_obj=custom_page_obj page_query_param="c_page" %}
+          {% endif %}
+        {% else %}
+          <div class="rmc-empty rmc-empty--inline">
+            <p>{% trans "No custom fields — every column mapped to a standard field." %}</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </details>
+
+  <details class="rmc-card rmc-reveal rmc-review-secondary" id="section-drift" data-rmc-section-anchor>
+    <summary class="rmc-h2 rmc-review-secondary__summary">{% trans "Import log & reconciliation drift" %}</summary>
+    <div class="rmc-review-secondary__body">
+      {% if progress_url %}
+      <section class="mb-4" id="mc-live-board" aria-live="polite"
+               data-mc-live-board="1"
+               data-progress-url="{{ progress_url }}"
+               {% if progress_stream_url %}data-progress-stream-url="{{ progress_stream_url }}"{% endif %}
+               data-importing="{% if import_flight.in_flight %}1{% else %}0{% endif %}">
+        {% if live_import %}{{ live_import|json_script:"mc-live-import-seed" }}{% endif %}
+        <h3 class="rmc-h3">{% trans "Import activity log" %}</h3>
+        <p class="rmc-muted">{% trans "Live events from this import — updates automatically while apply or repair is running." %}</p>
+        {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="migration_bundle_apply" task_type="MIGRATION_INGESTION" %}
+      </section>
+      {% endif %}
+
+      <section>
+        <h3 class="rmc-h3">{% trans "Reconciliation drift" %}</h3>
+        {% if drift_domains %}
+          <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+            <caption class="visually-hidden">{% trans "Reconciliation drift" %}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{% trans "Domain" %}</th>
+                <th scope="col">{% trans "Source" %}</th>
+                <th scope="col">{% trans "Created" %}</th>
+                <th scope="col">{% trans "Quarantined" %}</th>
+                <th scope="col">{% trans "Parity %" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in drift_domains %}
+              <tr>
+                <td>{{ d.domain }}</td>
+                <td>{{ d.source_count }}</td>
+                <td>{{ d.target_created }}</td>
+                <td>{{ d.quarantined }}</td>
+                <td>{{ d.parity_pct }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="rmc-empty rmc-empty--inline">
+            <p>{% trans "Every domain met the 99% parity bar (or reconciliation has not run yet)." %}</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+  </details>
 </main>
 
 <script nonce="{{ csp_nonce }}">
@@ -228,6 +323,27 @@
   var aiExplainUrl = "{% if ai_explain_url %}{{ ai_explain_url|escapejs }}{% endif %}";
   var csrf = "{{ csrf_token }}";
 
+  function showReviewToast(msg, tone) {
+    var host = document.getElementById("rmc-review-toast");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "rmc-review-toast";
+      host.setAttribute("role", "alert");
+      var main = document.querySelector("main.rmc-page--migration-cloud-review");
+      if (main) main.insertBefore(host, main.firstChild);
+    }
+    host.className = "rmc-alert rmc-alert--" + (tone || "danger") + " mb-3";
+    host.textContent = msg;
+    host.hidden = false;
+  }
+
+  function missingFieldsForRow(rowId) {
+    var card = document.querySelector('[data-rmc-quarantine-id="' + rowId + '"]');
+    if (!card) return [];
+    var raw = card.getAttribute("data-rmc-missing-fields") || "";
+    return raw.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
   function selectedIds() {
     return Array.prototype.map.call(
       document.querySelectorAll("[data-rmc-quarantine-select]:checked"),
@@ -235,9 +351,52 @@
     );
   }
 
+  function buildEditFields(panel, rowId) {
+    if (!panel || panel.dataset.rmcBuilt === "1") return;
+    var rowNode = document.getElementById("qrow-" + rowId);
+    var row = {};
+    if (rowNode) {
+      try { row = JSON.parse(rowNode.textContent || "{}"); } catch (_e) { row = {}; }
+    }
+    var grid = panel.querySelector("[data-rmc-quarantine-fields]");
+    if (!grid) return;
+    grid.innerHTML = "";
+    var keys = Object.keys(row);
+    if (!keys.length) {
+      grid.innerHTML = "<p class=\"rmc-muted\">{% trans 'No source row captured — only the error message is available.' %}</p>";
+    } else {
+      keys.forEach(function (key) {
+        var label = document.createElement("label");
+        label.className = "rmc-field";
+        var span = document.createElement("span");
+        span.className = "rmc-field__label";
+        span.textContent = key;
+        var inp = document.createElement("input");
+        inp.className = "rmc-input";
+        inp.type = "text";
+        inp.name = key;
+        inp.value = row[key] == null ? "" : String(row[key]);
+        if (missingFieldsForRow(rowId).indexOf(key) !== -1) {
+          inp.classList.add("rmc-input--warn");
+          inp.setAttribute("aria-invalid", "true");
+        }
+        label.appendChild(span);
+        label.appendChild(inp);
+        grid.appendChild(label);
+      });
+      var miss = missingFieldsForRow(rowId);
+      if (miss.length) {
+        var first = grid.querySelector('input[name="' + miss[0] + '"]');
+        if (first) first.focus();
+      }
+    }
+    panel.dataset.rmcBuilt = "1";
+  }
+
   function rowEditedSource(rowId) {
     var panel = document.querySelector('[data-rmc-quarantine-edit-for="' + rowId + '"]');
     if (!panel) return null;
+    buildEditFields(panel, rowId);
     var out = {};
     panel.querySelectorAll("[data-rmc-quarantine-fields] input[name]").forEach(function (inp) {
       out[inp.name] = inp.value;
@@ -267,7 +426,7 @@
     var payload = Object.assign({ action: action, record_ids: ids }, extra || {});
     return postAction(payload).then(function () { window.location.reload(); }).catch(function (err) {
       var msg = (err && err.error) ? err.error : "{% trans 'Could not apply that action. Try again.' %}";
-      window.alert(msg);
+      showReviewToast(msg, "danger");
     });
   }
 
@@ -276,7 +435,10 @@
       var card = btn.closest("[data-rmc-quarantine-id]");
       var id = card && card.getAttribute("data-rmc-quarantine-id");
       var edit = document.querySelector('[data-rmc-quarantine-edit-for="' + id + '"]');
-      if (edit) edit.hidden = !edit.hidden;
+      if (edit) {
+        buildEditFields(edit, id);
+        edit.hidden = !edit.hidden;
+      }
     });
   });
 
@@ -285,13 +447,8 @@
       if (!aiExplainUrl || !window.fetch) return;
       var rowId = btn.getAttribute("data-row-id");
       var reason = btn.getAttribute("data-row-reason") || "";
-      var row = {};
-      var rowNode = document.getElementById("qrow-" + rowId);
-      if (rowNode) {
-        try { row = JSON.parse(rowNode.textContent || "{}"); } catch (_e) { row = {}; }
-      } else {
-        row = rowEditedSource(rowId) || {};
-      }
+      buildEditFields(document.querySelector('[data-rmc-quarantine-edit-for="' + rowId + '"]'), rowId);
+      var row = rowEditedSource(rowId) || {};
       var panel = document.querySelector('[data-rmc-q-explain-panel-for="' + rowId + '"]');
       var textEl = panel && panel.querySelector("[data-rmc-q-explain-text]");
       if (panel) {
@@ -337,10 +494,12 @@
         if (noteEl && noteEl.value) extra.note = noteEl.value;
       } else if (action === "dismiss") {
         var needsNote = card && (card.classList.contains("rmc-quarantine-row--warn") || card.classList.contains("rmc-quarantine-row--danger"));
-        if (needsNote) {
-          var prompted = window.prompt("{% trans 'Optional note — why are you dismissing this row?' %}");
-          if (prompted) extra.note = prompted;
+        if (needsNote && editPanel) {
+          var noteEl = editPanel.querySelector("[data-rmc-q-note]");
+          if (noteEl && noteEl.value) extra.note = noteEl.value;
           else extra.note = "{% trans 'Dismissed from review queue' %}";
+        } else {
+          extra.note = "{% trans 'Dismissed from review queue' %}";
         }
       } else if (action === "deny") {
         if (!window.confirm("{% trans 'Permanently deny this row? It will never be imported.' %}")) return;
@@ -354,12 +513,12 @@
       var action = btn.getAttribute("data-rmc-q-action");
       var ids = selectedIds();
       if (!ids.length) {
-        window.alert("{% trans 'Select at least one row.' %}");
+        showReviewToast("{% trans 'Select at least one row.' %}", "warn");
         return;
       }
       if (action === "accept_edit") {
         if (ids.length !== 1) {
-          window.alert("{% trans 'Accept with edits works one row at a time — open Edit on that row.' %}");
+          showReviewToast("{% trans 'Accept with edits works one row at a time — open Edit on that row.' %}", "warn");
           return;
         }
         runAction("accept_edit", ids, {
@@ -370,7 +529,7 @@
       }
       var extra = {};
       if (action === "dismiss") {
-        extra.note = window.prompt("{% trans 'Optional note for dismiss (required for actionable rows):' %}") || "{% trans 'Dismissed from review queue' %}";
+        extra.note = "{% trans 'Dismissed from review queue' %}";
       }
       if (action === "deny" && !window.confirm("{% trans 'Permanently deny selected rows?' %}")) {
         return;
@@ -385,26 +544,18 @@
       var bulkAction = btn.getAttribute("data-rmc-q-bulk");
       var confirmMsg = {
         dismiss_informational: "{% trans 'Dismiss every informational held row (deleted in source / duplicate)?' %}",
-        clear_queue: "{% trans 'Clear the entire held queue? Informational rows will be dismissed and everything else will be skipped (not imported). This cannot be undone.' %}",
+        clear_queue: "{% trans 'Autopilot will close safe rows first, then skip anything still pending. Continue?' %}",
         waive_all_pending: "{% trans 'Skip import for every pending held row? They will not be imported.' %}",
-        deny_all_pending: "{% trans 'Permanently deny every pending held row?' %}"
+        deny_all_pending: "{% trans 'Permanently deny every pending held row?' %}",
+        run_autopilot: "{% trans 'Run autopilot now? PDF lines and replayable rows close without manual review.' %}"
       }[bulkAction] || "{% trans 'Apply this bulk action to all pending rows?' %}";
       if (!window.confirm(confirmMsg)) return;
       var body = { action: bulkAction };
-      if (bulkAction === "clear_queue") body.auto_retry = true;
+      if (bulkAction === "clear_queue" || bulkAction === "run_autopilot") {
+        body.auto_retry = bulkAction === "clear_queue";
+      }
       postAction(body).then(function () { window.location.reload(); }).catch(function () {
-        window.alert("{% trans 'Could not apply bulk action. Try again.' %}");
-      });
-    });
-  });
-
-  document.querySelectorAll("[data-mc-clear-queue]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      if (!window.confirm("{% trans 'Clear the entire held queue? Safe rows dismiss automatically; the rest will be skipped.' %}")) return;
-      postAction({ action: "clear_queue", auto_retry: true }).then(function () {
-        window.location.reload();
-      }).catch(function () {
-        window.alert("{% trans 'Could not clear the queue. Try again.' %}");
+        showReviewToast("{% trans 'Could not apply bulk action. Try again.' %}", "danger");
       });
     });
   });
@@ -412,7 +563,7 @@
   document.querySelectorAll("[data-rmc-q-retry]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       postAction({ action: "retry_import" }).then(function () { window.location.reload(); }).catch(function () {
-        window.alert("{% trans 'Could not queue re-import. Try again.' %}");
+        showReviewToast("{% trans 'Could not queue re-import. Try again.' %}", "danger");
       });
     });
   });
@@ -424,6 +575,11 @@
         cb.checked = selectAll.checked;
       });
     });
+  }
+
+  var mappingDetails = document.getElementById("section-mapping");
+  if (mappingDetails && {{ review_focus_held|yesno:"true,false" }}) {
+    mappingDetails.removeAttribute("open");
   }
 })();
 </script>

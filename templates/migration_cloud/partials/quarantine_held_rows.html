@@ -14,6 +14,7 @@
   <details class="rmc-quarantine-toolbar__bulk">
     <summary class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Bulk actions & export" %}</summary>
     <div class="rmc-quarantine-toolbar__row rmc-quarantine-toolbar__row--secondary">
+      <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--primary" data-rmc-q-bulk="run_autopilot">{% trans "Run autopilot" %}</button>
       <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="dismiss_informational">{% trans "Dismiss all informational" %}</button>
       <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--warning" data-rmc-q-bulk="clear_queue">{% trans "Clear entire queue" %}</button>
       <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="waive_all_pending">{% trans "Skip all remaining" %}</button>
@@ -40,7 +41,8 @@
   {% for q in quarantine_rows %}
   <article class="rmc-quarantine-card rmc-quarantine-row rmc-quarantine-row--{{ q.tone|default:'warn' }}"
            role="listitem"
-           data-rmc-quarantine-id="{{ q.id }}">
+           data-rmc-quarantine-id="{{ q.id }}"
+           {% if q.field_flags %}data-rmc-missing-fields="{% for f in q.field_flags %}{% if f.state == 'missing' %}{{ f.field }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"{% endif %}>
     <div class="rmc-quarantine-card__head">
       <label class="rmc-quarantine-card__select">
         <input type="checkbox" data-rmc-quarantine-select value="{{ q.id }}"
@@ -97,16 +99,7 @@
     <div class="rmc-quarantine-edit-panel" data-rmc-quarantine-edit-for="{{ q.id }}" hidden>
       <details open>
         <summary>{% trans "Source values — edit then Accept" %}</summary>
-        <div class="rmc-quarantine-edit-grid" data-rmc-quarantine-fields>
-          {% for key, val in q.source_row.items %}
-            <label class="rmc-field">
-              <span class="rmc-field__label">{{ key }}</span>
-              <input class="rmc-input" type="text" name="{{ key }}" value="{{ val|default:'' }}">
-            </label>
-          {% empty %}
-            <p class="rmc-muted">{% trans "No source row captured — only the error message is available." %}</p>
-          {% endfor %}
-        </div>
+        <div class="rmc-quarantine-edit-grid" data-rmc-quarantine-fields></div>
         <div class="rmc-alert rmc-alert--info mt-2" data-rmc-q-explain-panel-for="{{ q.id }}" hidden role="status">
           <strong>{% trans "AI explanation" %}</strong>
           <p class="mb-0 rmc-muted" data-rmc-q-explain-text></p>

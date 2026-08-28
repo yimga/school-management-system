@@ -347,6 +347,18 @@
             <span class="rmc-form__label">{% trans "Expected invoice total" %}</span>
             <input type="text" name="expected_invoice_total_amount" value="{{ form.expected_invoice_total_amount|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="125000.00" data-mc-intake-field="guardrail">
           </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected payroll rows" %}</span>
+            <input type="text" name="expected_payroll_row_count" value="{{ form.expected_payroll_row_count|default:'' }}" class="rmc-input rmc-input--text" inputmode="numeric" placeholder="42" data-mc-intake-field="guardrail">
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected payroll gross total" %}</span>
+            <input type="text" name="expected_payroll_gross_total" value="{{ form.expected_payroll_gross_total|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="85000.00" data-mc-intake-field="guardrail">
+          </label>
+          <label class="rmc-form__field">
+            <span class="rmc-form__label">{% trans "Expected payroll net total" %}</span>
+            <input type="text" name="expected_payroll_net_total" value="{{ form.expected_payroll_net_total|default:'' }}" class="rmc-input rmc-input--text" inputmode="decimal" placeholder="62000.00" data-mc-intake-field="guardrail">
+          </label>
         </div>
         <p class="rmc-form__help">{% trans "These totals are stored on the bundle and checked before live apply. Leave fields blank when the source does not provide reliable totals." %}</p>
       </section>

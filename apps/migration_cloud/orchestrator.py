@@ -937,14 +937,20 @@ def _maybe_check_financial_guardrail(
         o.domain == "payroll" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
     )
     if not bundle.expected_totals:
-        # #4b: money landed with NO operator control totals = UNVERIFIED. Don't pass
-        # it off silently. Warn loudly by default (recorded on the bundle + logged);
-        # a deployment can hard-require totals on sensitive tenants via the settings
-        # flag, in which case an unverified finance import is refused (FAILED + rolled
-        # back through the orchestrator's FinancialMismatchError handler).
-        if finance_landed:
-            _handle_unverified_finance(bundle)
-        return
+        if finance_landed or students_landed or payroll_landed:
+            from .guardrails import auto_infer_expected_totals
+
+            auto_infer_expected_totals(bundle=bundle)
+            bundle.refresh_from_db()
+        if not bundle.expected_totals:
+            # #4b: money landed with NO operator control totals = UNVERIFIED. Don't pass
+            # it off silently. Warn loudly by default (recorded on the bundle + logged);
+            # a deployment can hard-require totals on sensitive tenants via the settings
+            # flag, in which case an unverified finance import is refused (FAILED + rolled
+            # back through the orchestrator's FinancialMismatchError handler).
+            if finance_landed:
+                _handle_unverified_finance(bundle)
+            return
     # Only enforce when something happened in a domain the guardrail observes.
     if not (finance_landed or students_landed or payroll_landed):
         return
@@ -2153,6 +2159,18 @@ def _quarantine_errors(
             "and cannot be reviewed or replayed",
             bundle.pk, domain_label, len(result.errors), QUARANTINE_RECORD_CAP, _dropped,
         )
+        summary = dict(getattr(bundle, "mapping_summary", None) or {})
+        caps = dict(summary.get("quarantine_caps") or {})
+        artifact_key = str(artifact.path_within_bundle or artifact.filename or domain_label)
+        caps[artifact_key] = {
+            "domain": domain_label,
+            "held": len(result.errors),
+            "recorded": min(len(result.errors), QUARANTINE_RECORD_CAP),
+            "dropped": _dropped,
+        }
+        summary["quarantine_caps"] = caps
+        bundle.mapping_summary = summary
+        bundle.save(update_fields=["mapping_summary", "updated_at"])
     for idx, err in enumerate(result.errors[:QUARANTINE_RECORD_CAP], start=1):
         payload = {"error": err, "artifact": artifact.path_within_bundle}
         entry = structured[idx - 1] if aligned else {}

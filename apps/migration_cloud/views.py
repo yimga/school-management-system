@@ -1608,7 +1608,36 @@ class MigrationCloudSaveProfileView(LoginRequiredMixin, View):
 
 # Quarantine review vocabulary (tenant-facing) — see ``quarantine_resolution``.
 QUARANTINE_TABLE_LIMIT = 200  # magic-number-allow: review-table-render-cap
-QUARANTINE_PAGE_SIZE = 50  # magic-number-allow: review-table-page-size
+QUARANTINE_PAGE_SIZE = 25  # magic-number-allow: review-table-page-size
+MAPPING_PAGE_SIZE = 25  # magic-number-allow: mapping-review-page-size
+
+
+def maybe_autopilot_held_review(request, bundle, *, user):
+    """Run zero-touch triage once when held review opens; redirect if rows closed."""
+    from django.shortcuts import redirect
+
+    if request.GET.get("autopilot_done") is not None:
+        return None
+    if request.GET.get("autopilot") == "skip":
+        return None
+    if pending_quarantine_count(bundle) == 0:
+        return None
+
+    from .auto_remediate import auto_remediate_on_review_open
+
+    results = auto_remediate_on_review_open(bundle, user=user)
+    resolved = int(results.get("auto_resolved_total") or 0)
+    if resolved <= 0:
+        return None
+
+    params = request.GET.copy()
+    params["autopilot_done"] = str(resolved)
+    pdf_closed = int(results.get("pdf_noise_dismissed") or 0) + int(
+        results.get("fragment_dismissed") or 0
+    )
+    if pdf_closed:
+        params["pdf_closed"] = str(pdf_closed)
+    return redirect(f"{request.path}?{params.urlencode()}")
 
 
 def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dict[str, Any]:
@@ -1639,6 +1668,15 @@ def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dic
                 tracked_custom_mappings.append(entry)
             elif conf < threshold:
                 low_conf_mappings.append(entry)
+
+    low_conf_total = len(low_conf_mappings)
+    custom_total = len(tracked_custom_mappings)
+    low_conf_page_obj = Paginator(low_conf_mappings, MAPPING_PAGE_SIZE).get_page(
+        request.GET.get("m_page") or 1
+    )
+    custom_page_obj = Paginator(tracked_custom_mappings, MAPPING_PAGE_SIZE).get_page(
+        request.GET.get("c_page") or 1
+    )
 
     quarantine_rows: list[dict[str, Any]] = []
     quarantine_total = 0
@@ -1724,12 +1762,63 @@ def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dic
             )
         except Exception:  # noqa: BLE001
             logger.debug("anomaly_nudge: connector url reverse failed", exc_info=True)
+
+    pdf_noise_candidates = 0
+    try:
+        from .quarantine_profile import profile_quarantine_distribution
+
+        pdf_noise_candidates = int(
+            profile_quarantine_distribution(bundle, pending_only=True).get(
+                "pdf_noise_candidates"
+            )
+            or 0
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("anomaly_nudge: pdf noise profile failed", exc_info=True)
+
+    autopilot_done = request.GET.get("autopilot_done")
+    autopilot_pdf_closed = request.GET.get("pdf_closed")
+
+    cutover_signoff_pending = False
+    try:
+        from .models_cutover import cutover_signoff_pending_for_bundle
+
+        cutover_signoff_pending = cutover_signoff_pending_for_bundle(bundle)
+    except Exception:  # noqa: BLE001
+        logger.debug("anomaly_nudge: cutover pending check failed", exc_info=True)
+
+    quarantine_caps = (getattr(bundle, "mapping_summary", None) or {}).get(
+        "quarantine_caps"
+    ) or {}
+    mapping_summary = getattr(bundle, "mapping_summary", None) or {}
+    expected_totals_auto_inferred = mapping_summary.get("expected_totals_auto_inferred") or {}
+    expected_totals_requires_confirmation = bool(
+        mapping_summary.get("expected_totals_requires_confirmation")
+    )
+    finance_landed_unverified = bool(mapping_summary.get("finance_landed_unverified"))
+    expected_totals_url = None
+    try:
+        ns = "migration_cloud_portal" if shell == "portal" else "migration_cloud_super"
+        from django.urls import reverse
+
+        expected_totals_url = reverse(
+            f"{ns}:bundle_expected_totals",
+            kwargs={"bundle_id": bundle.pk},
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("anomaly_nudge: expected_totals url failed", exc_info=True)
+
     return {
         "mc_base": _mc_base_for_shell(shell),
         "shell": shell,
         "bundle": bundle,
-        "low_conf_mappings": low_conf_mappings,
-        "tracked_custom_mappings": tracked_custom_mappings,
+        "low_conf_mappings": list(low_conf_page_obj.object_list),
+        "low_conf_total": low_conf_total,
+        "low_conf_page_obj": low_conf_page_obj,
+        "tracked_custom_mappings": list(custom_page_obj.object_list),
+        "tracked_custom_total": custom_total,
+        "custom_page_obj": custom_page_obj,
+        "mapping_page_size": MAPPING_PAGE_SIZE,
         "quarantine_rows": quarantine_rows,
         "quarantine_total": quarantine_total,
         "quarantine_pending": quarantine_pending,
@@ -1749,6 +1838,16 @@ def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dic
         "ai_explain_url": ai_explain_url,
         "progress_stream_url": progress_stream_url,
         "page_title": f"Review queue — {bundle.label or bundle.idempotency_key}",
+        "pdf_noise_candidates": pdf_noise_candidates,
+        "autopilot_done": autopilot_done,
+        "autopilot_pdf_closed": autopilot_pdf_closed,
+        "review_focus_held": quarantine_pending > 0,
+        "cutover_signoff_pending": cutover_signoff_pending,
+        "quarantine_caps": quarantine_caps,
+        "expected_totals_auto_inferred": expected_totals_auto_inferred,
+        "expected_totals_requires_confirmation": expected_totals_requires_confirmation,
+        "finance_landed_unverified": finance_landed_unverified,
+        "expected_totals_url": expected_totals_url,
     }
 
 
@@ -1768,6 +1867,9 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
         if gate is not None:
             return gate
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        redirect_response = maybe_autopilot_held_review(request, bundle, user=request.user)
+        if redirect_response is not None:
+            return redirect_response
         return render(
             request,
             self.template_name,
@@ -1841,6 +1943,8 @@ class MigrationCloudQuarantineResolveView(LoginRequiredMixin, View):
             "waive_all_pending",
             "deny_all_pending",
             "clear_queue",
+            "run_autopilot",
+            "reopen_auto",
         }
         if action in bulk_actions:
             outcome = apply_quarantine_action(

@@ -262,7 +262,9 @@ def _sum_auto_resolved(results: dict[str, Any]) -> int:
     )
 
 
-def persist_auto_remediation_summary(bundle, results: dict[str, Any]) -> None:
+def persist_auto_remediation_summary(
+    bundle, results: dict[str, Any], *, user=None
+) -> None:
     """Write the audit trail onto the bundle (never hides rows — records what closed)."""
     summary = dict(getattr(bundle, "mapping_summary", None) or {})
     results = {
@@ -273,6 +275,47 @@ def persist_auto_remediation_summary(bundle, results: dict[str, Any]) -> None:
     summary["auto_remediation"] = results
     bundle.mapping_summary = summary
     bundle.save(update_fields=["mapping_summary", "updated_at"])
+    _emit_auto_remediation_audit(bundle, results, user=user)
+
+
+def _emit_auto_remediation_audit(
+    bundle,
+    results: dict[str, Any],
+    *,
+    user=None,
+) -> None:
+    """Append a tamper-evident audit event for each autopilot pass."""
+    resolved = int(results.get("auto_resolved_total") or 0)
+    if resolved <= 0:
+        return
+    try:
+        from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
+
+        school = getattr(bundle, "school", None)
+        slug = str(getattr(school, "slug", "") or "")
+        MigrationCloudAuditEvent.objects.record(
+            slug,
+            "migration.quarantine.auto_resolved",
+            actor=user,
+            subject=bundle.pk,
+            payload_summary={
+                "bundle_id": bundle.pk,
+                "trigger": str(results.get("trigger") or "apply"),
+                "auto_resolved_total": resolved,
+                "informational_dismissed": int(results.get("informational_dismissed") or 0),
+                "pdf_noise_dismissed": int(results.get("pdf_noise_dismissed") or 0),
+                "fragment_dismissed": int(results.get("fragment_dismissed") or 0),
+                "invalid_ref_replayed": int(results.get("invalid_ref_replayed") or 0),
+                "missing_required_replayed": int(results.get("missing_required_replayed") or 0),
+                "pending_after": int(results.get("pending_after") or 0),
+            },
+        )
+    except Exception:  # noqa: BLE001 — audit failure must not block triage
+        logger.warning(
+            "auto_remediate: audit emit failed for bundle %s",
+            getattr(bundle, "pk", None),
+            exc_info=True,
+        )
 
 
 def _financial_guardrail_blocks_closure(bundle) -> bool:
@@ -408,6 +451,77 @@ def auto_remediate_before_repair(bundle, *, user=None) -> dict[str, Any]:
     return results
 
 
+def auto_remediate_on_review_open(bundle, *, user=None, skip_inference: bool = True) -> dict[str, Any]:
+    """Zero-touch triage when the held-review page opens — no full re-apply.
+
+    Closes PDF noise and replayable rows that were never triaged because apply
+    finished before autopilot existed or the operator opened review without repair.
+    """
+    pending_before = pending_quarantine_count(bundle)
+    results: dict[str, Any] = {
+        "pending_before": pending_before,
+        "inference_refreshed": False,
+        "informational_dismissed": 0,
+        "pdf_noise_dismissed": 0,
+        "fragment_dismissed": 0,
+        "invalid_ref_replayed": 0,
+        "missing_required_replayed": 0,
+        "trigger": "review_open",
+    }
+    if pending_before == 0:
+        results["pending_after"] = 0
+        results["auto_resolved_total"] = 0
+        return results
+
+    if not skip_inference:
+        try:
+            from .pipeline import refresh_bundle_inference
+
+            refresh_bundle_inference(bundle_id=bundle.pk, use_accelerator=True)
+            results["inference_refreshed"] = True
+        except Exception:  # noqa: BLE001
+            logger.warning(
+                "auto_remediate: review-open inference refresh failed for bundle %s",
+                bundle.pk,
+                exc_info=True,
+            )
+
+    dismiss = auto_dismiss_informational(bundle, user=user)
+    results["informational_dismissed"] = dismiss["dismissed"]
+    pdf_noise = auto_dismiss_pdf_noise_holds(bundle, user=user)
+    results["pdf_noise_dismissed"] = pdf_noise["dismissed"]
+    fragments = auto_dismiss_unstructured_fragments(bundle, user=user)
+    results["fragment_dismissed"] = fragments["dismissed"]
+
+    invalid = auto_replay_invalid_ref_holds(bundle, user=user)
+    enrich = auto_enrich_and_replay_missing_required(bundle, user=user)
+    results["invalid_ref_replayed"] = int(invalid.get("replayed") or 0)
+    results["missing_required_replayed"] = int(enrich.get("replayed") or 0)
+
+    pdf_final = auto_dismiss_pdf_noise_holds(bundle, user=user)
+    frag_final = auto_dismiss_unstructured_fragments(bundle, user=user)
+    results["pdf_noise_dismissed"] = int(results["pdf_noise_dismissed"]) + int(
+        pdf_final.get("dismissed") or 0
+    )
+    results["fragment_dismissed"] = int(results["fragment_dismissed"]) + int(
+        frag_final.get("dismissed") or 0
+    )
+
+    results["pending_after"] = pending_quarantine_count(bundle)
+    results["auto_resolved_total"] = _sum_auto_resolved(results)
+
+    persist_auto_remediation_summary(bundle, results, user=user)
+    sync_reconciliation_closure(bundle, results)
+
+    logger.info(
+        "migration_cloud.auto_remediate_on_review_open: bundle=%s resolved=%s pending=%s",
+        bundle.pk,
+        results["auto_resolved_total"],
+        results["pending_after"],
+    )
+    return results
+
+
 def auto_remediate_after_apply(bundle, *, user=None) -> dict[str, Any]:
     """Full zero-touch pass — spec step 3. Runs after every live apply."""
     results = auto_remediate_before_repair(bundle, user=user)
@@ -445,7 +559,7 @@ def auto_remediate_after_apply(bundle, *, user=None) -> dict[str, Any]:
     results["pending_after"] = pending_quarantine_count(bundle)
     results["auto_resolved_total"] = _sum_auto_resolved(results)
 
-    persist_auto_remediation_summary(bundle, results)
+    persist_auto_remediation_summary(bundle, results, user=user)
     sync_reconciliation_closure(bundle, results)
 
     logger.info(
