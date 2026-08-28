@@ -1616,7 +1616,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 # re-derived by every reader. `field_comparison` diffs the two stored blobs
                 # at render time with a str() comparison, which is enough to paint one
                 # screen and cannot answer 'how many of these are about student_code' -- a
-                # question that cost a full load-and-diff of 405 rows on the Gilead box.
+                # question that cost a full load-and-diff of 405 rows on a live box.
                 #
                 # The SAME comparator as the unchanged-check above, deliberately. Sharing
                 # it makes the list non-empty by construction: control only reaches here

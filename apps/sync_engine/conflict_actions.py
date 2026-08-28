@@ -188,7 +188,7 @@ def _client_updates_for(conflict):
     # client_data is the whole incoming change set, and a conflict is typically one
     # field of twenty. Writing all twenty was harmless at DETECTION time, when the
     # other nineteen were identical -- but resolution happens whenever an operator
-    # gets to the queue, which on the Gilead backlog was days. Any of those nineteen
+    # gets to the queue, which on a real backlog is days. Any of those nineteen
     # the server legitimately changed in between is silently reverted to a stale
     # value, and nobody looks, because those fields were never what the conflict was
     # about. Narrowing cannot lose an intended write: a field that was equal at
