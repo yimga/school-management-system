@@ -691,11 +691,19 @@ class StudentProfile(models.Model):
         """
         school = school or getattr(academic_year, "school", None)
         admissions = cls._get_admissions_policy(school)
-        from apps.siteconfig.identifier_policy_service import default_school_code_for
+        from apps.siteconfig.identifier_policy_service import (
+            default_school_code_for,
+            node_identifier_namespace,
+        )
 
         school_code = (
             admissions.get("school_code") or default_school_code_for(school)
         ).upper()
+        # WHICH NODE is issuing this. Two nodes both mint from their own row count, so
+        # without a mark that differs between them they eventually issue one number
+        # twice -- and `student_code` defaults to it, is on the rail, and is per-school
+        # unique, so the second copy to arrive is refused and that student never lands.
+        node_code = node_identifier_namespace(school, policy=admissions)
 
         year_str = (academic_year.name or "")[:4]
         yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"
@@ -716,15 +724,18 @@ class StudentProfile(models.Model):
                 seq_4digit=seq_str,
                 spec_code=spec_segment,
                 class_segment=class_segment,
+                node_code=node_code,
             )
 
         strategy = admissions.get("admission_number_strategy") or "FULL"
         if strategy == "YEAR_SEQ":
-            return f"{yy}{school_code}{seq_str}"
+            return f"{yy}{school_code}{node_code}{seq_str}"
         if strategy == "SEQ_ONLY":
-            return seq_str
+            # Even here. SEQ_ONLY is the shortest form a school can choose, and it is
+            # exactly the form two nodes are most certain to collide on.
+            return f"{node_code}{seq_str}"
 
-        return f"{yy}{school_code}{seq_str}{spec_segment}{class_segment}"
+        return f"{yy}{school_code}{node_code}{seq_str}{spec_segment}{class_segment}"
 
     def save(self, *args, **kwargs):
         # A plan's student cap refuses THIS enrolment, not the school's whole
@@ -762,8 +773,17 @@ class StudentProfile(models.Model):
                     year, specialty, classroom, school=school
                 )
         if not self.student_code:
-            self.student_code = (
-                self.admission_number or f"TEMP-{uuid.uuid4().hex[:8].upper()}"
+            # The fallback is random, so the two nodes CANNOT agree on it -- two copies
+            # of one student get two codes and neither is more right. Marking which node
+            # minted it does not fix that; it makes it legible, which is what an operator
+            # holding a pile of code conflicts actually needs in order to decide.
+            from apps.siteconfig.identifier_policy_service import (
+                node_identifier_namespace,
+            )
+
+            self.student_code = self.admission_number or "TEMP-%s-%s" % (
+                node_identifier_namespace(getattr(self, "school", None)),
+                uuid.uuid4().hex[:8].upper(),
             )
         if not self.referral_code:
             self.referral_code = f"REF-{uuid.uuid4().hex[:6].upper()}"

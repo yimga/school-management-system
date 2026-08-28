@@ -35,6 +35,56 @@ def default_school_code_for(school=None, fallback: str = "SCH") -> str:
     return "".join(parts)[:6] or fallback
 
 
+#: What a node calls itself inside an identifier when nobody has said. Deliberately one
+#: character and deliberately not a hostname: it is printed on a school document.
+_NODE_NAMESPACE_BY_PROFILE = {"online": "C", "edge": "B", "hybrid": "H"}
+_NODE_NAMESPACE_FALLBACK = "C"
+
+
+def node_identifier_namespace(school=None, policy=None) -> str:
+    """WHICH NODE is issuing this identifier, as a short mark that goes in the number.
+
+    An admission number is minted from a LOCAL row count, so two nodes enrolling at the
+    same time both believe they are issuing number N. ``student_code`` defaults to the
+    admission number and IS on the sync rail, per-school unique -- so the second copy to
+    arrive is refused with 422 and that student never lands, on that attempt or any later
+    one, because nothing about a retry changes the number.
+
+    A mark that differs per node makes the collision impossible rather than unlikely, and
+    it does so without either node asking the other anything -- which is the point,
+    because a box must be able to enrol a child with the internet down.
+
+    Resolution runs the configurability cascade, most specific first: the school's own
+    admissions policy (it is the school's document, and the school may name the mark),
+    then the deployment's explicit setting, then the deployment PROFILE, then a platform
+    constant. Sanitised to the character class an identifier can carry, so a stray value
+    cannot produce an admission number that fails the school's own pattern.
+    """
+    from django.conf import settings
+
+    if policy is None and school is not None:
+        try:
+            policy = get_admissions_policy(school)
+        except OPTIONAL_POLICY_ERRORS:
+            policy = None
+    for candidate in (
+        (policy or {}).get("node_code"),
+        getattr(settings, "RMC_NODE_IDENTIFIER_NAMESPACE", None),
+    ):
+        # NOT truncated. A cap here would silently merge two nodes an operator named
+        # ANNEXA and ANNEXB back into one mark -- reintroducing, quietly, the exact
+        # collision this exists to prevent. An over-long mark instead shows up in the
+        # first number issued, where somebody sees it.
+        cleaned = re.sub(r"[^A-Z0-9]", "", str(candidate or "").strip().upper())
+        if cleaned:
+            return cleaned
+
+    profile = str(
+        getattr(settings, "RMC_DEPLOYMENT_PROFILE", None) or "online"
+    ).strip().lower()
+    return _NODE_NAMESPACE_BY_PROFILE.get(profile, _NODE_NAMESPACE_FALLBACK)
+
+
 def get_admissions_policy(school) -> Dict[str, Any]:
     """
     Return merged admission number config for a school.
