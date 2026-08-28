@@ -291,6 +291,17 @@ GATES: list[tuple[str, list[str]]] = [
     # docstring says so at length. Wired because four enforced invariants beat
     # zero, and nothing invoked it before.
     ("finance-payment-atomicity", ["verify_finance_payment_atomicity.py"]),
+
+    # --- the meta-gate above the meta-gate (2026-08-28) ----------------------
+    # verify_ci_gate_wiring proves a gate is INVOKED. Nothing proved a gate,
+    # once invoked, DOES anything -- and three gates in this very list were
+    # measured green against their own planted defect. verify_gates_can_fail
+    # plants one and checks; the full run needs a worktree and takes minutes,
+    # so only its --list arm is wired here. That arm is instant and asserts the
+    # property worth enforcing on every push: every gate in GATES and
+    # DJANGO_GATES carries either a mutation or a written exemption. A new gate
+    # cannot arrive without its own proof.
+    ("gates-can-fail-coverage", ["verify_gates_can_fail.py", "--list"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not
