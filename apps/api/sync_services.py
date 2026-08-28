@@ -1059,6 +1059,72 @@ def _same_value(current, incoming) -> bool:
         return False
 
 
+def _concrete_field(model, name):
+    """The concrete field ``name`` refers to, matched by name OR attname.
+
+    The rail names foreign keys by their ATTNAME (``classroom_id``), which
+    ``_meta.get_field`` does not answer to, so the lookup walks the fields itself.
+    Many-to-many is excluded deliberately: a manager is not a value, and the caller's
+    whole contract is that it must not claim two of them are equal.
+    """
+    for f in model._meta.get_fields():
+        if not getattr(f, "concrete", False) or getattr(f, "many_to_many", False):
+            continue
+        if name in (getattr(f, "name", None), getattr(f, "attname", None)):
+            return f
+    return None
+
+
+def _same_field_value(model, name, current, incoming) -> bool:
+    """Would writing ``incoming`` over ``current`` change anything, KNOWING the column?
+
+    ``_same_value`` compares two values that arrived by different routes with no idea
+    what they are supposed to be, so it can only be certain about plain scalars. That
+    left two whole classes of rail column permanently unequal to themselves:
+
+      * a ``DateTimeField`` -- the bundle serialises with ``json.dumps(default=str)``,
+        which gives ``"2026-08-21 19:12:54+00:00"``, and the check compared it against
+        ``isoformat()``, which gives ``"2026-08-21T19:12:54+00:00"``. One character.
+      * a ``JSONField`` -- a dict is not a scalar, so it fell to the deliberate
+        fails-toward-CHANGED default.
+
+    Measured 2026-08-28: 8 of the 17 rail entities carry one. Every replay filed a
+    fresh conflict about every such row, about values that were identical, forever.
+
+    Knowing the field closes it with two pieces of code that already exist and are
+    already trusted: Django's ``to_python`` parses the wire form back into the column's
+    own type, and ``parity._canonical`` -- written for the G8 seal, where the same
+    two-deployments-must-agree problem was solved -- normalises datetimes to UTC and
+    recurses into dicts and lists.
+
+    THE DIRECTION OF DOUBT IS UNCHANGED. This may only ever turn a false "changed" into
+    "unchanged"; it must never call two different values the same. Every failure path --
+    an unknown column, a value ``to_python`` rejects, a canonicaliser that raises --
+    returns False and lets the write happen.
+    """
+    if _same_value(current, incoming):
+        return True  # the cheap path still settles the overwhelming majority
+    field = _concrete_field(model, name)
+    if field is None:
+        return False
+    # An FK is stored as an id; its own to_python is the identity, so ask the column it
+    # points AT -- that is what turns "42" into 42 rather than leaving a str beside an int.
+    target = getattr(field, "target_field", None) if field.is_relation else None
+    coercer = getattr(target or field, "to_python", None)
+    if coercer is None:
+        return False
+    try:
+        coerced = coercer(incoming)
+    except Exception:  # noqa: BLE001 - an optimisation must never be the failure
+        return False
+    try:
+        from apps.sync_engine.parity import _canonical
+
+        return _canonical(current) == _canonical(coerced)
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _parse_client_updated_at(raw):
     if not raw:
         return None
@@ -1470,11 +1536,17 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             # every row again. The replay fed the conflicts.
             #
             # Neither is a judgement call. If no value changes, nothing is written: there is
-            # no conflict to adjudicate and no constraint to violate. _same_value fails
-            # toward CHANGED for anything that is not a plain scalar, so this can only ever
-            # suppress a decision about values that are already identical.
+            # no conflict to adjudicate and no constraint to violate. The comparison fails
+            # toward CHANGED whenever it cannot be certain, so this can only ever suppress
+            # a decision about values that are already identical.
+            #
+            # BY COLUMN, not by guesswork. The scalar-only form of this check could not
+            # see a datetime or a JSON field as equal to itself -- 8 of 17 rail entities
+            # carry one -- so those rows kept manufacturing the very conflicts this block
+            # exists to prevent. See _same_field_value.
             if all(
-                _same_value(getattr(instance, _k, None), _v) for _k, _v in updates.items()
+                _same_field_value(type(instance), _k, getattr(instance, _k, None), _v)
+                for _k, _v in updates.items()
             ):
                 if sync_origin:
                     from apps.sync_engine.models import record_sync_apply
