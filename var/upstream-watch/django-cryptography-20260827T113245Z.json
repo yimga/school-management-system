@@ -1,0 +1,13 @@
+{
+  "candidate_count": 0,
+  "evaluations": [],
+  "known_compatible_base": "1.2.0",
+  "known_incompatible_max": "1.1.0",
+  "min_version": "1.2.0",
+  "pypi_url": "https://pypi.org/pypi/django-cryptography/json",
+  "summary_lines": [
+    "No releases >= 1.2.0 on PyPI yet (latest: 1.1)."
+  ],
+  "total_releases": 12,
+  "watched_at_utc": "2026-08-27T11:32:45.778173+00:00"
+}

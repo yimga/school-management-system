@@ -1,0 +1,962 @@
+
+<!doctype html>
+<html lang="en" dir="ltr" data-rmc-regional-ui="1"
+      
+      
+      data-theme="light"
+      data-theme-preference="light"
+      data-rmc-premium-shell="tenant"
+      data-rmc-page-purpose="tenant-workspace"
+      data-rmc-aesthetic="v2"
+      data-admin-theme="light"
+      data-simple-mode="false"
+      data-surface="tenant"
+      data-rmc-isomorphic-template="tenant-admin-hub"
+ data-rmc-route-family="app" data-rmc-layout-token="tenant-app" data-rmc-nav-family="portal" data-rmc-host-kind="tenant" data-rmc-main-region="main" data-rmc-personality-os="fluid" data-rmc-iso-viewport-lock="1" data-rmc-cp-header-mode="standard" data-rmc-vertical-workspace-policy="1" data-rmc-dashboard-tier="unknown"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="canonical" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/">
+    
+    
+    <link rel="manifest" href="/manifest.json">
+    
+    <meta name="theme-color" content="#024ebe">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    
+
+<meta name="rmc-neutral-palette" content="cool">
+
+
+
+
+<meta name="rmc-aesthetic-profile" content="warm-bright">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <meta name="theme-color" content="#024ebe">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#024ebe">
+  <meta name="msapplication-TileColor" content="#024ebe">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+
+
+
+
+
+
+
+
+
+
+    
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gate Audit School">
+
+
+  <meta property="og:image" content="http://ci-admin-form-audit.runmycampus.com/static/images/runmycampus-og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="RunMyCampus - education operating system for modern schools">
+
+<meta property="og:url" content="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/">
+<meta property="og:site_name" content="Gate Audit School">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gate Audit School">
+
+
+  <meta name="twitter:image" content="http://ci-admin-form-audit.runmycampus.com/static/images/runmycampus-og-card.png">
+
+
+
+
+
+
+  
+  
+  
+  <link rel="alternate" hreflang="(&#x27;en&#x27;, &#x27;English&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;en&#x27;, &#x27;English&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;es&#x27;, &#x27;Español (Spanish)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;es&#x27;, &#x27;Español (Spanish)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;fr&#x27;, &#x27;Français (French)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;fr&#x27;, &#x27;Français (French)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;pt-br&#x27;, &#x27;Português Brasil&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;pt-br&#x27;, &#x27;Português Brasil&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;de&#x27;, &#x27;Deutsch (German)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;de&#x27;, &#x27;Deutsch (German)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;it&#x27;, &#x27;Italiano (Italian)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;it&#x27;, &#x27;Italiano (Italian)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;ru&#x27;, &#x27;Русский (Russian)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;ru&#x27;, &#x27;Русский (Russian)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;tr&#x27;, &#x27;Türkçe (Turkish)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;tr&#x27;, &#x27;Türkçe (Turkish)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;ja&#x27;, &#x27;日本語 (Japanese)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;ja&#x27;, &#x27;日本語 (Japanese)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;zh-hans&#x27;, &#x27;简体中文 (Chinese Simplified)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;zh-hans&#x27;, &#x27;简体中文 (Chinese Simplified)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;zh-hant&#x27;, &#x27;繁體中文 (Chinese Traditional)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;zh-hant&#x27;, &#x27;繁體中文 (Chinese Traditional)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;hi&#x27;, &#x27;हिन्दी (Hindi)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;hi&#x27;, &#x27;हिन्दी (Hindi)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;ar&#x27;, &#x27;العربية (Arabic)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;ar&#x27;, &#x27;العربية (Arabic)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;pid&#x27;, &#x27;Pidgin English&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;pid&#x27;, &#x27;Pidgin English&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;sw&#x27;, &#x27;Kiswahili&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;sw&#x27;, &#x27;Kiswahili&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;ha&#x27;, &#x27;Hausa&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;ha&#x27;, &#x27;Hausa&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;yo&#x27;, &#x27;Yoruba&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;yo&#x27;, &#x27;Yoruba&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;he&#x27;, &#x27;עברית (Hebrew)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;he&#x27;, &#x27;עברית (Hebrew)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;fa&#x27;, &#x27;فارسی (Persian)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;fa&#x27;, &#x27;فارسی (Persian)&#x27;)">
+  
+  <link rel="alternate" hreflang="(&#x27;ur&#x27;, &#x27;اردو (Urdu)&#x27;)" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/?lang=(&#x27;ur&#x27;, &#x27;اردو (Urdu)&#x27;)">
+  
+  <link rel="alternate" hreflang="x-default" href="http://ci-admin-form-audit.runmycampus.com/authentication/magic-link/">
+
+
+    
+    <script src="/static/js/theme-preference-bootstrap.js"></script>
+    
+
+<link rel="stylesheet" href="/static/css/rmc-viewport-engine.css">
+<script src="/static/js/rmc-viewport-engine.js"></script>
+
+<script src="/static/js/rmc-layout-observer.js" defer></script>
+
+
+
+
+
+
+    <script src="/static/js/rmc-lexicon.js" defer></script>
+    <script src="/static/js/rmc-friction.js" defer></script>
+    <script src="/static/js/rmc-shell-polish.js" defer></script>
+    
+    <script src="/static/js/rmc-reveal.js"></script>
+    
+    <script src="/static/js/rmc-csp-handlers.js" defer></script>
+    
+    <script defer src="/static/js/rmc-localization-bootstrap.js"></script>
+    
+    
+    <script src="/static/js/rmc-command-bar.js"></script>
+    <script src="/static/js/rmc-metric-ticker.js" defer></script>
+    <script src="/static/js/rmc-page-progress.js" defer></script>
+    <script src="/static/js/rmc-bottom-sheet.js" defer></script>
+    
+<script type="application/json" id="rmc-shortcuts-i18n">{
+  "label.show_all": "Show all keyboard shortcuts",
+  "label.close_dialog": "Close dialog, sheet, or palette",
+  "label.report_problem": "Report a problem (when feedback control is present)",
+  "label.open_cmdk": "Open command palette",
+  "label.focus_search": "Focus search field",
+  "label.search_next": "Next result in palette or list",
+  "label.search_prev": "Previous result in palette or list",
+  "label.nav_home": "Go to home / dashboard",
+  "label.nav_notifications": "Go to notifications",
+  "label.nav_profile": "Go to profile / settings",
+  "label.cp_dashboard": "Go to operator dashboard",
+  "label.cp_command_center": "Go to command center",
+  "label.cp_studio": "Go to Studio OS",
+  "label.cp_orchestration": "Go to orchestration",
+  "label.cp_config": "Go to config center",
+  "label.cp_billing": "Go to billing",
+  "label.cp_support": "Go to support",
+  "label.cp_migration": "Go to migration",
+  "label.cp_usage": "Go to usage",
+  "label.cp_health": "Go to school health",
+  "label.cp_pulse": "Go to pulse",
+  "label.ai_copilot": "Open AI copilot assistant",
+  "label.toggle_theme": "Toggle light / dark theme",
+  "label.mkt_theme": "Toggle marketing light / dark",
+  "label.open_panel": "Open this shortcuts panel",
+  "label.dismiss_help": "Dismiss help or modal",
+  "label.inbox_unread": "Show unread notifications",
+  "label.inbox_all": "Show all notifications",
+  "label.inbox_mark_read": "Mark all notifications as read",
+  "label.inbox_open_first": "Open first notification link",
+  "label.gb_save": "Save marks (when form is visible)",
+  "label.gb_next_row": "Focus next gradebook row",
+  "label.gb_prev_row": "Focus previous gradebook row",
+  "label.adm_focus_search": "Focus applicant search",
+  "label.adm_add_applicant": "Add applicant",
+  "label.adm_next_page": "Next applicant page",
+  "label.adm_prev_page": "Previous applicant page",
+  "label.studio_focus_search": "Focus Studio search",
+  "label.studio_commands": "Open Studio command palette",
+  "label.fin_focus_search": "Focus invoice search",
+  "label.fin_open_first": "Open first invoice",
+  "label.fin_apply_filter": "Apply invoice filters",
+  "label.unavailable": "Unavailable here",
+  "group.global": "Global",
+  "group.search": "Search",
+  "group.navigation": "Navigation",
+  "group.control_plane": "Control plane",
+  "group.assistant": "Assistant",
+  "group.view": "View",
+  "group.inbox": "Inbox",
+  "group.gradebook": "Gradebook",
+  "group.admissions": "Admissions",
+  "group.studio": "Studio OS",
+  "group.finance": "Finance",
+  "group.help": "Help",
+  "title.all_shortcuts": "All keyboard shortcuts",
+  "filter.placeholder": "Filter shortcuts",
+  "toggle.single_char": "Single\u002Dcharacter shortcuts",
+  "toggle.pin": "Pin shortcut help to corner"
+}</script>
+
+    <script src="/static/js/rmc-shortcuts-registry.js" defer></script>
+    <script src="/static/js/rmc-kbd-cheatsheet.js" defer></script>
+    <script src="/static/js/rmc-shortcuts-runtime.js" defer></script>
+    <script src="/static/js/rmc-form-validation.js" defer></script>
+    
+    <script src="/static/js/rmc-bulk-actions.js" defer></script>
+    <script src="/static/js/_pages/base.js"></script>
+    <script src="/static/js/shell-data-dashboard-page.js"></script>
+    
+
+    <title>
+      Email me a sign-in link · Gate Audit School
+    </title>
+    <link rel="icon" href="/static/favicon.ico" type="image/png">
+    
+    
+    
+
+    <!-- Bootstrap (self-hosted) -->
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens-personality.css">
+    <link rel="stylesheet" href="/static/css/rmc-class-grammar.css">
+    <link rel="stylesheet" href="/static/css/rmc-class-grammar-ext.css">
+    <style id="root-base-theme-vars">
+      
+      :root {
+        --school-primary: #024ebe;
+        --school-accent: #12633e;
+        --school-success: #22c55e;
+        --school-warning: #f59e0b;
+        --school-danger: #ef4444;
+      }
+      
+      
+      
+      :root {
+        --school-primary: #024ebe;
+        --school-accent: #12633e;
+        --school-success: #22c55e;
+        --school-warning: #f59e0b;
+        --school-danger: #ef4444;
+        --school-bg: transparent;
+        --school-font: Inter, system-ui, sans-serif;
+        --base-font-size: 16px;
+      }
+      
+      
+      
+      :root { --primary: #0d6efd; --text-on-brand: #f1f5f9; --accent: #198754; }
+      
+      
+    </style>
+    
+    
+    
+    <link rel="stylesheet" href="/static/css/rmc-bulk-actions.css" media="print" data-rmc-async-style>
+    <link rel="stylesheet" href="/static/css/rmc-warm-bright-school.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-cool-apple-polish.css">
+    <link rel="stylesheet" href="/static/css/design-tokens-luxury.css">
+    <link rel="stylesheet" href="/static/css/patterns.css">
+    <link rel="stylesheet" href="/static/css/bootstrap-theme-bridge.css">
+    <link rel="stylesheet" href="/static/css/accessibility.css">
+    <link rel="stylesheet" href="/static/css/statement-header.css">
+    <link rel="stylesheet" href="/static/css/header-no-spillage.css">
+    <link rel="stylesheet" href="/static/css/design-system-unified.css">
+    <link rel="stylesheet" href="/static/css/utilities-extras.css">
+    <link rel="stylesheet" href="/static/css/root-base-shell.css">
+    <link rel="stylesheet" href="/static/css/toggle-colors.css">
+    <link rel="stylesheet" href="/static/css/header-footer-visibility.css">
+    <link rel="stylesheet" href="/static/css/mobile-tables-forms.css">
+    <link rel="stylesheet" href="/static/css/dashboard-responsive.css">
+    
+    
+    <link rel="stylesheet" href="/static/css/dashboard-text-visibility.css">
+    <link rel="stylesheet" href="/static/css/theme-visibility-guard.css">
+    <link rel="stylesheet" href="/static/css/rmc-footer-surfaces.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-civic-footer.css">
+    <link rel="stylesheet" href="/static/css/rmc-cp-operator-footer.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-footer-temporal-dock.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-vertical-density-platform.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-pagination-grammar.css" media="print" data-rmc-async-style>
+    <link rel="stylesheet" href="/static/css/rmc-print-v2.css" media="print,screen">
+    
+    <link rel="stylesheet" href="/static/css/rmc-collapsable.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-data-viz.css">
+    <link rel="stylesheet" href="/static/css/platform-high-end.css">
+    
+    
+<link rel="stylesheet" href="/static/css/rmc-corporate-os.css">
+
+    <link rel="stylesheet" href="/static/css/rmc-os-shell.css">
+    
+    
+    <link rel="stylesheet" href="/static/css/surface-themes.css">
+    <link rel="stylesheet" href="/static/css/table-system.css">
+    <link rel="stylesheet" href="/static/css/rmc-long-page-grammar.css">
+    <link rel="stylesheet" href="/static/css/form-system.css">
+    <link rel="stylesheet" href="/static/css/card-grammar.css">
+    <link rel="stylesheet" href="/static/css/design-system-phase2-enforcement.css">
+    <link rel="stylesheet" href="/static/css/chart-rules.css">
+    <link rel="stylesheet" href="/static/css/platform-responsive-touch.css">
+    <link rel="stylesheet" href="/static/css/rmc-premium-os.css">
+    <link rel="stylesheet" href="/static/css/rmc-premium-polish.css">
+    <link rel="stylesheet" href="/static/css/rmc-world-class-experience.css">
+    <link rel="stylesheet" href="/static/css/rmc-portal-row-detail-drawer.css">
+    <link rel="stylesheet" href="/static/css/rmc-tour.css">
+    <link rel="stylesheet" href="/static/css/rmc-ai-mode-switch.css">
+    <script src="/static/js/htmx.min.js" defer></script>
+    <link rel="stylesheet" href="/static/css/portal-ui-components.css">
+    <link rel="stylesheet" href="/static/css/rmc-user-account-center.css?v=20260813-account-center-v2">
+    <link rel="stylesheet" href="/static/css/rmc-action-contract.css">
+    <link rel="stylesheet" href="/static/css/rmc-ai-guided-assistant-card.css">
+    <link rel="stylesheet" href="/static/css/rmc-experience-template-runtime.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-global-aesthetic.css">
+    <link rel="stylesheet" href="/static/css/rmc-horizontal-nav-rail.css">
+    <link rel="stylesheet" href="/static/css/phase2-base-bundle.css">
+    <link rel="stylesheet" href="/static/css/dashboard-theme-sync.css">
+    <link rel="stylesheet" href="/static/css/rmc-bell-clock-product.css">
+    
+
+<link rel="stylesheet" href="/static/css/dashboard-topology-shell.css">
+<link rel="stylesheet" href="/static/css/rmc-platform-chrome-layout.css">
+<link rel="stylesheet" href="/static/css/rmc-page-fold-standards.css">
+<link rel="stylesheet" href="/static/css/rmc-collapsable.css">
+<link rel="stylesheet" href="/static/css/rmc-zero-click-protocol.css">
+<link rel="stylesheet" href="/static/css/rmc-back-to-top.css">
+<link rel="stylesheet" href="/static/css/rmc-section-nav-toc.css">
+<link rel="stylesheet" href="/static/css/rmc-shell-scroll-contract.css">
+<link rel="stylesheet" href="/static/css/rmc-dropdown-viewport-safe.css">
+
+<link rel="stylesheet" href="/static/css/rmc-page-personality.css">
+
+<link rel="stylesheet" href="/static/css/rmc-os-grade-density.css">
+
+<link rel="preload" as="style" href="/static/css/rmc-platform-chrome-premium.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-admin-modal-overlay-guard.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-layout-frame-guard.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-operational-center-frame.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-surface-spacing-contract.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-isomorphic-grid.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-isomorphic-grid-sweep.css" data-rmc-deferred-style>
+<link rel="preload" as="style" href="/static/css/rmc-layout-token-matrix.css" data-rmc-deferred-style>
+
+
+<link rel="stylesheet" href="/static/css/rmc-cp-stacked-header.css">
+<link rel="stylesheet" href="/static/css/rmc-platform-beautify-v4.css">
+
+
+    
+    <link rel="stylesheet" href="/static/css/dark-mode-safety-net.css">
+    <link rel="stylesheet" href="/static/css/theme-platform-contrast.css">
+    <link rel="stylesheet" href="/static/css/theme-platform-readability.css">
+    
+    <link rel="stylesheet" href="/static/css/rmc-signature-motion.css">
+    <link rel="stylesheet" href="/static/css/rmc-command-bar.css" media="print" data-rmc-async-style>
+    
+    
+    
+
+<link rel="stylesheet" href="/static/css/rmc-mfa-checkpoint.css">
+
+    <link rel="stylesheet" href="/static/css/rmc-platform-vertical-compact.css">
+    
+    
+
+<link rel="stylesheet" href="/static/css/rmc-theme-experience-dual-plane.css">
+
+
+    
+    <link rel="stylesheet" href="/static/css/rmc-theme-surface-safety-v1.css?v=20260811-experience-runtime-v172">
+    
+    
+  </head>
+
+  
+  <body class="form-system layout-fluid base-document-shell host-kind-tenant " data-rmc-cp-scroll="document" data-rmc-premium-shell="tenant" data-rmc-page-purpose="tenant-workspace" data-rmc-page-personality="auth" data-ai-copilot-url="/api/ai-copilot/validate/" data-rmc-country="US" data-rmc-language="en" data-rmc-week-start="1" data-rmc-date-format="%m/%d/%Y" data-rmc-currency="USD" data-rmc-is-rtl="0">
+    
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div id="rmc-launch-splash" class="rmc-launch-splash" hidden aria-hidden="true">
+  <div class="rmc-launch-splash__inner">
+    
+
+<svg class="mkt-bell-clock-mark rmc-launch-splash__mark"
+     width="72"
+     height="72"
+     viewBox="0 0 32 32"
+     role="img"
+     aria-label="School day bell clock">
+  <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+  
+  <circle cx="16" cy="5" r="2" fill="currentColor" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="24.5" cy="9" r="2" fill="currentColor" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="27" cy="16" r="2" fill="currentColor" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="24.5" cy="23" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="16" cy="27" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="7.5" cy="23" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  
+</svg>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+    
+    
+    <p class="rmc-launch-splash__wordmark">Gate Audit School</p>
+    <p class="rmc-launch-splash__tagline">Your school workspace</p>
+    
+  </div>
+</div>
+
+    <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
+    
+    <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="htmx-progress-bar" aria-hidden="true">
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-bell-clock-spinner" role="status" aria-live="polite" aria-label="Loading">
+  
+
+<svg class="mkt-bell-clock-mark rmc-bell-clock-spinner__mark"
+     width="40"
+     height="40"
+     viewBox="0 0 32 32"
+     role="img"
+     aria-label="School day bell clock">
+  <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
+  
+  <circle cx="16" cy="5" r="2" fill="currentColor" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="24.5" cy="9" r="2" fill="currentColor" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="27" cy="16" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="24.5" cy="23" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="16" cy="27" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  <circle cx="7.5" cy="23" r="2" fill="transparent" stroke="currentColor" stroke-width="0.75"/>
+  
+</svg>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+</div>
+</div>
+    <!--
+      .app-container wraps all content for background logo/video/svg effect.
+      If you need to support users with reduced motion or contrast, consider a toggle in user preferences.
+    -->
+    <div class="app-container">
+    
+    <nav class="navbar navbar-expand-lg navbar-dark statement-header topbar-sticky" aria-label="Site navigation">
+      <div class="container d-flex align-items-center base-topbar">
+        
+        
+          
+          
+
+
+
+
+
+
+
+
+
+<a href="/" class="rmc-brand-mark-link" aria-label="Gate Audit School">
+<span class="rmc-brand-mark rmc-brand-mark--lockup" style="--rmc-bm-size: 34px;" data-rmc-brand-mark="1">
+  <span class="rmc-brand-mark__squircle" aria-hidden="true">
+    
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" class="rmc-brand-mark__glyph">
+        
+        <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+              font-family="'Inter','SF Pro Display',system-ui,-apple-system,sans-serif"
+              font-weight="800" font-size="20" letter-spacing="-0.04em" fill="currentColor">G</text>
+      </svg>
+    
+  </span>
+  
+    <span class="rmc-brand-mark__wordmark">
+      
+      <span class="rmc-brand-mark__title">Gate Audit School</span>
+      
+      
+    </span>
+  
+</span>
+</a>
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+        
+        
+
+        <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
+          
+          
+            
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="baseAppearanceMenu" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Appearance">
+                <i class="bi bi-palette" aria-hidden="true"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end px-3 py-2" aria-labelledby="baseAppearanceMenu">
+                <li>
+
+
+</li>
+              </ul>
+            </div>
+            <a class="btn btn-sm btn-outline-light" href="/authentication/login/">Login</a>
+          
+        </div>
+      </div>
+    </nav>
+    
+
+    
+
+    <main id="main-content" class="container py-4 rmc-shell-main" role="main" data-rmc-shell-main="base">
+      
+
+
+  
+
+
+
+
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+      
+      
+
+
+
+      
+      
+
+
+
+      
+  <nav aria-label="breadcrumb" class="mb-0">
+    <ol class="breadcrumb bg-transparent px-0 mb-0">
+      
+        <li class="breadcrumb-item ">
+          
+            <a class="text-decoration-none" href="/">Home</a>
+          
+        </li>
+      
+        <li class="breadcrumb-item ">
+          
+            <a class="text-decoration-none" href="/authentication">Authentication</a>
+          
+        </li>
+      
+        <li class="breadcrumb-item active text-dark" aria-current="page">
+          
+            Magic Link
+          
+        </li>
+      
+    </ol>
+  </nav>
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+      
+
+      <div class="page-wrap rmc-shell-content-grid portal-page-body" data-rmc-shell-content-grid="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
+        
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+
+
+<div class="rmc-security-checkpoint-page" data-rmc-security-checkpoint-page="1">
+
+
+<nav class="rmc-security-checkpoint__trail" aria-label="Sign-in progress">
+  
+    <span class="rmc-security-checkpoint__trail-step">Password</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step is-active">Verify</span>
+    <i class="rmc-security-checkpoint__trail-sep" aria-hidden="true">›</i>
+    <span class="rmc-security-checkpoint__trail-step">Dashboard</span>
+  
+</nav>
+
+
+<section class="auth-shell" aria-labelledby="ml-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    <div class="rmc-security-checkpoint__head" style="border-bottom:0;padding-bottom:0">
+      <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-envelope-check"></i></span>
+      <div>
+        <div class="rmc-security-checkpoint__eyebrow">Passwordless sign-in</div>
+        <h1 id="ml-title">Email me a sign-in link</h1>
+      </div>
+    </div>
+    <div class="rmc-security-checkpoint__body" style="padding-top:0">
+      <p class="rmc-security-checkpoint__sub">Enter your email and we'll send a one-time link that signs you in — no password needed. It expires in a few minutes.</p>
+      <form method="post" action="" class="vstack gap-3">
+        <input type="hidden" name="csrfmiddlewaretoken" value="aL5u34bXcbmPlBP9IRA7INhMQ3VAWbzwzwECJHFvDl8mY2m9tzwRq4eD7ZwNd5Il">
+        <div>
+          <label class="form-label" for="id_ml_email">Email</label>
+          <input type="email" class="form-control" id="id_ml_email" name="email" required autocomplete="email" autofocus>
+        </div>
+        <div class="rmc-security-checkpoint__actions">
+          <button type="submit" class="btn btn-primary w-100"><i class="bi bi-send me-1"></i>Send sign-in link</button>
+          <a class="btn btn-outline-secondary w-100" href="/authentication/login/">Sign in with a password</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+</div>
+
+
+      </div>
+    </main>
+
+    
+    
+      <footer class="container text-center text-muted small pt-3 pb-5 rmc-shell-footer" data-rmc-shell-footer="base">
+        <div class="fw-semibold">
+          Gate Audit School
+        </div>
+        
+        <div>
+          
+          
+          
+        </div>
+        
+        
+        <p class="mt-3 mb-1">
+          <a class="text-decoration-none" href="/privacy/">Privacy Policy</a>
+          <span class="mx-2">|</span>
+          <a class="text-decoration-none" href="/terms/">Terms of Service</a>
+          <span class="mx-2">|</span>
+          <a class="text-decoration-none" href="/cookie-policy/">Cookie Policy</a>
+        </p>
+        <p class="mb-0 text-muted">
+          © 2026 Gate Audit School. All rights reserved.
+        </p>
+      </footer>
+    
+    
+
+    
+
+    
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script type="application/json" id="page-data-components__toast_notifications-1">{
+  "trans_undo": "Undo",
+  "trans_undo_2": "Undo",
+  "trans_close": "Close"
+}</script><script src="/static/js/_pages/components__toast_notifications-1.js"></script>
+
+    
+    
+    
+    <script src="/static/js/_pages/rmc-collapsable.js" defer></script>
+    
+    <script src="/static/js/_pages/rmc-data-viz.js" defer></script>
+    <script src="/static/js/rmc-interaction-guard.js" defer></script>
+    <script src="/static/js/rmc-data-table.js" defer></script>
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-tables-config">{
+  "intelligence": true,
+  "filter": true,
+  "sort": true,
+  "columns": true,
+  "export": true,
+  "density": "comfortable"
+}</script>
+<script src="/static/js/rmc-table-intelligence.js" defer></script>
+
+    
+
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-dashboard-config">{
+  "intelligence": true,
+  "reorder": true,
+  "adaptive": true,
+  "density": "comfortable",
+  "prefs_url": "/siteconfig/dashboard/prefs/"
+}</script>
+<script src="/static/js/rmc-dashboard-intelligence.js" defer></script>
+
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-forms-config">{
+  "intelligence": true,
+  "unsaved": true,
+  "pending": true,
+  "validation": true,
+  "section_nav": true
+}</script>
+<script src="/static/js/rmc-form-intelligence.js" defer></script>
+
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-empty-config">{
+  "intelligence": true,
+  "table_filter": true,
+  "table_data": true,
+  "adopt": true
+}</script>
+<script src="/static/js/rmc-empty-intelligence.js" defer></script>
+
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-loading-config">{
+  "intelligence": true,
+  "actions": true,
+  "skeletons": true
+}</script>
+<script src="/static/js/rmc-loading-intelligence.js" defer></script>
+
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-notification-config">{
+  "intelligence": true,
+  "bellPreview": true,
+  "inlineActions": true,
+  "toastSync": true,
+  "listUrl": "/api/notifications/",
+  "markAllUrl": "/api/notifications/mark-all-read/",
+  "readUrlTemplate": "/api/notifications/987654321/read/"
+}</script>
+<script src="/static/js/rmc-notification-intelligence.js" defer></script>
+
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-modal-config">{
+  "intelligence": true,
+  "confirm": true,
+  "dangerGuard": true
+}</script>
+<script src="/static/js/rmc-modal-intelligence.js" defer></script>
+
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<script nonce="LP_nOlqDFS8GARW0eVvqaQ" type="application/json" id="rmc-detail-config">{
+  "intelligence": true,
+  "copy": true,
+  "actionable": true,
+  "emptyFields": true,
+  "sectionNav": true
+}</script>
+<script src="/static/js/rmc-detail-intelligence.js" defer></script>
+
+    
+
+
+
+  
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="offcanvas offcanvas-end rmc-portal-row-detail-drawer" tabindex="-1" id="rmcPortalRowDetailDrawer" role="dialog" aria-modal="true" aria-labelledby="rmcPortalRowDetailDrawerLabel" data-bs-backdrop="true" data-bs-keyboard="true" data-rmc-portal-row-drawer="1" data-rmc-detail-drawer="1" data-rmc-scroll-policy="viewport-lock">
+  <header class="rmc-row-detail-drawer__hero offcanvas-header">
+    <div class="rmc-row-detail-drawer__avatar" id="rmcPortalRowDetailAvatar" aria-hidden="true" data-rmc-portal-row-detail-avatar></div>
+    <div class="rmc-row-detail-drawer__hero-copy min-w-0">
+      <p class="rmc-row-detail-drawer__eyebrow small text-uppercase mb-1" id="rmcPortalRowDetailEyebrow" hidden></p>
+      <h2 class="offcanvas-title rmc-row-detail-drawer__title h5 mb-0" id="rmcPortalRowDetailDrawerLabel">Row detail</h2>
+      <p class="rmc-row-detail-drawer__subtitle small mb-0" id="rmcPortalRowDetailSubtitle"></p>
+    </div>
+    <button type="button" class="btn-close rmc-row-detail-drawer__close" data-rmc-portal-row-detail-dismiss aria-label="Close detail panel"></button>
+  </header>
+  <div class="offcanvas-body rmc-row-detail-drawer__body d-flex flex-column gap-3">
+    <div class="rmc-row-detail-drawer__status d-flex flex-wrap gap-2" id="rmcPortalRowDetailStatus" data-rmc-portal-row-detail-status hidden></div>
+    <div class="rmc-row-detail-drawer__meta" id="rmcPortalRowDetailBody" data-rmc-portal-row-detail-meta></div>
+    <section class="rmc-row-detail-drawer__insights" id="rmcPortalRowDetailInsights" data-rmc-portal-row-detail-insights hidden>
+      <p class="rmc-row-detail-drawer__section-label small text-uppercase mb-2">Platform scopes</p>
+      <ul class="rmc-row-detail-drawer__scope-list list-unstyled mb-0" data-rmc-portal-row-detail-scopes></ul>
+    </section>
+    <section class="rmc-row-detail-drawer__provision" id="rmcPortalRowDetailProvision" data-rmc-portal-row-detail-provision hidden>
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+        <span class="rmc-row-detail-drawer__section-label small text-uppercase">Provisioning</span>
+        <span class="small fw-semibold" data-rmc-portal-row-detail-provision-pct aria-live="polite"></span>
+      </div>
+      <ol class="rmc-row-detail-drawer__provision-train list-unstyled mb-2" data-rmc-portal-row-detail-provision-steps aria-label="Provisioning steps"></ol>
+      <p class="small text-danger mb-2" data-rmc-portal-row-detail-provision-error hidden></p>
+      <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-portal-row-detail-requeue hidden>Requeue provision</button>
+    </section>
+    <footer class="rmc-row-detail-drawer__actions mt-auto" id="rmcPortalRowDetailActions" data-rmc-portal-row-detail-actions hidden></footer>
+    <p class="rmc-row-detail-drawer__kbd-hint small text-muted mb-0 mt-auto" id="rmcPortalRowDetailKbdHint">
+      <kbd class="rmc-kbd">Esc</kbd> close · <span aria-hidden="true">✕</span> dismiss panel
+    </p>
+  </div>
+</div>
+
+  <script src="/static/js/rmc-portal-row-detail-drawer.js" nonce="LP_nOlqDFS8GARW0eVvqaQ"></script>
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+
+    
+    <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    
+    
+<script src="/static/js/rmc-dropdown-viewport-safe.js" defer></script>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+    <script src="/static/js/rmc-launch-splash.js" defer></script>
+    <script src="/static/js/statement-header-scroll.js" defer></script>
+    
+    
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+    
+
+
+<script type="application/json" id="rmc-tour-i18n">{
+  "skip": "Skip",
+  "next": "Next",
+  "done": "Done",
+  "start_tour": "Page tour",
+  "target_missing": "This step target is not visible on this page.",
+  "step_of": "Step %(current)s of %(total)s"
+}</script>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+
+
+
+
+<script src="/static/js/rmc-tour.js" defer data-tour-steps-api="/siteconfig/api/tour-steps/" data-tour-analytics-api="/siteconfig/api/tour-analytics/"></script>
+
+
+<script src="/static/js/rmc-info-tag.js" defer data-tour-info-api="/siteconfig/api/tour-info/"></script>
+<script src="/static/js/rmc-info-tag-auto.js" defer></script>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+    
+
+
+<script src="/static/js/rmc-chrome-style-loader.js" defer></script>
+<script src="/static/js/rmc-cp-chrome-offset.js" defer></script>
+<script src="/static/js/rmc-cp-chrome-scroll-polish.js" defer></script>
+<script src="/static/js/rmc-scroll-container.js" defer></script>
+<script src="/static/js/rmc-page-fold-standards.js" defer></script>
+<script src="/static/js/_pages/rmc-collapsable.js" defer></script>
+<script src="/static/js/rmc-layout-health-sentinel.js" defer></script>
+
+
+
+
+
+<svg width="0" height="0" aria-hidden="true" focusable="false" class="rmc-back-to-top-defs">
+  <defs>
+    <linearGradient id="rmc-back-to-top-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" class="rmc-back-to-top-gradient-stop rmc-back-to-top-gradient-stop--primary" />
+      <stop offset="100%" class="rmc-back-to-top-gradient-stop rmc-back-to-top-gradient-stop--accent" />
+    </linearGradient>
+  </defs>
+</svg>
+<button
+  type="button"
+  id="back-to-top-btn"
+  class="back-to-top-btn rmc-back-to-top rmc-back-to-top--aurora"
+  aria-label="Back to top"
+  title="Back to top | Right-click to reset position"
+  aria-hidden="true"
+  aria-keyshortcuts="Home"
+  data-rmc-back-to-top
+  hidden
+>
+  <span class="rmc-back-to-top__chip" aria-hidden="true">
+    <span class="rmc-back-to-top__fill" aria-hidden="true"></span>
+    <span class="rmc-back-to-top__ring">
+      <svg class="rmc-back-to-top__svg" width="44" height="44" viewBox="0 0 44 44" focusable="false" aria-hidden="true">
+        <circle class="rmc-back-to-top__track" cx="22" cy="22" r="19" pathLength="1"></circle>
+        <circle
+          class="rmc-back-to-top__progress"
+          cx="22"
+          cy="22"
+          r="19"
+          pathLength="1"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        ></circle>
+      </svg>
+    </span>
+    <span class="rmc-back-to-top__icon">
+      <i class="bi bi-arrow-up-short" aria-hidden="true"></i>
+    </span>
+    <span class="rmc-back-to-top__percent" data-rmc-back-to-top-percent>0</span>
+  </span>
+  <span class="rmc-back-to-top__caption">Back to top</span>
+</button>
+
+
+
+<script src="/static/js/_pages/components__back_to_top.js"></script>
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+    
+<script src="/static/js/rmc-text-overflow-tooltip.js" defer></script>
+<script src="/static/js/rmc-isomorphic-grid-sweep.js" defer></script>
+<script src="/static/js/rmc-wizard-viewport-cache.js" defer></script>
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+    
+    
+    
+    
+    
+    
+    
+    </div>
+</html>

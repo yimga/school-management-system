@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T19:34:09.016339+00:00",
+  "generated_at": "2026-08-28T08:39:10.073936+00:00",
   "verdict": "INTERACTION_INTEGRITY_PASS",
   "pass_count": 19,
   "fail_count": 0,
@@ -104,7 +104,7 @@
       "id": "18",
       "label": "_pages/ interaction audit green",
       "status": "PASS",
-      "proof": "PAGES_INTERACTION_AUDIT_PASS files=176 issues=0"
+      "proof": "PAGES_INTERACTION_AUDIT_PASS files=175 issues=0"
     },
     {
       "id": "19",
@@ -116,7 +116,7 @@
       "id": "17",
       "label": "Contract tests green",
       "status": "PASS",
-      "proof": "fast: Found 26 test(s).\nSystem check identified no issues (0 silenced).\n..........................\n----------------------------------------------------------------------\nRan 26 tests in 1.945s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: =- server_name=- \ndef process_webhook_deliveries_task(batch_size=0):\n    return 1\n\n...................\n----------------------------------------------------------------------\nRan 26 tests in 1.959s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }
