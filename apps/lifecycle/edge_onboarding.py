@@ -657,6 +657,177 @@ def _heal_seed_baseline(school) -> "tuple[bool, str]":
         return False, f"baseline self-heal failed: {exc}"
 
 
+def running_on_edge_box() -> "tuple[bool, str]":
+    """Is this process the EDGE replica, or the cloud control plane?
+
+    The three verification heals below all produce their evidence by running a real
+    sync, and a sync is only meaningful in one direction: the box probes the
+    operator. Running one from the manager console is the thing this runbook warns
+    against on nearly every step -- "never Sync now from the manager console", "the
+    credential lives on the box". Those warnings were prose, so the only thing
+    stopping it was that nobody had written the button.
+
+    Writing the button is exactly what a self-heal is, so the warning has to become
+    a refusal or the heal turns the documented mistake into a one-click feature.
+
+    Delegates to ``deployment_is_edge_replica`` rather than re-reading the settings:
+    a second definition of "this is a box" is a second thing to drift.
+    """
+    try:
+        from apps.schools.conversion_lock_state import deployment_is_edge_replica
+
+        if deployment_is_edge_replica():
+            return True, ""
+        return False, (
+            "Refused: this is not the box. A sync cycle is the box probing the "
+            "operator, and the credential lives on the box -- running one from the "
+            "cloud console proves nothing and writes an EdgeSyncRun that looks like "
+            "the operator's own evidence. Run this step on the box, where the button "
+            "is the same button."
+        )
+    except Exception as exc:  # noqa: BLE001 -- a heal must always return a verdict
+        return False, f"could not determine whether this is a box: {exc}"
+
+
+def _heal_verify_and_sync_gate(school) -> "tuple[bool, str]":
+    """Run the mandatory dry gate, instead of telling somebody to type it.
+
+    The dry probe writes no tenant data. It records one EdgeSyncRun in ``dry`` mode,
+    which IS the evidence this step is asking for -- so the step could always have
+    produced its own answer, and instead printed a command.
+    """
+    on_box, why = running_on_edge_box()
+    if not on_box:
+        return False, why
+    try:
+        gate = run_sync_gate(school)
+        detail = str(gate.get("detail") or "")
+        if gate.get("cleared"):
+            return True, f"Dry gate run here and it cleared. {detail}"
+        # A gate that ran and said no is a RESULT, not a failure of the heal -- and
+        # saying so matters, because "we could not check" and "we checked and it is
+        # not ready" lead to completely different next actions.
+        return False, (
+            "Dry gate ran and did NOT clear, so the box is not cleared to go "
+            f"offline. {detail} Run `python manage.py verify_edge_link --http` -- it "
+            "names the FIRST broken link rather than the last symptom."
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"sync-gate self-heal failed: {exc}"
+
+
+def _heal_live_sync_proof(school) -> "tuple[bool, str]":
+    """Run one live cycle -- but only after the dry gate has actually cleared.
+
+    The ordering is the whole point of having a gate. A live cycle attempted before
+    the dry probe clears fails for the same reason the probe would have, except now
+    it has written a failed LIVE run into the record an operator reads to decide
+    whether this box converges.
+    """
+    on_box, why = running_on_edge_box()
+    if not on_box:
+        return False, why
+    try:
+        dry = _latest_sync_run(school, mode="dry")
+        if dry is None or not bool(getattr(dry, "ok", False)):
+            return False, (
+                "Refused: no cleared dry gate on record. The gate exists so a live "
+                "cycle is never the thing that discovers the operator is unreachable. "
+                "Run the pre-offline sync gate step first; it can run itself."
+            )
+        from apps.sync_engine import sync_runner
+
+        result = sync_runner.run_sync_cycle(school, mode="live") or {}
+        if result.get("ok"):
+            # `skipped` is reported because a cycle that only says "pulled N" presents
+            # rows that did NOT land as success.
+            return True, (
+                "Live cycle run here and it succeeded "
+                f"(pushed={result.get('pushed', 0)}, pulled={result.get('pulled', 0)}, "
+                f"conflicts={result.get('conflicts', 0)}, skipped={result.get('skipped', 0)})."
+            )
+        if result.get("held_for_upgrade"):
+            # Not a fault: the cloud is holding this box back deliberately. Reporting
+            # it as a sync failure would send somebody debugging the network.
+            return False, (
+                "Live cycle is held for an upgrade, which is the cloud's decision and "
+                f"not a fault here (target={result.get('upgrade_target') or 'unknown'}). "
+                "Apply the upgrade, then re-run."
+            )
+        detail = str(result.get("error") or result.get("message") or "no reason given")
+        return False, f"Live cycle ran and did not succeed: {detail}"
+    except Exception as exc:  # noqa: BLE001
+        return False, f"live-sync self-heal failed: {exc}"
+
+
+def _heal_go_dark_checklist(school) -> "tuple[bool, str]":
+    """Advance the two parts a machine can, and name the rest honestly.
+
+    The checklist has five parts and only two of them are a machine's to fix. The
+    roster cannot be filled by a sync -- delta sync is not a bulk loader, and using
+    it as one is the mistake this runbook repeats a warning about on every data
+    step. Conversion unlock needs a person to save a real attendance, mark, report
+    or payment; that is the point of it.
+
+    So this heal deliberately CANNOT return True on its own for a box missing those,
+    and says which of them is outstanding rather than returning a bare False. A heal
+    that quietly does two fifths of the work and reports failure is indistinguishable
+    from one that is broken.
+    """
+    on_box, why = running_on_edge_box()
+    if not on_box:
+        return False, why
+    try:
+        done: list[str] = []
+        dry = _latest_sync_run(school, mode="dry")
+        if dry is None or not bool(getattr(dry, "ok", False)):
+            gate_ok, gate_detail = _heal_verify_and_sync_gate(school)
+            if not gate_ok:
+                return False, f"Could not clear the dry gate, so nothing after it can run. {gate_detail}"
+            done.append("dry gate cleared")
+
+        live_ok, _ = _validate_live_sync_proof(school)
+        if not live_ok:
+            proof_ok, proof_detail = _heal_live_sync_proof(school)
+            if not proof_ok:
+                return False, (
+                    ("Cleared the dry gate. " if done else "")
+                    + f"Live proof still outstanding: {proof_detail}"
+                )
+            done.append("live cycle succeeded")
+
+        ok, detail = _validate_go_dark_checklist(school)
+        prefix = ("Ran: " + ", ".join(done) + ". ") if done else ""
+        if ok:
+            return True, prefix + detail
+        # Everything mechanical is done and it still is not cleared, so what remains
+        # genuinely needs a person. Say which, not "not cleared".
+        remaining: list[str] = []
+        data_ok, _ = _validate_seed_operational_data(school)
+        if not data_ok:
+            remaining.append(
+                "the roster is empty -- import it (import_tenant_bundle), never a sync"
+            )
+        conv_ok, _ = _validate_conversion_first_action(school)
+        if not conv_ok:
+            remaining.append(
+                "conversion is still locked -- somebody must save one real attendance, "
+                "mark, report or payment on the box"
+            )
+        live_row = _latest_sync_run(school, mode="live")
+        conflicts = int(getattr(live_row, "conflicts", 0) or 0) if live_row is not None else 0
+        if conflicts:
+            remaining.append(
+                f"{conflicts} unresolved sync conflict(s) -- resolve them in Sync Center; "
+                "money stays cloud-authoritative"
+            )
+        if remaining:
+            return False, prefix + "Still needs a person: " + "; ".join(remaining) + "."
+        return False, prefix + detail
+    except Exception as exc:  # noqa: BLE001
+        return False, f"go-dark self-heal failed: {exc}"
+
+
 # --------------------------------------------------------------------------- #
 # The ORDERED runbook — cloud data path through go-dark. Delta sync is never
 # a bulk loader; --fresh never seeds roster/finance.
@@ -1208,6 +1379,7 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "python manage.py edge_onboarding_verify --slug {slug} --include-gate"
         ),
         validate=_validate_verify_and_sync_gate,
+        self_heal=_heal_verify_and_sync_gate,
         workaround=(
             "If the gate does not clear, the box is NOT cleared to go offline. Run "
             "`python manage.py verify_edge_link --http` first: it walks the whole chain "
@@ -1230,6 +1402,7 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         category="verification",
         command_template="python manage.py edge_sync_cycle --slug {slug}",
         validate=_validate_live_sync_proof,
+        self_heal=_heal_live_sync_proof,
         workaround=(
             "If live sync fails, read Sync Center conflicts. Money stays cloud-authoritative. "
             "Do not retry from the manager host — the credential lives on the box."
@@ -1250,6 +1423,7 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         category="verification",
         command_template="python manage.py edge_onboarding_verify --slug {slug} --include-gate",
         validate=_validate_go_dark_checklist,
+        self_heal=_heal_go_dark_checklist,
         workaround=(
             "Stay online until every go-dark line is green. A box with an empty roster "
             "or a red live sync is not offline-ready."
@@ -1276,12 +1450,65 @@ def _step_by_key(step_key: str) -> Optional[EdgeOnboardingStep]:
 # --------------------------------------------------------------------------- #
 # Engine functions — ALL self-healing (never raise to the caller).
 # --------------------------------------------------------------------------- #
-def generate_runbook(school) -> dict:
+#: What a step can be, from the reader's point of view. Deliberately four values and
+#: not two: "not done" and "cannot be answered from here" are different facts, and
+#: collapsing them is how a checklist starts lying. A box-side check evaluated on the
+#: cloud is NOT_CHECKED, never TODO -- telling somebody to redo work that is already
+#: finished is exactly as bad as telling them it is finished when it is not.
+STATUS_DONE = "done"
+STATUS_TODO = "todo"
+STATUS_SKIPPED = "skipped"
+STATUS_NOT_CHECKED = "not_checked"
+
+
+def runbook_progress(steps: "list[dict]") -> dict:
+    """Counts for a progress bar, plus the number that is actually the goal.
+
+    ``healable_todo`` is the one to watch: how many outstanding steps the wizard can
+    finish on its own. A runbook where every remaining step is healable needs a person
+    to press one button; the same runbook with the same ``done`` count and zero
+    healable needs somebody who knows what a terminal is. The two look identical on a
+    percentage bar, which is why the percentage alone is not the measure.
+    """
+    tally = {STATUS_DONE: 0, STATUS_TODO: 0, STATUS_SKIPPED: 0, STATUS_NOT_CHECKED: 0}
+    healable = 0
+    for entry in steps:
+        status = entry.get("status") or STATUS_NOT_CHECKED
+        tally[status] = tally.get(status, 0) + 1
+        if status == STATUS_TODO and entry.get("can_self_heal"):
+            healable += 1
+    total = len(steps)
+    done = tally[STATUS_DONE]
+    return {
+        "total": total,
+        "done": done,
+        "todo": tally[STATUS_TODO],
+        "skipped": tally[STATUS_SKIPPED],
+        "not_checked": tally[STATUS_NOT_CHECKED],
+        # Integer, and floored: a bar that reads 100% while a step is outstanding is
+        # worse than one that reads 99%.
+        "percent": (done * 100) // total if total else 0,
+        "healable_todo": healable,
+        "needs_a_person": tally[STATUS_TODO] - healable,
+    }
+
+
+def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> dict:
     """A deterministic, ordered, per-school runbook.
 
     Returns ``{school_id, slug, country, total, steps}`` where each step is
     ``{key, title, purpose, category, command, workaround, runs_on, evidence,
     named_url_name, help_doc, cloud_preview}`` with placeholders filled.
+
+    ``with_status=True`` additionally runs every check and adds ``status``, ``detail``
+    and ``can_self_heal`` to each step plus a ``progress`` block -- everything a
+    checklist and a progress bar need, from one call, so a surface cannot render a
+    step list and a completion count that disagree.
+
+    It runs the READ-ONLY preview (``include_gate=False``): no network, and no
+    ``EdgeSyncRun`` recorded. Rendering a page must never look like an operator ran
+    the live gate -- the three gate steps come back NOT_CHECKED, which is the honest
+    answer for a check whose evidence lives on the box.
     """
     steps: list[dict] = []
     for step in EDGE_ONBOARDING_STEPS:
@@ -1304,13 +1531,44 @@ def generate_runbook(school) -> dict:
                 "cloud_preview": bool(step.cloud_preview),
             }
         )
-    return {
+    runbook = {
         "school_id": _school_id(school),
         "slug": _slug(school),
         "country": _country(school),
         "total": len(steps),
         "steps": steps,
     }
+    if not with_status:
+        return runbook
+
+    suite = run_verification_suite(school, include_gate=False, host_kind=host_kind)
+    by_key = {row.get("key"): row for row in suite.get("steps", [])}
+    for entry, step in zip(steps, EDGE_ONBOARDING_STEPS):
+        entry["can_self_heal"] = step.self_heal is not None
+        row = by_key.get(entry["key"])
+        if row is None:
+            # Not in the read-only preview at all: its evidence is on the box, and a
+            # cloud render has no way to see it. Say that, rather than guessing.
+            entry["status"] = STATUS_NOT_CHECKED
+            entry["detail"] = (
+                "Not evaluated here -- this check reads box-side state. Run "
+                "`edge_onboarding_verify --slug {slug} --include-gate` on the box."
+            ).format(slug=runbook["slug"])
+        elif row.get("skipped"):
+            entry["status"] = STATUS_SKIPPED
+            entry["detail"] = str(row.get("detail") or "")
+        elif row.get("ok"):
+            entry["status"] = STATUS_DONE
+            entry["detail"] = str(row.get("detail") or "")
+        else:
+            entry["status"] = STATUS_TODO
+            entry["detail"] = str(row.get("detail") or "")
+    runbook["progress"] = runbook_progress(steps)
+    # The suite comes back with the runbook so a surface never has to run it twice,
+    # and so a caller cannot accidentally pair THIS step list with a DIFFERENT run's
+    # counts. One call in, one consistent picture out.
+    runbook["verification"] = suite
+    return runbook
 
 
 def run_verification_suite(school, *, include_gate: bool = True, host_kind: Optional[str] = None) -> dict:
@@ -1420,6 +1678,7 @@ def heal_step(school, step_key: str) -> dict:
 
 
 __all__ = [
+    "running_on_edge_box",
     "EdgeOnboardingStep",
     "EDGE_ONBOARDING_STEPS",
     "EDGE_ONBOARDING_STEP_KEYS",

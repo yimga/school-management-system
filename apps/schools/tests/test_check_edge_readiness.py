@@ -221,3 +221,82 @@ class EdgeReadinessBringUpWiringSealTests(SimpleTestCase):
         entry = self._entrypoint()
         self.assertIn("RMC_EDGE_READINESS_STRICT", entry)
         self.assertIn("check_edge_readiness || true", entry)
+
+
+class TheReachabilityLineMustFollowTheTlsModeTests(TestCase):
+    """Readiness told a box with TLS that it had none, and named a dead address.
+
+    The line ended "http://<host>:<web-port>/ (plain HTTP; the box has no TLS)"
+    unconditionally, while the very next section of the same report said
+    "TLS mode is selfsigned". On such a box the web port does not serve pages at
+    all: it redirects to https, and Django builds that redirect from a host that
+    carries the port, so the browser is sent to a TLS handshake against a plain
+    socket and hangs.
+
+    A readiness check that names an address has to name one that answers.
+    """
+
+    ENV = "RMC_EDGE_TLS_MODE"
+
+    def _run(self, mode):
+        import os
+
+        saved = os.environ.get(self.ENV)
+        os.environ[self.ENV] = mode
+        out = StringIO()
+        try:
+            try:
+                call_command("check_edge_readiness", stdout=out, stderr=out)
+            except CommandError:
+                pass
+            return out.getvalue()
+        finally:
+            if saved is None:
+                os.environ.pop(self.ENV, None)
+            else:
+                os.environ[self.ENV] = saved
+
+    SETTINGS = dict(
+        SECRET_KEY=_LONG_SECRET,
+        DEBUG=False,
+        SINGLE_TENANT=True,
+        USE_DJANGO_TENANTS=False,
+        ALLOWED_HOSTS=["school.lan", "10.10.20.137"],
+        MULTI_TENANT_BASE_DOMAIN="school.lan",
+    )
+
+    def test_a_box_with_tls_is_not_told_it_has_none(self):
+        with override_settings(**self.SETTINGS):
+            out = self._run("selfsigned")
+        self.assertIn("ALLOWED_HOSTS covers *.school.lan", out)
+        self.assertNotIn("the box has no TLS", out)
+
+    def test_a_box_with_tls_is_pointed_at_the_terminator(self):
+        with override_settings(**self.SETTINGS):
+            out = self._run("selfsigned")
+        line = next(
+            ln for ln in out.splitlines() if "ALLOWED_HOSTS covers *.school.lan" in ln
+        )
+        self.assertIn("https://<host>/", line)
+        # and it says what the web port IS still for, so enrolment is not lost
+        self.assertIn("/edge/trust/", line)
+
+    def test_a_box_without_tls_still_gets_the_plain_http_address(self):
+        # The original text was right for this box, and must stay right.
+        with override_settings(**self.SETTINGS):
+            out = self._run("off")
+        line = next(
+            ln for ln in out.splitlines() if "ALLOWED_HOSTS covers *.school.lan" in ln
+        )
+        self.assertIn("http://<host>:<web-port>/", line)
+        self.assertNotIn("https://<host>/", line)
+
+    def test_an_unrecognised_mode_is_treated_as_no_tls(self):
+        # resolve_mode() reports an error and the box falls back to plain HTTP;
+        # the address must fall back with it rather than promise a terminator.
+        with override_settings(**self.SETTINGS):
+            out = self._run("selfsigned-ish")
+        line = next(
+            ln for ln in out.splitlines() if "ALLOWED_HOSTS covers *.school.lan" in ln
+        )
+        self.assertIn("http://<host>:<web-port>/", line)

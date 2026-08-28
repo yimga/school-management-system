@@ -190,8 +190,17 @@ class EdgeOnboardingEngineTests(TestCase):
 
     # --- heal_step --------------------------------------------------------- #
     def test_heal_step_without_self_heal_returns_false(self):
+        # The step is chosen at runtime rather than named. This test used to hardcode
+        # `verify_and_sync_gate` as its example of a heal-less step, and broke the day
+        # that step gained a heal -- reporting a failure in heal_step, which was fine,
+        # for a reason that had nothing to do with heal_step.
         school = self._make_school()
-        res = heal_step(school, "verify_and_sync_gate")  # no self-heal defined
+        without = next(
+            (s.key for s in EDGE_ONBOARDING_STEPS if s.self_heal is None), None
+        )
+        if without is None:
+            self.skipTest("every step now self-heals; this branch is unreachable")
+        res = heal_step(school, without)
         self.assertFalse(res["healed"])
         self.assertIn("no self-heal", res["detail"].lower())
 

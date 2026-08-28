@@ -31,7 +31,11 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
 COMPOSE_FILE="$HERE/docker-compose.yml"
 COMPOSE=(docker compose -f "$COMPOSE_FILE")
-CADDYFILE="$HERE/Caddyfile.edge"
+# The RENDERED terminator config, not the tracked template. Writing the render
+# over the tracked Caddyfile.edge left every box permanently dirty -- so every
+# `git pull` on every box was blocked, and the file explaining the TLS modes
+# only survived on machines nobody had set up yet. This path is gitignored.
+CADDYFILE="$HERE/Caddyfile.edge.rendered"
 BUNDLE_IN_BOX="/tmp/box-ca-bundle.p12"
 # Deliberately the repo's PARENT, not the repo. box-ca-bundle.p12 carries the CA
 # PRIVATE KEY, and $REPO is a git working tree on every box -- so the old default put
@@ -107,12 +111,47 @@ if [ -z "${RMC_EDGE_TLS_CA_PASSPHRASE:-}" ]; then
 fi
 ok "docker, compose file and .env all present"
 
+# --- 0. one-time migration off the tracked Caddyfile ------------------------
+# Boxes set up before the render moved paths are holding their terminator config in
+# the TRACKED deploy/selfhost/Caddyfile.edge, which leaves the checkout permanently
+# dirty and every `git pull` blocked. Move it, once, automatically -- telling an
+# operator to move a file is how a fix stays undone on the boxes nobody visits.
+LEGACY_CADDY="$HERE/Caddyfile.edge"
+# Ask GIT whether a render was written over the tracked file, rather than
+# sniffing for a directive. The tracked Caddyfile.edge is not pure prose -- it
+# is a WORKING default and legitimately contains reverse_proxy web:10000, so a
+# content sniff also fires on a pristine checkout that has nothing to rescue.
+# "git considers this modified" is the exact question, and the only one.
+LEGACY_DIRTY="$(git -C "$REPO" status --porcelain -- deploy/selfhost/Caddyfile.edge 2>/dev/null || true)"
+if [ ! -f "$CADDYFILE" ] && [ -f "$LEGACY_CADDY" ] && [ -n "$LEGACY_DIRTY" ]; then
+  cp "$LEGACY_CADDY" "$CADDYFILE"
+  ok "moved this box's rendered terminator config to $(basename "$CADDYFILE")"
+  # Only after the copy landed. Restoring first would destroy the very thing
+  # being migrated if the copy failed.
+  if [ -s "$CADDYFILE" ] \
+     && git -C "$REPO" checkout -- deploy/selfhost/Caddyfile.edge 2>/dev/null; then
+    ok 'restored the tracked Caddyfile.edge template -- this box can git pull again'
+  else
+    warn 'could not restore the tracked template; git pull may still be blocked'
+  fi
+fi
+
+
 # --- 1. is the box well enough to change? -----------------------------------
 say "Box health"
 "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx web \
-  || die "the 'web' service is not running. Start it (\`docker compose -f $COMPOSE_FILE up -d\`)
-  and let migrations finish. Adding TLS to an unwell box gives you two problems to
-  debug at once, and from the corridor they look identical."
+  || die "the 'web' service is not running. Start it with the rebuild script:
+
+      $HERE/box-rebuild.sh
+
+  and let migrations finish. Do NOT reach for a bare \`docker compose up -d\`: the
+  containers run a BAKED image, so that restarts whatever was compiled last time and
+  every check below then passes against code you did not deploy. box-rebuild.sh
+  builds first and refuses to report success unless the running image matches this
+  checkout.
+
+  Adding TLS to an unwell box gives you two problems to debug at once, and from the
+  corridor they look identical."
 ok "web is running"
 
 # --- 2. certificate, trust anchor, verified backup --------------------------

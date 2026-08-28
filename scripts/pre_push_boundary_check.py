@@ -258,6 +258,14 @@ GATES: list[tuple[str, list[str]]] = [
     # MIDDLEWARE is built twice in config/settings.py and prod runs only the
     # second list, so a middleware present in the first is dead in production.
     ("middleware-topology-parity", ["verify_middleware_topology_parity.py"]),
+    # The edge sync rail ships FK columns as raw ids and the box resolves them
+    # locally, which only works when the provisioning clone carried the parent --
+    # and the clone is per-SCHOOL. The engine let an FK ride on the weaker test
+    # 'does the target live in a tenant app', so three references to SHARED tables
+    # rode unnoticed. An absent parent then refused the child AND rewound the pull
+    # cursor for a full-corpus replay that could never produce it: a permanent loop
+    # whose visible symptom was tens of thousands of conflict records.
+    ("rail-fk-portability", ["verify_rail_fk_portability.py"]),
 
     # --- wired 2026-08-27 after a sweep of guards no runner invoked ----------
     # 436 of 809 guard scripts were referenced by no workflow and no runner.

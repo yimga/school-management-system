@@ -127,7 +127,14 @@ class RunEdgeBringupTests(TestCase):
                 mock.patch.object(edge_onboarding, "run_sync_gate", return_value=gate):
             report = run_edge_bringup(inputs=BringupInputs(slug=self.SLUG), runner=_noop_runner)
 
-        heal.assert_called_once()
+        # The property is that the FAILING step got healed -- not that exactly one
+        # heal ran in the whole bring-up. Steps 16-17 (live_sync_proof,
+        # go_dark_checklist) are healed explicitly after the gate clears, because
+        # they are cloud_preview=False and so never appear in the suite this loop
+        # walks. Pinning the total made this test fail the moment the bring-up
+        # stopped stopping at step 15.
+        healed_keys = [c.args[1] for c in heal.call_args_list]
+        self.assertIn("seed_baseline", healed_keys)
         self.assertEqual(verify.call_count, 2)         # re-verified after heal
         self.assertIn("seed_baseline", report["healed"])
         self.assertTrue(report["offline_ready"])       # heal fixed it → GO
@@ -140,3 +147,88 @@ class RunEdgeBringupTests(TestCase):
             )
         self.assertIn("not found", report["error"])
         self.assertFalse(report["offline_ready"])
+
+
+class GoDarkPhaseTests(TestCase):
+    """Steps 16-17. The bring-up used to stop at 15 and call it done.
+
+    It could not have gone further, either: the self-heal loop walks
+    run_verification_suite(include_gate=False), which keeps only cloud_preview steps,
+    and all three verification steps are cloud_preview=False precisely because their
+    evidence is a real sync. So they are healed explicitly, after the gate clears.
+    """
+
+    SLUG = "bringup-godark"
+
+    def setUp(self):
+        School.objects.filter(slug=self.SLUG).delete()
+        School.objects.create(
+            name="Bringup GoDark", slug=self.SLUG, subdomain=self.SLUG,
+            is_active=True, is_approved=True, country_code="CM", settings={},
+        )
+
+    def _run(self, *, gate_cleared=True, healed=True, **kw):
+        verification = {"ok": True, "total": 6, "passed": 6, "steps": []}
+        gate = {"cleared": gate_cleared, "detail": "gate", "run": {}}
+        with mock.patch.object(edge_onboarding, "run_verification_suite", return_value=verification),                 mock.patch.object(edge_onboarding, "run_sync_gate", return_value=gate),                 mock.patch.object(
+                    edge_onboarding, "heal_step",
+                    return_value={"healed": healed, "detail": "d"},
+                ) as heal:
+            report = run_edge_bringup(
+                inputs=BringupInputs(slug=self.SLUG), runner=_noop_runner, **kw
+            )
+        return report, heal
+
+    def test_it_heals_the_two_steps_the_preview_can_never_surface(self):
+        report, heal = self._run()
+        keys = [c.args[1] for c in heal.call_args_list]
+        self.assertIn("live_sync_proof", keys)
+        self.assertIn("go_dark_checklist", keys)
+        self.assertTrue(report["go_dark"]["attempted"])
+
+    def test_the_live_round_trip_is_attempted_before_the_checklist(self):
+        # The checklist reads the live run. Evaluating it first measures the previous
+        # cycle and calls it today's proof.
+        _report, heal = self._run()
+        keys = [c.args[1] for c in heal.call_args_list]
+        self.assertLess(keys.index("live_sync_proof"), keys.index("go_dark_checklist"))
+
+    def test_a_gate_that_did_not_clear_stops_it_and_says_so(self):
+        # Ordering is the reason the gate exists. A live cycle attempted before the
+        # gate clears fails for the same reason, and writes a failed LIVE run into
+        # the record an operator reads to decide whether this box converges at all.
+        report, heal = self._run(gate_cleared=False)
+        keys = [c.args[1] for c in heal.call_args_list]
+        self.assertNotIn("live_sync_proof", keys)
+        self.assertFalse(report["go_dark"]["attempted"])
+        self.assertIn("did not clear", report["go_dark"]["detail"])
+
+    def test_not_attempted_reads_differently_from_attempted_and_failed(self):
+        # They send somebody to completely different places.
+        blocked, _ = self._run(gate_cleared=False)
+        failed, _ = self._run(gate_cleared=True, healed=False)
+        self.assertFalse(blocked["go_dark"]["attempted"])
+        self.assertTrue(failed["go_dark"]["attempted"])
+        self.assertFalse(failed["go_dark"]["ok"])
+
+    def test_converged_needs_both_the_gate_and_the_checklist(self):
+        cleared, _ = self._run(healed=True)
+        self.assertTrue(cleared["converged"])
+        not_cleared, _ = self._run(healed=False)
+        self.assertFalse(not_cleared["converged"])
+        self.assertTrue(not_cleared["offline_ready"], "the weaker claim still holds")
+
+    def test_offline_ready_keeps_its_original_meaning(self):
+        # It is pinned by its own tests and by an operator's expectations. Quietly
+        # making an existing word stricter turns green runs red for reasons nobody
+        # asked about -- so the stronger claim got a new name instead.
+        report, _ = self._run(healed=False)
+        self.assertTrue(report["offline_ready"])
+        self.assertFalse(report["converged"])
+
+    def test_skipping_it_can_never_report_converged(self):
+        report, heal = self._run(do_go_dark=False)
+        keys = [c.args[1] for c in heal.call_args_list]
+        self.assertNotIn("go_dark_checklist", keys)
+        self.assertFalse(report["converged"])
+        self.assertIsNone(report["go_dark"])

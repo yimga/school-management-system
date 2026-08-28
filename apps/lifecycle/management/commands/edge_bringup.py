@@ -39,6 +39,16 @@ class Command(BaseCommand):
         )
         parser.add_argument("--identity", default="", help="Path to the .rmcidentity bundle.")
         parser.add_argument("--brand", default="", help="Path to the .rmcbrand branding bundle.")
+        parser.add_argument(
+            "--skip-go-dark",
+            dest="skip_go_dark",
+            action="store_true",
+            help=(
+                "Stop after the dry sync gate. Skips the live round-trip and the "
+                "go-dark checklist (steps 16-17), so the box CANNOT be reported as "
+                "converged."
+            ),
+        )
         parser.add_argument("--mint-credential", action="store_true", help="Mint a per-box edge sync credential.")
         parser.add_argument("--credential-user", dest="credential_user", default="", help="Owner username for the minted credential.")
         parser.add_argument("--credential-days", dest="credential_days", type=int, default=365, help="Credential validity in days.")
@@ -75,13 +85,25 @@ class Command(BaseCommand):
                 self.stdout.write("  (no prep actions — verification + sync gate only)")
             for i, a in enumerate(actions, 1):
                 self.stdout.write(f"  {i}. {a['key']}: manage.py {a['cmd']} {' '.join(a['args'])}")
-            self.stdout.write("  -> then: run_verification_suite + MANDATORY sync gate")
+            # A dry run that under-describes what follows is worse than none:
+            # somebody reads it to decide whether to let the real one proceed.
+            self.stdout.write("  -> then: run_verification_suite + self-heal")
+            self.stdout.write("  -> then: MANDATORY pre-offline sync gate (dry)")
+            if not options["skip_go_dark"]:
+                self.stdout.write(
+                    "  -> then: ONE LIVE sync round-trip, then the go-dark checklist"
+                )
+            else:
+                self.stdout.write(
+                    "  -> --skip-go-dark: stops after the gate; cannot report converged"
+                )
             return
 
         report = run_edge_bringup(
             inputs=inputs,
             do_prep=not options["no_prep"],
             do_sync_gate=not options["skip_sync_gate"],
+            do_go_dark=not options["skip_go_dark"],
             self_heal=not options["no_self_heal"],
         )
 
@@ -106,9 +128,33 @@ class Command(BaseCommand):
             mark = self.style.SUCCESS("CLEARED") if gate.get("cleared") else self.style.ERROR("NOT CLEARED")
             self.stdout.write(f"  sync gate: {mark} — {gate.get('detail')}")
 
-        if report["offline_ready"]:
-            self.stdout.write(self.style.SUCCESS("\n[GO] Box is verified and the sync gate cleared. Safe to go offline."))
+        go_dark = report.get("go_dark") or {}
+        if go_dark.get("attempted"):
+            live = go_dark.get("live") or {}
+            live_mark = self.style.SUCCESS("OK") if live.get("healed") else self.style.ERROR("NOT PROVEN")
+            self.stdout.write(f"  live round-trip: {live_mark} — {live.get('detail')}")
+            checklist = go_dark.get("checklist") or {}
+            cl_mark = self.style.SUCCESS("CLEARED") if checklist.get("healed") else self.style.ERROR("NOT CLEARED")
+            self.stdout.write(f"  go-dark checklist: {cl_mark} — {checklist.get('detail')}")
+        elif go_dark:
+            self.stdout.write(self.style.WARNING(f"  go-dark: {go_dark.get('detail')}"))
+
+        if report.get("converged"):
+            self.stdout.write(self.style.SUCCESS(
+                "\n[GO] Verified, gate cleared, one live round-trip proven, go-dark "
+                "checklist cleared. This box is safe to take offline."
+            ))
+        elif report["offline_ready"]:
+            # Deliberately NOT a GO. The dry gate proves the operator is reachable
+            # and the credential is accepted; it does not prove this box can complete
+            # a round trip and come back. Telling somebody it is safe to unplug on
+            # that evidence is the overclaim this line used to make.
+            self.stdout.write(self.style.WARNING(
+                "\n[HOLD] Verified and the sync gate cleared, but the go-dark checklist "
+                "has not. The box works online. Do NOT take it offline until the lines "
+                "above are green — read the go-dark detail for what is outstanding."
+            ))
         else:
             self.stdout.write(self.style.ERROR("\n[NO-GO] Not certified for offline. Resolve the FAIL/NOT-CLEARED items above and re-run."))
-            if options["require_offline_ready"]:
-                raise CommandError("edge_bringup: box is not offline-ready.")
+        if options["require_offline_ready"] and not report["offline_ready"]:
+            raise CommandError("edge_bringup: box is not offline-ready.")

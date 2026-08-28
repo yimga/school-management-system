@@ -121,11 +121,37 @@
       {% if skip_notice %}
       <p class="rmc-banner rmc-banner--info small" role="status">{{ skip_notice }}</p>
       {% endif %}
-      <div class="rmc-progress-stages mb-3" aria-label="{% trans 'Step progress' %}">
-        <div class="rmc-progress-stages__bar" aria-hidden="true">
-          <div class="rmc-progress-stages__bar-fill" style="width: {{ progress_pct }}%;"><!-- inline-style-allow: progress-bar-fill-width --></div>
+      <div class="rmc-progress-stages mb-3"
+           role="group"
+           aria-labelledby="edge-onboarding-progress-h">
+        <p class="visually-hidden" id="edge-onboarding-progress-h">{% trans "Onboarding progress" %}</p>
+        <div class="rmc-progress-stages__bar"
+             role="progressbar"
+             aria-valuenow="{{ progress.percent }}"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuetext="{% blocktrans with done=progress.done total=progress.total %}{{ done }} of {{ total }} steps complete{% endblocktrans %}">
+          <div class="rmc-progress-stages__bar-fill" style="width: {{ progress.percent }}%;"><!-- inline-style-allow: progress-bar-fill-width --></div>
         </div>
-        <p class="rmc-progress-stages__bar-text mb-0">{{ progress_pct }}% {% trans "of evaluated source-tenant checks" %}</p>
+        <p class="rmc-progress-stages__bar-text mb-0">
+          {% blocktrans with done=progress.done total=progress.total pct=progress.percent %}{{ done }} of {{ total }} steps complete ({{ pct }}%){% endblocktrans %}
+        </p>
+        {% if progress.todo %}
+        <p class="rmc-progress-stages__bar-text small text-muted mb-0">
+          {# The count that decides whether this is self-service. A bar cannot tell #}
+          {# "the wizard can finish these" from "you need somebody who knows what a #}
+          {# terminal is" -- same bar, completely different situation. #}
+          {% blocktrans count counter=progress.healable_todo %}{{ counter }} remaining step can finish itself{% plural %}{{ counter }} remaining steps can finish themselves{% endblocktrans %}{% if progress.needs_a_person %} ·
+          {% blocktrans count counter=progress.needs_a_person %}{{ counter }} needs a person{% plural %}{{ counter }} need a person{% endblocktrans %}{% endif %}
+        </p>
+        {% endif %}
+        {% if progress.not_checked or progress.skipped %}
+        <p class="rmc-progress-stages__bar-text small text-muted mb-0">
+          {# Counted in the total above, never quietly dropped from it. Hiding these #}
+          {# is exactly what made the old bar read higher than the truth. #}
+          {% if progress.not_checked %}{% blocktrans count counter=progress.not_checked %}{{ counter }} step can only be checked on the box{% plural %}{{ counter }} steps can only be checked on the box{% endblocktrans %}{% endif %}{% if progress.not_checked and progress.skipped %} · {% endif %}{% if progress.skipped %}{% blocktrans count counter=progress.skipped %}{{ counter }} skipped on this host{% plural %}{{ counter }} skipped on this host{% endblocktrans %}{% endif %}
+        </p>
+        {% endif %}
       </div>
       <div class="table-responsive">
         <table class="rmc-data-table table table-sm align-middle mb-0">

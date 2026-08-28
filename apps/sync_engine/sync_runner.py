@@ -44,15 +44,48 @@ _MISSING_REF_REPLAY_COOLDOWN_SECONDS = 6 * 3600  # magic-number-allow: replay co
 _MISSING_REF_REPLAY_KEY = "rmc:edge_sync:missing_ref_replay:%s"
 
 
-def _request_replay_for_missing_parents(school) -> str:
-    """Rewind the PULL cursor so the next cycle replays the whole corpus.
+def _rail_model_labels() -> set:
+    """``{"app.Model"}`` for every entity the delta rail carries.
+
+    Answers the only question the replay decision needs: could a replay ever produce this
+    parent? Derived from the live registry rather than listed, so an entity added to the
+    rail is replayable the day it is added and nothing here has to be remembered.
+    """
+    from apps.api.sync_services import _get_entity_config
+
+    return {
+        model._meta.label
+        for model, _allowed in _get_entity_config(include_derived=True).values()
+    }
+
+
+def _request_replay_for_missing_parents(school, parents=None) -> str:
+    """Rewind the PULL cursor so the next cycle replays the whole corpus - IF that can help.
 
     A ``missing_reference`` means the bundle carried a CHILD whose PARENT this box does not
-    have. The parent is absent from the delta because its own ``updated_at`` is older than
-    the pull cursor, so an incremental delta will never offer it again — the child would be
-    refused on every future cycle and the two sides would stay silently divergent. Rewinding
-    to "no position" makes the next cycle request the corpus from the beginning, which DOES
-    contain the parent; the cloud-authored create path lands it, and the child follows.
+    have. When the parent's table RIDES THE RAIL, the parent is absent only because its own
+    ``updated_at`` is older than the pull cursor, so an incremental delta will never offer it
+    again - the child would be refused on every future cycle and the two sides would stay
+    silently divergent. Rewinding to 'no position' makes the next cycle request the corpus
+    from the beginning, which DOES contain the parent; the cloud-authored create path lands
+    it, and the child follows.
+
+    WHEN THE PARENT'S TABLE DOES NOT RIDE, none of that is true and the rewind is worse than
+    useless. A replay cannot carry a row the rail never carries, so the reference is still
+    unresolvable on the next cycle and on every cycle after it - and the price of finding
+    that out is re-downloading the ENTIRE corpus, once per cooldown, indefinitely. That is
+    not a healing step, it is a loop with a bandwidth bill; and because a full-corpus pull
+    re-offers every row the box already holds, it is also what drove waves of avoidable
+    conflict and skip records through the apply path.
+
+    So the rewind now depends on the evidence: rewind when at least one absent parent is a
+    row a replay could produce, and otherwise REPORT the unreachable parents by name and
+    leave the cursor where it is. An unreachable parent is a real gap and it is stated as
+    one, because the fix for it is a rail change, not another download.
+
+    ``parents`` is ``{model_label: count}`` from the inbox. Omitted (the pre-existing
+    signature) means 'no evidence either way', which keeps the historical behaviour of
+    rewinding - a caller that cannot say must not be silently downgraded to doing nothing.
 
     Returns the note to show the operator. Never raises: a healing step must not be the
     thing that breaks a sync cycle.
@@ -62,6 +95,25 @@ def _request_replay_for_missing_parents(school) -> str:
     from apps.sync_engine.models import EdgeSyncCursor, reset_sync_cursors
 
     try:
+        unreachable = []
+        if parents:
+            try:
+                on_rail = _rail_model_labels()
+            except Exception:  # noqa: BLE001 - cannot classify, so do not downgrade
+                logger.debug("could not read the rail registry", exc_info=True)
+                on_rail = None
+            if on_rail is not None:
+                unreachable = sorted(set(parents) - on_rail)
+                if len(unreachable) == len(set(parents)):
+                    # Every absent parent lives in a table the rail does not carry.
+                    return (
+                        "records reference "
+                        + ", ".join(unreachable)
+                        + ", which this rail does not carry; a replay cannot produce them, "
+                        "so the pull cursor was left alone. Landing these rows needs a rail "
+                        "change, not another sync"
+                    )
+
         key = _MISSING_REF_REPLAY_KEY % school.pk
         # cache.add only succeeds when the key is absent, so the cooldown is atomic even if
         # two cycles overlap.
@@ -71,14 +123,22 @@ def _request_replay_for_missing_parents(school) -> str:
                 "replay was requested recently, so this cycle did not request another"
             )
         reset_sync_cursors(school, direction=EdgeSyncCursor.PULL)
-        return (
+        note = (
             "records referenced a parent this box does not have; rewound the pull cursor "
             "so the next cycle replays the full corpus and collects the missing parents"
         )
+        if unreachable:
+            # A replay WILL help some of them, so the rewind stands - but saying only that
+            # would report a repair that is partial as if it were complete.
+            note += (
+                ". Not all of them: "
+                + ", ".join(unreachable)
+                + " is not carried by this rail and no replay will produce it"
+            )
+        return note
     except Exception as exc:  # noqa: BLE001 - healing must never break the cycle
         logger.debug("replay request for missing parents failed", exc_info=True)
         return f"could not request a replay for the missing parents: {exc}"
-
 
 class FlushOutcome(NamedTuple):
     """What the parity flush actually did, not just what it would say about it.
@@ -897,8 +957,12 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     notes.append(note)
                     if (applied.get("skipped_reasons") or {}).get("missing_reference"):
                         # Rewinding LAST, after the high-water advance above, so the rewind
-                        # is what survives this cycle.
-                        notes.append(_request_replay_for_missing_parents(school))
+                        # is what survives this cycle. The parent LABELS ride along so the
+                        # decision can tell a parent a replay would deliver from one no
+                        # replay ever will.
+                        notes.append(_request_replay_for_missing_parents(
+                            school, applied.get("skipped_missing_parents") or {}
+                        ))
 
                     # G8: the cloud answered this cycle's parity digest with the entities
                     # whose contents disagree. Repair them, narrowly, and SAY so — an

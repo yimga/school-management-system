@@ -133,11 +133,27 @@ class Command(BaseCommand):
             else:
                 dotted = f".{base_domain}"
                 if base_domain in lowered_hosts or dotted in lowered_hosts:
+                    # The address depends on the TLS mode, so ASK. This line used
+                    # to end "plain HTTP; the box has no TLS" unconditionally, which
+                    # on a box that HAS TLS is both false and harmful: the web port
+                    # redirects to https, and Django builds that redirect from a host
+                    # that carries the port, so the browser is sent to a TLS
+                    # handshake against a plain socket and hangs. Naming the
+                    # terminator instead is the address that answers.
+                    from apps.schools import edge_tls as _tls_reach
+
+                    _reach = _tls_reach.resolve_mode()
+                    if _reach.error or _reach.mode == _tls_reach.MODE_OFF:
+                        _how = ("http://<host>:<web-port>/ (plain HTTP; this box serves no TLS)")
+                    else:
+                        _how = ("https://<host>/ — the terminator, not the web port. "
+                                "<web-port> serves /edge/trust/ for enrolment and "
+                                "redirects everything else to https")
                     findings.append((
                         OK,
                         f"ALLOWED_HOSTS covers *.{base_domain} — a LAN hostname like "
                         f"'<slug>.{base_domain}' is accepted. Reach the box over "
-                        "http://<host>:<web-port>/ (plain HTTP; the box has no TLS).",
+                        f"{_how}.",
                     ))
                 else:
                     findings.append((

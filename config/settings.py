@@ -388,6 +388,11 @@ if _channels_installed:
     INSTALLED_APPS += ["channels", "channels_redis"]
 
 MIDDLEWARE = [
+    # MUST stay above SecurityMiddleware. The response phase runs in reverse, so
+    # the entry listed FIRST is the one that sees the redirect SecurityMiddleware
+    # produced -- and that redirect points at https on the plain-HTTP web port,
+    # where a browser hangs until it times out. See the module docstring.
+    "apps.schools.middleware_edge_https_port.EdgeHttpsPortRedirectMiddleware",
     "django.middleware.security.SecurityMiddleware",
     # Pass 12: CORS middleware must precede SessionMiddleware + CommonMiddleware per
     # django-cors-headers docs so preflight OPTIONS responses include the right headers.

@@ -51,6 +51,12 @@ INTENTIONAL_BASE_ONLY = {
         "(settings.py notes 'TenantMiddleware is not used' at the end of the tenants list).",
     "apps.schools.middleware.RlsResetOnExceptionMiddleware":
         "RLS-mode only; under SCHEMA tenancy (USE_DJANGO_TENANTS=1) there is no RLS session var to reset.",
+    "apps.schools.middleware_edge_https_port.EdgeHttpsPortRedirectMiddleware":
+        "Sovereign-edge only, and the edge keeps the base branch. It repairs the https "
+        "redirect Django builds from request.get_host(), which carries the WEB_PORT and "
+        "so points at a socket running plain HTTP -- a browser hangs there until it "
+        "times out. Render cannot hit that: TLS terminates at the platform edge, "
+        "SECURE_SSL_REDIRECT defaults to 0 there, and no request arrives on :10000.",
     "apps.observability.middleware_agent_template_debug.AgentTemplateMissingDebugMiddleware":
         "Debug-only template-miss reporter; not a production control.",
 }

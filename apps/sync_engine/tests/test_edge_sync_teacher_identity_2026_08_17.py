@@ -74,8 +74,17 @@ class TeacherRegistrationShapeTests(TestCase):
         stray = _DOWN_ONLY_FIELDS_PER_ENTITY["teacher"] - allowed
         self.assertEqual(stray, set(), f"down-only fields absent from the synced set: {stray}")
 
-    def test_compensation_authorization_and_governance_are_all_down_only(self):
+    def test_a_box_can_never_move_compensation_authorization_or_governance(self):
+        """The guarantee, not one implementation of it.
+
+        Down-only is how MOST of these are protected: the box receives the cloud's value
+        and an upward write is refused. Being off the rail ENTIRELY is a stronger
+        guarantee of the same thing -- a column that does not travel cannot be written
+        upward by anyone -- so the assertion is the property, and each field is required
+        to satisfy it one way or the other.
+        """
         down = _DOWN_ONLY_FIELDS_PER_ENTITY["teacher"]
+        allowed = _get_entity_config(include_derived=True)["teacher"][1]
         for field in (
             "salary_amount",
             "salary_cap",
@@ -91,7 +100,32 @@ class TeacherRegistrationShapeTests(TestCase):
             "merged_into_id",
         ):
             with self.subTest(field=field):
-                self.assertIn(field, down)
+                self.assertTrue(
+                    field in down or field not in allowed,
+                    f"{field} rides two-way: a stale box could overwrite the cloud",
+                )
+
+    def test_the_pay_scale_link_is_off_the_rail_rather_than_down_only(self):
+        """Which of the two protections applies to pay_scale_id, and why.
+
+        payroll.PayScale has no ``school`` column, so the per-school provisioning clone
+        never carries it and a scale minted on the cloud can never be resolved on a box.
+        The reference was therefore unportable, not merely sensitive: an absent parent
+        cost the WHOLE teacher row, and the runner read that refusal as a reason to
+        re-download the entire corpus, which no replay could ever satisfy.
+
+        The column is nullable, so dropping it is free -- the teacher lands, without a
+        link the box could not have rendered anyway. Listing it as down-only as well
+        would claim a direction for data that does not travel at all.
+        """
+        from apps.api.sync_services import _is_tenant_scoped_model
+        from apps.payroll.models import PayScale
+
+        allowed = _get_entity_config(include_derived=True)["teacher"][1]
+        self.assertNotIn("pay_scale_id", allowed)
+        self.assertNotIn("pay_scale_id", _DOWN_ONLY_FIELDS_PER_ENTITY["teacher"])
+        self.assertFalse(_is_tenant_scoped_model(PayScale))
+        self.assertTrue(TeacherProfile._meta.get_field("pay_scale").null)
 
     def test_benign_roster_fields_are_left_two_way(self):
         down = _DOWN_ONLY_FIELDS_PER_ENTITY["teacher"]
