@@ -246,6 +246,36 @@ step "Update the checkout"
 UPSTREAM=""
 CHECKOUT_NOTE=""
 BRANCH="$(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
+
+# A FAILED FETCH IS NOT THE END OF WHAT CAN BE KNOWN. `ls-remote` is one ref
+# exchange rather than an object transfer, and on the Gilead box it answers while
+# `fetch` does not. It cannot say how FAR behind -- that needs the objects -- but
+# "this box is missing commits" and "I could not tell" are different sentences and
+# only one of them gets somebody to act.
+#
+# Do not ask the local refs instead. That box's `git status -sb` says
+# "## main...origin/main" with no divergence, because its own remote-tracking ref
+# is as stale as the checkout. Every local question answers "level" while six
+# commits sit on origin.
+probe_upstream() {
+  local tip
+  tip="$(GIT_TERMINAL_PROMPT=0 timeout 20 git -C "$REPO_ROOT" \
+    ls-remote origin "refs/heads/$BRANCH" 2>/dev/null | awk 'NR == 1 {print $1}')"
+  if [ -z "$tip" ]; then
+    return 0                      # the remote is genuinely unreachable; say no more
+  fi
+  if [ "$tip" = "$HEAD_COMMIT" ]; then
+    # The comparison WAS made, just not by the fetch. That is a real answer and it
+    # would be perverse to report it as unknown.
+    UPSTREAM="level"
+    CHECKOUT_NOTE=""
+    ok "the remote's tip matches this checkout -- nothing was missed"
+  else
+    warn "origin/$BRANCH is at $(short "$tip"); this checkout is at $(short "$HEAD_COMMIT")"
+    warn "this box IS behind, and the build below will not include those commits"
+    CHECKOUT_NOTE="the fetch failed and origin/$BRANCH is at $(short "$tip") -- this box is behind"
+  fi
+}
 if [ "$DO_PULL" = "0" ]; then
   ok "--no-pull: building from the checkout exactly as it stands"
   CHECKOUT_NOTE="--no-pull was given, so the remote was never consulted"
@@ -272,8 +302,15 @@ else
   # Offline remains the normal state for a box in a school. None of these block a
   # rebuild of code already on disk; they only decide what is said about it.
   BEFORE_PULL="$HEAD_COMMIT"
+  # ONE BRANCH. A bare `fetch origin` pulls every branch anybody has pushed, and
+  # this repo has several long-lived ones -- on a box over a school link that is the
+  # likeliest reason a fetch does not finish inside any budget worth waiting for. The
+  # explicit refspec is what keeps refs/remotes/origin/$BRANCH updated; `fetch origin
+  # $BRANCH` alone would only move FETCH_HEAD, and the ff-merge below reads the
+  # tracking ref.
   FETCH_ERR="$(GIT_TERMINAL_PROMPT=0 timeout "$FETCH_BUDGET" \
-    git -C "$REPO_ROOT" fetch origin 2>&1 >/dev/null)"
+    git -C "$REPO_ROOT" fetch origin \
+    "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" 2>&1 >/dev/null)"
   FETCH_RC=$?
   if [ "$FETCH_RC" = "124" ]; then
     warn "the fetch was still running after ${FETCH_BUDGET}s and was stopped"
@@ -281,11 +318,13 @@ else
     warn "    RMC_GIT_FETCH_TIMEOUT=1200 $HERE/box-rebuild.sh"
     ok "building from the checkout as it stands"
     CHECKOUT_NOTE="the fetch was stopped after ${FETCH_BUDGET}s without finishing"
+    probe_upstream
   elif [ "$FETCH_RC" != "0" ]; then
     warn "the fetch failed (exit $FETCH_RC). In git's own words:"
     printf '%s\n' "${FETCH_ERR:-(git said nothing)}" | sed 's/^/       /' | head -6
     ok "building from the checkout as it stands"
     CHECKOUT_NOTE="the fetch failed with exit $FETCH_RC -- git's message is above"
+    probe_upstream
   elif git -C "$REPO_ROOT" merge --ff-only "origin/$BRANCH" >/dev/null 2>&1; then
   HEAD_COMMIT="$(checkout_commit)"
     # A successful ff-merge means BOTH "moved" and "was already there", and those
