@@ -88,8 +88,8 @@ def _request_replay_for_missing_parents(
     silently divergent. The parent has to be fetched by some means other than the delta.
 
     IT DOES NOT TAKE THE WHOLE CORPUS TO FETCH ONE TABLE. Rewinding the cursor to 'no
-    position' re-downloads every row of every entity - 315,964 of them on the Gilead box,
-    to collect one absent department - and because a full-corpus pull re-offers every row
+    position' re-downloads every row of every entity - 315,964 of them on the box this
+    was measured on, to collect one absent department - and because a full-corpus pull re-offers every row
     the box already holds, the replay is itself what drove waves of conflict and skip
     records through the apply path. The cure was the disease.
 
@@ -156,7 +156,11 @@ def _request_replay_for_missing_parents(
             by_label = {}
             try:
                 by_label = _rail_entity_by_model_label()
-            except Exception:  # noqa: BLE001 - fall back rather than fail the cycle
+            except (ImportError, LookupError, AttributeError, TypeError):
+                # Named: the registry is an import plus model lookups, and a blanket
+                # except here would swallow a bug in the mapping and silently downgrade
+                # every repair to a full-corpus rewind -- the exact behaviour being
+                # removed, restored invisibly.
                 logger.debug("could not map parent labels to entities", exc_info=True)
             wanted, cooling = [], []
             for label in sorted(set(parents)):
