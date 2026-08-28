@@ -23,6 +23,7 @@ silently returns empty would make the final verification vacuously pass.
 
 from __future__ import annotations
 
+import os
 import pathlib
 import re
 import shutil
@@ -446,7 +447,9 @@ class TheTlsProfileMustSurviveAColdStartTests(SimpleTestCase):
     twice.
     """
 
-    START = "# The TLS terminator runs behind a compose PROFILE"
+    # env_value is the .env parser now, and it sits just above the TLS
+    # paragraph, so the block starts there.
+    START = "# One reader for every value a box configures"
     END = "printf '%sRunMyCampus box rebuild%s"
 
     def setUp(self):
@@ -780,6 +783,7 @@ class TheSummaryMustSayWhetherTheCodeIsCurrentTests(SimpleTestCase):
         "bar()  { :; }\n"
         "short() { printf '%.9s' \"$1\"; }\n"
         'checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }\n'
+        'HERE="/srv/rmc/deploy/selfhost"\n'
     )
 
     def _run_step3(self, do_pull=1):
@@ -787,6 +791,9 @@ class TheSummaryMustSayWhetherTheCodeIsCurrentTests(SimpleTestCase):
             self._SHIMS
             + 'REPO_ROOT="' + _posix(self.repo) + '"\n'
             + "DO_PULL=" + str(do_pull) + "\n"
+            # Step 3 reads this now. Omitting it puts the fetch subshell into
+            # `set -u` and the failure reads as a broken remote.
+            + 'FETCH_BUDGET="300"\n'
             + 'HEAD_COMMIT="$(checkout_commit)"\n'
             + _section(*self.STEP3)
             + 'printf "\\nUPSTREAM=[%s]\\nNOTE=[%s]\\nHEAD=[%s]\\n"'
@@ -833,7 +840,12 @@ class TheSummaryMustSayWhetherTheCodeIsCurrentTests(SimpleTestCase):
         self._go_offline()
         out = self._run_step3()
         self.assertIn("UPSTREAM=[]", out)
-        self.assertIn("could not be reached", out)
+        # What it says about WHY is git's business now, not this script's. The
+        # guarantee under test here is only that the verdict stays unestablished
+        # and a reason is recorded; TheFetchMustReportWhatHappenedRatherThanGuess
+        # owns the wording.
+        self.assertIn("In git's own words", out)
+        self.assertNotIn("UPSTREAM=[level]", out)
 
     def test_a_dirty_checkout_leaves_the_verdict_unestablished(self):
         (self.repo / "a.txt").write_text("edited\n", encoding="utf-8")
@@ -1031,22 +1043,176 @@ class TheHelpTextMustSurviveAnEditedHeaderTests(SimpleTestCase):
         self.assertIn("set -uo pipefail", help_line)
 
 
+class TheFetchMustReportWhatHappenedRatherThanGuessTests(SimpleTestCase):
+    """The script held git's own error message and sent it to /dev/null.
+
+    It then warned "could not reach the git remote (offline, or no stored
+    credential)" -- two causes, neither measured. On the Gilead box on 2026-08-28
+    both were false: `git ls-remote origin refs/heads/main` answered from that same
+    checkout, over that same URL, with no prompt, returning the sha origin really
+    was at. The operator was handed a guess, and the guess pointed at the network.
+
+    A fetch stopped by `timeout` is a third outcome and the likeliest one on a box:
+    a school link and a repo this size do not finish in sixty seconds, and rc 124 is
+    a fetch that was working when it was killed. It has a different remedy, so it
+    gets a different message -- and the budget stopped being a hardcoded number.
+    """
+
+    STEP3 = ('step "Update the checkout"', "bar 3")
+    BUDGET = (
+        "# One reader for every value a box configures in its own .env. The last assignment",
+        "esac",
+    )
+
+    def setUp(self):
+        _need_git_and_timeout(self)
+        self.dir = pathlib.Path(tempfile.mkdtemp(prefix="box-fetch-"))
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.origin = self.dir / "origin.git"
+        self.repo = self.dir / "repo"
+        _git("init", "-q", "--bare", _posix(self.origin))
+        _git("clone", "-q", _posix(self.origin), _posix(self.repo))
+        _git("symbolic-ref", "HEAD", "refs/heads/main", cwd=self.repo)
+        (self.repo / "a.txt").write_text("one\n", encoding="utf-8")
+        _git("add", "a.txt", cwd=self.repo)
+        _git("commit", "-qm", "one", cwd=self.repo)
+        _git("push", "-q", "-u", "origin", "main", cwd=self.repo)
+
+    _SHIMS = (
+        "set -uo pipefail\n"
+        'B=""; N=""; G=""; Y=""\n'
+        "step() { printf '[step] %s\\n' \"$*\"; }\n"
+        "ok()   { printf '  OK   %s\\n' \"$*\"; }\n"
+        "warn() { printf '  WARN %s\\n' \"$*\"; }\n"
+        "bar()  { :; }\n"
+        "short() { printf '%.9s' \"$1\"; }\n"
+        'checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }\n'
+        'HERE="/srv/rmc/deploy/selfhost"\n'
+    )
+
+    def _run_step3(self, prelude="", budget="300"):
+        script = (
+            self._SHIMS
+            + 'REPO_ROOT="' + _posix(self.repo) + '"\n'
+            + "DO_PULL=1\n"
+            + 'FETCH_BUDGET="' + budget + '"\n'
+            + prelude
+            + 'HEAD_COMMIT="$(checkout_commit)"\n'
+            + _section(*self.STEP3)
+            + 'printf "\\nNOTE=[%s]\\nUPSTREAM=[%s]\\n" "$CHECKOUT_NOTE" "$UPSTREAM"\n'
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    def _resolve_budget(self, env=None, dotenv=None):
+        """Run the real resolution, with a real .env, exactly as the script does."""
+        if dotenv is not None:
+            (self.dir / ".env").write_bytes(dotenv.encode("utf-8"))
+        script = (
+            "set -uo pipefail\n"
+            'HERE="' + _posix(self.dir) + '"\n'
+            + _section(*self.BUDGET)
+            + 'printf "BUDGET=[%s]\\n" "$FETCH_BUDGET"\n'
+        )
+        proc = subprocess.run(
+            ["bash", "-c", script],
+            capture_output=True,
+            text=True,
+            env={**os.environ, **(env or {})},
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout.split("BUDGET=[", 1)[1].split("]", 1)[0]
+
+    # -- the three outcomes, told apart --------------------------------------
+
+    def test_a_stopped_fetch_is_not_reported_as_an_outage(self):
+        # rc 124 is `timeout` killing a fetch that was working. Calling that an
+        # unreachable remote sends somebody to check a network that is fine.
+        out = self._run_step3(prelude="timeout() { return 124; }\n", budget="45")
+        self.assertIn("still running after 45s", out)
+        self.assertNotIn("could not reach", out)
+        self.assertIn("slow link, not an outage", out)
+
+    def test_a_stopped_fetch_says_how_to_give_it_longer(self):
+        out = self._run_step3(prelude="timeout() { return 124; }\n")
+        self.assertIn("RMC_GIT_FETCH_TIMEOUT=", out)
+
+    def test_a_failed_fetch_prints_gits_own_message(self):
+        _git("remote", "set-url", "origin", _posix(self.dir / "nope.git"), cwd=self.repo)
+        out = self._run_step3()
+        self.assertIn("In git's own words", out)
+        self.assertIn("does not appear to be a git repository", out)
+        self.assertIn("exit 128", out)
+
+    def test_a_failed_fetch_names_no_cause_it_did_not_measure(self):
+        # The exact string that was wrong on the box. It survives in the comments
+        # that explain why it went, so the executable text is what is checked.
+        code = re.sub(r"(?m)^\s*#.*$", "", REBUILD.read_text(encoding="utf-8"))
+        self.assertNotIn("offline, or no stored credential", code)
+
+    def test_a_working_fetch_is_untouched_by_any_of_this(self):
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[level]", out)
+        self.assertIn("NOTE=[]", out)
+
+    # -- the budget is configured, not hardcoded ------------------------------
+
+    def test_the_default_is_no_longer_the_sixty_that_failed(self):
+        self.assertEqual(self._resolve_budget(dotenv=""), "300")
+
+    def test_the_box_env_file_can_raise_it(self):
+        self.assertEqual(
+            self._resolve_budget(dotenv="RMC_GIT_FETCH_TIMEOUT=1200\n"), "1200"
+        )
+
+    def test_the_environment_beats_the_env_file(self):
+        # Somebody standing at the box needs to override it for one run without
+        # editing a file the next bootstrap will rewrite.
+        got = self._resolve_budget(
+            env={"RMC_GIT_FETCH_TIMEOUT": "900"},
+            dotenv="RMC_GIT_FETCH_TIMEOUT=1200\n",
+        )
+        self.assertEqual(got, "900")
+
+    def test_a_nonsense_value_falls_back_instead_of_choking_timeout(self):
+        # `timeout 5min` is a usage error, and a usage error here would abort the
+        # rebuild over a typo in a config file.
+        self.assertEqual(self._resolve_budget(dotenv="RMC_GIT_FETCH_TIMEOUT=5min\n"), "300")
+        self.assertEqual(self._resolve_budget(dotenv="RMC_GIT_FETCH_TIMEOUT=\n"), "300")
+
+    def test_a_crlf_env_does_not_smuggle_a_carriage_return_into_the_budget(self):
+        # A trailing CR makes the value non-numeric, which the guard catches -- but
+        # it would silently become 300 on a box that asked for 1200.
+        self.assertEqual(
+            self._resolve_budget(dotenv="RMC_GIT_FETCH_TIMEOUT=1200\r\n"), "1200"
+        )
+
+    def test_the_tls_mode_reads_through_the_same_reader(self):
+        # Two hand-rolled awk parsers drift. The .env behaviours asserted for the TLS
+        # mode -- quotes, CRLF, last-wins, commented-out -- are this one function now.
+        text = REBUILD.read_text(encoding="utf-8")
+        self.assertIn("edge_tls_mode() { env_value RMC_EDGE_TLS_MODE; }", text)
+
+
 class TheAuditMustNotCallAStaleRefCurrentTests(SimpleTestCase):
     """`box-audit.sh` printed "[ OK ] level with origin/main" on a box that was behind.
 
     Section A ran `git fetch`, threw the exit status away, and compared HEAD against
-    whatever origin/main happened to be sitting in .git. On a box that fetched
-    successfully last week and has been offline since, that ref is last week's, HEAD
-    matches it, and the audit reports a green PASS about a comparison it never made.
+    whatever origin/main was sitting in .git. On a box that fetched successfully last
+    week and has been offline since, that ref is last week's, HEAD matches it, and the
+    audit reports a green PASS about a comparison it never made.
 
     REPRODUCED, not reasoned about: box level and fetched, cloud moves one commit on,
-    box loses its remote, old code says "[ OK ] level with origin/main". That is the
-    Gilead box's exact state on 2026-08-28, and the audit is the command somebody runs
-    to decide whether the box is fine.
+    box loses its remote, old code says "[ OK ] level with origin/main". That was the
+    Gilead box's state on 2026-08-28, and the audit is the command somebody runs to
+    decide whether the box is fine.
 
-    Offline is the NORMAL state for a box in a school, so this was the common path.
-    Same defect as the rebuild summary one file over: a report about a proxy for the
-    thing, printed with the confidence owed to the thing.
+    It asks for the TIP now rather than for the objects. A fetch pulls the whole delta
+    -- minutes, on this repo over a school link -- so it needs a timeout, and then a
+    slow link reads as an unreachable remote. Measured on the same box: `ls-remote`
+    answered that URL while `fetch` did not finish. It also writes nothing, which an
+    audit should not be doing at all.
     """
 
     BLOCK = ('branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"', "fi")
@@ -1098,13 +1264,6 @@ class TheAuditMustNotCallAStaleRefCurrentTests(SimpleTestCase):
         self.assertIn("[ OK ]", out)
         self.assertIn("level with origin/main", out)
 
-    def test_a_checkout_behind_a_reachable_origin_says_how_far(self):
-        self._cloud_moves_on()
-        self._cloud_moves_on()
-        out = self._run()
-        self.assertIn("[WARN]", out)
-        self.assertIn("behind origin/main by 2 commit(s)", out)
-
     def test_an_unreachable_remote_is_never_reported_as_level(self):
         # THE BUG. The stale ref matches HEAD, so the comparison "succeeds" and says
         # the opposite of the truth.
@@ -1126,6 +1285,31 @@ class TheAuditMustNotCallAStaleRefCurrentTests(SimpleTestCase):
         remote = _git("ls-remote", _posix(self.origin), "refs/heads/main").stdout.split()[0]
         self.assertNotEqual(head, remote, "the cloud did not actually move on")
 
+    def test_a_checkout_behind_an_origin_it_has_fetched_says_how_far(self):
+        self._cloud_moves_on()
+        self._cloud_moves_on()
+        _git("fetch", "origin", "--quiet", cwd=self.repo)
+        out = self._run()
+        self.assertIn("behind origin/main by 2 commit(s)", out)
+
+    def test_a_checkout_that_has_not_fetched_does_not_invent_a_distance(self):
+        # The count needs the objects, and the objects need a fetch. Naming a number
+        # it could not compute is exactly how this section went wrong before.
+        self._cloud_moves_on()
+        out = self._run()
+        self.assertIn("behind origin/main", out)
+        self.assertIn("not in this checkout yet", out)
+        self.assertNotIn("commit(s)", out)
+
+    def test_a_branch_the_remote_does_not_have_is_not_an_unreachable_remote(self):
+        # The remote answered. Reporting that as an outage sends somebody to check a
+        # network that is working.
+        _git("checkout", "-q", "-b", "never-pushed", cwd=self.repo)
+        out = self._run()
+        self.assertIn("origin has no branch 'never-pushed'", out)
+        self.assertNotIn("could not reach", out)
+        self.assertNotIn("[ OK ]", out)
+
     def test_the_branch_is_read_rather_than_assumed_to_be_main(self):
         # A box on any other branch was being measured against a ref that says
         # nothing about it.
@@ -1136,22 +1320,15 @@ class TheAuditMustNotCallAStaleRefCurrentTests(SimpleTestCase):
         self.assertIn("origin/boxline", out)
         self.assertNotIn("origin/main", out)
 
-    def test_a_branch_the_remote_does_not_have_is_a_cannot_compare(self):
-        # Not "level", and not "behind by ?" either -- neither is what happened.
-        _git("checkout", "-q", "-b", "never-pushed", cwd=self.repo)
-        out = self._run()
-        self.assertIn("cannot compare", out)
-        self.assertNotIn("[ OK ]", out)
-
-    def test_the_fetch_decides_the_branch_rather_than_being_ignored(self):
-        code = re.sub(r"(?m)^\s*#.*$", "", _section(*self.BLOCK, path=AUDIT))
-        self.assertIn("if GIT_TERMINAL_PROMPT=0 timeout 30 git fetch", code)
-        # The old form: run it, discard the status, read the ref anyway.
-        self.assertNotIn("git fetch origin --quiet 2>/dev/null\n", code)
+    def test_the_audit_does_not_fetch_at_all(self):
+        # An audit runs to decide whether a rebuild is safe. Writing remote-tracking
+        # refs while answering that is both unnecessary and slow.
+        code = re.sub(r"(?m)^\s*#.*$", "", AUDIT.read_text(encoding="utf-8"))
+        self.assertNotIn("git fetch", code)
+        self.assertIn("ls-remote", code)
 
     def test_the_audit_cannot_hang_waiting_for_a_credential(self):
-        # An audit runs unattended before a rebuild. A prompt nobody answers is an
-        # audit that never finishes.
+        # A prompt nobody is there to answer is an audit that never finishes.
         code = _section(*self.BLOCK, path=AUDIT)
         self.assertIn("GIT_TERMINAL_PROMPT=0", code)
         self.assertIn("timeout 30", code)

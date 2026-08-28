@@ -36,18 +36,29 @@ echo "     HEAD $head   $(git log -1 --format=%s | cut -c1-64)"
 #
 # The branch is read, not assumed: a box on any branch but main was being measured
 # against a ref that says nothing about it.
+# ASK FOR THE TIP, NOT FOR THE OBJECTS. A fetch downloads the whole delta, which on
+# this repo over a school link is minutes -- so it needs a timeout, and then a slow
+# link reads as an unreachable remote. Measured on the Gilead box on 2026-08-28:
+# `git ls-remote` answered that URL from that checkout while `git fetch` did not
+# finish. One ref exchange, and it writes nothing, which an audit should not do.
 branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)"
-if GIT_TERMINAL_PROMPT=0 timeout 30 git fetch origin --quiet 2>/dev/null; then
-  behind="$(git rev-list --count "HEAD..origin/$branch" 2>/dev/null || echo '?')"
-  if [ "$behind" = "0" ]; then
-    ok "level with origin/$branch"
-  elif [ "$behind" = "?" ]; then
-    warn "origin/$branch is not a ref this checkout knows -- cannot compare"
-  else
-    warn "behind origin/$branch by $behind commit(s)"
-  fi
-else
+remote_refs="$(GIT_TERMINAL_PROMPT=0 timeout 30 git ls-remote origin "refs/heads/$branch" 2>/dev/null)"
+ls_rc=$?
+remote_tip="$(printf '%s\n' "$remote_refs" | awk 'NR == 1 {print $1}')"
+if [ "$ls_rc" != "0" ]; then
   warn "could not reach the git remote -- cannot tell whether this checkout is current"
+elif [ -z "$remote_tip" ]; then
+  # The remote answered; it simply has no such branch. Different from unreachable,
+  # and different again from being behind.
+  warn "origin has no branch '$branch' -- nothing to compare this checkout against"
+elif [ "$remote_tip" = "$(git rev-parse HEAD)" ]; then
+  ok "level with origin/$branch"
+elif git cat-file -e "$remote_tip^{commit}" 2>/dev/null; then
+  warn "behind origin/$branch by $(git rev-list --count "HEAD..$remote_tip") commit(s)"
+else
+  # We do not hold the object, so the distance cannot be computed without a fetch --
+  # and printing a number we could not compute is how this section went wrong before.
+  warn "behind origin/$branch, now at $(printf '%.9s' "$remote_tip") -- not in this checkout yet"
 fi
 # By CONTENT, never by remembered hash -- hashes are not stable in a shared checkout.
 grep -q "handle @trust" apps/schools/edge_tls.py \
