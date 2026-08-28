@@ -159,8 +159,27 @@ confirmation, cutover/finance banners on review page.
 - [x] **Remediation must not depend on the LLM being reachable.**
       (Rules-only path in `auto_remediate.py`; AI explain is optional overlay.)
 - [ ] **Every claim about behaviour is backed by a state read**, not by reading
-      the code and reasoning about it.
-      (Use `profile_bundle_quarantine` + held-review GET against live bundles.)
+      the code and reasoning about it. **The one rule still open**, and the one
+      the "bundle N will clear on first open" claim depends on.
+
+      Running the real pass to find out is not a state read -- it changes the
+      state, and on a live tenant it closes rows in order to tell you whether it
+      would close them. So:
+
+      ```
+      python manage.py profile_bundle_quarantine --bundle-id N   # what is held
+      python manage.py preview_quarantine_autopilot --bundle-id N  # what autopilot does
+      ```
+
+      Both are read-only and safe against production. The preview reports three
+      outcomes, and the middle one is the one that gets over-claimed: a replay is
+      ATTEMPTED, the row is re-landed, and a failed land stays held. It also
+      counts how many automated decisions rest on an `issue_class` guessed from
+      the error text rather than declared by the lander.
+
+      Ticking this box needs the output of those two commands against a real
+      bundle, pasted somewhere durable. Nothing in the repo can do it -- the
+      development database holds zero bundles.
 
 ## The prompt
 
