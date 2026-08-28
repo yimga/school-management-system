@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import pathlib
 import re
 import subprocess
 import sys
@@ -32,6 +33,35 @@ PATTERNS = (
     re.compile(r"\bexcept\s+Exception\b"),
     re.compile(r"\bexcept\s+BaseException\b"),
 )
+
+
+DEFAULT_UNLISTED_BASELINE = ROOT / "var" / "broad-except-unlisted-baseline.json"
+
+
+def _load_unlisted_baseline(path: str | None) -> dict[str, int]:
+    """Counts for files the curated allowlist does not name.
+
+    Until 2026-08-28 there was no such thing, and the consequence was not
+    subtle: the allowlist branch iterated the ALLOWLIST's keys and asked
+    `counts.get(path, 0)` for each, so a file absent from the list was never
+    examined at all. 189 files were named -- 147 of them carrying zero broad
+    excepts -- while 921 files carrying 3227 of them were invisible, and a new
+    module with `except Exception:` AND `except BaseException:` passed cleanly.
+
+    The curated allowlist stays what it is: a human policy artifact with an
+    issue link and a review date, for the high-risk paths somebody argued
+    about. This is the machine ratchet underneath it, so that "not on the list"
+    means "must not grow" instead of "not looked at".
+    """
+    target = pathlib.Path(path) if path else DEFAULT_UNLISTED_BASELINE
+    if not target.is_file():
+        return {}
+    try:
+        raw = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    counts = raw.get("counts", raw)
+    return {str(k): int(v) for k, v in counts.items() if isinstance(v, int)}
 
 
 def _count_broad_lines(text: str) -> int:
@@ -157,6 +187,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--allowlist", help="JSON file of file -> allowed broad-except count."
     )
     parser.add_argument(
+        "--unlisted-baseline",
+        help="JSON ratchet for files the allowlist does not name (default: "
+        "var/broad-except-unlisted-baseline.json). Absent from both means 0 allowed.",
+    )
+    parser.add_argument(
+        "--update-unlisted-baseline",
+        action="store_true",
+        help="Rewrite the unlisted ratchet from the current tree. Freezes today's "
+        "population; it can only fall from there.",
+    )
+    parser.add_argument(
         "--base",
         default=str(ROOT),
         help="Repo base path (defaults to this repository root).",
@@ -178,11 +219,35 @@ def main(argv: list[str] | None = None) -> int:
     counts = _scan_counts(base)
     allowlist = _load_allowlist(args.allowlist)
 
+    if args.update_unlisted_baseline:
+        target = pathlib.Path(args.unlisted_baseline or DEFAULT_UNLISTED_BASELINE)
+        payload = {
+            "rule": "files NOT named by scripts/allowlists/broad_except_allowlist.json "
+            "may not carry more broad excepts than recorded here; absent means 0",
+            "counts": {p: c for p, c in sorted(counts.items()) if p not in allowlist and c},
+        }
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+        print(f"lint_broad_except: unlisted ratchet written to {target} "
+              f"({len(payload['counts'])} file(s))")
+        return 0
+
     if allowlist:
         _merge_allowlisted_services_counts(base, counts, allowlist)
         violations: list[tuple[str, int, int]] = []
         for path, allowed_count in sorted(allowlist.items()):
             actual = counts.get(path, 0)
+            if actual > allowed_count:
+                violations.append((path, actual, allowed_count))
+        # And now everything the curated list does NOT name. Without this the
+        # gate cannot see a new file, which is the direction it exists to
+        # protect.
+        unlisted = _load_unlisted_baseline(getattr(args, "unlisted_baseline", None))
+        for path in sorted(counts):
+            if path in allowlist:
+                continue
+            actual = counts[path]
+            allowed_count = unlisted.get(path, 0)
             if actual > allowed_count:
                 violations.append((path, actual, allowed_count))
         if not violations:

@@ -1,19 +1,37 @@
-"""Autonomous quarantine triage — dismiss safe holds and refresh inference before repair."""
+"""Autonomous quarantine triage — zero-touch import closure (spec step 3).
+
+Runs after every live apply and before repair re-import:
+  1. Refresh inference + dismiss informational / PDF noise rows
+  2. Replay ``invalid_ref`` holds now that later waves have landed
+  3. Enrich defensible ``missing_required`` rows and replay
+  4. Persist audit summary + ``reconciliation_status`` closure state
+"""
 
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from .landers._helpers import row_is_unstructured_text_fragment
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from .landers._helpers import (
+    enrich_missing_required_row,
+    row_is_pdf_noise_hold,
+    row_is_unstructured_text_fragment,
+)
 from .quarantine_resolution import (
     QUARANTINE_NO_ACTION_CLASSES,
+    _resolve_lander_domain,
     _source_row_from_payload,
     pending_quarantine_count,
     quarantine_queryset_for_bundle,
 )
 
 logger = logging.getLogger(__name__)
+
+# Bounded retry ceiling — see MIGRATION_CLOUD_ZERO_TOUCH_IMPORT_SPEC hard rules.
+MAX_AUTO_REMEDIATE_PASSES = 2
 
 
 def auto_dismiss_informational(bundle, *, user=None) -> dict[str, Any]:
@@ -37,6 +55,33 @@ def auto_dismiss_informational(bundle, *, user=None) -> dict[str, Any]:
     return {"dismissed": dismissed}
 
 
+def auto_dismiss_pdf_noise_holds(bundle, *, user=None) -> dict[str, Any]:
+    """Dismiss PDF/stat rows held as missing_required with no domain identity."""
+    from apps.automation.quarantine_services import mark_repaired
+
+    qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
+        issue_class="missing_required"
+    )
+    dismissed = 0
+    for rec in qs.iterator():
+        payload = rec.payload if isinstance(rec.payload, dict) else {}
+        source_row = _source_row_from_payload(payload)
+        artifact = str(payload.get("artifact") or "")
+        if not row_is_pdf_noise_hold(rec.domain, source_row, artifact):
+            continue
+        mark_repaired(
+            rec,
+            {
+                "auto_dismissed": True,
+                "auto_pdf_noise": True,
+                "note": "Auto-dismissed — PDF line with no importable identity",
+                "by": getattr(user, "pk", None),
+            },
+        )
+        dismissed += 1
+    return {"dismissed": dismissed}
+
+
 def auto_dismiss_unstructured_fragments(bundle, *, user=None) -> dict[str, Any]:
     """Dismiss PDF/stat-sheet text lines that are not importable records."""
     from apps.automation.quarantine_services import mark_repaired
@@ -48,12 +93,14 @@ def auto_dismiss_unstructured_fragments(bundle, *, user=None) -> dict[str, Any]:
     for rec in qs.iterator():
         payload = rec.payload if isinstance(rec.payload, dict) else {}
         source_row = _source_row_from_payload(payload)
-        if not row_is_unstructured_text_fragment(source_row):
+        artifact = str(payload.get("artifact") or "")
+        if not row_is_unstructured_text_fragment(source_row, artifact=artifact):
             continue
         mark_repaired(
             rec,
             {
                 "auto_dismissed": True,
+                "auto_pdf_fragment": True,
                 "note": "Auto-dismissed — PDF text fragment, not an importable record",
                 "by": getattr(user, "pk", None),
             },
@@ -62,11 +109,281 @@ def auto_dismiss_unstructured_fragments(bundle, *, user=None) -> dict[str, Any]:
     return {"dismissed": dismissed}
 
 
+def _artifact_for_auto_replay(bundle, record) -> Any:
+    payload = record.payload if isinstance(record.payload, dict) else {}
+    path = str(payload.get("artifact") or "").strip()
+    if path:
+        art = bundle.artifacts.filter(path_within_bundle=path).first()
+        if art is not None:
+            return art
+    return bundle.artifacts.filter(quarantined=False).order_by("pk").first()
+
+
+def _attempt_land_quarantine_row(
+    *,
+    bundle,
+    record,
+    source_row: dict[str, Any],
+    dry_run: bool = False,
+) -> tuple[bool, str]:
+    """Try landing one held row; returns (success, error_message)."""
+    from apps.migration_cloud.landers.base import get_lander
+    from apps.migration_cloud.orchestrator import _run_lander_under_schema
+
+    domain = _resolve_lander_domain(record.domain)
+    lander = get_lander(domain) or get_lander("custom_fields")
+    if lander is None:
+        return False, f"no lander for domain {domain!r}"
+
+    artifact = _artifact_for_auto_replay(bundle, record)
+    if artifact is None:
+        return False, "bundle has no artifact for replay context"
+
+    try:
+        result = _run_lander_under_schema(
+            lander=lander,
+            rows_iter=iter([source_row]),
+            bundle=bundle,
+            artifact=artifact,
+            dry_run=dry_run,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}"
+
+    if result.quarantined or result.errors:
+        err = result.errors[0] if result.errors else "lander quarantined row"
+        return False, str(err)
+    return True, ""
+
+
+def auto_replay_invalid_ref_holds(bundle, *, user=None) -> dict[str, Any]:
+    """Replay ``invalid_ref`` rows after all dependency waves have finished."""
+    from apps.automation.quarantine_services import mark_repaired
+
+    qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
+        issue_class="invalid_ref"
+    )
+    replayed = 0
+    failed = 0
+    errors: list[str] = []
+
+    for rec in qs.iterator():
+        payload = rec.payload if isinstance(rec.payload, dict) else {}
+        source_row = _source_row_from_payload(payload)
+        if not source_row:
+            failed += 1
+            continue
+
+        ok, err = _attempt_land_quarantine_row(
+            bundle=bundle, record=rec, source_row=source_row
+        )
+        if not ok:
+            failed += 1
+            if err and len(errors) < 10:
+                errors.append(f"record {rec.pk}: {err}")
+            continue
+
+        mark_repaired(
+            rec,
+            {
+                "auto_replayed": True,
+                "auto_invalid_ref_wave": True,
+                "note": "Auto-replayed — reference resolved after wave order completed",
+                "source_row": source_row,
+                "by": getattr(user, "pk", None),
+            },
+        )
+        replayed += 1
+
+    return {"replayed": replayed, "failed": failed, "errors": errors}
+
+
+def auto_enrich_and_replay_missing_required(bundle, *, user=None) -> dict[str, Any]:
+    """Apply defensible defaults to ``missing_required`` rows and replay."""
+    from apps.automation.quarantine_services import mark_repaired
+
+    qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
+        issue_class="missing_required"
+    )
+    enriched = 0
+    replayed = 0
+    skipped = 0
+    errors: list[str] = []
+
+    for rec in qs.iterator():
+        payload = rec.payload if isinstance(rec.payload, dict) else {}
+        source_row = _source_row_from_payload(payload)
+        artifact = str(payload.get("artifact") or "")
+        if row_is_pdf_noise_hold(rec.domain, source_row, artifact):
+            skipped += 1
+            continue
+
+        new_row, evidence = enrich_missing_required_row(rec.domain, source_row)
+        if not evidence:
+            skipped += 1
+            continue
+        enriched += 1
+
+        ok, err = _attempt_land_quarantine_row(
+            bundle=bundle, record=rec, source_row=new_row
+        )
+        if not ok:
+            if err and len(errors) < 10:
+                errors.append(f"record {rec.pk}: {err}")
+            continue
+
+        mark_repaired(
+            rec,
+            {
+                "auto_enriched": True,
+                "enrichment_evidence": evidence,
+                "note": "Auto-enriched and imported — " + "; ".join(evidence),
+                "source_row": new_row,
+                "by": getattr(user, "pk", None),
+            },
+        )
+        replayed += 1
+
+    return {
+        "enriched": enriched,
+        "replayed": replayed,
+        "skipped": skipped,
+        "errors": errors,
+    }
+
+
+def _sum_auto_resolved(results: dict[str, Any]) -> int:
+    return (
+        int(results.get("informational_dismissed") or 0)
+        + int(results.get("pdf_noise_dismissed") or 0)
+        + int(results.get("fragment_dismissed") or 0)
+        + int(results.get("invalid_ref_replayed") or 0)
+        + int(results.get("missing_required_replayed") or 0)
+    )
+
+
+def persist_auto_remediation_summary(bundle, results: dict[str, Any]) -> None:
+    """Write the audit trail onto the bundle (never hides rows — records what closed)."""
+    summary = dict(getattr(bundle, "mapping_summary", None) or {})
+    results = {
+        **results,
+        "auto_resolved_total": _sum_auto_resolved(results),
+        "completed_at": timezone.now().isoformat(),
+    }
+    summary["auto_remediation"] = results
+    bundle.mapping_summary = summary
+    bundle.save(update_fields=["mapping_summary", "updated_at"])
+
+
+def _financial_guardrail_blocks_closure(bundle) -> bool:
+    """True when control totals failed — closure must stay BLOCKED."""
+    size = getattr(bundle, "size_summary", None) or {}
+    if size.get("financial_guardrail_failed"):
+        return True
+    report = (getattr(bundle, "mapping_summary", None) or {}).get("financial_guardrail") or {}
+    return bool(report) and report.get("ok") is False
+
+
+def sync_reconciliation_closure(bundle, results: dict[str, Any] | None = None) -> str:
+    """Set ``reconciliation_status`` from pending actionable rows + bundle health."""
+    from .models import BundleStatus, ReconciliationClosureStatus
+    from .models_cutover import cutover_signoff_pending_for_bundle
+
+    pending = pending_quarantine_count(bundle)
+    status = getattr(bundle, "status", "") or ""
+    cutover_pending = cutover_signoff_pending_for_bundle(bundle)
+    guardrail_failed = _financial_guardrail_blocks_closure(bundle)
+
+    if status in (BundleStatus.FAILED, BundleStatus.ABORTED) or guardrail_failed:
+        closure = ReconciliationClosureStatus.BLOCKED
+    elif pending == 0 and not cutover_pending:
+        closure = ReconciliationClosureStatus.CLOSED
+    elif pending == 0 and cutover_pending:
+        closure = ReconciliationClosureStatus.PENDING_HUMAN
+    else:
+        actionable = (
+            quarantine_queryset_for_bundle(bundle, pending_only=True)
+            .exclude(issue_class__in=QUARANTINE_NO_ACTION_CLASSES)
+            .exists()
+        )
+        closure = (
+            ReconciliationClosureStatus.PENDING_HUMAN
+            if actionable or cutover_pending
+            else ReconciliationClosureStatus.CLOSED
+        )
+
+    recon = dict(getattr(bundle, "reconciliation_summary", None) or {})
+    recon["closure"] = {
+        "status": closure,
+        "pending_quarantine": pending,
+        "auto_resolved_total": int((results or {}).get("auto_resolved_total") or 0),
+        "cutover_signoff_pending": cutover_pending,
+        "financial_guardrail_failed": guardrail_failed,
+        "updated_at": timezone.now().isoformat(),
+    }
+    bundle.reconciliation_summary = recon
+    bundle.reconciliation_status = closure
+    bundle.save(
+        update_fields=["reconciliation_status", "reconciliation_summary", "updated_at"]
+    )
+    return closure
+
+
+def import_closure_banner(bundle) -> dict[str, Any] | None:
+    """Tenant-facing copy when autopilot closed the queue without human action."""
+    from .models import ReconciliationClosureStatus
+
+    closure = str(getattr(bundle, "reconciliation_status", "") or "")
+    auto = (getattr(bundle, "mapping_summary", None) or {}).get("auto_remediation") or {}
+    auto_total = int(auto.get("auto_resolved_total") or 0)
+    pdf_skipped = int(auto.get("pdf_noise_dismissed") or 0) + int(
+        auto.get("fragment_dismissed") or 0
+    )
+    pending = pending_quarantine_count(bundle)
+
+    if closure != ReconciliationClosureStatus.CLOSED or pending > 0:
+        return None
+    if auto_total <= 0:
+        return {
+            "headline": str(_("Import closed — no rows awaiting review")),
+            "detail": "",
+            "tone": "success",
+        }
+
+    if pdf_skipped >= auto_total:
+        detail = str(
+            _("PDF and stat-sheet lines were skipped — they were not importable records.")
+        )
+    else:
+        detail = str(
+            _(
+                "%(pdf)s PDF lines skipped; %(replay)s rows auto-imported after "
+                "references or missing fields were resolved."
+            )
+            % {
+                "pdf": pdf_skipped,
+                "replay": auto_total - pdf_skipped,
+            }
+        )
+
+    return {
+        "headline": str(
+            _("Import closed — %(count)s auto-resolved (PDF lines skipped)")
+            % {"count": auto_total}
+        ),
+        "detail": detail,
+        "tone": "success",
+        "auto_resolved_total": auto_total,
+        "pdf_skipped": pdf_skipped,
+    }
+
+
 def auto_remediate_before_repair(bundle, *, user=None) -> dict[str, Any]:
-    """Run autonomous pre-repair steps: refresh domains, dismiss informational holds."""
+    """Pre-repair dismiss pass (informational + PDF noise)."""
     results: dict[str, Any] = {
         "inference_refreshed": False,
         "informational_dismissed": 0,
+        "pdf_noise_dismissed": 0,
         "fragment_dismissed": 0,
         "pending_before": pending_quarantine_count(bundle),
     }
@@ -83,7 +400,58 @@ def auto_remediate_before_repair(bundle, *, user=None) -> dict[str, Any]:
         )
     dismiss = auto_dismiss_informational(bundle, user=user)
     results["informational_dismissed"] = dismiss["dismissed"]
+    pdf_noise = auto_dismiss_pdf_noise_holds(bundle, user=user)
+    results["pdf_noise_dismissed"] = pdf_noise["dismissed"]
     fragments = auto_dismiss_unstructured_fragments(bundle, user=user)
     results["fragment_dismissed"] = fragments["dismissed"]
     results["pending_after"] = pending_quarantine_count(bundle)
+    return results
+
+
+def auto_remediate_after_apply(bundle, *, user=None) -> dict[str, Any]:
+    """Full zero-touch pass — spec step 3. Runs after every live apply."""
+    results = auto_remediate_before_repair(bundle, user=user)
+
+    for pass_num in range(1, MAX_AUTO_REMEDIATE_PASSES + 1):
+        invalid = auto_replay_invalid_ref_holds(bundle, user=user)
+        enrich = auto_enrich_and_replay_missing_required(bundle, user=user)
+        results[f"invalid_ref_pass_{pass_num}"] = invalid
+        results[f"enrich_pass_{pass_num}"] = enrich
+        if int(invalid.get("replayed") or 0) + int(enrich.get("replayed") or 0) == 0:
+            break
+
+    # Aggregate replay counts for UX + audit
+    invalid_total = sum(
+        int((results.get(f"invalid_ref_pass_{n}") or {}).get("replayed") or 0)
+        for n in range(1, MAX_AUTO_REMEDIATE_PASSES + 1)
+    )
+    enrich_total = sum(
+        int((results.get(f"enrich_pass_{n}") or {}).get("replayed") or 0)
+        for n in range(1, MAX_AUTO_REMEDIATE_PASSES + 1)
+    )
+    results["invalid_ref_replayed"] = invalid_total
+    results["missing_required_replayed"] = enrich_total
+
+    # Final PDF noise sweep (rows exposed by failed enrich attempts)
+    pdf_final = auto_dismiss_pdf_noise_holds(bundle, user=user)
+    frag_final = auto_dismiss_unstructured_fragments(bundle, user=user)
+    results["pdf_noise_dismissed"] = int(results.get("pdf_noise_dismissed") or 0) + int(
+        pdf_final.get("dismissed") or 0
+    )
+    results["fragment_dismissed"] = int(results.get("fragment_dismissed") or 0) + int(
+        frag_final.get("dismissed") or 0
+    )
+
+    results["pending_after"] = pending_quarantine_count(bundle)
+    results["auto_resolved_total"] = _sum_auto_resolved(results)
+
+    persist_auto_remediation_summary(bundle, results)
+    sync_reconciliation_closure(bundle, results)
+
+    logger.info(
+        "migration_cloud.auto_remediate_after_apply: bundle=%s resolved=%s pending=%s",
+        bundle.pk,
+        results["auto_resolved_total"],
+        results["pending_after"],
+    )
     return results

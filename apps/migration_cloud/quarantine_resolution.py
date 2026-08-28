@@ -127,11 +127,18 @@ def _source_row_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in payload.items() if k not in {"error", "artifact"}}
 
 
-def infer_field_flags(issue_class: str, error: str, source_row: dict[str, Any]) -> list[dict[str, str]]:
+def infer_field_flags(
+    issue_class: str,
+    error: str,
+    source_row: dict[str, Any],
+    *,
+    domain: str = "",
+) -> list[dict[str, str]]:
     """Structured hints for the operator — what looks missing or inconsistent."""
     flags: list[dict[str, str]] = []
     err = (error or "").lower()
     row = source_row or {}
+    domain_key = str(domain or "").strip().lower()
 
     def _empty(*keys: str) -> bool:
         for key in keys:
@@ -144,10 +151,57 @@ def infer_field_flags(issue_class: str, error: str, source_row: dict[str, Any]) 
         return True
 
     if issue_class == "missing_required" or "missing" in err or "required" in err:
-        if _empty("external_id", "student_external_id", "admission_number", "student_code"):
-            flags.append({"field": "external_id", "label": str(_("Student id / admission number")), "state": "missing"})
-        if _empty("first_name", "last_name") and _empty("full_name"):
-            flags.append({"field": "full_name", "label": str(_("Student name")), "state": "missing"})
+        if domain_key == "academics" or "subject" in err or "course" in err:
+            if _empty("subject_name", "name", "title", "course_name"):
+                flags.append(
+                    {
+                        "field": "subject_name",
+                        "label": str(_("Subject / course name")),
+                        "state": "missing",
+                    }
+                )
+            if _empty("subject_code", "code", "course_code"):
+                flags.append(
+                    {
+                        "field": "subject_code",
+                        "label": str(_("Subject / course code")),
+                        "state": "missing",
+                    }
+                )
+        elif domain_key in {"staff", "teachers", "teacher"} or "staff" in err:
+            if _empty("staff_id", "employee_number", "email"):
+                flags.append(
+                    {
+                        "field": "staff_id",
+                        "label": str(_("Staff id / employee number")),
+                        "state": "missing",
+                    }
+                )
+            if _empty("first_name", "last_name") and _empty("full_name"):
+                flags.append(
+                    {
+                        "field": "full_name",
+                        "label": str(_("Staff name")),
+                        "state": "missing",
+                    }
+                )
+        else:
+            if _empty("external_id", "student_external_id", "admission_number", "student_code"):
+                flags.append(
+                    {
+                        "field": "external_id",
+                        "label": str(_("Student id / admission number")),
+                        "state": "missing",
+                    }
+                )
+            if _empty("first_name", "last_name") and _empty("full_name"):
+                flags.append(
+                    {
+                        "field": "full_name",
+                        "label": str(_("Student name")),
+                        "state": "missing",
+                    }
+                )
         if "dob" in err or "birth" in err:
             flags.append({"field": "date_of_birth", "label": str(_("Date of birth")), "state": "missing"})
 
@@ -197,7 +251,7 @@ def enrich_quarantine_row(record) -> dict[str, Any]:
         "reason": error,
         "reason_source": reason_source,
         "source_row": source_row,
-        "field_flags": infer_field_flags(issue_class, error, source_row),
+        "field_flags": infer_field_flags(issue_class, error, source_row, domain=record.domain),
         "guidance_headline": guidance.get("headline", ""),
         "guidance_hint": guidance.get("hint", ""),
         "suggested_action": guidance.get("suggested_action", "edit"),

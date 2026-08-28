@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<main class="rmc-page rmc-page--migration-cloud-review" id="main" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--migration-cloud-review" id="main" data-rmc-scroll-policy="paginate" data-rmc-migration-cloud-surface="1">
   <header class="rmc-page__header">
     <a class="rmc-back"
        href="{% if back_url %}{{ back_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
@@ -25,7 +25,7 @@
       <span class="rmc-muted">({{ low_conf_mappings|length }} {% trans "below" %} {{ threshold|floatformat:2 }})</span>
     </h2>
     {% if low_conf_mappings %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Review queue" %}</caption>
         <thead>
           <tr>
@@ -64,7 +64,7 @@
     </h2>
     {% if tracked_custom_mappings %}
       <p class="rmc-muted">{% trans "These columns have no standard field in RunMyCampus, so they are captured verbatim and imported as tracked custom fields — nothing is dropped." %}</p>
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Tracked custom fields" %}</caption>
         <thead>
           <tr>
@@ -94,9 +94,19 @@
 
   <section class="rmc-card rmc-reveal rmc-quarantine-workspace" id="rmc-quarantine-workspace">
     <h2 class="rmc-h2">
+      {% if import_closure and not quarantine_pending %}
+      {% trans "Import closure" %}
+      {% else %}
       {% trans "Held for review" %}
       <span class="rmc-muted">({{ quarantine_pending }} {% trans "pending" %} / {{ quarantine_total }} {% trans "total" %})</span>
+      {% endif %}
     </h2>
+    {% if import_closure and not quarantine_pending %}
+    <div class="rmc-alert rmc-alert--success mb-3" role="status" data-rmc-import-closure="1">
+      <strong>{{ import_closure.headline }}</strong>
+      {% if import_closure.detail %}<p class="mb-0 mt-1">{{ import_closure.detail }}</p>{% endif %}
+    </div>
+    {% else %}
     <p class="rmc-lede">
       {% trans "These rows did not pass validation and were not written into your school. Each row shows the source values we read, why it was held, and actions you can take — dismiss, skip, edit & re-import, or deny." %}
     </p>
@@ -134,125 +144,7 @@
         <span class="rmc-pill rmc-pill--danger">{% trans "Broken link" %}</span>
       </div>
 
-      <div class="rmc-quarantine-toolbar rmc-button-row mb-3" data-rmc-quarantine-toolbar>
-        <label class="rmc-check-label">
-          <input type="checkbox" data-rmc-quarantine-select-all aria-label="{% trans 'Select all rows on this page' %}">
-          {% trans "Select all" %}
-        </label>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="dismiss">{% trans "Dismiss selected" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="waive">{% trans "Skip import (waive)" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="deny">{% trans "Deny permanently" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--primary" data-rmc-q-action="accept_edit">{% trans "Accept edits & re-import" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="dismiss_informational">{% trans "Dismiss all informational" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--warning" data-rmc-q-bulk="clear_queue">{% trans "Clear entire queue" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="waive_all_pending">{% trans "Skip all remaining" %}</button>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="deny_all_pending">{% trans "Deny all remaining" %}</button>
-        <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
-           href="{% if quarantine_export_url %}{{ quarantine_export_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}{% endif %}">
-          {% trans "Export pending CSV" %}
-        </a>
-        <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
-           href="{% if quarantine_export_url %}{{ quarantine_export_url }}?scope=all{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}?scope=all{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}?scope=all{% endif %}">
-          {% trans "Export all (incl. resolved)" %}
-        </a>
-        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-retry>{% trans "Re-import bundle" %}</button>
-      </div>
-
-      <p class="rmc-muted">
-        {% blocktrans %}Showing {{ quarantine_shown }} of {{ quarantine_pending }} rows still awaiting review.{% endblocktrans %}
-        {% if quarantine_page_obj.paginator.num_pages > 1 %}{% trans "Use the pages below to reach the rest." %}{% endif %}
-      </p>
-      <table class="rmc-data-table rmc-quarantine-table" data-rmc-quarantine-table="1">
-        <caption class="visually-hidden">{% trans "Held rows" %}</caption>
-        <thead>
-          <tr>
-            <th scope="col" class="rmc-col-check"></th>
-            <th scope="col">{% trans "Type" %}</th>
-            <th scope="col">{% trans "Source file" %}</th>
-            <th scope="col">{% trans "What" %}</th>
-            <th scope="col">{% trans "Guidance" %}</th>
-            <th scope="col">{% trans "Reason" %}</th>
-            <th scope="col">{% trans "Actions" %}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for q in quarantine_rows %}
-          <tr class="rmc-quarantine-row rmc-quarantine-row--{{ q.tone|default:'warn' }}"
-              data-rmc-quarantine-id="{{ q.id }}">
-            <td>
-              <input type="checkbox" data-rmc-quarantine-select value="{{ q.id }}"
-                     aria-label="{% trans 'Select row' %} {{ q.id }}">
-            </td>
-            <td>
-              <span class="rmc-pill rmc-pill--{{ q.tone|default:'warn' }}">{{ q.issue_label }}</span>
-              {% if q.reason_source %}
-              <span class="rmc-muted d-block small">{% trans "Class" %}: {{ q.reason_source }}</span>
-              {% endif %}
-            </td>
-            <td class="rmc-muted" title="{{ q.artifact|default:'' }}">
-              {{ q.artifact_label|default:"—" }}
-            </td>
-            <td>
-              <strong>{{ q.domain|default:"—" }}</strong>
-              <span class="rmc-muted">#{{ q.row_index|default:"—" }}</span>
-              {% if q.field_flags %}
-                <ul class="rmc-quarantine-flags">
-                  {% for f in q.field_flags %}
-                    <li class="rmc-quarantine-flag rmc-quarantine-flag--{{ f.state }}">{{ f.label }}</li>
-                  {% endfor %}
-                </ul>
-              {% endif %}
-            </td>
-            <td>
-              <strong>{{ q.guidance_headline }}</strong>
-              <p class="rmc-muted mb-0">{{ q.guidance_hint }}</p>
-            </td>
-            <td class="rmc-muted">{{ q.reason|truncatechars:200 }}</td>
-            <td>
-              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="dismiss">{% trans "Dismiss" %}</button>
-              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="waive">{% trans "Waive" %}</button>
-              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="deny">{% trans "Deny" %}</button>
-              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-toggle-edit>{% trans "Edit" %}</button>
-              {% if ai_explain_url %}
-              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-explain
-                      data-row-id="{{ q.id }}"
-                      data-row-reason="{{ q.reason|escapejs }}">{% trans "Explain" %}</button>
-              {% endif %}
-            </td>
-          </tr>
-          {% with row_sid="qrow-"|add:q.id %}{{ q.source_row|json_script:row_sid }}{% endwith %}
-          <tr class="rmc-quarantine-edit-row" data-rmc-quarantine-edit-for="{{ q.id }}" hidden>
-            <td colspan="7">
-              <details open>
-                <summary>{% trans "Source values — edit then Accept" %}</summary>
-                <div class="rmc-quarantine-edit-grid" data-rmc-quarantine-fields>
-                  {% for key, val in q.source_row.items %}
-                    <label class="rmc-field">
-                      <span class="rmc-field__label">{{ key }}</span>
-                      <input class="rmc-input" type="text" name="{{ key }}" value="{{ val|default:'' }}">
-                    </label>
-                  {% empty %}
-                    <p class="rmc-muted">{% trans "No source row captured — only the error message is available." %}</p>
-                  {% endfor %}
-                </div>
-                <div class="rmc-alert rmc-alert--info mt-2" data-rmc-q-explain-panel-for="{{ q.id }}" hidden role="status">
-                  <strong>{% trans "AI explanation" %}</strong>
-                  <p class="mb-0 rmc-muted" data-rmc-q-explain-text></p>
-                </div>
-                <label class="rmc-field mt-2">
-                  <span class="rmc-field__label">{% trans "Operator note (optional)" %}</span>
-                  <input class="rmc-input" type="text" data-rmc-q-note maxlength="1000">
-                </label>
-                <div class="rmc-button-row mt-2">
-                  <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--primary" data-rmc-q-row-action="accept_edit">{% trans "Accept & queue re-import" %}</button>
-                  <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-row-action="deny">{% trans "Deny" %}</button>
-                </div>
-              </details>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      {% include "migration_cloud/partials/quarantine_held_rows.html" %}
       {% if quarantine_page_obj.paginator.num_pages > 1 %}
         {% include "components/pagination.html" with page_obj=quarantine_page_obj page_query_param="q_page" %}
       {% endif %}
@@ -280,6 +172,7 @@
       </ul>
     </details>
     {% endif %}
+    {% endif %}
   </section>
 
   {% if progress_url %}
@@ -298,7 +191,7 @@
   <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Reconciliation drift" %}</h2>
     {% if drift_domains %}
-      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <table class="rmc-data-table rmc-data-table--review-compact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Reconciliation drift" %}</caption>
         <thead>
           <tr>
@@ -378,10 +271,10 @@
     });
   }
 
-  document.querySelectorAll("[data-rmc-q-toggle-edit]").forEach(function (btn) {
+  document.querySelectorAll("[data-rmc-toggle-edit]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      var row = btn.closest("tr");
-      var id = row && row.getAttribute("data-rmc-quarantine-id");
+      var card = btn.closest("[data-rmc-quarantine-id]");
+      var id = card && card.getAttribute("data-rmc-quarantine-id");
       var edit = document.querySelector('[data-rmc-quarantine-edit-for="' + id + '"]');
       if (edit) edit.hidden = !edit.hidden;
     });
@@ -417,8 +310,8 @@
           if (textEl) {
             textEl.textContent = data.explanation || reason || "{% trans 'AI is unavailable — see the reason column.' %}";
           }
-          var editRow = document.querySelector('[data-rmc-quarantine-edit-for="' + rowId + '"]');
-          if (editRow) editRow.hidden = false;
+          var editPanel = document.querySelector('[data-rmc-quarantine-edit-for="' + rowId + '"]');
+          if (editPanel) editPanel.hidden = false;
         })
         .catch(function () {
           if (textEl) textEl.textContent = reason || "{% trans 'Could not fetch an explanation.' %}";
@@ -429,19 +322,21 @@
 
   document.querySelectorAll("[data-rmc-q-row-action]").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      var editRow = btn.closest(".rmc-quarantine-edit-row");
-      var mainRow = editRow ? document.querySelector('[data-rmc-quarantine-id="' + editRow.getAttribute("data-rmc-quarantine-edit-for") + '"]') : btn.closest("tr[data-rmc-quarantine-id]");
-      var id = mainRow && mainRow.getAttribute("data-rmc-quarantine-id");
+      var editPanel = btn.closest(".rmc-quarantine-edit-panel");
+      var card = editPanel
+        ? document.querySelector('[data-rmc-quarantine-id="' + editPanel.getAttribute("data-rmc-quarantine-edit-for") + '"]')
+        : btn.closest("[data-rmc-quarantine-id]");
+      var id = card && card.getAttribute("data-rmc-quarantine-id");
       if (!id) return;
       var action = btn.getAttribute("data-rmc-q-row-action");
       var extra = {};
       if (action === "accept_edit") {
         extra.edited_source_row = rowEditedSource(id);
         extra.auto_retry = true;
-        var noteEl = editRow && editRow.querySelector("[data-rmc-q-note]");
+        var noteEl = editPanel && editPanel.querySelector("[data-rmc-q-note]");
         if (noteEl && noteEl.value) extra.note = noteEl.value;
       } else if (action === "dismiss") {
-        var needsNote = mainRow && mainRow.classList.contains("rmc-quarantine-row--warn") || mainRow && mainRow.classList.contains("rmc-quarantine-row--danger");
+        var needsNote = card && (card.classList.contains("rmc-quarantine-row--warn") || card.classList.contains("rmc-quarantine-row--danger"));
         if (needsNote) {
           var prompted = window.prompt("{% trans 'Optional note — why are you dismissing this row?' %}");
           if (prompted) extra.note = prompted;

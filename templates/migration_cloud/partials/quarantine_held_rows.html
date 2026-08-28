@@ -1,0 +1,126 @@
+{% load i18n %}
+{# Stack layout — no horizontal scroll. Shared by tenant held-review + operator review queue. #}
+<div class="rmc-quarantine-toolbar rmc-quarantine-toolbar--stacked mb-3" data-rmc-quarantine-toolbar>
+  <div class="rmc-quarantine-toolbar__row rmc-quarantine-toolbar__row--primary">
+    <label class="rmc-check-label">
+      <input type="checkbox" data-rmc-quarantine-select-all aria-label="{% trans 'Select all rows on this page' %}">
+      {% trans "Select all" %}
+    </label>
+    <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="dismiss">{% trans "Dismiss selected" %}</button>
+    <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="waive">{% trans "Skip (waive)" %}</button>
+    <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--primary" data-rmc-q-action="accept_edit">{% trans "Accept edits" %}</button>
+    <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="deny">{% trans "Deny" %}</button>
+  </div>
+  <details class="rmc-quarantine-toolbar__bulk">
+    <summary class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Bulk actions & export" %}</summary>
+    <div class="rmc-quarantine-toolbar__row rmc-quarantine-toolbar__row--secondary">
+      <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="dismiss_informational">{% trans "Dismiss all informational" %}</button>
+      <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--warning" data-rmc-q-bulk="clear_queue">{% trans "Clear entire queue" %}</button>
+      <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="waive_all_pending">{% trans "Skip all remaining" %}</button>
+      <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="deny_all_pending">{% trans "Deny all remaining" %}</button>
+      <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
+         href="{% if quarantine_export_url %}{{ quarantine_export_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}{% endif %}">
+        {% trans "Export pending CSV" %}
+      </a>
+      <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
+         href="{% if quarantine_export_url %}{{ quarantine_export_url }}?scope=all{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}?scope=all{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}?scope=all{% endif %}">
+        {% trans "Export all (incl. resolved)" %}
+      </a>
+      <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-retry>{% trans "Re-import bundle" %}</button>
+    </div>
+  </details>
+</div>
+
+<p class="rmc-muted rmc-quarantine-shown-note">
+  {% blocktrans %}Showing {{ quarantine_shown }} of {{ quarantine_pending }} rows still awaiting review.{% endblocktrans %}
+  {% if quarantine_page_obj.paginator.num_pages > 1 %}{% trans "Use the pages below to reach the rest." %}{% endif %}
+</p>
+
+<div class="rmc-quarantine-cards" data-rmc-quarantine-cards="1" role="list">
+  {% for q in quarantine_rows %}
+  <article class="rmc-quarantine-card rmc-quarantine-row rmc-quarantine-row--{{ q.tone|default:'warn' }}"
+           role="listitem"
+           data-rmc-quarantine-id="{{ q.id }}">
+    <div class="rmc-quarantine-card__head">
+      <label class="rmc-quarantine-card__select">
+        <input type="checkbox" data-rmc-quarantine-select value="{{ q.id }}"
+               aria-label="{% trans 'Select row' %} {{ q.id }}">
+      </label>
+      <div class="rmc-quarantine-card__meta">
+        <span class="rmc-pill rmc-pill--{{ q.tone|default:'warn' }}">{{ q.issue_label }}</span>
+        <span class="rmc-quarantine-card__record">
+          <strong>{{ q.domain|default:"—" }}</strong>
+          <span class="rmc-muted">#{{ q.row_index|default:"—" }}</span>
+        </span>
+        <span class="rmc-quarantine-card__file rmc-muted" title="{{ q.artifact|default:'' }}">
+          {{ q.artifact_label|default:"—" }}
+        </span>
+      </div>
+      <div class="rmc-quarantine-card__actions">
+        <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="dismiss">{% trans "Dismiss" %}</button>
+        <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="waive">{% trans "Waive" %}</button>
+        <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-toggle-edit>{% trans "Edit" %}</button>
+        <details class="rmc-quarantine-card__more">
+          <summary class="rmc-btn rmc-btn--xs rmc-btn--ghost" aria-label="{% trans 'More actions' %}">{% trans "More" %}</summary>
+          <div class="rmc-quarantine-card__more-menu">
+            <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="deny">{% trans "Deny permanently" %}</button>
+            <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="accept_edit">{% trans "Accept & re-import" %}</button>
+            {% if ai_explain_url %}
+            <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-explain
+                    data-row-id="{{ q.id }}"
+                    data-row-reason="{{ q.reason|escapejs }}">{% trans "Explain" %}</button>
+            {% endif %}
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="rmc-quarantine-card__body">
+      <p class="rmc-quarantine-card__guidance">
+        <strong>{{ q.guidance_headline }}</strong>
+        <span class="rmc-muted">{{ q.guidance_hint }}</span>
+      </p>
+      {% if q.field_flags %}
+      <ul class="rmc-quarantine-flags">
+        {% for f in q.field_flags %}
+          <li class="rmc-quarantine-flag rmc-quarantine-flag--{{ f.state }}">{{ f.label }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <details class="rmc-quarantine-card__reason">
+        <summary>{% trans "Technical reason" %}{% if q.reason_source %} <span class="rmc-muted">({{ q.reason_source }})</span>{% endif %}</summary>
+        <p class="rmc-muted mb-0">{{ q.reason }}</p>
+      </details>
+    </div>
+
+    {% with row_sid="qrow-"|add:q.id %}{{ q.source_row|json_script:row_sid }}{% endwith %}
+    <div class="rmc-quarantine-edit-panel" data-rmc-quarantine-edit-for="{{ q.id }}" hidden>
+      <details open>
+        <summary>{% trans "Source values — edit then Accept" %}</summary>
+        <div class="rmc-quarantine-edit-grid" data-rmc-quarantine-fields>
+          {% for key, val in q.source_row.items %}
+            <label class="rmc-field">
+              <span class="rmc-field__label">{{ key }}</span>
+              <input class="rmc-input" type="text" name="{{ key }}" value="{{ val|default:'' }}">
+            </label>
+          {% empty %}
+            <p class="rmc-muted">{% trans "No source row captured — only the error message is available." %}</p>
+          {% endfor %}
+        </div>
+        <div class="rmc-alert rmc-alert--info mt-2" data-rmc-q-explain-panel-for="{{ q.id }}" hidden role="status">
+          <strong>{% trans "AI explanation" %}</strong>
+          <p class="mb-0 rmc-muted" data-rmc-q-explain-text></p>
+        </div>
+        <label class="rmc-field mt-2">
+          <span class="rmc-field__label">{% trans "Operator note (optional)" %}</span>
+          <input class="rmc-input" type="text" data-rmc-q-note maxlength="1000">
+        </label>
+        <div class="rmc-button-row mt-2">
+          <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--primary" data-rmc-q-row-action="accept_edit">{% trans "Accept & queue re-import" %}</button>
+          <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-row-action="deny">{% trans "Deny" %}</button>
+        </div>
+      </details>
+    </div>
+  </article>
+  {% endfor %}
+</div>

@@ -726,3 +726,81 @@ body[data-rmc-cp-scroll="canvas"] .rmc-intake-method-select select.rmc-input--se
     grid-column: 1 / -1;
   }
 }
+
+/* Review queue — stack layout, no horizontal scroll on held rows or mapping tables. */
+.rmc-page--migration-cloud-review {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.rmc-page--migration-cloud-review .rmc-card,
+.rmc-page--migration-cloud-review .rmc-quarantine-workspace {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: visible;
+}
+
+.rmc-page--migration-cloud-review .rmc-data-table--review-compact {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.rmc-page--migration-cloud-review .rmc-data-table--review-compact :is(th, td) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.rmc-page--migration-cloud-review .rmc-data-table--review-compact tbody tr {
+  cursor: pointer;
+}
+
+.rmc-page--migration-cloud-review .rmc-quarantine-card__actions {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+@media (min-width: 720px) {
+  .rmc-page--migration-cloud-review .rmc-quarantine-card__head {
+    flex-wrap: nowrap;
+  }
+  .rmc-page--migration-cloud-review .rmc-quarantine-card__actions {
+    width: auto;
+    justify-content: flex-end;
+  }
+}
+
+.rmc-page--migration-cloud-review .rmc-quarantine-card__more-menu .rmc-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Connector bundle review held preview — same no-scroll contract. */
+#mc-held-preview .table-responsive {
+  overflow-x: visible;
+}
+
+#mc-held-preview .rmc-held-preview-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+#mc-held-preview .rmc-held-preview-card {
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-lg, 12px);
+  padding: 0.75rem 1rem;
+  min-width: 0;
+}
+
+#mc-held-preview .rmc-held-preview-card__reason {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+}

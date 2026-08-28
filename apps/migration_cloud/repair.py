@@ -652,9 +652,9 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
         off_http,
     )
     try:
-        from .auto_remediate import auto_remediate_before_repair
+        from .auto_remediate import auto_remediate_after_apply
 
-        auto_stats = auto_remediate_before_repair(bundle)
+        auto_stats = auto_remediate_after_apply(bundle)
         logger.info(
             "migration_cloud.repair: auto-remediate bundle %s — %s",
             bundle_id,

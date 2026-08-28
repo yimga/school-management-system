@@ -29,6 +29,7 @@ from typing import Any, Iterator
 
 from ._helpers import (
     persist_dfv_extras,
+    record_bundle_scoped_key,
     record_row_error,
 )
 from .base import Lander, LanderContext, LanderResult, register
@@ -88,6 +89,12 @@ class PayrollLander(Lander):
                     entity_id=record_key,
                     extras={"record": record},
                     result=result,
+                )
+                record_bundle_scoped_key(
+                    ctx=ctx,
+                    legacy_id=record_key,
+                    domain="payroll",
+                    canonical_pk=record_key,
                 )
                 result.created += 1
             except Exception as exc:  # noqa: BLE001

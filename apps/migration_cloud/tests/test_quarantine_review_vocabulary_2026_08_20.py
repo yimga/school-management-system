@@ -98,8 +98,9 @@ class TableLimitIsDisclosedNotHiddenTests(SimpleTestCase):
         from django.template.loader import get_template
 
         source = get_template("migration_cloud/anomaly_nudge.html").template.source
+        held = get_template("migration_cloud/partials/quarantine_held_rows.html").template.source
         self.assertIn("quarantine_total", source)
-        self.assertIn("quarantine_shown", source)
+        self.assertIn("quarantine_shown", held)
         self.assertIn("quarantine_action_needed", source)
         # The old bug: length of the CAPPED list rendered as the headline count.
         self.assertNotIn("quarantine_rows|length", source)

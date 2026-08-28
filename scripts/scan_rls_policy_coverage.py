@@ -1,7 +1,14 @@
 """v4.00.13 — RLS policy coverage scanner.
 
 Walks every `apps/*/migrations/000*_enable_rls_postgresql.py` and asserts a
-matching `*_rls_policy_default_deny.py` exists in the same app directory.
+matching `*_rls_policy_default_deny.py` exists in the same app directory AND
+that the SQL those files claim to carry is actually in them.
+
+The filename half alone was the whole gate until 2026-08-28, when a mutation
+run showed what that buys: emptying all four RLS migrations in apps/academics
+to ``operations = []``, keeping the filenames, still produced "every
+enable_rls_postgresql migration has a matching rls_policy_default_deny". A file
+named for a policy is not a policy.
 Catches the regression class where an app enables RLS on its tables but
 forgets the follow-up migration that attaches a default-deny policy —
 the runtime audit-pass in `apps/schools/migrations/0059_v4_00_12_rls_audit_pass.py`
@@ -20,8 +27,18 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
+
+_CREATE_POLICY = re.compile(r"CREATE\s+POLICY", re.IGNORECASE)
+
+
+def _read(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -54,6 +71,28 @@ def _find_findings() -> list[dict[str, str]]:
                 "enable_file": enable_files[0],
                 "missing": "rls_policy_default_deny migration",
             })
+            continue
+        if not enable_files:
+            continue
+        # Content, not just the name. A migration named for a default-deny
+        # policy that contains no CREATE POLICY attaches nothing, and the
+        # filename check above cannot tell the difference.
+        sibling_sql = "".join(_read(migrations_dir / name) for name in policy_files)
+        for name in enable_files:
+            body = _read(migrations_dir / name)
+            if not _CREATE_POLICY.search(body) and not _CREATE_POLICY.search(sibling_sql):
+                findings.append({
+                    "app": app,
+                    "enable_file": name,
+                    "missing": "CREATE POLICY statement (neither this migration nor its default-deny sibling has one)",
+                })
+        for name in policy_files:
+            if not _CREATE_POLICY.search(_read(migrations_dir / name)):
+                findings.append({
+                    "app": app,
+                    "enable_file": name,
+                    "missing": "CREATE POLICY statement in the default-deny migration itself",
+                })
     return findings
 
 
@@ -84,7 +123,10 @@ def main() -> int:
         sys.stdout.write("\n")
     else:
         if not findings:
-            sys.stdout.write("OK: every enable_rls_postgresql migration has a matching rls_policy_default_deny.\n")
+            sys.stdout.write(
+                "OK: every enable_rls_postgresql migration has a matching"
+                " rls_policy_default_deny, and both carry CREATE POLICY." + chr(10)
+            )
         else:
             for f in findings:
                 sys.stdout.write(f"GAP: app={f['app']} {f['enable_file']} -> missing {f['missing']}\n")

@@ -217,7 +217,7 @@
 // v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
 // v4.06.71: tenant admin sidebar server-owned, host-isolated preferences.
 // v4.06.81: unified tenant/operator admin navigation v3, semantic CAS sync.
-const CACHE_VERSION = "sms-v4.06.83-zero-touch-import-closure-2026-08-28";
+const CACHE_VERSION = "sms-v4.06.84-deferred-zero-touch-waves-2026-08-28";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

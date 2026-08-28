@@ -385,6 +385,7 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
                 artifact=artifact,
                 domain=domain,
                 contract=accelerator_contract,
+                bundle=bundle,
             )
             all_mappings[artifact.path_within_bundle] = [m.__dict__ for m in mappings]
             summary["ai_calls"] += sum(1 for m in mappings if m.method == "ai_bridge")
@@ -534,6 +535,7 @@ def refresh_bundle_inference(*, bundle_id: int, use_accelerator: bool = True) ->
             artifact=artifact,
             domain=domain,
             contract=accelerator_contract,
+            bundle=bundle,
         )
         all_mappings[artifact.path_within_bundle] = [m.__dict__ for m in mappings]
         summary["ai_calls"] += sum(1 for m in mappings if m.method == "ai_bridge")
@@ -562,25 +564,42 @@ def _apply_accelerator_then_map(
     artifact: MigrationArtifact,
     domain: str,
     contract: Any | None,
+    bundle: MigrationBundle | None = None,
 ) -> list[ColumnMapping]:
-    """Use accelerator's pre-classified mappings when available, else run universal mapper.
+    """Use accelerator + profile template mappings when available, else universal mapper.
 
-    Even with an accelerator, columns the accelerator didn't pre-map still
-    flow through the universal mapper — so custom or non-standard columns
-    are never dropped.
+    Even with pre-maps, columns not covered still flow through the universal
+    mapper — custom or non-standard columns are never dropped.
     """
+    from .mapping_template_registry import merge_template_mappings
+
     pre = None
+    pre_mappings_dict: dict[str, str] = {}
+    effective_domain = domain
+    pre_method = "accelerator"
+
     if contract is not None:
         pre = contract.pre_classified_artifacts.get(artifact.path_within_bundle)
+    if pre:
+        pre_mappings_dict = dict(pre.get("canonical_mappings") or {})
+        effective_domain = str(pre.get("domain") or domain)
+        pre_method = str(pre.get("method") or "accelerator")
 
-    if not pre:
+    if bundle is not None:
+        pre_mappings_dict, effective_domain, template_method = merge_template_mappings(
+            artifact=artifact,
+            domain=effective_domain,
+            bundle=bundle,
+            pre_mappings_dict=pre_mappings_dict,
+            pre_domain=effective_domain,
+        )
+        if template_method:
+            pre_method = template_method
+
+    if not pre_mappings_dict:
         return map_artifact(artifact=artifact, domain=domain)
 
-    pre_mappings_dict = pre.get("canonical_mappings") or {}
-    effective_domain = pre.get("domain", domain)
-
-    # Run the universal mapper to cover columns the accelerator did NOT specify
-    # (custom fields the customer added on top of OneRoster, etc.).
+    # Run the universal mapper to cover columns the pre-map did NOT specify.
     universal = map_artifact(artifact=artifact, domain=effective_domain)
     universal_by_source = {m.source_column: m for m in universal}
 
@@ -595,14 +614,13 @@ def _apply_accelerator_then_map(
                     canonical_field=pre_mappings_dict[source_name],
                     domain=effective_domain,
                     confidence=0.99,
-                    method="accelerator",
+                    method=pre_method,
                     transformer=None,
                     transformer_options={},
-                    reasoning=f"accelerator-supplied mapping ({pre.get('method', 'accelerator')})",
+                    reasoning=f"pre-mapped ({pre_method})",
                 )
             )
         elif source_name in universal_by_source:
             merged.append(universal_by_source[source_name])
-        # else: skipped (no profile column) — universal_by_source covers all profile columns.
 
     return merged

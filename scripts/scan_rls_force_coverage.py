@@ -1,9 +1,25 @@
 #!/usr/bin/env python
 """RLS FORCE coverage scanner (v4.00.0 zero-tolerance gate).
 
-Static analysis only — runs without a live database. Walks every Django
-model module under ``apps/`` and confirms that any model declaring
-``school_id`` / ``school`` FK (i.e. tenant-scoped) either:
+Two questions, both static, both answerable without a live database.
+
+**1. Does the table actually FORCE row level security?**  PostgreSQL exempts a
+table's OWNER from its own row policies unless ``FORCE ROW LEVEL SECURITY`` is
+set, and Django connects AS the owner -- there is no separate application role
+in this deployment. Without FORCE the policies are decorative on the one
+connection that matters, and on an edge box (``USE_DJANGO_TENANTS=0`` +
+PostgreSQL) RLS is the ONLY tenant isolation there is.
+
+Until 2026-08-28 this scanner did not ask that question at all. The string
+``FORCE`` appeared exactly once in this file, in this docstring, while the code
+matched migration FILENAMES. A mutation run proved the cost: emptying all four
+RLS migrations in ``apps/academics`` to ``operations = []``, keeping the
+filenames, still reported ``0 gap(s)``.
+
+**2. Is every tenant-scoped model covered by RLS migrations at all?**  The
+original check, kept as-is. It walks every Django model module under ``apps/``
+and confirms that any model declaring ``school_id`` / ``school`` FK
+(i.e. tenant-scoped) either:
 
   (a) Lives in an app whose ``migrations/`` directory has BOTH
       ``*_enable_rls_postgresql.py`` AND ``*_rls_policy_default_deny.py``, OR
@@ -22,6 +38,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,6 +84,80 @@ def _is_tenant_scoped(cls: ast.ClassDef) -> bool:
     return False
 
 
+_RLS_ENABLE = re.compile(r"\bENABLE\s+ROW\s+LEVEL\s+SECURITY", re.IGNORECASE)
+_RLS_FORCE = re.compile(r"\bFORCE\s+ROW\s+LEVEL\s+SECURITY", re.IGNORECASE)
+_ALTER_TABLE = re.compile(
+    r"ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?([a-z][a-z0-9_]*_[a-z0-9_]+)", re.IGNORECASE
+)
+# app_model, the shape Django gives a table it names itself.
+_TABLE_NAME = re.compile(r"^[a-z][a-z0-9_]*_[a-z0-9_]+$")
+
+
+def _tables_named_in(source: str) -> set[str]:
+    """Table names a migration module names, without executing it.
+
+    These migrations loop over a module-level list -- ``FINANCE_TABLES =
+    ["finance_feeplan", ...]`` -- and interpolate it, so the SQL text alone
+    contains ``ALTER TABLE {table}`` and matches nothing. Reading the list
+    constants is what makes table-level analysis possible here.
+
+    Deliberately narrow: only strings inside a module-level list/tuple/set
+    assignment, plus table names written literally into SQL. Taking every
+    string in the file would attribute a name mentioned in a comment or an
+    unrelated constant to whatever verbs the file happens to contain.
+    """
+    names: set[str] = set()
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return names
+    for node in tree.body:
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        value = node.value
+        if not isinstance(value, (ast.List, ast.Tuple, ast.Set)):
+            continue
+        for element in value.elts:
+            if isinstance(element, ast.Constant) and isinstance(element.value, str):
+                candidate = element.value.strip()
+                if _TABLE_NAME.match(candidate):
+                    names.add(candidate)
+    for match in _ALTER_TABLE.finditer(source):
+        names.add(match.group(1).lower())
+    return names
+
+
+def _scan_force_gaps() -> list[dict[str, str | int]]:
+    """Tables that switch RLS on and never FORCE it."""
+    enabled: dict[str, str] = {}
+    forced: set[str] = set()
+    for migration in sorted(APPS_ROOT.glob("*/migrations/*.py")):
+        try:
+            source = migration.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        turns_on = bool(_RLS_ENABLE.search(source))
+        forces = bool(_RLS_FORCE.search(source))
+        if not (turns_on or forces):
+            continue
+        names = _tables_named_in(source)
+        rel = migration.relative_to(REPO_ROOT).as_posix()
+        for table in names:
+            if turns_on:
+                enabled.setdefault(table, rel)
+            if forces:
+                forced.add(table)
+    return [
+        {
+            "model": table,
+            "path": enabled[table],
+            "line": 0,
+            "reason": "missing-force",
+        }
+        for table in sorted(set(enabled) - forced)
+    ]
+
+
 def _app_has_rls_migrations(app_dir: Path) -> tuple[bool, bool]:
     mig_dir = app_dir / "migrations"
     if not mig_dir.exists():
@@ -109,6 +200,7 @@ def _scan() -> list[dict[str, str | int]]:
                     else "missing-default-deny"
                 ),
             })
+    findings.extend(_scan_force_gaps())
     findings.sort(key=lambda item: (item["model"], item["line"]))
     return findings
 

@@ -218,6 +218,9 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
         finance.invoice_count         — count of Invoice rows this bundle landed
         students.count                — count of StudentProfile rows this bundle landed
         guardians.count               — count of StudentGuardian rows this bundle landed
+        payroll.row_count             — payroll DFV records this bundle landed
+        payroll.gross_total_amount    — sum of gross_amount on those records
+        payroll.net_total_amount      — sum of net_amount on those records
     """
     totals: dict[str, str] = {}
     school = getattr(bundle, "school", None)
@@ -230,6 +233,7 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
     invoice_pks = _bundle_canonical_pks(bundle, "finance")
     student_pks = _bundle_canonical_pks(bundle, "students")
     guardian_pks = _bundle_canonical_pks(bundle, "guardians")
+    payroll_keys = _bundle_canonical_pks(bundle, "payroll")
 
     def _run_under_schema(fn):
         if not schema_name:
@@ -295,6 +299,36 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
             )
         try:
             _run_under_schema(_guardians)
+        except Exception:  # noqa: BLE001
+            pass
+
+    if payroll_keys:
+        def _payroll():
+            from apps.metadata.models import DynamicFieldValue
+
+            gross = Decimal("0")
+            net = Decimal("0")
+            count = 0
+            qs = DynamicFieldValue.objects.filter(  # tenant-isolation-allow: scoped by school + bundle landed keys
+                school=school,
+                entity_type="payroll",
+                entity_id__in=payroll_keys,
+                field_key="record",
+            )
+            for row in qs.iterator():
+                payload = (row.value_json or {}).get("v") or {}
+                record = payload.get("record") if isinstance(payload, dict) else {}
+                if not isinstance(record, dict):
+                    record = payload if isinstance(payload, dict) else {}
+                count += 1
+                gross += _to_decimal(record.get("gross_amount")) or Decimal("0")
+                net += _to_decimal(record.get("net_amount")) or Decimal("0")
+            totals["payroll.row_count"] = str(count)
+            totals["payroll.gross_total_amount"] = str(gross)
+            totals["payroll.net_total_amount"] = str(net)
+
+        try:
+            _run_under_schema(_payroll)
         except Exception:  # noqa: BLE001
             pass
 

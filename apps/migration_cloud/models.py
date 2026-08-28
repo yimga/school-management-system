@@ -59,6 +59,14 @@ class IntakeMethod(models.TextChoices):
     ACCESS_DB = "access_db", "Microsoft Access database (.mdb / .accdb)"
 
 
+class ReconciliationClosureStatus(models.TextChoices):
+    """Import session closure after auto-remediation + human review."""
+
+    CLOSED = "CLOSED", "Import closed — no human action required"
+    PENDING_HUMAN = "PENDING_HUMAN", "Rows still need a human decision"
+    BLOCKED = "BLOCKED", "Import blocked — repair or fix source required"
+
+
 class BundleStatus(models.TextChoices):
     """Lifecycle of a bundle from arrival to apply."""
 
@@ -196,6 +204,14 @@ class MigrationBundle(models.Model):
         default=dict,
         blank=True,
         help_text="Phase U8 output: per-domain parity counts, sampling, scorecards.",
+    )
+    reconciliation_status = models.CharField(
+        max_length=20,
+        choices=ReconciliationClosureStatus.choices,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="Zero-touch closure state: CLOSED | PENDING_HUMAN | BLOCKED.",
     )
     expected_totals = models.JSONField(
         default=dict,
