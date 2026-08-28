@@ -593,18 +593,18 @@ MUTATIONS.update({
         ),
     ),
     "rls-force-coverage": Mutation(
-        kind="patch",
-        path="apps/academics/migrations/0072_enable_rls_curriculum_room_timeslot.py",
-        defect="RLS enabled without FORCE - PostgreSQL exempts the table OWNER, and Django connects AS the owner",
-        anchor=b"FORCE ROW LEVEL SECURITY",
-        replacement=b"ROW LEVEL SECURITY",
+        kind="create",
+        path="apps/schools/migrations/9998_%s_enable_rls.py" % _PROOF,
+        defect="a table switched to RLS with no FORCE - Postgres exempts the OWNER, and Django connects AS the owner",
+        content=b'from django.db import connection, migrations\n\n\nTABLES = ["schools_gateproofprobetable"]\n\n\ndef enable(apps, schema_editor):\n    with connection.cursor() as cursor:\n        for table in TABLES:\n            cursor.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY;")\n\n\nclass Migration(migrations.Migration):\n    dependencies = []\n    operations = [migrations.RunPython(enable, migrations.RunPython.noop)]\n',
     ),
     "rls-policy-coverage": Mutation(
         kind="patch",
-        path="apps/academics/migrations/0029_enable_rls_postgresql.py",
-        defect="an enable_rls migration with no matching default-deny policy",
+        path="apps/academics/migrations/0038_rls_policy_default_deny.py",
+        defect="a migration NAMED for a default-deny policy that attaches none - the filename check cannot tell",
         anchor=b"CREATE POLICY",
-        replacement=b"-- gateproof removed: CREATE POLICY",
+        replacement=b"SELECT 1; -- gateproof: no policy here",
+        all_occurrences=True,
     ),
     "rls-null-school-arm": Mutation(
         kind="patch",
@@ -739,28 +739,11 @@ MUTATIONS["admin-autofill-coverage"] = Mutation(
 # a second way, by hand, and written down how. Everything else is reported as
 # UNADJUDICATED: real work to do, not a conclusion.
 CONFIRMED_DEAD: dict[str, str] = {
-    "rls-force-coverage": (
-        "The scanner never checks FORCE. The string appears once in the whole file, in its "
-        "own docstring; the test is `'enable_rls' in filename` and `'rls_policy_default_deny' "
-        "in filename`. Emptying all four RLS migrations in apps/academics to `operations = []` "
-        "-- filenames kept -- still reports `0 gap(s)`. PostgreSQL exempts a table's OWNER from "
-        "its own row policies without FORCE, and Django connects AS the owner, so the property "
-        "the gate is named for is unverified on every table."
-    ),
-    "rls-policy-coverage": (
-        "Filename pairing only: `*enable_rls_postgresql*.py` beside `*rls_policy_default_deny*.py`. "
-        "It never opens either file. The same gutted-migration tree above still reports "
-        "'every enable_rls_postgresql migration has a matching rls_policy_default_deny'. "
-        "An empty migration with the right name satisfies it."
-    ),
-    "broad-except-baseline": (
-        "In --allowlist mode -- which is how both pre-push and CI invoke it -- the comparison "
-        "loop iterates the ALLOWLIST's keys, not the scan's: `for path, allowed in allowlist.items(): "
-        "counts.get(path, 0)`. A file absent from the allowlist is never looked at. A new tracked "
-        "module carrying both `except Exception:` and `except BaseException:` passes. The gate can "
-        "only ratchet files already on the list downward; it is blind to every new one, which is "
-        "the direction it was wired to protect."
-    ),
+    # Empty, and that is the goal state -- the three that were here on
+    # 2026-08-28 (rls-force-coverage, rls-policy-coverage,
+    # broad-except-baseline) were fixed rather than documented, and now
+    # prove they can fail. The evidence that convicted them is kept in
+    # docs/audits/GATE_DETECTOR_INTEGRITY_AUDIT_2026_08_28.md.
 }
 
 

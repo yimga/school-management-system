@@ -1,8 +1,1197 @@
 {
   "allowlist_count": 10,
-  "finding_count": 0,
-  "findings": [],
-  "generated_at": "2026-07-23T20:54:10+00:00",
+  "finding_count": 198,
+  "findings": [
+    {
+      "line": 0,
+      "model": "academics_academicyear",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_attendance",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_behaviorpointledger",
+      "path": "apps/academics/migrations/0061_discipline_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_certificationdocumentchecklist",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_certificationexampreset",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_certificationexamsession",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_certificationfeetemplate",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_classbooklist",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_classroom",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_classroompromotionmapping",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_curriculumstandard",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_department",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_incident",
+      "path": "apps/academics/migrations/0031_incident_school_tenant_scope.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_restorativeaction",
+      "path": "apps/academics/migrations/0061_discipline_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_specialty",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_subject",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_subjectassignment",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "academics_term",
+      "path": "apps/academics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_accessrole",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_device_registration",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_featurepermissionscope",
+      "path": "apps/accounts/migrations/0062_rls_feature_permission_scope.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_offline_access_intent",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_offline_capability_token",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_relationship_tuple",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_securityauditlog",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_tenantstaffinvite",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "accounts_usertenantbinding",
+      "path": "apps/accounts/migrations/0044_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_atriskinferencerun",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_atriskoutcomelabel",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_atriskshadowrun",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_governedsavedreport",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_gradeprediction",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_gradepredictionlabel",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_gradepredictionshadowrun",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_interventionlog",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_riskdigestrecipient",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_riskfactor",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_riskthresholds",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_studentatrisksignal",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "analytics_studentsignals",
+      "path": "apps/analytics/migrations/0029_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "apicenter_apikey",
+      "path": "apps/apicenter/migrations/0010_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "apicenter_apiquota",
+      "path": "apps/apicenter/migrations/0010_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "apicenter_developerapplication",
+      "path": "apps/apicenter/migrations/0010_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_club",
+      "path": "apps/athletics/migrations/0005_clubs_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_clubadvisorassignment",
+      "path": "apps/athletics/migrations/0005_clubs_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_clubmembership",
+      "path": "apps/athletics/migrations/0005_clubs_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_coachassignment",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_eligibilityrecord",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_fixture",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_fixtureresult",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_fixturetravel",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_fixturevenuebooking",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_medicalclearance",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_participationconsent",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_season",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_sport",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_team",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_teamkitfee",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "athletics_teammembership",
+      "path": "apps/athletics/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "automation_automationapprovalqueue",
+      "path": "apps/automation/migrations/0020_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "automation_automationexecutionlog",
+      "path": "apps/automation/migrations/0020_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "automation_migrationquarantinerecord",
+      "path": "apps/automation/migrations/0020_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "automation_migrationrun",
+      "path": "apps/automation/migrations/0020_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "automation_workflow",
+      "path": "apps/automation/migrations/0020_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_billingaccount",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_billingprocessorsyncevent",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_entitlement",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_platformledgerentry",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_quote",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_tenantsubscription",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_usagecap",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "billing_usagemeter",
+      "path": "apps/billing/migrations/0012_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_achievementevent",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_alertrule",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_announcement",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_announcementauditlog",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_classannouncement",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_communicationtemplate",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_consent_event",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_contactrequest",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_contactrequestattachment",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_directconversation",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_feeditem",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_message",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_message_delivery_receipt",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_messageblock",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_messagethread",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_narrativefeedback",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_outboundmessagequeue",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_smssendlog",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_threadmessage",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_threadmessageattachment",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_threadmessagemention",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_threadmute",
+      "path": "apps/communication/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "communication_threadreadstate",
+      "path": "apps/communication/migrations/0009_alertrule_school_announcement_school_and_more.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_auditoraccessgrant",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_consentrecord",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_consentrequest",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_eraserequest",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_exportjob",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_ferpadisclosure",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_nonrepudiationlogentry",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "compliance_retentionrule",
+      "path": "apps/compliance/migrations/0021_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_admininactivityalert",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_forecastscenario",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_helpcentersource",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_tenanthealthscore",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_tenantinterventionsuggestion",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_tenantmaturityscore",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_tenantriskalert",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "customersuccess_workflowfailureevent",
+      "path": "apps/customersuccess/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "evals_assessmentweights",
+      "path": "apps/evals/migrations/0024_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "evals_evaluation",
+      "path": "apps/evals/migrations/0024_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "evals_teacherassignment",
+      "path": "apps/evals/migrations/0024_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "events_domainevent",
+      "path": "apps/events/migrations/0007_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "events_eventsystemremediationaudit",
+      "path": "apps/events/migrations/0007_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "events_webhooksubscription",
+      "path": "apps/events/migrations/0007_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_featurerequest",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_feedbacksubmission",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_feedbackvote",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_helpsearchquerylog",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_supportaiinteractionreview",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_supportaisessionrating",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_supportdeflectionevent",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "feedback_surveyresponse",
+      "path": "apps/feedback/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "finance_feeplan",
+      "path": "apps/finance/migrations/0038_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "finance_invoice",
+      "path": "apps/finance/migrations/0038_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "finance_payment",
+      "path": "apps/finance/migrations/0038_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "governance_schoolassignment",
+      "path": "apps/governance/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "governance_schoolcontextprofile",
+      "path": "apps/governance/migrations/0005_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "lifecycle_purgeoperation",
+      "path": "apps/lifecycle/migrations/0004_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "lifecycle_schoollifecyclestage",
+      "path": "apps/lifecycle/migrations/0004_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "lifecycle_tenantimmutablesnapshot",
+      "path": "apps/lifecycle/migrations/0004_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_appauditlog",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_appbillingledger",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_appinstallation",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_apprating",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_marketplacemonetizationledgerentry",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_platformmarketplaceearning",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_tenantmarketplacesubscription",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "marketplace_webhookdelivery",
+      "path": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "metadata_dynamicfielddefinition",
+      "path": "apps/metadata/migrations/0012_metadata_eav_rls_policies.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "metadata_dynamicfieldvalue",
+      "path": "apps/metadata/migrations/0012_metadata_eav_rls_policies.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "metadata_entitystate",
+      "path": "apps/metadata/migrations/0013_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "metadata_layoutdefinition",
+      "path": "apps/metadata/migrations/0013_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "metadata_statemachinedefinition",
+      "path": "apps/metadata/migrations/0013_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_companionciphertextblob",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_companionuploadreceipt",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_cutoverrunbook",
+      "path": "apps/migration_cloud/migrations/0043_cutoverrunbook_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_guardianconsenttoken",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationasset",
+      "path": "apps/migration_cloud/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationauthorizationagreement",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationbundle",
+      "path": "apps/migration_cloud/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationcloudapitoken",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationcloudcompanionkeypair",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationcloudwebhooksubscription",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationidmapping",
+      "path": "apps/migration_cloud/migrations/0030_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "migration_cloud_migrationintakerequest",
+      "path": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "orchestration_orchestrationrun",
+      "path": "apps/orchestration/migrations/0003_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "packages_installedpackage",
+      "path": "apps/packages/migrations/0007_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "people_studentprofile",
+      "path": "apps/people/migrations/0026_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "people_teacherprofile",
+      "path": "apps/people/migrations/0026_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_blueprintinstallation",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_clicktrackevent",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_configurationchangerequest",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_healthremediationlog",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_offlineaction",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_operatorintent",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_operatortenantassignment",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_packinstallation",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_remotesupportsession",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_schoolonboardingprogress",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_tenantheartbeat",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_tenantretentionplaybookaction",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "platform_runtime_tenantretentionplaybookauditlog",
+      "path": "apps/platform_runtime/migrations/0095_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "policies_policybundle",
+      "path": "apps/policies/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "policies_policydecisionlog",
+      "path": "apps/policies/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "policies_policyrule",
+      "path": "apps/policies/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "policies_scheduledpolicyoverride",
+      "path": "apps/policies/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "policies_tenantblueprint",
+      "path": "apps/policies/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "policies_tenantpolicyoverride",
+      "path": "apps/policies/migrations/0008_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "portal_portalfeatureitem",
+      "path": "apps/portal/migrations/0041_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "registries_tenantattendancecode",
+      "path": "apps/registries/migrations/0009_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "registries_tenantfeetypeentry",
+      "path": "apps/registries/migrations/0009_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "registries_tenantgradescaleoverride",
+      "path": "apps/registries/migrations/0009_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "reports_reportcard",
+      "path": "apps/reports/migrations/0009_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "requests_accessrequest",
+      "path": "apps/requests/migrations/0004_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "school_events_eventsponsor",
+      "path": "apps/school_events/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "school_events_eventvenue",
+      "path": "apps/school_events/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "school_events_schoolevent",
+      "path": "apps/school_events/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "schools_schoolmembership",
+      "path": "apps/schools/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "setup_studio_setupprogress",
+      "path": "apps/setup_studio/migrations/0003_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "siteconfig_featuretogglestate",
+      "path": "apps/siteconfig/migrations/0089_enable_rls_feature_toggle_state.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "siteconfig_officialreporttemplate",
+      "path": "apps/siteconfig/migrations/0083_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "social_media_socialcampaignattribution",
+      "path": "apps/social_media/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "social_media_socialmediaintegration",
+      "path": "apps/social_media/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "social_media_socialmoderationitem",
+      "path": "apps/social_media/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    },
+    {
+      "line": 0,
+      "model": "social_media_socialpostoutbox",
+      "path": "apps/social_media/migrations/0002_enable_rls_postgresql.py",
+      "reason": "missing-force"
+    }
+  ],
+  "generated_at": "2026-08-28T11:09:29+00:00",
   "rule": "every tenant-scoped model must live in an app with both *_enable_rls_postgresql and *_rls_policy_default_deny migrations",
   "scan_dirs": [
     "apps"

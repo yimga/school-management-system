@@ -1,7 +1,9 @@
 # Gate detector-integrity audit — 2026-08-28
 
-**Status:** harness landed and running clean; three gates confirmed broken with
-evidence; the rest of the DEAD list is an open work queue, not a conclusion.
+**Status:** harness landed; three gates were confirmed broken and have since been
+**fixed and re-proven**. One of them exposed a real product gap that is now
+ratcheted but not closed (198 tables). The rest of the DEAD list is an open work
+queue, not a conclusion.
 
 ## Why
 
@@ -85,7 +87,7 @@ reported as broken once the blindness has been reproduced a second way, by hand,
 and the evidence written into `CONFIRMED_DEAD`. Everything else prints
 UNADJUDICATED.
 
-## Confirmed findings
+## Confirmed findings, and what was done
 
 ### 1. `rls-force-coverage` never checks FORCE
 
@@ -107,6 +109,30 @@ decorative on the one connection that matters — and that is the isolation
 mechanism on every sovereign edge box running `USE_DJANGO_TENANTS=0` + RLS. The
 gate has never verified it on any table.
 
+**Fixed.** The scanner now resolves the table names these migrations loop over.
+They interpolate a module-level `TABLES = [...]` constant, so the SQL text alone
+reads `ALTER TABLE {table}` and matches nothing; reading the list constants is
+what makes table-level analysis possible. It takes only strings inside
+module-level list/tuple/set assignments plus names written literally into SQL —
+taking every string in the file would attribute a name mentioned in a comment to
+whatever verbs that file happens to contain.
+
+**And it found a real gap: 198 tables.**
+`apps/schools/migrations/0081_rls_backfill_unenumerated_tenant_tables.py` does it
+correctly — ENABLE *and* FORCE — so somebody already knew FORCE matters. The
+original per-app `*_enable_rls_postgresql.py` migrations predate that: they do
+ENABLE + CREATE POLICY with no FORCE, and were never revisited.
+`finance_invoice`, `finance_payment`, `academics_attendance` and
+`academics_academicyear` are among the 198. Verified in both directions — tables
+the backfill covers (`academics_room`, `people_enrollment`,
+`sync_engine_syncschedule`) are correctly *not* reported.
+
+Those 198 are **baselined, not closed**. Closing them means writing
+`ALTER TABLE ... FORCE ROW LEVEL SECURITY` migrations that change database
+security posture on live edge boxes — a deployment decision, not a side effect of
+a tooling commit. What *is* closed is that number 199 cannot happen: `--compare`
+now fails on any newly enabled table that is not forced, proven by planting one.
+
 ### 2. `rls-policy-coverage` is content-blind
 
 Same shape, narrower claim. It pairs `*enable_rls_postgresql*.py` against
@@ -117,7 +143,12 @@ has a matching rls_policy_default_deny".
 The gate does what its own docstring says — it is a structural pairing check. It
 is the pre-push registry comment that oversells it ("the property they protect
 is the isolation mechanism on every sovereign edge box"). An empty migration
-with the right name satisfies both this gate and #1.
+with the right name satisfied both this gate and #1.
+
+**Fixed.** It now opens the files: an `enable_rls` migration must carry a
+`CREATE POLICY` (in itself or its default-deny sibling), and a migration *named*
+for a default-deny policy must carry one itself. Zero gaps today, so this went in
+zero-baseline — measured before writing it, across every app.
 
 ### 3. `broad-except-baseline` is blind to every new file
 
@@ -135,6 +166,10 @@ for path, allowed_count in sorted(allowlist.items()):
 A file absent from the allowlist is never examined. A new tracked module
 carrying both `except Exception:` and `except BaseException:` passes cleanly.
 
+The scale: the allowlist names **189** files, **147 of which carry zero** broad
+excepts. **921 files carrying 3227 occurrences** are invisible. A new tracked
+module with both `except Exception:` and `except BaseException:` passes cleanly.
+
 The gate can only ratchet already-listed files downward. It cannot see a new
 broad except anywhere — which is the direction the registry comment says it was
 wired to protect: "A broad `except Exception` swallows the failure it was not
@@ -143,6 +178,14 @@ silence."
 
 The capability exists; the invocation bypasses it. Without `--allowlist` the
 same scanner finds the pre-existing population immediately.
+
+**Fixed.** The comparison now walks the union of the allowlist and the scan. The
+curated allowlist stays what it is — a human policy artifact with an issue link
+and a review date, for paths somebody argued about. Underneath it is a
+machine ratchet, `var/broad-except-unlisted-baseline.json`, freezing today's 921
+files at their current counts; anything absent from both is allowed zero. Proven
+twice: a brand-new file trips it at `1 > allowed 0`, and an existing unlisted
+file growing by one trips it at `40 > allowed 39`.
 
 ## Open queue
 
