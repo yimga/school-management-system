@@ -1332,3 +1332,153 @@ class TheAuditMustNotCallAStaleRefCurrentTests(SimpleTestCase):
         code = _section(*self.BLOCK, path=AUDIT)
         self.assertIn("GIT_TERMINAL_PROMPT=0", code)
         self.assertIn("timeout 30", code)
+
+
+class TheProbeMustSayWhatTheFetchCouldNotTests(SimpleTestCase):
+    """A failed fetch left the verdict blank when more was knowable.
+
+    `ls-remote` is one ref exchange rather than an object transfer, and on the Gilead
+    box it answers while `fetch` does not. So when the fetch fails the tip is asked
+    for anyway. It cannot say how FAR behind -- that needs the objects -- but "this
+    box IS behind" and "I could not tell" are different sentences, and only one of
+    them gets somebody to act.
+
+    Asking the LOCAL refs instead would have been worse than useless. That box's
+    `git status -sb` prints "## main...origin/main" with no divergence, because its
+    own remote-tracking ref is as stale as the checkout: every local question answers
+    "level" while six commits sit on origin.
+
+    And the fetch takes one branch now. A bare `fetch origin` pulls every branch
+    anybody has pushed, which on a box over a school link is the likeliest reason it
+    does not finish.
+    """
+
+    STEP3 = ('step "Update the checkout"', "bar 3")
+
+    # Kills the fetch and lets everything else through, so the probe runs for real
+    # against a real remote -- which is the only way to test what it adds.
+    _KILL_FETCH = (
+        'timeout() { case "$*" in *" fetch "*) return 124 ;; esac; shift; "$@"; }\n'
+    )
+
+    def setUp(self):
+        _need_git_and_timeout(self)
+        self.dir = pathlib.Path(tempfile.mkdtemp(prefix="box-probe-"))
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.origin = self.dir / "origin.git"
+        self.seed = self.dir / "seed"
+        self.repo = self.dir / "repo"
+        _git("init", "-q", "--bare", _posix(self.origin))
+        _git("clone", "-q", _posix(self.origin), _posix(self.seed))
+        _git("symbolic-ref", "HEAD", "refs/heads/main", cwd=self.seed)
+        (self.seed / "a.txt").write_text("one\n", encoding="utf-8")
+        _git("add", "a.txt", cwd=self.seed)
+        _git("commit", "-qm", "one", cwd=self.seed)
+        push = _git("push", "-q", "-u", "origin", "main", cwd=self.seed)
+        self.assertEqual(push.returncode, 0, push.stderr)
+        _git("clone", "-q", _posix(self.origin), _posix(self.repo))
+
+    def _cloud_moves_on(self, branch="main"):
+        _git("checkout", "-q", branch, cwd=self.seed)
+        _git("commit", "-q", "--allow-empty", "-m", "cloud work", cwd=self.seed)
+        push = _git("push", "-q", "origin", "HEAD:" + branch, cwd=self.seed)
+        self.assertEqual(push.returncode, 0, push.stderr)
+
+    def _run_step3(self, prelude=""):
+        script = (
+            "set -uo pipefail\n"
+            'B=""; N=""; G=""; Y=""\n'
+            "step() { printf '[step] %s\\n' \"$*\"; }\n"
+            "ok()   { printf '  OK   %s\\n' \"$*\"; }\n"
+            "warn() { printf '  WARN %s\\n' \"$*\"; }\n"
+            "bar()  { :; }\n"
+            "short() { printf '%.9s' \"$1\"; }\n"
+            'checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }\n'
+            'HERE="/srv/rmc/deploy/selfhost"\n'
+            'REPO_ROOT="' + _posix(self.repo) + '"\n'
+            "DO_PULL=1\n"
+            'FETCH_BUDGET="300"\n'
+            + prelude
+            + 'HEAD_COMMIT="$(checkout_commit)"\n'
+            + _section(*self.STEP3)
+            + 'printf "\\nUPSTREAM=[%s]\\nNOTE=[%s]\\n" "$UPSTREAM" "$CHECKOUT_NOTE"\n'
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    # -- what the probe adds --------------------------------------------------
+
+    def test_a_killed_fetch_over_a_reachable_remote_can_still_confirm_currency(self):
+        # The comparison was made, just not by the fetch. Reporting that as unknown
+        # would be perverse.
+        out = self._run_step3(prelude=self._KILL_FETCH)
+        self.assertIn("nothing was missed", out)
+        self.assertIn("UPSTREAM=[level]", out)
+        self.assertIn("NOTE=[]", out)
+
+    def test_a_killed_fetch_over_a_moved_remote_says_the_box_is_behind(self):
+        self._cloud_moves_on()
+        out = self._run_step3(prelude=self._KILL_FETCH)
+        self.assertIn("this box IS behind", out)
+        self.assertIn("will not include those commits", out)
+        self.assertIn("UPSTREAM=[]", out)
+        self.assertIn("this box is behind", out.split("NOTE=[", 1)[1])
+
+    def test_the_probe_names_both_shas_so_the_gap_is_checkable(self):
+        self._cloud_moves_on()
+        out = self._run_step3(prelude=self._KILL_FETCH)
+        head = _git("rev-parse", "HEAD", cwd=self.repo).stdout.strip()[:9]
+        tip = _git("ls-remote", _posix(self.origin), "refs/heads/main").stdout.split()[0][:9]
+        self.assertIn(head, out)
+        self.assertIn(tip, out)
+
+    def test_an_unreachable_remote_leaves_the_probe_silent(self):
+        # Nothing to add, and inventing something would be the original sin here.
+        _git("remote", "set-url", "origin", _posix(self.dir / "gone.git"), cwd=self.repo)
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[]", out)
+        self.assertNotIn("this box IS behind", out)
+        self.assertNotIn("nothing was missed", out)
+
+    def test_the_probe_asks_the_remote_not_the_stale_local_ref(self):
+        # The bug this exists beside: the box's own origin/main is as old as its
+        # checkout, so a local comparison answers "level" while origin has moved.
+        self._cloud_moves_on()
+        stale = _git("rev-parse", "origin/main", cwd=self.repo).stdout.strip()
+        head = _git("rev-parse", "HEAD", cwd=self.repo).stdout.strip()
+        self.assertEqual(stale, head, "the fixture does not reproduce the stale ref")
+        out = self._run_step3(prelude=self._KILL_FETCH)
+        self.assertIn("this box IS behind", out)
+
+    # -- one branch, not all of them ------------------------------------------
+
+    def test_the_fetch_does_not_drag_in_every_other_branch(self):
+        peer = "peer-work"
+        _git("checkout", "-q", "-b", peer, cwd=self.seed)
+        _git("commit", "-q", "--allow-empty", "-m", "peer", cwd=self.seed)
+        push = _git("push", "-q", "origin", peer, cwd=self.seed)
+        self.assertEqual(push.returncode, 0, push.stderr)
+        _git("checkout", "-q", "main", cwd=self.seed)
+        self._cloud_moves_on()
+
+        out = self._run_step3()
+        self.assertIn("UPSTREAM=[advanced]", out)
+        refs = _git(
+            "for-each-ref", "--format=%(refname)", "refs/remotes", cwd=self.repo
+        ).stdout
+        self.assertIn("refs/remotes/origin/main", refs)
+        self.assertNotIn(peer, refs)
+
+    def test_the_refspec_still_moves_the_tracking_ref(self):
+        # `git fetch origin main` would only move FETCH_HEAD, and the ff-merge below
+        # reads refs/remotes/origin/main -- so the branch would never advance and the
+        # saving would have cost the whole point of the step.
+        self._cloud_moves_on()
+        before = _git("rev-parse", "origin/main", cwd=self.repo).stdout.strip()
+        out = self._run_step3()
+        after = _git("rev-parse", "origin/main", cwd=self.repo).stdout.strip()
+        self.assertNotEqual(before, after)
+        self.assertIn("UPSTREAM=[advanced]", out)
+        step3 = _section(*self.STEP3)
+        self.assertIn('"+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH"', step3)
