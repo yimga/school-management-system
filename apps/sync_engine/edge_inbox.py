@@ -116,6 +116,14 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
     # in which every row was refused still read as a clean sync. Count them and keep the
     # reasons, so "sync is green" cannot mean "nothing landed".
     skipped_reasons: dict = {}
+    # WHICH parent, not just how many. A `missing_reference` used to arrive at the runner
+    # as a bare count, and the runner's only healing move - rewinding the pull cursor for a
+    # full-corpus replay - is worth making ONLY when the absent parent is a row the rail can
+    # actually deliver. A parent whose table does not ride will not appear in a replay, in
+    # this replay or any future one, so on that evidence the rewind is a guaranteed-futile
+    # re-download of the entire corpus, every cooldown, forever. Keeping the model label
+    # here is what lets the runner tell the two cases apart.
+    missing_parents: dict = {}
 
     def _tally(results, conflict_indexes=frozenset()):
         for res in results:
@@ -126,8 +134,13 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
             # is "nobody is looking at this".
             if res.get("index") in conflict_indexes:
                 continue
-            reason = str((res.get("data") or {}).get("error") or "unknown")
+            data = res.get("data") or {}
+            reason = str(data.get("error") or "unknown")
             skipped_reasons[reason] = skipped_reasons.get(reason, 0) + 1
+            if reason == "missing_reference":
+                label = str(data.get("references") or "").strip()
+                if label:
+                    missing_parents[label] = missing_parents.get(label, 0) + 1
 
     # The two result lists index INDEPENDENTLY (one enumerates update_rows, the other
     # insert_rows), so the conflict indexes — which only ever come from apply_changes —
@@ -147,6 +160,7 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
         "deleted": removed["deleted"],
         "skipped": sum(skipped_reasons.values()),
         "skipped_reasons": skipped_reasons,
+        "skipped_missing_parents": missing_parents,
         "conflict_details": out["conflicts"],
         "results": out["results"],
         "insert_results": inserted["results"],

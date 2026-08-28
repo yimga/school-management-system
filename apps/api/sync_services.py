@@ -195,7 +195,11 @@ _DOWN_ONLY_FIELDS_PER_ENTITY: dict[str, set] = {
     "teacher": {
         # compensation
         "pay_grade",
-        "pay_scale_id",
+        # NOT pay_scale_id. Per-field direction only means anything for a field that
+        # RIDES: payroll.PayScale has no `school` column, so the provisioning clone never
+        # carries it and a scale minted on the cloud can never be resolved on a box. The
+        # column is off the rail entirely now (see _derive_sync_fields), and listing it
+        # here as well would claim a direction for data that does not travel.
         "salary_amount",
         "salary_cap",
         "next_pay_date",
@@ -265,6 +269,32 @@ def _is_sync_tenant_model(model) -> bool:
     return model._meta.app_label in TENANT_APP_LABELS
 
 
+def _is_tenant_scoped_model(model) -> bool:
+    """True if ``model`` carries the tenant scope ITSELF - a concrete ``school`` field.
+
+    :func:`_is_sync_tenant_model` asks a WEAKER question: does the model live in a tenant
+    APP. That was taken as a proxy for 'this pk is portable box<->cloud', and for almost
+    every model it is. But a tenant app may also hold a SHARED table that no school owns,
+    and the provisioning clone is per-SCHOOL: it carries the rows a school owns and
+    nothing else. finance.ComplianceProfile, finance.Counterparty and payroll.PayScale are
+    exactly that shape - tenant app, no ``school`` column - so a row created on the cloud
+    after a box was cloned NEVER reaches that box. A reference to one is as unportable as a
+    reference to accounts.User, and it fails the same way: the referential preflight cannot
+    resolve the parent, and no amount of replaying the rail will ever produce it, because
+    the parent's table does not ride.
+
+    Kept separate from _is_sync_tenant_model rather than folded into it: the two answer
+    different questions, and a caller that wants 'is this a tenant app' should not silently
+    get 'is this row owned by a school'.
+    """
+    if model is None:
+        return False
+    return any(
+        getattr(f, "name", None) == "school"
+        for f in model._meta.get_fields()
+        if getattr(f, "concrete", False)
+    )
+
 def _derive_sync_fields(model) -> set:
     """The syncable field set for a CLASS-A model: every editable concrete scalar plus
     FKs that point at a TENANT model (pk-stable / remappable). Excludes the pk, the
@@ -307,8 +337,28 @@ def _derive_sync_fields(model) -> set:
             # tenant_portability._rel_model adds) so a string ref never AttributeErrors here.
             from apps.lifecycle.tenant_portability import _rel_model
 
-            if not _is_sync_tenant_model(_rel_model(f)):
+            target = _rel_model(f)
+            if not _is_sync_tenant_model(target):
                 continue  # FK to User/other shared model — id not portable across deployments
+            # An FK to an UNSCOPED model inside a tenant app is unportable for the very
+            # same reason (see _is_tenant_scoped_model), and it was riding unnoticed.
+            #
+            # Where the column is NULLABLE, dropping it is free and strictly better. Today
+            # an unresolvable parent costs the WHOLE row: the preflight refuses it, the
+            # invoice or the teacher never lands, and the box is missing a record rather
+            # than a link. Dropping the column lands the row and omits one reference the
+            # box could not have rendered anyway — the parent's table is not on the rail
+            # either, so even an id that DOES resolve resolves against whatever snapshot
+            # the clone happened to leave behind.
+            #
+            # Where the column is NOT NULL the row cannot exist without it, so it keeps
+            # riding: dropping it would turn a row that sometimes fails into a row that
+            # can never be created at all (finance.Invoice.profile is the live case —
+            # invoice is not insert-held, so the box does create invoices). Those are
+            # declared, with their reason, in scripts/verify_rail_fk_portability.py, which
+            # fails on any NEW one rather than letting it be discovered on a box.
+            if not _is_tenant_scoped_model(target) and getattr(f, "null", False):
+                continue
             fields.add(f.attname)  # sync the <name>_id
         else:
             fields.add(f.name)
@@ -1401,6 +1451,46 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                     )
                     continue
 
+            # NOTHING TO DISAGREE ABOUT. This runs before the conflict grading and before
+            # the FK preflight, and that order IS the fix: both of those refuse a row on
+            # evidence that says nothing about whether the row would CHANGE anything.
+            #
+            # Conflict grading compares timestamps. On a box every row carries an
+            # updated_at written by the box's OWN apply (auto_now), so it is newer than the
+            # cloud stamp on the same row BY CONSTRUCTION, and a full-corpus re-pull graded
+            # every already-converged row as a conflict with itself. The provenance guard
+            # below catches the rows SYNC wrote; it cannot catch the ones the provisioning
+            # CLONE wrote, which have no ledger entry - and on a freshly cloned box that is
+            # nearly every row. The result was tens of thousands of SyncConflict rows, each
+            # asking an operator to choose between a value and that same value.
+            #
+            # The FK preflight had the same shape: an UNCHANGED row was refused as
+            # missing_reference over a parent it was never going to write, and that refusal
+            # is what rewinds the pull cursor for a full-corpus replay - which re-offers
+            # every row again. The replay fed the conflicts.
+            #
+            # Neither is a judgement call. If no value changes, nothing is written: there is
+            # no conflict to adjudicate and no constraint to violate. _same_value fails
+            # toward CHANGED for anything that is not a plain scalar, so this can only ever
+            # suppress a decision about values that are already identical.
+            if all(
+                _same_value(getattr(instance, _k, None), _v) for _k, _v in updates.items()
+            ):
+                if sync_origin:
+                    from apps.sync_engine.models import record_sync_apply
+
+                    record_sync_apply(
+                        school_id, entity_type, instance.pk,
+                        getattr(instance, "updated_at", None), sync_origin,
+                    )
+                success_count += 1
+                _emit({
+                    "index": idx,
+                    "status": 200,
+                    "data": {"id": instance.pk, "unchanged": True},
+                })
+                continue
+
             server_dt = getattr(instance, "updated_at", None)
             if server_dt is not None and timezone.is_naive(server_dt):
                 server_dt = timezone.make_aware(server_dt, timezone.get_current_timezone())
@@ -1547,29 +1637,6 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                         "references": missing_ref[1],
                         "referenced_id": missing_ref[2],
                     },
-                })
-                continue
-
-            # Nothing to do: every incoming value already matches. Saving anyway would
-            # bump updated_at for a write that changed nothing, which re-enters this row
-            # into the next delta in the OTHER direction — churn manufactured by the
-            # engine, most visible now that the cursor overlap deliberately re-offers
-            # recent rows.
-            if all(
-                _same_value(getattr(instance, _k, None), _v) for _k, _v in updates.items()
-            ):
-                if sync_origin:
-                    from apps.sync_engine.models import record_sync_apply
-
-                    record_sync_apply(
-                        school_id, entity_type, instance.pk,
-                        getattr(instance, "updated_at", None), sync_origin,
-                    )
-                success_count += 1
-                _emit({
-                    "index": idx,
-                    "status": 200,
-                    "data": {"id": instance.pk, "unchanged": True},
                 })
                 continue
 
