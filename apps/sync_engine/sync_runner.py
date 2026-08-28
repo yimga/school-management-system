@@ -290,8 +290,28 @@ def _flush_drifted_entities(school, endpoint, token, user, drifted) -> FlushOutc
     repaired, failed = [], []
     for entity_type in targets:
         try:
+            # THE BOX ALREADY HOLDS MOST OF THIS TABLE. Sending its per-bucket digests
+            # lets the cloud serve only the buckets that disagree; a cloud that predates
+            # the parameter ignores it and serves the whole entity, which is correct and
+            # merely bigger. Computing them is one scan of the entity this cycle is about
+            # to re-pull anyway, so it never costs a scan that was not already happening.
+            buckets = ""
+            try:
+                from apps.api.sync_services import _get_entity_config
+
+                entry = _get_entity_config(include_derived=True).get(entity_type)
+                if entry is not None:
+                    _model, _allowed = entry
+                    buckets = parity.encode_buckets(
+                        parity.bucket_digests(school, entity_type, _model, _allowed)
+                    )
+            except (ImportError, LookupError, AttributeError, TypeError, ValueError):
+                # Narrowing is an optimisation; a whole-entity pull is the correct
+                # fallback, so this must never abort the repair it was speeding up.
+                logger.debug("could not digest %s into buckets", entity_type, exc_info=True)
             status, body, _hw = edge_outbox.pull_bundle(
-                endpoint, token, since=None, entities=[entity_type]
+                endpoint, token, since=None, entities=[entity_type],
+                parity_buckets=buckets,
             )
             if status != 200:
                 failed.append(f"{entity_type} (HTTP {status})")

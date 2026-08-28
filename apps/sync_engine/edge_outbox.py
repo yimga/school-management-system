@@ -187,7 +187,9 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
     return rows, meta
 
 
-def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edge"):
+def build_edge_delta_bundle(
+    school, *, since=None, entities=None, device_id="edge", keep_buckets=None
+):
     """Package the school's records changed since ``since`` into a signed delta bundle.
 
     Returns ``(bundle_bytes, meta)`` where ``meta`` is
@@ -198,6 +200,21 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
     from apps.sync_engine.delta_bundle import export_delta_bundle
 
     rows, meta = build_edge_delta_rows(school, since=since, entities=entities)
+    if keep_buckets is not None:
+        # Between BUILD and SIGN, so the signature covers exactly what is shipped and the
+        # row_count cannot disagree with the body. `keep_buckets` is (fan_out, {indexes});
+        # an empty index set legitimately ships nothing, which is what "the two sides
+        # already agree about every bucket" means.
+        from apps.sync_engine import parity as _parity
+
+        fan_out, wanted = keep_buckets
+        rows = [
+            r
+            for r in rows
+            if _parity.row_bucket(_parity.bundle_row_identity(r), fan_out) in wanted
+        ]
+        meta = dict(meta)
+        meta["row_count"] = len(rows)
     data = export_delta_bundle(school_id=str(school.id), rows=rows, device_id=device_id or "edge")
     return data, meta
 
@@ -402,6 +419,9 @@ SYNC_DIRECTIVE_HEADER = "X-RMC-Sync-Directive"
 # the response one, so an un-upgraded peer on either side keeps syncing exactly as before.
 SYNC_PARITY_HEADER = "X-RMC-Sync-Parity"
 SYNC_PARITY_DRIFT_HEADER = "X-RMC-Sync-Parity-Drift"
+#: Which bucket indexes the cloud actually served, so the box can report a repair
+#: that was narrower than the table instead of leaving it to be inferred.
+SYNC_PARITY_BUCKETS_HEADER = "X-RMC-Sync-Parity-Buckets"
 SYNC_PARITY_ADVICE_HEADER = "X-RMC-Sync-Parity-Advice"
 
 # OTA manifest handshake. The box declares WHICH CODE AND ASSETS it is made of; the cloud
@@ -429,6 +449,7 @@ def pull_bundle(
     timeout: float = 30.0,
     collect: dict | None = None,
     parity: str = "",
+    parity_buckets: str = "",
 ):
     """GET a signed delta bundle DOWN from the operator (cloud->box pull, box side).
 
@@ -458,6 +479,11 @@ def pull_bundle(
     ents = [str(e).strip().lower() for e in (entities or []) if str(e).strip()]
     if ents:
         query["entities"] = ",".join(ents)
+    # The box's per-bucket digests for the ONE entity it is repairing. The cloud serves
+    # only the buckets that disagree with its own; a cloud that predates this ignores the
+    # parameter and serves the whole entity, which is correct and merely bigger.
+    if parity_buckets and len(ents) == 1 and not query.get("since"):
+        query["parity_buckets"] = parity_buckets
     url = endpoint + (("?" + urlencode(query)) if query else "")
 
     headers = {"Authorization": f"Bearer {token}", "Accept": BUNDLE_CONTENT_TYPE}
