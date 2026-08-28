@@ -59,16 +59,51 @@ def _rail_model_labels() -> set:
     }
 
 
-def _request_replay_for_missing_parents(school, parents=None) -> str:
-    """Rewind the PULL cursor so the next cycle replays the whole corpus - IF that can help.
+def _rail_entity_by_model_label() -> dict:
+    """``{"academics.Department": "department", ...}`` from the LIVE registry.
+
+    The inbox reports an absent parent by its model label, and a repair has to ask for
+    it by entity type. Derived rather than listed, so an entity added to the rail is
+    repairable the day it is added with nothing here to remember.
+    """
+    from apps.api.sync_services import _get_entity_config
+
+    return {
+        model._meta.label: entity_type
+        for entity_type, (model, _allowed) in _get_entity_config(
+            include_derived=True
+        ).items()
+    }
+
+
+def _request_replay_for_missing_parents(
+    school, parents=None, *, endpoint=None, token=None, user=None
+) -> str:
+    """Fetch the tables the absent parents live in - not the whole corpus.
 
     A ``missing_reference`` means the bundle carried a CHILD whose PARENT this box does not
     have. When the parent's table RIDES THE RAIL, the parent is absent only because its own
     ``updated_at`` is older than the pull cursor, so an incremental delta will never offer it
     again - the child would be refused on every future cycle and the two sides would stay
-    silently divergent. Rewinding to 'no position' makes the next cycle request the corpus
-    from the beginning, which DOES contain the parent; the cloud-authored create path lands
-    it, and the child follows.
+    silently divergent. The parent has to be fetched by some means other than the delta.
+
+    IT DOES NOT TAKE THE WHOLE CORPUS TO FETCH ONE TABLE. Rewinding the cursor to 'no
+    position' re-downloads every row of every entity - 315,964 of them on the box this
+    was measured on, to collect one absent department - and because a full-corpus pull re-offers every row
+    the box already holds, the replay is itself what drove waves of conflict and skip
+    records through the apply path. The cure was the disease.
+
+    So the repair asks for the ENTITY the parent lives in, whole, with ``since=None``, and
+    leaves the cursor exactly where it was. That is ``_flush_drifted_entities``, which G8
+    already uses for the same reason and whose docstring says it plainly: rewinding
+    "replays the ENTIRE corpus to repair one table, which on a metered link is a bill and
+    on a large school is an hour". It rides the ordinary rail end to end, so a row this
+    side must not lose is protected by exactly the guards that protect it on every other
+    cycle - a narrow pull, not a privileged repair channel.
+
+    The rewind remains as the fallback for a caller that cannot do better: without
+    ``endpoint``/``token``/``user`` there is nothing to ask, and without ``parents`` there
+    is no way to know which table to ask for.
 
     WHEN THE PARENT'S TABLE DOES NOT RIDE, none of that is true and the rewind is worse than
     useless. A replay cannot carry a row the rail never carries, so the reference is still
@@ -113,6 +148,55 @@ def _request_replay_for_missing_parents(school, parents=None) -> str:
                         "so the pull cursor was left alone. Landing these rows needs a rail "
                         "change, not another sync"
                     )
+
+        # THE NARROW REPAIR. Everything needed to ask for exactly the right tables:
+        # which parents are missing, and a way to ask. Anything absent falls through to
+        # the corpus rewind below rather than being quietly downgraded to doing nothing.
+        if parents and endpoint and token and user is not None:
+            by_label = {}
+            try:
+                by_label = _rail_entity_by_model_label()
+            except (ImportError, LookupError, AttributeError, TypeError):
+                # Named: the registry is an import plus model lookups, and a blanket
+                # except here would swallow a bug in the mapping and silently downgrade
+                # every repair to a full-corpus rewind -- the exact behaviour being
+                # removed, restored invisibly.
+                logger.debug("could not map parent labels to entities", exc_info=True)
+            wanted, cooling = [], []
+            for label in sorted(set(parents)):
+                entity_type = by_label.get(label)
+                if not entity_type:
+                    continue  # off-rail; already reported as unreachable above
+                # Per ENTITY, not per school: a department that cannot be repaired must
+                # not also block a classroom that can.
+                if cache.add(
+                    _MISSING_REF_REPLAY_KEY % f"{school.pk}:{entity_type}",
+                    1,
+                    _MISSING_REF_REPLAY_COOLDOWN_SECONDS,
+                ):
+                    wanted.append(entity_type)
+                else:
+                    cooling.append(entity_type)
+            if wanted or cooling:
+                bits = []
+                if wanted:
+                    outcome = _flush_drifted_entities(school, endpoint, token, user, wanted)
+                    bits.append(
+                        outcome.note
+                        or "requested " + ", ".join(wanted) + " to collect the missing parents"
+                    )
+                if cooling:
+                    bits.append(
+                        ", ".join(sorted(cooling))
+                        + " was requested recently, so this cycle did not request it again"
+                    )
+                if unreachable:
+                    bits.append(
+                        ", ".join(unreachable)
+                        + " is not carried by this rail and no request will produce it"
+                    )
+                # The cursor is untouched on this path, on purpose: nothing else re-ships.
+                return "; ".join(b for b in bits if b)
 
         key = _MISSING_REF_REPLAY_KEY % school.pk
         # cache.add only succeeds when the key is absent, so the cooldown is atomic even if
@@ -206,8 +290,28 @@ def _flush_drifted_entities(school, endpoint, token, user, drifted) -> FlushOutc
     repaired, failed = [], []
     for entity_type in targets:
         try:
+            # THE BOX ALREADY HOLDS MOST OF THIS TABLE. Sending its per-bucket digests
+            # lets the cloud serve only the buckets that disagree; a cloud that predates
+            # the parameter ignores it and serves the whole entity, which is correct and
+            # merely bigger. Computing them is one scan of the entity this cycle is about
+            # to re-pull anyway, so it never costs a scan that was not already happening.
+            buckets = ""
+            try:
+                from apps.api.sync_services import _get_entity_config
+
+                entry = _get_entity_config(include_derived=True).get(entity_type)
+                if entry is not None:
+                    _model, _allowed = entry
+                    buckets = parity.encode_buckets(
+                        parity.bucket_digests(school, entity_type, _model, _allowed)
+                    )
+            except (ImportError, LookupError, AttributeError, TypeError, ValueError):
+                # Narrowing is an optimisation; a whole-entity pull is the correct
+                # fallback, so this must never abort the repair it was speeding up.
+                logger.debug("could not digest %s into buckets", entity_type, exc_info=True)
             status, body, _hw = edge_outbox.pull_bundle(
-                endpoint, token, since=None, entities=[entity_type]
+                endpoint, token, since=None, entities=[entity_type],
+                parity_buckets=buckets,
             )
             if status != 200:
                 failed.append(f"{entity_type} (HTTP {status})")
@@ -960,8 +1064,14 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                         # is what survives this cycle. The parent LABELS ride along so the
                         # decision can tell a parent a replay would deliver from one no
                         # replay ever will.
+                        # endpoint/token/user are what turn this from a corpus
+                        # rewind into a request for the one table the parent lives in.
                         notes.append(_request_replay_for_missing_parents(
-                            school, applied.get("skipped_missing_parents") or {}
+                            school,
+                            applied.get("skipped_missing_parents") or {},
+                            endpoint=endpoint,
+                            token=token,
+                            user=user,
                         ))
 
                     # G8: the cloud answered this cycle's parity digest with the entities

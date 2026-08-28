@@ -42,6 +42,7 @@ from apps.sync_engine.edge_outbox import (
     SYNC_DIRECTIVE_HEADER,
     SYNC_HIGH_WATER_HEADER,
     SYNC_PARITY_ADVICE_HEADER,
+    SYNC_PARITY_BUCKETS_HEADER,
     SYNC_PARITY_DRIFT_HEADER,
     SYNC_PARITY_HEADER,
     SYNC_ROW_COUNT_HEADER,
@@ -172,6 +173,9 @@ def _manifest_handshake(request, school):
     except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
         return "", ""
 
+
+from django.core.exceptions import FieldError
+from django.db import DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -517,9 +521,56 @@ class SyncBundleDownloadView(APIView):
                 # too, not only on the success path below.
                 _stamp_manifest_handshake(resp, request, school)
                 return resp
+        # THE BOX ALREADY HAS MOST OF THIS. A repair for one drifted entity re-ships the
+        # WHOLE table -- 41,755 rows to fix one -- and a whole-table pull re-offers every
+        # row the box already holds, which is the same waste the corpus replay was. When
+        # the box sends its per-bucket digests, the buckets that AGREE are proof the rows
+        # in them are identical on both sides, and proof is what lets the sender stop.
+        #
+        # Confined to a repair pull ON PURPOSE: only when there is no `since` and exactly
+        # one entity. That is the shape `_flush_drifted_entities` uses, and it is the one
+        # shape where the runner does not advance the pull cursor from the response -- so
+        # withholding rows here can never interact with cursor advancement.
+        keep_buckets = None
+        served_buckets = ""
+        raw_buckets = (request.query_params.get("parity_buckets") or "").strip()
+        if raw_buckets and since is None and len(entities) == 1:
+            try:
+                from apps.api.sync_services import _get_entity_config
+                from apps.sync_engine import parity as _parity
+
+                remote = _parity.decode_buckets(raw_buckets)
+                entry = _get_entity_config(include_derived=True).get(entities[0])
+                if remote and entry is not None:
+                    model, allowed = entry
+                    local = _parity.bucket_digests(
+                        school, entities[0], model, allowed, buckets=remote.get("buckets")
+                    )
+                    drift = _parity.drifting_buckets(local, remote)
+                    if drift is not None:
+                        # None means "could not compare" and MUST serve everything; an
+                        # empty list means "compared, nothing differs" and serves nothing.
+                        keep_buckets = (int(remote["buckets"]), set(drift))
+                        served_buckets = "%d|%s" % (
+                            int(remote["buckets"]),
+                            ",".join(str(i) for i in drift),
+                        )
+            except (
+                ImportError, LookupError, AttributeError, TypeError, ValueError,
+                DatabaseError, FieldError,
+            ):
+                # Named rather than blanket: the narrowing is a registry lookup plus one
+                # scan of the entity. Falling back to the whole entity is always correct,
+                # merely bigger -- while the opposite failure, withholding rows the box
+                # needs, is silent data loss. A blanket except would also hide a bug in
+                # the bucket comparison behind that same safe-looking fallback.
+                logger.debug("parity bucket narrowing failed; serving whole entity", exc_info=True)
+                keep_buckets = None
+
         try:
             data, meta = build_edge_delta_bundle(
-                school, since=since, entities=entities, device_id="cloud"
+                school, since=since, entities=entities, device_id="cloud",
+                keep_buckets=keep_buckets,
             )
         except ValueError as exc:  # unknown_entities:[...]
             return Response({"ok": False, "error": str(exc)}, status=400)
@@ -528,6 +579,8 @@ class SyncBundleDownloadView(APIView):
         if meta.get("high_water_iso"):
             resp[SYNC_HIGH_WATER_HEADER] = meta["high_water_iso"]
         resp[SYNC_ROW_COUNT_HEADER] = str(meta.get("row_count", 0))
+        if served_buckets:
+            resp[SYNC_PARITY_BUCKETS_HEADER] = served_buckets
         if withheld:
             # The box needs BOTH: the human sentence for the Sync Center, and the machine
             # list so it can report exactly which entities are frozen until it migrates.

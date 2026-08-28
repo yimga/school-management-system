@@ -274,6 +274,173 @@ def entity_digest(school, entity_type, model, allowed) -> dict:
     return {"n": n, "h": bytes(fold).hex()}
 
 
+# --------------------------------------------------------------------------- #
+# Buckets
+# --------------------------------------------------------------------------- #
+#: How many buckets an entity's rows are folded into. A repair costs 1/N of a table
+#: instead of all of it, and N digests of _HEADER_HEX characters have to fit in a query
+#: string: 64 x 17 is ~1.1KB, comfortably inside every server's URL limit. Both sides
+#: must agree, so it is sent on the wire rather than assumed - see decode_buckets.
+_DEFAULT_BUCKETS = 64  # magic-number-allow: parity bucket fan-out
+
+
+def bucket_count() -> int:
+    """How many buckets to fold into. Settable, because the right fan-out depends on
+    how big the school is and how expensive its link is."""
+    from django.conf import settings
+
+    raw = getattr(settings, "RMC_SYNC_PARITY_BUCKETS", _DEFAULT_BUCKETS)
+    try:
+        n = int(raw)
+    except (TypeError, ValueError):
+        return _DEFAULT_BUCKETS
+    # A fan-out of 1 is the old whole-entity behaviour and is legitimate; anything
+    # under it is not a number of buckets.
+    return n if 1 <= n <= 4096 else _DEFAULT_BUCKETS
+
+
+def row_bucket(identity: str, buckets: int) -> int:
+    """Which bucket a row falls in, from its identity alone.
+
+    Deterministic across deployments and independent of row ORDER, insertion time and
+    pk type: both sides hash the same identity string with the same function, so
+    neither has to tell the other how it bucketed anything.
+    """
+    if buckets <= 1:
+        return 0
+    digest = hashlib.sha256(str(identity).encode("utf-8")).hexdigest()
+    return int(digest[:8], 16) % buckets
+
+
+def _identity_of(row: dict, anchor: str, pk_name: str) -> str:
+    """The identity `entity_digest` folds over, from a ``.values()`` row.
+
+    Extracted so the bundle-filtering side can reproduce it EXACTLY. Two different
+    spellings of identity would put a row in different buckets on the two sides, and
+    the repair would then serve the wrong rows while reporting success.
+    """
+    identity = str(row.get(anchor) or "").strip() if anchor else ""
+    return identity or f"pk:{row.get(pk_name)}"
+
+
+def bundle_row_identity(row: dict) -> str:
+    """The identity of a row as it appears in a delta BUNDLE.
+
+    Must agree with :func:`_identity_of`, which reads a ``.values()`` row, or the two
+    sides would bucket the same record differently and a repair would serve the wrong
+    rows while reporting success. Both spellings live here, next to each other, for
+    exactly that reason.
+
+    A model with no ``client_offline_id`` column still carries the key in its bundle
+    row, as ``""``, which falls through to the pk form - the same answer ``_identity_of``
+    gives when the anchor is absent.
+    """
+    anchored = str((row or {}).get("client_offline_id") or "").strip()
+    return anchored or f"pk:{(row or {}).get('id')}"
+
+
+def bucket_digests(school, entity_type, model, allowed, *, buckets=None) -> dict:
+    """``{"buckets": n, "b": {index: hex}}`` for one entity of one school.
+
+    Only NON-EMPTY buckets appear. An empty bucket on one side and a populated one on
+    the other still disagree, because the missing key reads as "no digest" rather than
+    as a matching one - see :func:`drifting_buckets`.
+    """
+    n = int(buckets or bucket_count())
+    fields = _hashable_field_names(model, allowed)
+    pk_name = model._meta.pk.attname
+    anchor = "client_offline_id" if "client_offline_id" in _concrete_names(model) else ""
+
+    columns = [pk_name] + ([anchor] if anchor else []) + fields
+    folds: dict = {}
+    qs = model._default_manager.filter(school=school)  # school= is the tenant-isolation kwarg
+    for row in qs.values(*columns).iterator():
+        identity = _identity_of(row, anchor, pk_name)
+        digest = _row_digest(identity, {f: row.get(f) for f in fields})
+        idx = row_bucket(identity, n)
+        fold = folds.get(idx)
+        if fold is None:
+            fold = folds[idx] = bytearray(_DIGEST_BYTES)
+        for i in range(_DIGEST_BYTES):
+            fold[i] ^= digest[i]
+    return {
+        "buckets": n,
+        "b": {i: bytes(f).hex()[:_HEADER_HEX] for i, f in sorted(folds.items())},
+    }
+
+
+def encode_buckets(d: dict) -> str:
+    """``"64|0:9f3a...,7:00bb..."`` - the fan-out, then the non-empty buckets.
+
+    The fan-out travels because a box and a cloud configured differently would
+    otherwise compare bucket 7 of 64 against bucket 7 of 128 and call it drift.
+    """
+    if not d:
+        return ""
+    n = int(d.get("buckets") or 0)
+    if n <= 0:
+        return ""
+    body = ",".join(
+        f"{int(i)}:{str(h)[:_HEADER_HEX]}" for i, h in sorted((d.get("b") or {}).items())
+    )
+    return f"{n}|{body}"
+
+
+def decode_buckets(raw: str) -> dict:
+    """Inverse of :func:`encode_buckets`. Unparseable input yields ``{}``: the sender may
+    be a version this one has never met, and guessing at a fan-out would produce
+    confident nonsense rather than a missing feature."""
+    raw = (raw or "").strip()
+    if "|" not in raw:
+        return {}
+    head, _, body = raw.partition("|")
+    try:
+        n = int(head)
+    except (TypeError, ValueError):
+        return {}
+    if not 1 <= n <= 4096:
+        return {}
+    out: dict = {}
+    for segment in body.split(","):
+        segment = segment.strip()
+        if not segment or ":" not in segment:
+            continue
+        idx, _, digest = segment.partition(":")
+        try:
+            i = int(idx)
+        except (TypeError, ValueError):
+            continue
+        if 0 <= i < n:
+            out[i] = digest.strip()[:_HEADER_HEX]
+    return {"buckets": n, "b": out}
+
+
+def drifting_buckets(local: dict, remote: dict) -> list:
+    """Which bucket indexes disagree. ``None`` means "cannot tell -- serve everything".
+
+    Returns None rather than an empty list when the two sides cannot be compared at all
+    (a missing or differing fan-out). An empty list means "compared, and nothing
+    differs", and the two must never be confused: one serves nothing, the other serves
+    the whole table, and getting it backwards silently withholds rows the box needs.
+    """
+    if not local or not remote:
+        return None
+    try:
+        ln, rn = int(local.get("buckets") or 0), int(remote.get("buckets") or 0)
+    except (TypeError, ValueError):
+        return None
+    if ln <= 0 or ln != rn:
+        return None
+    lb = local.get("b") or {}
+    rb = remote.get("b") or {}
+    # A bucket present on one side only is drift: one of them holds rows the other
+    # does not. Comparing only the intersection would report agreement about rows
+    # nobody compared.
+    return sorted(
+        i for i in set(lb) | set(rb) if str(lb.get(i) or "") != str(rb.get(i) or "")
+    )
+
+
 def parity_digests(school, *, entities=None) -> dict:
     """``{entity_type: {"n": int, "h": hex}}`` for every rail entity, or the named ones.
 
