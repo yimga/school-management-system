@@ -174,6 +174,9 @@ def _manifest_handshake(request, school):
         return "", ""
 
 
+from django.core.exceptions import FieldError
+from django.db import DatabaseError
+
 logger = logging.getLogger(__name__)
 
 # The box already capped what it sends; this is the receiver's own belt-and-braces so a
@@ -552,9 +555,15 @@ class SyncBundleDownloadView(APIView):
                             int(remote["buckets"]),
                             ",".join(str(i) for i in drift),
                         )
-            except Exception:  # noqa: BLE001 - an optimisation must never withhold rows
-                # Falling back to the whole entity is always correct, merely bigger. The
-                # opposite failure -- withholding rows the box needs -- is silent data loss.
+            except (
+                ImportError, LookupError, AttributeError, TypeError, ValueError,
+                DatabaseError, FieldError,
+            ):
+                # Named rather than blanket: the narrowing is a registry lookup plus one
+                # scan of the entity. Falling back to the whole entity is always correct,
+                # merely bigger -- while the opposite failure, withholding rows the box
+                # needs, is silent data loss. A blanket except would also hide a bug in
+                # the bucket comparison behind that same safe-looking fallback.
                 logger.debug("parity bucket narrowing failed; serving whole entity", exc_info=True)
                 keep_buckets = None
 
