@@ -361,7 +361,10 @@ def auto_infer_expected_totals(*, bundle: Any) -> dict[str, str]:
     summary = dict(bundle.mapping_summary or {})
     summary["expected_totals_auto_inferred"] = inferred
     summary["expected_totals_requires_confirmation"] = True
-    summary.pop("finance_landed_unverified", None)
+    # finance_landed_unverified is deliberately LEFT IN PLACE. Inferring a total
+    # from the import is not verifying the import, and clearing the marker erased
+    # the only durable record that money landed unchecked. The review banner
+    # already prefers the "needs confirmation" wording when both are set.
     bundle.expected_totals = current
     bundle.mapping_summary = summary
     bundle.save(update_fields=["expected_totals", "mapping_summary", "updated_at"])

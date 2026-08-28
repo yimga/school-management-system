@@ -491,6 +491,16 @@ def _flatten_source_row(row: dict | None) -> dict[str, Any]:
     return flat
 
 
+def domain_identity_is_known(domain: str) -> bool:
+    """True when we have identity keys for this domain and can judge its rows.
+
+    Only a handful of the lander domains are mapped in ``_DOMAIN_IDENTITY_KEYS``.
+    For the rest, "has identity" is unanswerable, and an unanswerable question
+    must never be read as "no".
+    """
+    return bool(_DOMAIN_IDENTITY_KEYS.get(str(domain or "").strip().lower()))
+
+
 def row_has_domain_identity(domain: str, source_row: dict | None) -> bool:
     """True when at least one domain-specific identity field is populated."""
     keys = _DOMAIN_IDENTITY_KEYS.get(str(domain or "").strip().lower(), ())
@@ -516,6 +526,16 @@ def row_is_pdf_noise_hold(domain: str, source_row: dict | None, artifact: str = 
     """
     if row_is_unstructured_text_fragment(source_row, artifact=artifact):
         return True
+    # A domain with no identity keys cannot be judged. ``row_has_domain_identity``
+    # returns False both for "identity fields are empty" and for "I have never
+    # heard of this domain", and only 7 of the 28 lander domains are mapped.
+    # Reading the second as the first made every held finance, payroll, guardian,
+    # transcript and library row that came off a PDF look like page furniture --
+    # an invoice row carrying amount, currency and due date was auto-dismissed.
+    # Genuine noise in those domains is still caught above, by the fragment test,
+    # which reads the row instead of the domain. UNKNOWN means keep.
+    if not domain_identity_is_known(domain):
+        return False
     artifact_name = str(artifact or "").lower()
     if "school_stats" in artifact_name and not row_has_domain_identity(domain, source_row):
         return True

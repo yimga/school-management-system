@@ -1612,6 +1612,29 @@ QUARANTINE_PAGE_SIZE = 25  # magic-number-allow: review-table-page-size
 MAPPING_PAGE_SIZE = 25  # magic-number-allow: mapping-review-page-size
 
 
+def _is_operator_page_open(request) -> bool:
+    """True when this GET is a navigation somebody made, not a fetch of the URL.
+
+    Review-open autopilot CLOSES held rows, so this GET mutates -- and a GET is
+    reachable by every route CSRF protection does not cover. A third-party page
+    embedding ``<img src="https://<tenant>/.../review/">`` would run the triage
+    as whoever is signed in, and a link prefetch would run it for a page nobody
+    opened. Fetch-metadata is sent by every browser capable of mounting either,
+    so a non-document destination or a declared prefetch is refused. A client
+    that sends no fetch-metadata (curl, the test client, an old browser) is
+    allowed through: this narrows the attack surface without inventing a new way
+    for the page to quietly stop working. Opening the page normally is
+    unaffected, including from a cross-site link, which is still a real person
+    navigating.
+    """
+    dest = (request.headers.get("Sec-Fetch-Dest") or "").strip().lower()
+    if dest and dest != "document":
+        return False
+    if "prefetch" in (request.headers.get("Sec-Purpose") or "").lower():
+        return False
+    return True
+
+
 def maybe_autopilot_held_review(request, bundle, *, user):
     """Run zero-touch triage once when held review opens; redirect if rows closed."""
     from django.shortcuts import redirect
@@ -1619,6 +1642,8 @@ def maybe_autopilot_held_review(request, bundle, *, user):
     if request.GET.get("autopilot_done") is not None:
         return None
     if request.GET.get("autopilot") == "skip":
+        return None
+    if not _is_operator_page_open(request):
         return None
     if pending_quarantine_count(bundle) == 0:
         return None

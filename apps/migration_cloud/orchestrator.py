@@ -937,19 +937,23 @@ def _maybe_check_financial_guardrail(
         o.domain == "payroll" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
     )
     if not bundle.expected_totals:
+        # #4b: money landed with NO operator control totals = UNVERIFIED. Answer that
+        # HERE, while expected_totals is still genuinely empty. auto_infer_expected_totals
+        # below writes expected == observed, after which nothing downstream can tell an
+        # unverified import from a checked one -- including
+        # RMC_MIGRATION_REQUIRE_FINANCE_TOTALS, whose entire job is to refuse money
+        # nobody verified. Warn loudly by default (recorded on the bundle + logged);
+        # a deployment can hard-require totals on sensitive tenants via the settings
+        # flag, in which case an unverified finance import is refused (FAILED + rolled
+        # back through the orchestrator's FinancialMismatchError handler).
+        if finance_landed:
+            _handle_unverified_finance(bundle)
         if finance_landed or students_landed or payroll_landed:
             from .guardrails import auto_infer_expected_totals
 
             auto_infer_expected_totals(bundle=bundle)
             bundle.refresh_from_db()
         if not bundle.expected_totals:
-            # #4b: money landed with NO operator control totals = UNVERIFIED. Don't pass
-            # it off silently. Warn loudly by default (recorded on the bundle + logged);
-            # a deployment can hard-require totals on sensitive tenants via the settings
-            # flag, in which case an unverified finance import is refused (FAILED + rolled
-            # back through the orchestrator's FinancialMismatchError handler).
-            if finance_landed:
-                _handle_unverified_finance(bundle)
             return
     # Only enforce when something happened in a domain the guardrail observes.
     if not (finance_landed or students_landed or payroll_landed):
