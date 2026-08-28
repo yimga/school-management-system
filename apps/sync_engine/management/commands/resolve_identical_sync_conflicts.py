@@ -132,7 +132,11 @@ class Command(BaseCommand):
         difference would bias that tally toward whichever field sorts earliest, which is
         an artefact of the alphabet rather than a fact about the data.
         """
-        from apps.api.sync_services import _same_value
+        # By COLUMN. The scalar-only comparison reported every populated datetime and
+        # JSON field as differing, so this command would have reported real disagreement
+        # on rows that agreed -- and, being the tool that decides what a human has to
+        # adjudicate, it would have sent them to a human to compare a value with itself.
+        from apps.api.sync_services import _same_field_value
 
         if instance is None:
             return ROW_MISSING, ()
@@ -143,7 +147,7 @@ class Command(BaseCommand):
         differing = tuple(
             key
             for key, incoming in sorted(comparable.items())
-            if not _same_value(getattr(instance, key, None), incoming)
+            if not _same_field_value(type(instance), key, getattr(instance, key, None), incoming)
         )
         if differing:
             return DIFFERS, differing
