@@ -27,6 +27,8 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
+import crypto from 'crypto';
+import { execFileSync } from 'child_process';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
@@ -72,6 +74,10 @@ const ROUTES_JSON = path.join(
 const TENANT_ROUTES_JSON = path.join(
   process.cwd(),
   'docs/generated/portal_tenant_sweep_routes.json'
+);
+const TENANT_ADMIN_ROUTES_JSON = path.join(
+  process.cwd(),
+  'docs/generated/tenant_admin_sweep_routes.json'
 );
 
 const GOTO_RETRIES = Math.max(1, parseInt(process.env.SWEEP_GOTO_RETRIES || '3', 10));
@@ -174,8 +180,12 @@ function loadManagerSurfaces() {
   return routes
     .filter((row) => row.sweep !== false)
     .filter((row) => {
-      if (pathFilter.length && !pathFilter.some((p) => row.path.startsWith(p))) {
-        return false;
+      if (pathFilter.length) {
+        const exact = process.env.SWEEP_PATHS_EXACT === '1';
+        const matches = exact
+          ? pathFilter.some((p) => row.path === p)
+          : pathFilter.some((p) => row.path.startsWith(p));
+        if (!matches) return false;
       }
       if (tierFilter === 'all') return true;
       if (tierFilter === 'admin_changelist') {
@@ -197,10 +207,21 @@ function loadTenantSurfaces() {
   const tenantOnlyFilter = normalizeSweepPathList(
     process.env.SWEEP_TENANT_PATHS || ''
   );
-  if (!fs.existsSync(TENANT_ROUTES_JSON)) {
+  const manifest = SWEEP_TIER === 'admin_changelist'
+    ? TENANT_ADMIN_ROUTES_JSON
+    : TENANT_ROUTES_JSON;
+  if (!fs.existsSync(manifest)) {
+    if (SWEEP_TIER === 'admin_changelist') {
+      return [
+        { surface: 'tenant', url: '/admin/', login: 'tenant' },
+        { surface: 'tenant', url: '/admin/academics/', login: 'tenant' },
+        { surface: 'tenant', url: '/admin/academics/academicyear/', login: 'tenant' },
+        { surface: 'tenant', url: '/admin/academics/academicyear/add/', login: 'tenant' },
+      ];
+    }
     return FALLBACK_SURFACES.filter((s) => s.surface === 'tenant');
   }
-  const data = JSON.parse(fs.readFileSync(TENANT_ROUTES_JSON, 'utf8'));
+  const data = JSON.parse(fs.readFileSync(manifest, 'utf8'));
   const routes = Array.isArray(data.routes) ? data.routes : [];
   const maxRoutes = parseInt(process.env.TENANT_SWEEP_MAX || '0', 10);
   const capped = maxRoutes > 0 ? routes.slice(0, maxRoutes) : routes;
@@ -238,10 +259,24 @@ const INCLUDE_TENANT =
 const SWEEP_TIER = process.env.SWEEP_TIER || 'operator';
 const SURFACES = [
   ...(SWEEP_TIER !== 'tenant' ? loadManagerSurfaces() : []),
-  ...(INCLUDE_TENANT && SWEEP_TIER !== 'admin_changelist'
-    ? loadTenantSurfaces()
-    : []),
+  ...(INCLUDE_TENANT ? loadTenantSurfaces() : []),
 ];
+const ROUTE_SETTLE_MS = Math.max(
+  100,
+  parseInt(
+    process.env.SWEEP_ROUTE_SETTLE_MS ||
+      (SWEEP_TIER === 'admin_changelist' ? '300' : '1200'),
+    10
+  )
+);
+const ROUTE_STABILITY_MS = Math.max(
+  50,
+  parseInt(process.env.SWEEP_ROUTE_STABILITY_MS || '150', 10)
+);
+const ROUTE_CONCURRENCY = Math.max(
+  1,
+  Math.min(8, parseInt(process.env.SWEEP_ROUTE_CONCURRENCY || '4', 10))
+);
 
 function isInfraOrNonHtmlSkip(error) {
   const e = String(error || '');
@@ -256,6 +291,201 @@ function isInfraOrNonHtmlSkip(error) {
 
 function sleepMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function sha256File(file) {
+  return fs.existsSync(file)
+    ? crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')
+    : null;
+}
+
+function gitValue(args, fallback = 'unavailable') {
+  try {
+    return execFileSync('git', args, { cwd: process.cwd(), encoding: 'utf8' }).trim();
+  } catch (_error) {
+    return fallback;
+  }
+}
+
+async function auditAdminViewportMatrix(page, { surface, expectedHost, expectedSite, artifactDir }) {
+  const rows = [];
+  for (const width of [1440, 1024, 768, 390]) {
+    for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width, height: width <= 390 ? 844 : 900 });
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' });
+      const response = await gotoWithRetries(page, '/admin/');
+      await page.waitForTimeout(500);
+      const metrics = await page.evaluate(({ expectedHost, expectedSite }) => {
+        const visible = (node) => {
+          if (!node) return false;
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+        };
+        const styles = Array.from(document.querySelectorAll('link[rel~="stylesheet"]'));
+        const styleUrls = styles.map((node) => node.href);
+        const contractNode = document.querySelector('#rmcAdminNavigationContract');
+        let contract = null;
+        try { contract = contractNode ? JSON.parse(contractNode.textContent || '{}') : null; } catch (_error) { contract = null; }
+        return {
+          host: location.hostname,
+          expectedHost,
+          h1Count: Array.from(document.querySelectorAll('h1')).filter(visible).length,
+          horizontalOverflow: Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth || 0) > document.documentElement.clientWidth + 1,
+          brokenResources: Array.from(document.images).filter((img) => img.complete && img.naturalWidth === 0).map((img) => img.currentSrc || img.src),
+          duplicateStyles: styleUrls.filter((value, index) => styleUrls.indexOf(value) !== index),
+          bodyStylesheets: document.body ? document.body.querySelectorAll('link[rel~="stylesheet"]').length : 0,
+          shellCount: document.querySelectorAll('[data-rmc-shell-root="django-admin"]').length,
+          sidebarCount: document.querySelectorAll('[data-rmc-admin-sidebar-v3="1"]').length,
+          contractVersion: contract?.version || null,
+          adminSite: contract?.adminSite || null,
+          correctSite: contract?.adminSite === expectedSite,
+          rawIconNames: Array.from(document.querySelectorAll('body *')).filter((node) => node.children.length === 0 && /^(menu|close|search|chevron_right|more_vert)$/.test((node.textContent || '').trim())).length,
+        };
+      }, { expectedHost, expectedSite });
+      let drawer = { applicable: width <= 1024, opened: null, closed: null };
+      const drawerToggle = page.locator('[data-rmc-admin-drawer-toggle]').first();
+      if (width <= 1024 && await drawerToggle.count()) {
+        await drawerToggle.click();
+        drawer.opened = await drawerToggle.getAttribute('aria-expanded') === 'true';
+        await page.keyboard.press('Escape');
+        drawer.closed = await drawerToggle.getAttribute('aria-expanded') === 'false';
+      }
+      const scenarioId = `${surface}-${width}-${theme}`;
+      const screenshot = path.join(artifactDir, `${scenarioId}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
+      const failures = [];
+      if (!response || response.status() !== 200) failures.push(`http_${response?.status() || 'none'}`);
+      if (metrics.host !== expectedHost) failures.push('hostname_scope');
+      if (metrics.h1Count !== 1) failures.push(`visible_h1_${metrics.h1Count}`);
+      if (metrics.horizontalOverflow) failures.push('horizontal_overflow');
+      if (metrics.brokenResources.length) failures.push('broken_resources');
+      if (metrics.duplicateStyles.length) failures.push('duplicate_stylesheets');
+      if (metrics.bodyStylesheets) failures.push('stylesheet_in_body');
+      if (metrics.shellCount !== 1 || metrics.sidebarCount !== 1) failures.push('duplicate_admin_shell');
+      if (metrics.contractVersion !== 3 || !metrics.correctSite) failures.push('wrong_navigation_contract');
+      if (metrics.rawIconNames) failures.push('raw_icon_names');
+      if (drawer.applicable && drawer.opened !== true) failures.push('mobile_drawer_did_not_open');
+      if (drawer.applicable && drawer.closed !== true) failures.push('mobile_drawer_did_not_close');
+      rows.push({ scenarioId, traceId: crypto.randomUUID(), surface, width, theme, status: response?.status() || null, screenshot, metrics, drawer, failures, ok: failures.length === 0 });
+    }
+  }
+  return rows;
+}
+
+async function auditAdminSidebarBehavior(page, { surface }) {
+  const traceId = crypto.randomUUID();
+  const mutations = [];
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await gotoWithRetries(page, '/admin/');
+  await page.waitForTimeout(400);
+  const startingContract = await page.evaluate(() => {
+    try { return JSON.parse(document.querySelector('#rmcAdminNavigationContract')?.textContent || '{}'); } catch (_error) { return {}; }
+  });
+  if (await page.locator('[data-rmc-admin-pin-current][aria-pressed="true"]').count()) {
+    page.once('dialog', (prompt) => prompt.accept());
+    await page.locator('[data-rmc-admin-reset]').first().click();
+    await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 15000 });
+  }
+  const fetchPreferenceEnvelope = (endpoint) => page.evaluate(async (url) => {
+    const response = await fetch(url, {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+    });
+    let body = {};
+    try { body = await response.json(); } catch (_error) { body = {}; }
+    return { ok: response.ok, status: response.status, body };
+  }, endpoint);
+  let observedStartRevision = startingContract.revision || 0;
+  const startEnvelope = await fetchPreferenceEnvelope(
+    startingContract.endpoint || '/admin/navigation-preferences/'
+  );
+  if (startEnvelope.ok) {
+    observedStartRevision = startEnvelope.body.revision ?? observedStartRevision;
+  }
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+  const dialog = page.locator('.rmc-admin-command-v3[open], .rmc-admin-command-v3:modal');
+  const commandOpened = await dialog.count() > 0;
+  if (commandOpened) {
+    await page.locator('[data-rmc-admin-command-query]').fill('academic');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Escape');
+  }
+  const pin = page.locator('[data-rmc-admin-pin-current]').first();
+  await pin.click();
+  mutations.push('pin');
+  await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 15000 });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const persistedPin = await page.locator('[data-rmc-admin-pinned-list] li').count() > 0;
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+  const anotherPin = page.locator('.rmc-admin-command-v3 button', { hasText: /^Pin$/ }).first();
+  if (await anotherPin.count()) {
+    await anotherPin.click();
+    mutations.push('pin_second');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 15000 });
+  }
+  const pinCountBeforeMove = await page.locator('[data-rmc-admin-pinned-list] li').count();
+  let reordered = pinCountBeforeMove < 2;
+  let undoRestored = false;
+  if (pinCountBeforeMove >= 2) {
+    const firstBefore = await page.locator('[data-rmc-admin-pinned-list] li a').first().textContent();
+    await page.locator('[data-rmc-admin-pinned-list] li').first().getByRole('button', { name: /move pin down/i }).click();
+    mutations.push('move_pin');
+    await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 15000 });
+    const firstAfter = await page.locator('[data-rmc-admin-pinned-list] li a').first().textContent();
+    reordered = firstBefore !== firstAfter;
+    await page.locator('[data-rmc-admin-pinned-list] li').first().getByRole('button', { name: /remove pin/i }).click();
+    mutations.push('unpin');
+    await page.locator('[data-rmc-admin-undo-action]').click();
+    mutations.push('undo');
+    await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 15000 });
+    undoRestored = await page.locator('[data-rmc-admin-pinned-list] li').count() === pinCountBeforeMove;
+  }
+  await page.context().setOffline(true);
+  await page.locator('[data-rmc-admin-focus]').first().click();
+  mutations.push('set_focus_offline');
+  const queuedOffline = await page.locator('[data-rmc-admin-sync][data-status="offline"]').count() > 0;
+  await page.context().setOffline(false);
+  await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 20000 });
+  await page.evaluate(() => {
+    window.__rmcNavigationTelemetry = [];
+    window.addEventListener('rmc:admin-navigation-telemetry', (event) => window.__rmcNavigationTelemetry.push(event.detail));
+  });
+  const peer = await page.context().newPage();
+  await gotoWithRetries(peer, '/admin/');
+  await Promise.all([
+    page.locator('[data-rmc-admin-mode]').first().click(),
+    peer.locator('[data-rmc-admin-focus]').first().click(),
+  ]);
+  mutations.push('two_tab_overlap');
+  await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 20000 });
+  await peer.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 20000 });
+  await peer.close();
+  const conflictRecovered = await page.evaluate(() => {
+    const telemetry = window.__rmcNavigationTelemetry || [];
+    return telemetry.some((row) => row && row.event === 'conflict') || document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready';
+  });
+  const reset = page.locator('[data-rmc-admin-reset]').first();
+  page.once('dialog', (prompt) => prompt.accept());
+  await reset.click();
+  mutations.push('reset');
+  await page.waitForFunction(() => document.querySelector('[data-rmc-admin-sync]')?.getAttribute('data-status') === 'ready', null, { timeout: 15000 });
+  const ending = await fetchPreferenceEnvelope(
+    startingContract.endpoint || '/admin/navigation-preferences/'
+  );
+  const endingBody = ending.ok ? ending.body : {};
+  const checks = { commandOpened, persistedPin, reordered, undoRestored, queuedOffline, conflictRecovered, finalSync: ending.ok };
+  return {
+    scenarioId: `${surface}-sidebar-behavior`,
+    traceId,
+    host: new URL(page.url()).hostname,
+    startingRevision: observedStartRevision,
+    mutations,
+    endingRevision: endingBody.revision ?? null,
+    checks,
+    ok: Object.values(checks).every(Boolean),
+  };
 }
 
 async function probeTenantHealth() {
@@ -505,12 +735,19 @@ async function ensureTenantUser(page, username) {
 async function main() {
   if (fs.existsSync(LOG)) fs.unlinkSync(LOG);
 
+  const artifactDir = path.resolve(process.env.VISUAL_QA_ARTIFACT_DIR || 'artifacts/admin-platform-proof');
+  fs.mkdirSync(artifactDir, { recursive: true });
+
   const browser = await chromium.launch({
     headless: true,
     args: chromiumLaunchArgs(HOST_RULES),
   });
+  const browserVersion = browser.version();
 
   const results = [];
+  const viewportThemeMatrix = [];
+  const scenarios = [];
+  const resourceErrors = [];
   let failures = 0;
   let skipped = 0;
 
@@ -523,13 +760,27 @@ async function main() {
     storageState: fs.existsSync(AUTH) ? AUTH : undefined,
   });
   const mgrPage = await mgrCtx.newPage();
+  mgrPage.on('requestfailed', (request) => resourceErrors.push({ surface: 'manager', type: 'requestfailed', url: request.url(), error: request.failure()?.errorText || 'failed' }));
+  mgrPage.on('pageerror', (error) => resourceErrors.push({ surface: 'manager', type: 'pageerror', error: String(error) }));
   if (!fs.existsSync(AUTH)) {
     await loginManager(mgrPage);
   }
 
-  for (const s of managerSurfaces) {
+  const mgrPages = [mgrPage];
+  for (let index = 1; index < ROUTE_CONCURRENCY; index += 1) {
+    const workerPage = await mgrCtx.newPage();
+    workerPage.on('requestfailed', (request) => resourceErrors.push({ surface: 'manager', type: 'requestfailed', url: request.url(), error: request.failure()?.errorText || 'failed' }));
+    workerPage.on('pageerror', (error) => resourceErrors.push({ surface: 'manager', type: 'pageerror', error: String(error) }));
+    mgrPages.push(workerPage);
+  }
+  let managerCursor = 0;
+  await Promise.all(mgrPages.map(async (workerPage) => {
+    while (managerCursor < managerSurfaces.length) {
+      const cursor = managerCursor;
+      managerCursor += 1;
+      const s = managerSurfaces[cursor];
     try {
-      const resp = await gotoWithRetries(mgrPage, s.url);
+      const resp = await gotoWithRetries(workerPage, s.url);
       if (resp && resp.status() >= 400) {
         if (resp.status() >= 500 && s.url.startsWith('/admin/')) {
           failures += 1;
@@ -547,16 +798,17 @@ async function main() {
         results.push({ ...s, ok: true, skipped: `http_${resp.status()}` });
         continue;
       }
-      await mgrPage.waitForTimeout(1200);
-      let audit = await mgrPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
+      await workerPage.waitForTimeout(ROUTE_SETTLE_MS);
+      let audit = await workerPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
       if (/\/authentication\/(login|mfa\/verify)/.test(audit.path)) {
-        await loginManager(mgrPage);
-        await gotoWithRetries(mgrPage, s.url);
-        await mgrPage.waitForTimeout(1200);
-        audit = await mgrPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
+        failures += 1;
+        const row = { ...s, ...audit, ok: false, failures: ['auth_escape'] };
+        results.push(row);
+        writeLog('SWEEP', 'FAIL', row);
+        continue;
       }
-      await mgrPage.waitForTimeout(650);
-      audit = await mgrPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
+      await workerPage.waitForTimeout(ROUTE_STABILITY_MS);
+      audit = await workerPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
       const requestedAdmin = s.url.startsWith('/admin/');
       const landedAdmin = audit.path && String(audit.path).startsWith('/admin/');
       if (requestedAdmin && !landedAdmin) {
@@ -589,6 +841,14 @@ async function main() {
         writeLog('SWEEP', 'FAIL', row);
       }
     }
+    }
+  }));
+  await Promise.all(mgrPages.slice(1).map((page) => page.close()));
+  if (SWEEP_TIER === 'admin_changelist') {
+    viewportThemeMatrix.push(...await auditAdminViewportMatrix(mgrPage, {
+      surface: 'manager', expectedHost: HOST, expectedSite: 'admin', artifactDir,
+    }));
+    scenarios.push(await auditAdminSidebarBehavior(mgrPage, { surface: 'manager' }));
   }
   await mgrCtx.close();
   }
@@ -606,43 +866,60 @@ async function main() {
     viewport: SWEEP_VIEWPORT,
   });
   const tenPage = await tenCtx.newPage();
+  tenPage.on('requestfailed', (request) => resourceErrors.push({ surface: 'tenant', type: 'requestfailed', url: request.url(), error: request.failure()?.errorText || 'failed' }));
+  tenPage.on('pageerror', (error) => resourceErrors.push({ surface: 'tenant', type: 'pageerror', error: String(error) }));
   try {
-    let activeSweepUser = '';
     await ensureTenantUser(tenPage, TENANT_SWEEP_USER);
-    activeSweepUser = TENANT_SWEEP_USER;
-    for (const s of SURFACES.filter((x) => x.surface === 'tenant')) {
+    const tenantSurfaces = SURFACES.filter((x) => x.surface === 'tenant');
+    const tenPages = [tenPage];
+    for (let index = 1; index < ROUTE_CONCURRENCY; index += 1) {
+      const workerPage = await tenCtx.newPage();
+      workerPage.on('requestfailed', (request) => resourceErrors.push({ surface: 'tenant', type: 'requestfailed', url: request.url(), error: request.failure()?.errorText || 'failed' }));
+      workerPage.on('pageerror', (error) => resourceErrors.push({ surface: 'tenant', type: 'pageerror', error: String(error) }));
+      tenPages.push(workerPage);
+    }
+    let tenantCursor = 0;
+    await Promise.all(tenPages.map(async (workerPage) => {
+      while (tenantCursor < tenantSurfaces.length) {
+        const cursor = tenantCursor;
+        tenantCursor += 1;
+        const s = tenantSurfaces[cursor];
       try {
         const routeUser = resolveUserForRoute(s.url);
-        if (routeUser !== activeSweepUser) {
-          await ensureTenantUser(tenPage, routeUser);
-          activeSweepUser = routeUser;
+        if (routeUser !== TENANT_SWEEP_USER) {
+          failures += 1;
+          const row = { ...s, ok: false, failures: ['mixed_role_route_in_admin_sweep'] };
+          results.push(row);
+          writeLog('SWEEP', 'FAIL', row);
+          continue;
         }
-        await gotoWithRetries(tenPage, s.url);
+        const response = await gotoWithRetries(workerPage, s.url);
+        if (!response || response.status() !== 200) {
+          failures += 1;
+          const row = { ...s, ok: false, status: response?.status() || null, failures: [`http_${response?.status() || 'none'}`] };
+          results.push(row);
+          writeLog('SWEEP', 'FAIL', row);
+          continue;
+        }
         if (!USE_TENANT_SUBDOMAIN) {
-          await ensurePathTenantHost(tenPage);
+          await ensurePathTenantHost(workerPage);
         }
-        await tenPage.waitForTimeout(1200);
-        let audit = await tenPage.evaluate(
+        await workerPage.waitForTimeout(ROUTE_SETTLE_MS);
+        let audit = await workerPage.evaluate(
           sweepPageInBrowser,
           s.scrollRoot || '#main-content'
         );
-        await tenPage.waitForTimeout(650);
-        audit = await tenPage.evaluate(
+        await workerPage.waitForTimeout(ROUTE_STABILITY_MS);
+        audit = await workerPage.evaluate(
           sweepPageInBrowser,
           s.scrollRoot || '#main-content'
         );
         if (isAuthEscapePath(audit.path) && !isAuthEscapePath(s.url)) {
-          await ensureTenantUser(tenPage, routeUser);
-          activeSweepUser = routeUser;
-          await gotoWithRetries(tenPage, s.url);
-          if (!USE_TENANT_SUBDOMAIN) {
-            await ensurePathTenantHost(tenPage);
-          }
-          await tenPage.waitForTimeout(1200);
-          audit = await tenPage.evaluate(
-            sweepPageInBrowser,
-            s.scrollRoot || '#main-content'
-          );
+          failures += 1;
+          const row = finalizeTenantSweepRow(s, audit);
+          results.push(row);
+          writeLog('SWEEP', 'FAIL', row);
+          continue;
         }
         if (
           isAuthEscapePath(audit.path) &&
@@ -664,12 +941,12 @@ async function main() {
         if (isInfraOrNonHtmlSkip(err)) {
           await waitForTenantHealth(30).catch(() => null);
           try {
-            await gotoWithRetries(tenPage, s.url);
+            await gotoWithRetries(workerPage, s.url);
             if (!USE_TENANT_SUBDOMAIN) {
-              await ensurePathTenantHost(tenPage);
+              await ensurePathTenantHost(workerPage);
             }
-            await tenPage.waitForTimeout(1200);
-            const audit = await tenPage.evaluate(
+            await workerPage.waitForTimeout(ROUTE_SETTLE_MS);
+            const audit = await workerPage.evaluate(
               sweepPageInBrowser,
               s.scrollRoot || '#main-content'
             );
@@ -694,6 +971,14 @@ async function main() {
           writeLog('SWEEP', 'FAIL', row);
         }
       }
+      }
+    }));
+    await Promise.all(tenPages.slice(1).map((page) => page.close()));
+    if (SWEEP_TIER === 'admin_changelist') {
+      viewportThemeMatrix.push(...await auditAdminViewportMatrix(tenPage, {
+        surface: 'tenant', expectedHost: TENANT_HOST, expectedSite: 'tenant_admin', artifactDir,
+      }));
+      scenarios.push(await auditAdminSidebarBehavior(tenPage, { surface: 'tenant' }));
     }
   } catch (e) {
     writeLog('SWEEP', 'tenant_skipped', { error: String(e) });
@@ -713,6 +998,10 @@ async function main() {
   const layoutFailed = failed.filter((r) =>
     (r.failures || []).some((f) => f !== 'exception')
   );
+  const proofFailed = [
+    ...viewportThemeMatrix.filter((row) => !row.ok),
+    ...scenarios.filter((row) => !row.ok),
+  ];
   const managerPlanned = SURFACES.filter((x) => x.surface === 'manager').length;
   const tenantPlanned = SURFACES.filter((x) => x.surface === 'tenant').length;
   const managerTested = results.filter((r) => r.surface === 'manager').length;
@@ -745,11 +1034,56 @@ async function main() {
     failed: layoutFailed.length,
     skipped,
     infraSkipped,
+    proofFailed: proofFailed.length,
     failedUrls: layoutFailed.map((r) => ({
       url: r.url,
       failures: r.failures,
       error: r.error,
     })),
+  };
+  const generatedAt = new Date();
+  const buildLockPath = path.join(process.cwd(), 'var/admin-approval-build-lock.json');
+  const routeManifestHashes = {
+    operator: sha256File(ROUTES_JSON),
+    tenant: sha256File(TENANT_ADMIN_ROUTES_JSON),
+  };
+  const sealedSourceFiles = [
+    'apps/siteconfig/admin_navigation_contracts.py',
+    'apps/siteconfig/admin_navigation_preferences.py',
+    'config/admin.py',
+    'templates/admin/base.html',
+    'templates/admin/sidebar_v3_body.html',
+    'static/css/rmc-admin-sidebar-v3.css',
+    'static/js/rmc-admin-sidebar-v3.js',
+    'static/js/service-worker.js',
+    'var/admin-approval-build-lock.json',
+  ];
+  const sourceFileHashes = Object.fromEntries(
+    sealedSourceFiles.map((file) => [file, sha256File(path.join(process.cwd(), file))])
+  );
+  const buildLock = fs.existsSync(buildLockPath)
+    ? JSON.parse(fs.readFileSync(buildLockPath, 'utf8'))
+    : null;
+  const evidence = {
+    schemaVersion: 3,
+    generatedAt: generatedAt.toISOString(),
+    expiresAt: new Date(generatedAt.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+    sweepTier: process.env.SWEEP_TIER || 'operator',
+    evidenceSource: 'playwright_real_host_admin_v3',
+    proxyEvidence: false,
+    realHostRouting: true,
+    gitSha: gitValue(['rev-parse', 'HEAD']),
+    sourceTreeDigest: crypto.createHash('sha256').update(gitValue(['status', '--porcelain'], '') + gitValue(['diff', '--binary'], '')).digest('hex'),
+    browser: { name: 'chromium', version: browserVersion },
+    hostMatrix: [HOST, TENANT_HOST],
+    routeManifestHashes,
+    sourceFileHashes,
+    buildLock,
+    viewportThemeMatrix,
+    scenarios,
+    resourceErrors,
+    ...summary,
+    results,
   };
   const auditPath = path.join(
     process.cwd(),
@@ -758,15 +1092,7 @@ async function main() {
   fs.mkdirSync(path.dirname(auditPath), { recursive: true });
   fs.writeFileSync(
     auditPath,
-    JSON.stringify(
-      {
-        generatedAt: new Date().toISOString(),
-        ...summary,
-        results,
-      },
-      null,
-      2
-    ) + '\n'
+    JSON.stringify(evidence, null, 2) + '\n'
   );
   if (SWEEP_TIER === 'tenant') {
     const writeArtifact =
@@ -813,6 +1139,10 @@ async function main() {
     for (const f of layoutFailed) {
       console.error(`  ${f.url} → ${(f.failures || []).join(', ')}`);
     }
+    process.exit(1);
+  }
+  if (proofFailed.length) {
+    console.error(`Admin v3 browser proof failures: ${proofFailed.map((row) => row.scenarioId).join(', ')}`);
     process.exit(1);
   }
   if (SWEEP_TIER === 'tenant') {

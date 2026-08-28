@@ -29,7 +29,7 @@ have been imported into the shared education-system profile
 
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 
 
@@ -55,6 +55,15 @@ class Command(BaseCommand):
                 "Also re-resolve existing subjects to a country's real official "
                 "codes imported into the shared profile (system defaults only; "
                 "admin edits preserved)."
+            ),
+        )
+        parser.add_argument(
+            "--strict",
+            action="store_true",
+            help=(
+                "Exit non-zero when any selected school fails. Deployment and "
+                "canonical bootstrap paths must use this so a partial tenant "
+                "baseline can never be reported as successful."
             ),
         )
 
@@ -132,3 +141,7 @@ class Command(BaseCommand):
                     f"Backfill complete: {processed} processed, {ok} ok, {failed} failed{tail}."
                 )
             )
+            if opts["strict"] and failed:
+                raise CommandError(
+                    f"Country baseline backfill failed for {failed} of {processed} school(s)."
+                )

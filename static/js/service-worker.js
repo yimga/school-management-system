@@ -216,7 +216,8 @@
 // v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
 // v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
 // v4.06.71: tenant admin sidebar server-owned, host-isolated preferences.
-const CACHE_VERSION = "sms-v4.06.80-auth-checkpoint-layout-fix-2026-08-26";
+// v4.06.81: unified tenant/operator admin navigation v3, semantic CAS sync.
+const CACHE_VERSION = "sms-v4.06.83-zero-touch-import-closure-2026-08-28";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -353,12 +354,10 @@ const STATIC_ASSETS = [
   "/static/css/rmc-tenant-canvas-100x.css",
   "/static/css/rmc-tenant-performance.css",
   "/static/css/rmc-operator-tools-tray.css",
-  // v4.06.37: approved tenant/operator Admin sidebars + unified Account Center.
-  // These are load-bearing shell assets and must update atomically with HTML.
-  "/static/css/rmc-tenant-admin-sidebar-v2.css",
-  "/static/js/rmc-tenant-admin-sidebar-v2.js",
-  "/static/css/rmc-operator-admin-sidebar-v2.css",
-  "/static/js/rmc-operator-admin-sidebar-v2.js",
+  // v4.06.81: one permission-derived navigation owner for tenant and operator.
+  // These load-bearing shell assets update atomically with the v23 HTML build.
+  "/static/css/rmc-admin-sidebar-v3.css",
+  "/static/js/rmc-admin-sidebar-v3.js",
   "/static/css/rmc-user-account-center.css",
   "/static/js/rmc-user-account-center.js",
   "/static/css/rmc-tenant-dashboard-balance.css",

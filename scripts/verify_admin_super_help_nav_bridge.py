@@ -22,7 +22,7 @@ def main() -> int:
         (
             "admin-manager-help",
             _ok(
-                "templates/admin/app_list.html",
+                "templates/admin/sidebar_v3_body.html",
                 "manager_help_center",
                 "Libraries & help",
             ),
@@ -30,14 +30,14 @@ def main() -> int:
         (
             "admin-tenant-unified-help",
             _ok(
-                "templates/admin/app_list.html",
+                "templates/admin/sidebar_v3_body.html",
                 "feedback:help_center",
                 "Knowledge Base",
             ),
         ),
         (
             "admin-control-plane-bridge",
-            _ok("templates/admin/app_list.html", "super:dashboard", "Control plane"),
+            _ok("templates/admin/sidebar_v3_body.html", "super:dashboard", "Control plane"),
         ),
         (
             "tenant-portal-sidebar-help",

@@ -80,18 +80,34 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             )
 
             context["admin_navigation_contract"] = build_admin_navigation_contract(
-                request, self
+                request,
+                self,
+                available_apps=context.get("available_apps") or (),
             )
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             logging.getLogger(__name__).warning(
                 "admin navigation preference fallback", exc_info=True
             )
             context["admin_navigation_contract"] = {
-                "version": 1,
+                "version": 3,
                 "scope": "unavailable",
+                "hostKind": "operator" if self.is_platform_site() else "tenant",
+                "adminSite": self.name,
                 "endpoint": "",
+                "revision": 0,
                 "preferences": {},
+                "destinations": [],
+                "workAreas": [],
+                "page": {
+                    "archetype": "guided-action",
+                    "destination_id": "unavailable",
+                    "title": str(self.index_title),
+                    "path": request.path,
+                    "actions": [],
+                },
+                "recommendations": [],
                 "limits": {"pinned": 8, "recent": 10},
+                "strings": {},
             }
         try:
             context["admin_field_preferences_url"] = reverse(

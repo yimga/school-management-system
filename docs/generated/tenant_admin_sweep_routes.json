@@ -1,0 +1,4087 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-27T20:15:07.470094+00:00",
+  "adminSite": "tenant_admin",
+  "routeCount": 587,
+  "routes": [
+    {
+      "path": "/admin/",
+      "archetype": "index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/",
+      "app": "academics",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/",
+      "app": "accounts",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/",
+      "app": "analytics",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/",
+      "app": "apicenter",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/",
+      "app": "athletics",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/auth/",
+      "app": "auth",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/",
+      "app": "brand_experience",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/",
+      "app": "communication",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/",
+      "app": "compliance",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/",
+      "app": "emis",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/",
+      "app": "evals",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/",
+      "app": "feedback",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/",
+      "app": "finance",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/",
+      "app": "global_registries",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/",
+      "app": "integrations_marketplace",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/",
+      "app": "metadata",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/",
+      "app": "payroll",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/",
+      "app": "people",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/",
+      "app": "policies",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/",
+      "app": "portal",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/",
+      "app": "reports",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/",
+      "app": "requests",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/",
+      "app": "runtime_blueprints",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/",
+      "app": "school_events",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/",
+      "app": "schoolops",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/",
+      "app": "schools",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/",
+      "app": "siteconfig",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/",
+      "app": "social_media",
+      "archetype": "app-index",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/academicyear/",
+      "app": "academics",
+      "model": "academicyear",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/academicyear/add/",
+      "app": "academics",
+      "model": "academicyear",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationauditlog/",
+      "app": "academics",
+      "model": "certificationauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationauditlog/add/",
+      "app": "academics",
+      "model": "certificationauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationcandidate/",
+      "app": "academics",
+      "model": "certificationcandidate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationcandidate/add/",
+      "app": "academics",
+      "model": "certificationcandidate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationcandidatedocumentstatus/",
+      "app": "academics",
+      "model": "certificationcandidatedocumentstatus",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationcandidatedocumentstatus/add/",
+      "app": "academics",
+      "model": "certificationcandidatedocumentstatus",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationdocumentchecklist/",
+      "app": "academics",
+      "model": "certificationdocumentchecklist",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationdocumentchecklist/add/",
+      "app": "academics",
+      "model": "certificationdocumentchecklist",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationexampreset/",
+      "app": "academics",
+      "model": "certificationexampreset",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationexampreset/add/",
+      "app": "academics",
+      "model": "certificationexampreset",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationexamsession/",
+      "app": "academics",
+      "model": "certificationexamsession",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationexamsession/add/",
+      "app": "academics",
+      "model": "certificationexamsession",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationfeetemplate/",
+      "app": "academics",
+      "model": "certificationfeetemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/certificationfeetemplate/add/",
+      "app": "academics",
+      "model": "certificationfeetemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/classbooklist/",
+      "app": "academics",
+      "model": "classbooklist",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/classbooklist/add/",
+      "app": "academics",
+      "model": "classbooklist",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/classroom/",
+      "app": "academics",
+      "model": "classroom",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/classroom/add/",
+      "app": "academics",
+      "model": "classroom",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/classroompromotionmapping/",
+      "app": "academics",
+      "model": "classroompromotionmapping",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/classroompromotionmapping/add/",
+      "app": "academics",
+      "model": "classroompromotionmapping",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/coursesyllabus/",
+      "app": "academics",
+      "model": "coursesyllabus",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/coursesyllabus/add/",
+      "app": "academics",
+      "model": "coursesyllabus",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/curriculumallocation/",
+      "app": "academics",
+      "model": "curriculumallocation",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/curriculumallocation/add/",
+      "app": "academics",
+      "model": "curriculumallocation",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/curriculumnode/",
+      "app": "academics",
+      "model": "curriculumnode",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/curriculumnode/add/",
+      "app": "academics",
+      "model": "curriculumnode",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/curriculumstandard/",
+      "app": "academics",
+      "model": "curriculumstandard",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/curriculumstandard/add/",
+      "app": "academics",
+      "model": "curriculumstandard",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/department/",
+      "app": "academics",
+      "model": "department",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/department/add/",
+      "app": "academics",
+      "model": "department",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/incident/",
+      "app": "academics",
+      "model": "incident",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/incident/add/",
+      "app": "academics",
+      "model": "incident",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/lmsassignment/",
+      "app": "academics",
+      "model": "lmsassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/lmsassignment/add/",
+      "app": "academics",
+      "model": "lmsassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/lmssubmission/",
+      "app": "academics",
+      "model": "lmssubmission",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/lmssubmission/add/",
+      "app": "academics",
+      "model": "lmssubmission",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/reportcardstyleassignment/",
+      "app": "academics",
+      "model": "reportcardstyleassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/reportcardstyleassignment/add/",
+      "app": "academics",
+      "model": "reportcardstyleassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/room/",
+      "app": "academics",
+      "model": "room",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/room/add/",
+      "app": "academics",
+      "model": "room",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/schedule/",
+      "app": "academics",
+      "model": "schedule",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/schedule/add/",
+      "app": "academics",
+      "model": "schedule",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/scheduleentry/",
+      "app": "academics",
+      "model": "scheduleentry",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/scheduleentry/add/",
+      "app": "academics",
+      "model": "scheduleentry",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/schedulingconstraint/",
+      "app": "academics",
+      "model": "schedulingconstraint",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/schedulingconstraint/add/",
+      "app": "academics",
+      "model": "schedulingconstraint",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/specialty/",
+      "app": "academics",
+      "model": "specialty",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/specialty/add/",
+      "app": "academics",
+      "model": "specialty",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/specialtysubject/",
+      "app": "academics",
+      "model": "specialtysubject",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/specialtysubject/add/",
+      "app": "academics",
+      "model": "specialtysubject",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/subject/",
+      "app": "academics",
+      "model": "subject",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/subject/add/",
+      "app": "academics",
+      "model": "subject",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/subjectassignment/",
+      "app": "academics",
+      "model": "subjectassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/subjectassignment/add/",
+      "app": "academics",
+      "model": "subjectassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/teacheravailability/",
+      "app": "academics",
+      "model": "teacheravailability",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/teacheravailability/add/",
+      "app": "academics",
+      "model": "teacheravailability",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/term/",
+      "app": "academics",
+      "model": "term",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/term/add/",
+      "app": "academics",
+      "model": "term",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/timeslot/",
+      "app": "academics",
+      "model": "timeslot",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/timeslot/add/",
+      "app": "academics",
+      "model": "timeslot",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/workflowconfig/",
+      "app": "academics",
+      "model": "workflowconfig",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/academics/workflowconfig/add/",
+      "app": "academics",
+      "model": "workflowconfig",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/accessrole/",
+      "app": "accounts",
+      "model": "accessrole",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/accessrole/add/",
+      "app": "accounts",
+      "model": "accessrole",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/delegation/",
+      "app": "accounts",
+      "model": "delegation",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/delegation/add/",
+      "app": "accounts",
+      "model": "delegation",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/delegationactionlog/",
+      "app": "accounts",
+      "model": "delegationactionlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/delegationactionlog/add/",
+      "app": "accounts",
+      "model": "delegationactionlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/permission/",
+      "app": "accounts",
+      "model": "permission",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/permission/add/",
+      "app": "accounts",
+      "model": "permission",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/relationshiptuple/",
+      "app": "accounts",
+      "model": "relationshiptuple",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/relationshiptuple/add/",
+      "app": "accounts",
+      "model": "relationshiptuple",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/securityauditlog/",
+      "app": "accounts",
+      "model": "securityauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/securityauditlog/add/",
+      "app": "accounts",
+      "model": "securityauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/temporaryrolegrant/",
+      "app": "accounts",
+      "model": "temporaryrolegrant",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/temporaryrolegrant/add/",
+      "app": "accounts",
+      "model": "temporaryrolegrant",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/tenantstaffinvite/",
+      "app": "accounts",
+      "model": "tenantstaffinvite",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/tenantstaffinvite/add/",
+      "app": "accounts",
+      "model": "tenantstaffinvite",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/user/",
+      "app": "accounts",
+      "model": "user",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/user/add/",
+      "app": "accounts",
+      "model": "user",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/userpasskey/",
+      "app": "accounts",
+      "model": "userpasskey",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/userpasskey/add/",
+      "app": "accounts",
+      "model": "userpasskey",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/userpreference/",
+      "app": "accounts",
+      "model": "userpreference",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/accounts/userpreference/add/",
+      "app": "accounts",
+      "model": "userpreference",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskinferencerun/",
+      "app": "analytics",
+      "model": "atriskinferencerun",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskinferencerun/add/",
+      "app": "analytics",
+      "model": "atriskinferencerun",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskmodelartifact/",
+      "app": "analytics",
+      "model": "atriskmodelartifact",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskmodelartifact/add/",
+      "app": "analytics",
+      "model": "atriskmodelartifact",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskshadowcomparison/",
+      "app": "analytics",
+      "model": "atriskshadowcomparison",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskshadowcomparison/add/",
+      "app": "analytics",
+      "model": "atriskshadowcomparison",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskshadowrun/",
+      "app": "analytics",
+      "model": "atriskshadowrun",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/atriskshadowrun/add/",
+      "app": "analytics",
+      "model": "atriskshadowrun",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/benchmarkaggregate/",
+      "app": "analytics",
+      "model": "benchmarkaggregate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/benchmarkaggregate/add/",
+      "app": "analytics",
+      "model": "benchmarkaggregate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/governedsavedreport/",
+      "app": "analytics",
+      "model": "governedsavedreport",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/governedsavedreport/add/",
+      "app": "analytics",
+      "model": "governedsavedreport",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradeprediction/",
+      "app": "analytics",
+      "model": "gradeprediction",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradeprediction/add/",
+      "app": "analytics",
+      "model": "gradeprediction",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionlabel/",
+      "app": "analytics",
+      "model": "gradepredictionlabel",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionlabel/add/",
+      "app": "analytics",
+      "model": "gradepredictionlabel",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionmodelartifact/",
+      "app": "analytics",
+      "model": "gradepredictionmodelartifact",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionmodelartifact/add/",
+      "app": "analytics",
+      "model": "gradepredictionmodelartifact",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionshadowcomparison/",
+      "app": "analytics",
+      "model": "gradepredictionshadowcomparison",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionshadowcomparison/add/",
+      "app": "analytics",
+      "model": "gradepredictionshadowcomparison",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionshadowrun/",
+      "app": "analytics",
+      "model": "gradepredictionshadowrun",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/gradepredictionshadowrun/add/",
+      "app": "analytics",
+      "model": "gradepredictionshadowrun",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/riskdigestrecipient/",
+      "app": "analytics",
+      "model": "riskdigestrecipient",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/analytics/riskdigestrecipient/add/",
+      "app": "analytics",
+      "model": "riskdigestrecipient",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/apiauditlog/",
+      "app": "apicenter",
+      "model": "apiauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/apiauditlog/add/",
+      "app": "apicenter",
+      "model": "apiauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/apikey/",
+      "app": "apicenter",
+      "model": "apikey",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/apikey/add/",
+      "app": "apicenter",
+      "model": "apikey",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/apiquota/",
+      "app": "apicenter",
+      "model": "apiquota",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/apicenter/apiquota/add/",
+      "app": "apicenter",
+      "model": "apiquota",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/club/",
+      "app": "athletics",
+      "model": "club",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/club/add/",
+      "app": "athletics",
+      "model": "club",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/clubadvisorassignment/",
+      "app": "athletics",
+      "model": "clubadvisorassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/clubadvisorassignment/add/",
+      "app": "athletics",
+      "model": "clubadvisorassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/clubmembership/",
+      "app": "athletics",
+      "model": "clubmembership",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/clubmembership/add/",
+      "app": "athletics",
+      "model": "clubmembership",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/coachassignment/",
+      "app": "athletics",
+      "model": "coachassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/coachassignment/add/",
+      "app": "athletics",
+      "model": "coachassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/eligibilityrecord/",
+      "app": "athletics",
+      "model": "eligibilityrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/eligibilityrecord/add/",
+      "app": "athletics",
+      "model": "eligibilityrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixture/",
+      "app": "athletics",
+      "model": "fixture",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixture/add/",
+      "app": "athletics",
+      "model": "fixture",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixtureresult/",
+      "app": "athletics",
+      "model": "fixtureresult",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixtureresult/add/",
+      "app": "athletics",
+      "model": "fixtureresult",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixturetravel/",
+      "app": "athletics",
+      "model": "fixturetravel",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixturetravel/add/",
+      "app": "athletics",
+      "model": "fixturetravel",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixturevenuebooking/",
+      "app": "athletics",
+      "model": "fixturevenuebooking",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/fixturevenuebooking/add/",
+      "app": "athletics",
+      "model": "fixturevenuebooking",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/medicalclearance/",
+      "app": "athletics",
+      "model": "medicalclearance",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/medicalclearance/add/",
+      "app": "athletics",
+      "model": "medicalclearance",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/season/",
+      "app": "athletics",
+      "model": "season",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/season/add/",
+      "app": "athletics",
+      "model": "season",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/sport/",
+      "app": "athletics",
+      "model": "sport",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/sport/add/",
+      "app": "athletics",
+      "model": "sport",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/team/",
+      "app": "athletics",
+      "model": "team",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/team/add/",
+      "app": "athletics",
+      "model": "team",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/teamkitfee/",
+      "app": "athletics",
+      "model": "teamkitfee",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/teamkitfee/add/",
+      "app": "athletics",
+      "model": "teamkitfee",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/teammembership/",
+      "app": "athletics",
+      "model": "teammembership",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/athletics/teammembership/add/",
+      "app": "athletics",
+      "model": "teammembership",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/auth/group/",
+      "app": "auth",
+      "model": "group",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/auth/group/add/",
+      "app": "auth",
+      "model": "group",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/brandprofile/",
+      "app": "brand_experience",
+      "model": "brandprofile",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/brandprofile/add/",
+      "app": "brand_experience",
+      "model": "brandprofile",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/brandsettings/",
+      "app": "brand_experience",
+      "model": "brandsettings",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/brandsettings/add/",
+      "app": "brand_experience",
+      "model": "brandsettings",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/designtemplate/",
+      "app": "brand_experience",
+      "model": "designtemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/designtemplate/add/",
+      "app": "brand_experience",
+      "model": "designtemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/themepack/",
+      "app": "brand_experience",
+      "model": "themepack",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/brand_experience/themepack/add/",
+      "app": "brand_experience",
+      "model": "themepack",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/announcement/",
+      "app": "communication",
+      "model": "announcement",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/announcement/add/",
+      "app": "communication",
+      "model": "announcement",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/announcementauditlog/",
+      "app": "communication",
+      "model": "announcementauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/announcementauditlog/add/",
+      "app": "communication",
+      "model": "announcementauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/communicationtemplate/",
+      "app": "communication",
+      "model": "communicationtemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/communicationtemplate/add/",
+      "app": "communication",
+      "model": "communicationtemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/feeditem/",
+      "app": "communication",
+      "model": "feeditem",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/feeditem/add/",
+      "app": "communication",
+      "model": "feeditem",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/message/",
+      "app": "communication",
+      "model": "message",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/message/add/",
+      "app": "communication",
+      "model": "message",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/outboundmessagequeue/",
+      "app": "communication",
+      "model": "outboundmessagequeue",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/communication/outboundmessagequeue/add/",
+      "app": "communication",
+      "model": "outboundmessagequeue",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/accesslog/",
+      "app": "compliance",
+      "model": "accesslog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/accesslog/add/",
+      "app": "compliance",
+      "model": "accesslog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/auditlog/",
+      "app": "compliance",
+      "model": "auditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/auditlog/add/",
+      "app": "compliance",
+      "model": "auditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/certificatetemplate/",
+      "app": "compliance",
+      "model": "certificatetemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/certificatetemplate/add/",
+      "app": "compliance",
+      "model": "certificatetemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/complianceauditlog/",
+      "app": "compliance",
+      "model": "complianceauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/complianceauditlog/add/",
+      "app": "compliance",
+      "model": "complianceauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/compliancecheck/",
+      "app": "compliance",
+      "model": "compliancecheck",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/compliancecheck/add/",
+      "app": "compliance",
+      "model": "compliancecheck",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/compliancereport/",
+      "app": "compliance",
+      "model": "compliancereport",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/compliancereport/add/",
+      "app": "compliance",
+      "model": "compliancereport",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/compliancerule/",
+      "app": "compliance",
+      "model": "compliancerule",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/compliancerule/add/",
+      "app": "compliance",
+      "model": "compliancerule",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/consentrecord/",
+      "app": "compliance",
+      "model": "consentrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/consentrecord/add/",
+      "app": "compliance",
+      "model": "consentrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/consentrequest/",
+      "app": "compliance",
+      "model": "consentrequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/consentrequest/add/",
+      "app": "compliance",
+      "model": "consentrequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/eraserequest/",
+      "app": "compliance",
+      "model": "eraserequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/eraserequest/add/",
+      "app": "compliance",
+      "model": "eraserequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/exportjob/",
+      "app": "compliance",
+      "model": "exportjob",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/exportjob/add/",
+      "app": "compliance",
+      "model": "exportjob",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/legaldocument/",
+      "app": "compliance",
+      "model": "legaldocument",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/legaldocument/add/",
+      "app": "compliance",
+      "model": "legaldocument",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/regionalcompliancerequirement/",
+      "app": "compliance",
+      "model": "regionalcompliancerequirement",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/regionalcompliancerequirement/add/",
+      "app": "compliance",
+      "model": "regionalcompliancerequirement",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/regionfeaturecompliance/",
+      "app": "compliance",
+      "model": "regionfeaturecompliance",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/regionfeaturecompliance/add/",
+      "app": "compliance",
+      "model": "regionfeaturecompliance",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/studentidformat/",
+      "app": "compliance",
+      "model": "studentidformat",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/studentidformat/add/",
+      "app": "compliance",
+      "model": "studentidformat",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/useractivitysession/",
+      "app": "compliance",
+      "model": "useractivitysession",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/compliance/useractivitysession/add/",
+      "app": "compliance",
+      "model": "useractivitysession",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/emiscompliance/",
+      "app": "emis",
+      "model": "emiscompliance",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/emiscompliance/add/",
+      "app": "emis",
+      "model": "emiscompliance",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/emisexport/",
+      "app": "emis",
+      "model": "emisexport",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/emisexport/add/",
+      "app": "emis",
+      "model": "emisexport",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/emisfieldmapping/",
+      "app": "emis",
+      "model": "emisfieldmapping",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/emis/emisfieldmapping/add/",
+      "app": "emis",
+      "model": "emisfieldmapping",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/assessmentweights/",
+      "app": "evals",
+      "model": "assessmentweights",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/assessmentweights/add/",
+      "app": "evals",
+      "model": "assessmentweights",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/evaluation/",
+      "app": "evals",
+      "model": "evaluation",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/evaluation/add/",
+      "app": "evals",
+      "model": "evaluation",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/evaluationevidence/",
+      "app": "evals",
+      "model": "evaluationevidence",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/evaluationevidence/add/",
+      "app": "evals",
+      "model": "evaluationevidence",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/gradeaudit/",
+      "app": "evals",
+      "model": "gradeaudit",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/gradeaudit/add/",
+      "app": "evals",
+      "model": "gradeaudit",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/gradingscale/",
+      "app": "evals",
+      "model": "gradingscale",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/gradingscale/add/",
+      "app": "evals",
+      "model": "gradingscale",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/offlinemarkentry/",
+      "app": "evals",
+      "model": "offlinemarkentry",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/offlinemarkentry/add/",
+      "app": "evals",
+      "model": "offlinemarkentry",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/teacherassignment/",
+      "app": "evals",
+      "model": "teacherassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/evals/teacherassignment/add/",
+      "app": "evals",
+      "model": "teacherassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/featurerequest/",
+      "app": "feedback",
+      "model": "featurerequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/featurerequest/add/",
+      "app": "feedback",
+      "model": "featurerequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbackattachment/",
+      "app": "feedback",
+      "model": "feedbackattachment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbackattachment/add/",
+      "app": "feedback",
+      "model": "feedbackattachment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbackcomment/",
+      "app": "feedback",
+      "model": "feedbackcomment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbackcomment/add/",
+      "app": "feedback",
+      "model": "feedbackcomment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbacksubmission/",
+      "app": "feedback",
+      "model": "feedbacksubmission",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbacksubmission/add/",
+      "app": "feedback",
+      "model": "feedbacksubmission",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbacktriageevent/",
+      "app": "feedback",
+      "model": "feedbacktriageevent",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbacktriageevent/add/",
+      "app": "feedback",
+      "model": "feedbacktriageevent",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbackvote/",
+      "app": "feedback",
+      "model": "feedbackvote",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/feedbackvote/add/",
+      "app": "feedback",
+      "model": "feedbackvote",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/releasenote/",
+      "app": "feedback",
+      "model": "releasenote",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/releasenote/add/",
+      "app": "feedback",
+      "model": "releasenote",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/roadmapitem/",
+      "app": "feedback",
+      "model": "roadmapitem",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/roadmapitem/add/",
+      "app": "feedback",
+      "model": "roadmapitem",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/surveyresponse/",
+      "app": "feedback",
+      "model": "surveyresponse",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/feedback/surveyresponse/add/",
+      "app": "feedback",
+      "model": "surveyresponse",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/aidauditlog/",
+      "app": "finance",
+      "model": "aidauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/aidauditlog/add/",
+      "app": "finance",
+      "model": "aidauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/asset/",
+      "app": "finance",
+      "model": "asset",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/asset/add/",
+      "app": "finance",
+      "model": "asset",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/assetcategory/",
+      "app": "finance",
+      "model": "assetcategory",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/assetcategory/add/",
+      "app": "finance",
+      "model": "assetcategory",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/awardsource/",
+      "app": "finance",
+      "model": "awardsource",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/awardsource/add/",
+      "app": "finance",
+      "model": "awardsource",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/bankaccount/",
+      "app": "finance",
+      "model": "bankaccount",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/bankaccount/add/",
+      "app": "finance",
+      "model": "bankaccount",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/bankstatemententry/",
+      "app": "finance",
+      "model": "bankstatemententry",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/bankstatemententry/add/",
+      "app": "finance",
+      "model": "bankstatemententry",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/bankstatementupload/",
+      "app": "finance",
+      "model": "bankstatementupload",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/bankstatementupload/add/",
+      "app": "finance",
+      "model": "bankstatementupload",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/budget/",
+      "app": "finance",
+      "model": "budget",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/budget/add/",
+      "app": "finance",
+      "model": "budget",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/budgetline/",
+      "app": "finance",
+      "model": "budgetline",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/budgetline/add/",
+      "app": "finance",
+      "model": "budgetline",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/cashofficeclosure/",
+      "app": "finance",
+      "model": "cashofficeclosure",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/cashofficeclosure/add/",
+      "app": "finance",
+      "model": "cashofficeclosure",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/complianceprofile/",
+      "app": "finance",
+      "model": "complianceprofile",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/complianceprofile/add/",
+      "app": "finance",
+      "model": "complianceprofile",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/contributionrule/",
+      "app": "finance",
+      "model": "contributionrule",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/contributionrule/add/",
+      "app": "finance",
+      "model": "contributionrule",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/counterparty/",
+      "app": "finance",
+      "model": "counterparty",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/counterparty/add/",
+      "app": "finance",
+      "model": "counterparty",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/feeinstallment/",
+      "app": "finance",
+      "model": "feeinstallment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/feeinstallment/add/",
+      "app": "finance",
+      "model": "feeinstallment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/feeplan/",
+      "app": "finance",
+      "model": "feeplan",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/feeplan/add/",
+      "app": "finance",
+      "model": "feeplan",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/financerequestaudit/",
+      "app": "finance",
+      "model": "financerequestaudit",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/financerequestaudit/add/",
+      "app": "finance",
+      "model": "financerequestaudit",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/financialaidapplication/",
+      "app": "finance",
+      "model": "financialaidapplication",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/financialaidapplication/add/",
+      "app": "finance",
+      "model": "financialaidapplication",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/grant/",
+      "app": "finance",
+      "model": "grant",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/grant/add/",
+      "app": "finance",
+      "model": "grant",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/invoice/",
+      "app": "finance",
+      "model": "invoice",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/invoice/add/",
+      "app": "finance",
+      "model": "invoice",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/journalentry/",
+      "app": "finance",
+      "model": "journalentry",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/journalentry/add/",
+      "app": "finance",
+      "model": "journalentry",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/ledgeraccount/",
+      "app": "finance",
+      "model": "ledgeraccount",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/ledgeraccount/add/",
+      "app": "finance",
+      "model": "ledgeraccount",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/notification/",
+      "app": "finance",
+      "model": "notification",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/notification/add/",
+      "app": "finance",
+      "model": "notification",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/offlinepaymentintent/",
+      "app": "finance",
+      "model": "offlinepaymentintent",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/offlinepaymentintent/add/",
+      "app": "finance",
+      "model": "offlinepaymentintent",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/payment/",
+      "app": "finance",
+      "model": "payment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/payment/add/",
+      "app": "finance",
+      "model": "payment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentdispute/",
+      "app": "finance",
+      "model": "paymentdispute",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentdispute/add/",
+      "app": "finance",
+      "model": "paymentdispute",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentproofupload/",
+      "app": "finance",
+      "model": "paymentproofupload",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentproofupload/add/",
+      "app": "finance",
+      "model": "paymentproofupload",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentrail/",
+      "app": "finance",
+      "model": "paymentrail",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentrail/add/",
+      "app": "finance",
+      "model": "paymentrail",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentreminder/",
+      "app": "finance",
+      "model": "paymentreminder",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentreminder/add/",
+      "app": "finance",
+      "model": "paymentreminder",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentreminderlog/",
+      "app": "finance",
+      "model": "paymentreminderlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/paymentreminderlog/add/",
+      "app": "finance",
+      "model": "paymentreminderlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/referralreward/",
+      "app": "finance",
+      "model": "referralreward",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/referralreward/add/",
+      "app": "finance",
+      "model": "referralreward",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/regionpaymentprofile/",
+      "app": "finance",
+      "model": "regionpaymentprofile",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/regionpaymentprofile/add/",
+      "app": "finance",
+      "model": "regionpaymentprofile",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/reportrequest/",
+      "app": "finance",
+      "model": "reportrequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/reportrequest/add/",
+      "app": "finance",
+      "model": "reportrequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/scholarship/",
+      "app": "finance",
+      "model": "scholarship",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/scholarship/add/",
+      "app": "finance",
+      "model": "scholarship",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/suspensepayment/",
+      "app": "finance",
+      "model": "suspensepayment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/suspensepayment/add/",
+      "app": "finance",
+      "model": "suspensepayment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/taxbracket/",
+      "app": "finance",
+      "model": "taxbracket",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/taxbracket/add/",
+      "app": "finance",
+      "model": "taxbracket",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/tenantpaymentpolicy/",
+      "app": "finance",
+      "model": "tenantpaymentpolicy",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/finance/tenantpaymentpolicy/add/",
+      "app": "finance",
+      "model": "tenantpaymentpolicy",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/gradingscaleconfig/",
+      "app": "global_registries",
+      "model": "gradingscaleconfig",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/gradingscaleconfig/add/",
+      "app": "global_registries",
+      "model": "gradingscaleconfig",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/holidaycalendar/",
+      "app": "global_registries",
+      "model": "holidaycalendar",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/holidaycalendar/add/",
+      "app": "global_registries",
+      "model": "holidaycalendar",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/weatherlocation/",
+      "app": "global_registries",
+      "model": "weatherlocation",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/global_registries/weatherlocation/add/",
+      "app": "global_registries",
+      "model": "weatherlocation",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/integration/",
+      "app": "integrations_marketplace",
+      "model": "integration",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/integration/add/",
+      "app": "integrations_marketplace",
+      "model": "integration",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/serviceintegration/",
+      "app": "integrations_marketplace",
+      "model": "serviceintegration",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/integrations_marketplace/serviceintegration/add/",
+      "app": "integrations_marketplace",
+      "model": "serviceintegration",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/dynamicfielddefinition/",
+      "app": "metadata",
+      "model": "dynamicfielddefinition",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/dynamicfielddefinition/add/",
+      "app": "metadata",
+      "model": "dynamicfielddefinition",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/dynamicfieldvalue/",
+      "app": "metadata",
+      "model": "dynamicfieldvalue",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/dynamicfieldvalue/add/",
+      "app": "metadata",
+      "model": "dynamicfieldvalue",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/entitycatalogentry/",
+      "app": "metadata",
+      "model": "entitycatalogentry",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/metadata/entitycatalogentry/add/",
+      "app": "metadata",
+      "model": "entitycatalogentry",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/employmentcontract/",
+      "app": "payroll",
+      "model": "employmentcontract",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/employmentcontract/add/",
+      "app": "payroll",
+      "model": "employmentcontract",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/leaverequest/",
+      "app": "payroll",
+      "model": "leaverequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/leaverequest/add/",
+      "app": "payroll",
+      "model": "leaverequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payrollemployee/",
+      "app": "payroll",
+      "model": "payrollemployee",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payrollemployee/add/",
+      "app": "payroll",
+      "model": "payrollemployee",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payrollrun/",
+      "app": "payroll",
+      "model": "payrollrun",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payrollrun/add/",
+      "app": "payroll",
+      "model": "payrollrun",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payscale/",
+      "app": "payroll",
+      "model": "payscale",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payscale/add/",
+      "app": "payroll",
+      "model": "payscale",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payslip/",
+      "app": "payroll",
+      "model": "payslip",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/payslip/add/",
+      "app": "payroll",
+      "model": "payslip",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/salaryadjustment/",
+      "app": "payroll",
+      "model": "salaryadjustment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/salaryadjustment/add/",
+      "app": "payroll",
+      "model": "salaryadjustment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/timeentry/",
+      "app": "payroll",
+      "model": "timeentry",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/payroll/timeentry/add/",
+      "app": "payroll",
+      "model": "timeentry",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/applicant/",
+      "app": "people",
+      "model": "applicant",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/applicant/add/",
+      "app": "people",
+      "model": "applicant",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/badge/",
+      "app": "people",
+      "model": "badge",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/badge/add/",
+      "app": "people",
+      "model": "badge",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/badgescanevent/",
+      "app": "people",
+      "model": "badgescanevent",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/badgescanevent/add/",
+      "app": "people",
+      "model": "badgescanevent",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/badgetype/",
+      "app": "people",
+      "model": "badgetype",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/badgetype/add/",
+      "app": "people",
+      "model": "badgetype",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/employerprofile/",
+      "app": "people",
+      "model": "employerprofile",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/employerprofile/add/",
+      "app": "people",
+      "model": "employerprofile",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/enrollment/",
+      "app": "people",
+      "model": "enrollment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/enrollment/add/",
+      "app": "people",
+      "model": "enrollment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/informationtag/",
+      "app": "people",
+      "model": "informationtag",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/informationtag/add/",
+      "app": "people",
+      "model": "informationtag",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/specialeducationplan/",
+      "app": "people",
+      "model": "specialeducationplan",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/specialeducationplan/add/",
+      "app": "people",
+      "model": "specialeducationplan",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentguardian/",
+      "app": "people",
+      "model": "studentguardian",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentguardian/add/",
+      "app": "people",
+      "model": "studentguardian",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentnote/",
+      "app": "people",
+      "model": "studentnote",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentnote/add/",
+      "app": "people",
+      "model": "studentnote",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentprofile/",
+      "app": "people",
+      "model": "studentprofile",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentprofile/add/",
+      "app": "people",
+      "model": "studentprofile",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentresourcereturn/",
+      "app": "people",
+      "model": "studentresourcereturn",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/studentresourcereturn/add/",
+      "app": "people",
+      "model": "studentresourcereturn",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherattendance/",
+      "app": "people",
+      "model": "teacherattendance",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherattendance/add/",
+      "app": "people",
+      "model": "teacherattendance",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherleaverequest/",
+      "app": "people",
+      "model": "teacherleaverequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherleaverequest/add/",
+      "app": "people",
+      "model": "teacherleaverequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherpayrecord/",
+      "app": "people",
+      "model": "teacherpayrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherpayrecord/add/",
+      "app": "people",
+      "model": "teacherpayrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherprofile/",
+      "app": "people",
+      "model": "teacherprofile",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/teacherprofile/add/",
+      "app": "people",
+      "model": "teacherprofile",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/tenantauditlog/",
+      "app": "people",
+      "model": "tenantauditlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/people/tenantauditlog/add/",
+      "app": "people",
+      "model": "tenantauditlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/policybundle/",
+      "app": "policies",
+      "model": "policybundle",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/policybundle/add/",
+      "app": "policies",
+      "model": "policybundle",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/scheduledpolicyoverride/",
+      "app": "policies",
+      "model": "scheduledpolicyoverride",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/scheduledpolicyoverride/add/",
+      "app": "policies",
+      "model": "scheduledpolicyoverride",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/tenantblueprint/",
+      "app": "policies",
+      "model": "tenantblueprint",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/tenantblueprint/add/",
+      "app": "policies",
+      "model": "tenantblueprint",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/tenantpolicyoverride/",
+      "app": "policies",
+      "model": "tenantpolicyoverride",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/policies/tenantpolicyoverride/add/",
+      "app": "policies",
+      "model": "tenantpolicyoverride",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/announcement/",
+      "app": "portal",
+      "model": "announcement",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/announcement/add/",
+      "app": "portal",
+      "model": "announcement",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/documentcategory/",
+      "app": "portal",
+      "model": "documentcategory",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/documentcategory/add/",
+      "app": "portal",
+      "model": "documentcategory",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/event/",
+      "app": "portal",
+      "model": "event",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/event/add/",
+      "app": "portal",
+      "model": "event",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/faq/",
+      "app": "portal",
+      "model": "faq",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/faq/add/",
+      "app": "portal",
+      "model": "faq",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/faqcategory/",
+      "app": "portal",
+      "model": "faqcategory",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/faqcategory/add/",
+      "app": "portal",
+      "model": "faqcategory",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/formsignature/",
+      "app": "portal",
+      "model": "formsignature",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/formsignature/add/",
+      "app": "portal",
+      "model": "formsignature",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbarticle/",
+      "app": "portal",
+      "model": "kbarticle",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbarticle/add/",
+      "app": "portal",
+      "model": "kbarticle",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbarticleattachment/",
+      "app": "portal",
+      "model": "kbarticleattachment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbarticleattachment/add/",
+      "app": "portal",
+      "model": "kbarticleattachment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbcategory/",
+      "app": "portal",
+      "model": "kbcategory",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbcategory/add/",
+      "app": "portal",
+      "model": "kbcategory",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbcomment/",
+      "app": "portal",
+      "model": "kbcomment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/kbcomment/add/",
+      "app": "portal",
+      "model": "kbcomment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/lessonplan/",
+      "app": "portal",
+      "model": "lessonplan",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/lessonplan/add/",
+      "app": "portal",
+      "model": "lessonplan",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/pendingguardianinvite/",
+      "app": "portal",
+      "model": "pendingguardianinvite",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/pendingguardianinvite/add/",
+      "app": "portal",
+      "model": "pendingguardianinvite",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/portalfeatureitem/",
+      "app": "portal",
+      "model": "portalfeatureitem",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/portalfeatureitem/add/",
+      "app": "portal",
+      "model": "portalfeatureitem",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/usercontribution/",
+      "app": "portal",
+      "model": "usercontribution",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/portal/usercontribution/add/",
+      "app": "portal",
+      "model": "usercontribution",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/emissubmission/",
+      "app": "reports",
+      "model": "emissubmission",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/emissubmission/add/",
+      "app": "reports",
+      "model": "emissubmission",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/promotionrule/",
+      "app": "reports",
+      "model": "promotionrule",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/promotionrule/add/",
+      "app": "reports",
+      "model": "promotionrule",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/reportcard/",
+      "app": "reports",
+      "model": "reportcard",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/reportcard/add/",
+      "app": "reports",
+      "model": "reportcard",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/reportpack/",
+      "app": "reports",
+      "model": "reportpack",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/reportpack/add/",
+      "app": "reports",
+      "model": "reportpack",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/tenantreportschedule/",
+      "app": "reports",
+      "model": "tenantreportschedule",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/tenantreportschedule/add/",
+      "app": "reports",
+      "model": "tenantreportschedule",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/termpublishstatus/",
+      "app": "reports",
+      "model": "termpublishstatus",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/reports/termpublishstatus/add/",
+      "app": "reports",
+      "model": "termpublishstatus",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/accessrequest/",
+      "app": "requests",
+      "model": "accessrequest",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/accessrequest/add/",
+      "app": "requests",
+      "model": "accessrequest",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/requestaudit/",
+      "app": "requests",
+      "model": "requestaudit",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/requestaudit/add/",
+      "app": "requests",
+      "model": "requestaudit",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/requestdecision/",
+      "app": "requests",
+      "model": "requestdecision",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/requests/requestdecision/add/",
+      "app": "requests",
+      "model": "requestdecision",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardlayout/",
+      "app": "runtime_blueprints",
+      "model": "dashboardlayout",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardlayout/add/",
+      "app": "runtime_blueprints",
+      "model": "dashboardlayout",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardpack/",
+      "app": "runtime_blueprints",
+      "model": "dashboardpack",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardpack/add/",
+      "app": "runtime_blueprints",
+      "model": "dashboardpack",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardpackassignment/",
+      "app": "runtime_blueprints",
+      "model": "dashboardpackassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardpackassignment/add/",
+      "app": "runtime_blueprints",
+      "model": "dashboardpackassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardtemplate/",
+      "app": "runtime_blueprints",
+      "model": "dashboardtemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardtemplate/add/",
+      "app": "runtime_blueprints",
+      "model": "dashboardtemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboarduserpreference/",
+      "app": "runtime_blueprints",
+      "model": "dashboarduserpreference",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboarduserpreference/add/",
+      "app": "runtime_blueprints",
+      "model": "dashboarduserpreference",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardwidget/",
+      "app": "runtime_blueprints",
+      "model": "dashboardwidget",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/dashboardwidget/add/",
+      "app": "runtime_blueprints",
+      "model": "dashboardwidget",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/tenantlayoutassignment/",
+      "app": "runtime_blueprints",
+      "model": "tenantlayoutassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/tenantlayoutassignment/add/",
+      "app": "runtime_blueprints",
+      "model": "tenantlayoutassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/tenantworkflow/",
+      "app": "runtime_blueprints",
+      "model": "tenantworkflow",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/tenantworkflow/add/",
+      "app": "runtime_blueprints",
+      "model": "tenantworkflow",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowpack/",
+      "app": "runtime_blueprints",
+      "model": "workflowpack",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowpack/add/",
+      "app": "runtime_blueprints",
+      "model": "workflowpack",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowpackassignment/",
+      "app": "runtime_blueprints",
+      "model": "workflowpackassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowpackassignment/add/",
+      "app": "runtime_blueprints",
+      "model": "workflowpackassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowtemplate/",
+      "app": "runtime_blueprints",
+      "model": "workflowtemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/runtime_blueprints/workflowtemplate/add/",
+      "app": "runtime_blueprints",
+      "model": "workflowtemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/eventregistration/",
+      "app": "school_events",
+      "model": "eventregistration",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/eventregistration/add/",
+      "app": "school_events",
+      "model": "eventregistration",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/eventsponsor/",
+      "app": "school_events",
+      "model": "eventsponsor",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/eventsponsor/add/",
+      "app": "school_events",
+      "model": "eventsponsor",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/eventvenue/",
+      "app": "school_events",
+      "model": "eventvenue",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/eventvenue/add/",
+      "app": "school_events",
+      "model": "eventvenue",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/schoolevent/",
+      "app": "school_events",
+      "model": "schoolevent",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/school_events/schoolevent/add/",
+      "app": "school_events",
+      "model": "schoolevent",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/biometricattendancelog/",
+      "app": "schoolops",
+      "model": "biometricattendancelog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/biometricattendancelog/add/",
+      "app": "schoolops",
+      "model": "biometricattendancelog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/biometricdevice/",
+      "app": "schoolops",
+      "model": "biometricdevice",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/biometricdevice/add/",
+      "app": "schoolops",
+      "model": "biometricdevice",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/bus/",
+      "app": "schoolops",
+      "model": "bus",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/bus/add/",
+      "app": "schoolops",
+      "model": "bus",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/campus/",
+      "app": "schoolops",
+      "model": "campus",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/campus/add/",
+      "app": "schoolops",
+      "model": "campus",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/canteenmeal/",
+      "app": "schoolops",
+      "model": "canteenmeal",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/canteenmeal/add/",
+      "app": "schoolops",
+      "model": "canteenmeal",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/healthrecord/",
+      "app": "schoolops",
+      "model": "healthrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/healthrecord/add/",
+      "app": "schoolops",
+      "model": "healthrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/hostel/",
+      "app": "schoolops",
+      "model": "hostel",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/hostel/add/",
+      "app": "schoolops",
+      "model": "hostel",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/hostelassignment/",
+      "app": "schoolops",
+      "model": "hostelassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/hostelassignment/add/",
+      "app": "schoolops",
+      "model": "hostelassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/hostelroom/",
+      "app": "schoolops",
+      "model": "hostelroom",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/hostelroom/add/",
+      "app": "schoolops",
+      "model": "hostelroom",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/immunizationrecord/",
+      "app": "schoolops",
+      "model": "immunizationrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/immunizationrecord/add/",
+      "app": "schoolops",
+      "model": "immunizationrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/inventoryitem/",
+      "app": "schoolops",
+      "model": "inventoryitem",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/inventoryitem/add/",
+      "app": "schoolops",
+      "model": "inventoryitem",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/libraryitem/",
+      "app": "schoolops",
+      "model": "libraryitem",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/libraryitem/add/",
+      "app": "schoolops",
+      "model": "libraryitem",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/libraryloan/",
+      "app": "schoolops",
+      "model": "libraryloan",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/libraryloan/add/",
+      "app": "schoolops",
+      "model": "libraryloan",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/lostbelongingscustodyeventrecord/",
+      "app": "schoolops",
+      "model": "lostbelongingscustodyeventrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/lostbelongingscustodyeventrecord/add/",
+      "app": "schoolops",
+      "model": "lostbelongingscustodyeventrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/lostbelongingstagrecord/",
+      "app": "schoolops",
+      "model": "lostbelongingstagrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/lostbelongingstagrecord/add/",
+      "app": "schoolops",
+      "model": "lostbelongingstagrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/mealplanbalance/",
+      "app": "schoolops",
+      "model": "mealplanbalance",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/mealplanbalance/add/",
+      "app": "schoolops",
+      "model": "mealplanbalance",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/purchaseorder/",
+      "app": "schoolops",
+      "model": "purchaseorder",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/purchaseorder/add/",
+      "app": "schoolops",
+      "model": "purchaseorder",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/route/",
+      "app": "schoolops",
+      "model": "route",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/route/add/",
+      "app": "schoolops",
+      "model": "route",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/stop/",
+      "app": "schoolops",
+      "model": "stop",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/stop/add/",
+      "app": "schoolops",
+      "model": "stop",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/substitutehandoverpacketrecord/",
+      "app": "schoolops",
+      "model": "substitutehandoverpacketrecord",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/substitutehandoverpacketrecord/add/",
+      "app": "schoolops",
+      "model": "substitutehandoverpacketrecord",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/supplyrequirement/",
+      "app": "schoolops",
+      "model": "supplyrequirement",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/supplyrequirement/add/",
+      "app": "schoolops",
+      "model": "supplyrequirement",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/transportassignment/",
+      "app": "schoolops",
+      "model": "transportassignment",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/transportassignment/add/",
+      "app": "schoolops",
+      "model": "transportassignment",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/vaccinerequirement/",
+      "app": "schoolops",
+      "model": "vaccinerequirement",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/vaccinerequirement/add/",
+      "app": "schoolops",
+      "model": "vaccinerequirement",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/vendor/",
+      "app": "schoolops",
+      "model": "vendor",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/vendor/add/",
+      "app": "schoolops",
+      "model": "vendor",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/vendorproduct/",
+      "app": "schoolops",
+      "model": "vendorproduct",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schoolops/vendorproduct/add/",
+      "app": "schoolops",
+      "model": "vendorproduct",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/donationpledge/",
+      "app": "schools",
+      "model": "donationpledge",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/donationpledge/add/",
+      "app": "schools",
+      "model": "donationpledge",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/donorgiftaccesslink/",
+      "app": "schools",
+      "model": "donorgiftaccesslink",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/donorgiftaccesslink/add/",
+      "app": "schools",
+      "model": "donorgiftaccesslink",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/fundraisingcampaign/",
+      "app": "schools",
+      "model": "fundraisingcampaign",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/fundraisingcampaign/add/",
+      "app": "schools",
+      "model": "fundraisingcampaign",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/grantapplication/",
+      "app": "schools",
+      "model": "grantapplication",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/grantapplication/add/",
+      "app": "schools",
+      "model": "grantapplication",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/inkinddonation/",
+      "app": "schools",
+      "model": "inkinddonation",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/inkinddonation/add/",
+      "app": "schools",
+      "model": "inkinddonation",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/recurringdonationschedule/",
+      "app": "schools",
+      "model": "recurringdonationschedule",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/schools/recurringdonationschedule/add/",
+      "app": "schools",
+      "model": "recurringdonationschedule",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/dashboarduserpreference/",
+      "app": "siteconfig",
+      "model": "dashboarduserpreference",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/dashboarduserpreference/add/",
+      "app": "siteconfig",
+      "model": "dashboarduserpreference",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featuretoggledefinition/",
+      "app": "siteconfig",
+      "model": "featuretoggledefinition",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featuretoggledefinition/add/",
+      "app": "siteconfig",
+      "model": "featuretoggledefinition",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featuretogglestate/",
+      "app": "siteconfig",
+      "model": "featuretogglestate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featuretogglestate/add/",
+      "app": "siteconfig",
+      "model": "featuretogglestate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featureusageevent/",
+      "app": "siteconfig",
+      "model": "featureusageevent",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/featureusageevent/add/",
+      "app": "siteconfig",
+      "model": "featureusageevent",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/globalsyllabus/",
+      "app": "siteconfig",
+      "model": "globalsyllabus",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/globalsyllabus/add/",
+      "app": "siteconfig",
+      "model": "globalsyllabus",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/learningpassport/",
+      "app": "siteconfig",
+      "model": "learningpassport",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/learningpassport/add/",
+      "app": "siteconfig",
+      "model": "learningpassport",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/officialreporttemplate/",
+      "app": "siteconfig",
+      "model": "officialreporttemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/officialreporttemplate/add/",
+      "app": "siteconfig",
+      "model": "officialreporttemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/reportcardstyle/",
+      "app": "siteconfig",
+      "model": "reportcardstyle",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/reportcardstyle/add/",
+      "app": "siteconfig",
+      "model": "reportcardstyle",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/reporttemplate/",
+      "app": "siteconfig",
+      "model": "reporttemplate",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/reporttemplate/add/",
+      "app": "siteconfig",
+      "model": "reporttemplate",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/sitesettings/",
+      "app": "siteconfig",
+      "model": "sitesettings",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/sitesettings/add/",
+      "app": "siteconfig",
+      "model": "sitesettings",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/tenantadmissionnumberpolicy/",
+      "app": "siteconfig",
+      "model": "tenantadmissionnumberpolicy",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/tenantadmissionnumberpolicy/add/",
+      "app": "siteconfig",
+      "model": "tenantadmissionnumberpolicy",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/tourstep/",
+      "app": "siteconfig",
+      "model": "tourstep",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/tourstep/add/",
+      "app": "siteconfig",
+      "model": "tourstep",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/userpreference/",
+      "app": "siteconfig",
+      "model": "userpreference",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/userpreference/add/",
+      "app": "siteconfig",
+      "model": "userpreference",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/workflowrunlog/",
+      "app": "siteconfig",
+      "model": "workflowrunlog",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/siteconfig/workflowrunlog/add/",
+      "app": "siteconfig",
+      "model": "workflowrunlog",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialcampaignattribution/",
+      "app": "social_media",
+      "model": "socialcampaignattribution",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialcampaignattribution/add/",
+      "app": "social_media",
+      "model": "socialcampaignattribution",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialmediaintegration/",
+      "app": "social_media",
+      "model": "socialmediaintegration",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialmediaintegration/add/",
+      "app": "social_media",
+      "model": "socialmediaintegration",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialmoderationitem/",
+      "app": "social_media",
+      "model": "socialmoderationitem",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialmoderationitem/add/",
+      "app": "social_media",
+      "model": "socialmoderationitem",
+      "archetype": "add",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialpostoutbox/",
+      "app": "social_media",
+      "model": "socialpostoutbox",
+      "archetype": "changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/social_media/socialpostoutbox/add/",
+      "app": "social_media",
+      "model": "socialpostoutbox",
+      "archetype": "add",
+      "sweep": true
+    }
+  ]
+}

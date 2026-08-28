@@ -25,7 +25,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 ROUTES_JSON = ROOT / "docs/generated/control_plane_sweep_routes.json"
 AUDIT_JSON = ROOT / "docs/generated/admin_changelist_render_audit.json"
-PLAYWRIGHT_AUDIT_JSON = ROOT / "docs/generated/admin_playwright_sweep_audit.json"
 
 # Changelists that intentionally leave /admin/ (studio/product redirects).
 ADMIN_REDIRECT_ESCAPE_PREFIXES: tuple[str, ...] = (
@@ -48,43 +47,6 @@ def _max_routes() -> int:
 
 
 HOST = os.environ.get("VERIFY_ADMIN_RENDER_HOST", "manager.runmycampus.com")
-
-
-def _write_playwright_audit_from_render(render_payload: dict) -> None:
-    """Honest render-contract evidence for batch 1617 until CI Playwright layout sweep runs."""
-    route_count = int(render_payload.get("route_count") or 0)
-    ok_count = int(render_payload.get("ok_count") or 0)
-    fail_count = int(render_payload.get("failure_count") or 0)
-    proxy = {
-        "generatedAt": render_payload.get("generated_at")
-        or datetime.now(timezone.utc).isoformat(),
-        "sweepTier": "admin_changelist",
-        "evidenceSource": "admin_changelist_render_contract_full_crawl",
-        "layoutPlaywrightSweep": "deferred_use_ci_admin_platform_proof_or_run_admin_abrupt_end_sweep",
-        "managerBase": f"http://{HOST}:8012",
-        "managerPlanned": route_count,
-        "managerTested": route_count,
-        "resultsCount": route_count,
-        "passed": ok_count,
-        "failed": fail_count,
-        "skipped": 0,
-        "infraSkipped": 0,
-        "failedUrls": render_payload.get("failures", [])[:50],
-        "renderContract": {
-            "pass": render_payload.get("pass"),
-            "full_crawl": render_payload.get("full_crawl"),
-            "route_count": route_count,
-            "ok_count": ok_count,
-            "redirect_escape_count": render_payload.get("redirect_escape_count"),
-        },
-        "results": [],
-    }
-    PLAYWRIGHT_AUDIT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    PLAYWRIGHT_AUDIT_JSON.write_text(
-        json.dumps(proxy, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    print(f"Wrote render-backed evidence to {PLAYWRIGHT_AUDIT_JSON}")
 
 
 def _final_path(response, fallback: str) -> str:
@@ -268,8 +230,6 @@ def main() -> int:
         AUDIT_JSON.parent.mkdir(parents=True, exist_ok=True)
         AUDIT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         print(f"Wrote audit to {AUDIT_JSON}")
-        if _is_full_crawl() and fail_count == 0:
-            _write_playwright_audit_from_render(payload)
 
     if failures:
         for msg in failures[:20]:

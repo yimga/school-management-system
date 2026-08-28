@@ -12,10 +12,8 @@ STATIC_ROOT = ROOT / "staticfiles"
 
 ASSETS = (
     "css/rmc-governed-outcome.css",
-    "css/rmc-tenant-admin-sidebar-v2.css",
-    "js/rmc-tenant-admin-sidebar-v2.js",
-    "css/rmc-operator-admin-sidebar-v2.css",
-    "js/rmc-operator-admin-sidebar-v2.js",
+    "css/rmc-admin-sidebar-v3.css",
+    "js/rmc-admin-sidebar-v3.js",
     "css/rmc-user-account-center.css",
     "js/rmc-user-account-center.js",
     "css/rmc-tenant-dashboard-balance.css",
@@ -53,8 +51,7 @@ def verify_source(failures: list[str]) -> None:
         if f'"/static/{asset}"' not in sw:
             failures.append(f"service worker does not update approved asset: {asset}")
     for token in (
-        "rmc-tenant-admin-sidebar-v2.css",
-        "rmc-operator-admin-sidebar-v2.css",
+        "rmc-admin-sidebar-v3.css",
         "rmc-user-account-center.css",
     ):
         if token not in base:

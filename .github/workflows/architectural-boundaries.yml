@@ -352,8 +352,7 @@ jobs:
             python scripts/verify_admin_production_upgrade.py
             python scripts/verify_admin_replacement_roadmap.py
             python scripts/verify_admin_super_help_nav_bridge.py
-            python scripts/verify_operator_admin_sidebar_v2.py
-            python scripts/verify_tenant_admin_sidebar_v2.py
+            python scripts/verify_admin_sidebar_v3.py
             python scripts/audit_django_admin_miss_nothing.py
             python scripts/sweep_django_admin_platformwide_layout.py
             python scripts/verify_admin_tenant_change_form_product_links.py

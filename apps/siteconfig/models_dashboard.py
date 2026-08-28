@@ -223,6 +223,50 @@ class DashboardUserPreference(models.Model):
         self.role_dashboard_packs = payload
 
 
+class AdminNavigationPreference(models.Model):
+    """Conflict-safe Django-admin navigation state.
+
+    The row boundary is deliberately narrower than ``DashboardUserPreference``:
+    one authenticated user, one normalized hostname and one admin-site
+    namespace.  Tenant and operator state therefore cannot overwrite each
+    other, and the monotonic revision supports compare-and-swap mutations from
+    multiple tabs or an offline operation queue.
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="admin_navigation_preferences",
+    )
+    host = models.CharField(max_length=255)
+    admin_site = models.CharField(max_length=64)
+    schema_version = models.PositiveSmallIntegerField(default=3)
+    revision = models.PositiveBigIntegerField(default=0)
+    state = models.JSONField(default=dict, blank=True)
+    applied_mutation_ids = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Admin navigation preference"
+        verbose_name_plural = "Admin navigation preferences"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "host", "admin_site"],
+                name="uniq_admin_nav_user_host_site",
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=["host", "admin_site"],
+                name="siteconfig_admin_nav_scope_idx",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user_id}:{self.host}:{self.admin_site}@{self.revision}"
+
+
 SUPER_DASHBOARD_DEFAULT_SECTION_ORDER = [
     "cp-action-queue",
     "cp-fleet-health",

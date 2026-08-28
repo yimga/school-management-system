@@ -103,11 +103,11 @@ class Command(BaseCommand):
                 code=region_data["code"], defaults=region_data
             )
             if created:
-                self.stdout.write(f"✓ Created region: {region.name} ({region.code})")
+                self.stdout.write(f"[created] Region: {region.name} ({region.code})")
                 created_count += 1
             else:
                 self.stdout.write(
-                    f"• Region already exists: {region.name} ({region.code})"
+                    f"[exists] Region: {region.name} ({region.code})"
                 )
 
         self.stdout.write(f"\nCreated {created_count} new regions.\n")
@@ -224,13 +224,13 @@ class Command(BaseCommand):
             )
             if created:
                 self.stdout.write(
-                    f"✓ Created grading scale: {region.name} - {config['scale_type']}"
+                    f"[created] Grading scale: {region.name} - {config['scale_type']}"
                 )
                 grading_created += 1
             else:
                 self.stdout.write(
-                    f"• Grading scale already exists: {region.name} - {config['scale_type']}"
+                    f"[exists] Grading scale: {region.name} - {config['scale_type']}"
                 )
 
         self.stdout.write(f"\nCreated {grading_created} new grading scales.\n")
-        self.stdout.write(self.style.SUCCESS("✓ Internationalization seed complete!"))
+        self.stdout.write(self.style.SUCCESS("Internationalization seed complete."))

@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin audit automation and sidebar v3 - before and after approval</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b17;
+      --surface: #0d1426;
+      --surface-2: #111b32;
+      --surface-3: #182441;
+      --line: #273657;
+      --line-soft: #1c2946;
+      --text: #f5f7ff;
+      --muted: #9ca9c2;
+      --teal: #29d7b3;
+      --blue: #59a9ff;
+      --purple: #8b72ff;
+      --amber: #ffc857;
+      --red: #ff7388;
+      --green: #56e39f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .32);
+      --radius: 18px;
+    }
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg: #edf2fb;
+      --surface: #ffffff;
+      --surface-2: #f7f9fe;
+      --surface-3: #edf2fb;
+      --line: #ccd7ea;
+      --line-soft: #e1e8f4;
+      --text: #16223a;
+      --muted: #586883;
+      --teal: #007f6d;
+      --blue: #176fc2;
+      --purple: #5d45d6;
+      --amber: #9a6500;
+      --red: #bb2943;
+      --green: #087c4e;
+      --shadow: 0 22px 65px rgba(32, 52, 90, .14);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 10% -10%, rgba(139,114,255,.18), transparent 28rem),
+        radial-gradient(circle at 90% 0, rgba(41,215,179,.1), transparent 24rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--blue) 70%, white);
+      outline-offset: 2px;
+    }
+    a { color: var(--blue); }
+    .wrap { width: min(1760px, calc(100% - 32px)); margin: 0 auto; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      backdrop-filter: blur(18px);
+    }
+    .topbar-inner {
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(145deg, var(--surface-3), var(--surface));
+      color: var(--teal);
+      font-weight: 900;
+    }
+    .brand strong { display: block; letter-spacing: -.01em; }
+    .brand small { color: var(--muted); }
+    .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .btn, .segmented button, .tab {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface-2);
+      padding: 8px 13px;
+      cursor: pointer;
+    }
+    .btn:hover, .segmented button:hover, .tab:hover { border-color: var(--blue); }
+    .btn.primary { background: linear-gradient(135deg, #6750e8, #317bdd); border-color: transparent; color: white; font-weight: 800; }
+    .btn.good { background: color-mix(in srgb, var(--green) 14%, var(--surface-2)); border-color: color-mix(in srgb, var(--green) 55%, var(--line)); }
+    .segmented { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+    .segmented button { border: 0; min-height: 32px; padding-block: 5px; background: transparent; }
+    .segmented button.active { background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line); }
+    .hero { padding: 54px 0 28px; }
+    .eyebrow { color: var(--teal); font-size: .78rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 980px; margin: 10px 0 14px; font-size: clamp(2rem, 4vw, 4.35rem); line-height: 1.02; letter-spacing: -.052em; }
+    .lede { max-width: 940px; color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.2rem); }
+    .status-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; background: var(--surface); font-size: .82rem; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 16%, transparent); }
+    .dot.warn { background: var(--amber); box-shadow: 0 0 0 4px color-mix(in srgb, var(--amber) 16%, transparent); }
+    .dot.bad { background: var(--red); box-shadow: 0 0 0 4px color-mix(in srgb, var(--red) 16%, transparent); }
+    .tabs { display: flex; gap: 7px; overflow-x: auto; padding: 14px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+    .tab { white-space: nowrap; }
+    .tab[aria-selected="true"] { border-color: var(--purple); background: color-mix(in srgb, var(--purple) 14%, var(--surface-2)); }
+    .panel { display: none; padding: 28px 0 64px; }
+    .panel.active { display: block; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    h2 { margin: 0; font-size: clamp(1.45rem, 2.6vw, 2.4rem); letter-spacing: -.03em; }
+    h3, h4, p { margin-top: 0; }
+    .muted { color: var(--muted); }
+    .audit-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .metric, .card, .ledger-row, .flow-step {
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--surface) 94%, transparent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .metric { padding: 17px; }
+    .metric .value { font-size: 1.8rem; font-weight: 900; letter-spacing: -.04em; }
+    .metric .label { color: var(--muted); font-size: .83rem; }
+    .ledger { display: grid; gap: 10px; margin-top: 18px; }
+    .ledger-row { display: grid; grid-template-columns: 70px minmax(150px,.75fr) minmax(230px,1.3fr) minmax(230px,1.4fr); gap: 14px; padding: 16px; box-shadow: none; }
+    .priority { font-weight: 900; color: var(--red); }
+    .priority.p1 { color: var(--amber); }
+    .priority.p2 { color: var(--blue); }
+    .cell-label { display: none; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+    .browser-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+    .context-controls { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 12px; margin: -2px 0 14px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+    .context-controls strong { font-size: .78rem; color: var(--muted); }
+    .context-note { min-width: 0; color: var(--muted); font-size: .77rem; text-align: center; }
+    .browser-shell {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      overflow: hidden;
+      background: #080e1e;
+      box-shadow: 0 32px 100px rgba(0,0,0,.4);
+    }
+    .browser-chrome { min-height: 44px; display: flex; align-items: center; gap: 8px; padding: 8px 13px; border-bottom: 1px solid #283654; background: #0c1324; color: #b8c4d9; font-size: .78rem; }
+    .browser-dot { width: 9px; height: 9px; border-radius: 50%; background: #4b5b77; }
+    .browser-address { flex: 1; min-width: 130px; margin-left: 8px; padding: 5px 10px; border: 1px solid #273755; border-radius: 8px; background: #080e1d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .admin-frame { position: relative; min-height: 720px; display: grid; grid-template-columns: 292px minmax(0,1fr) 38px; background: #0b1223; color: #f4f7ff; }
+    .admin-frame.compact { grid-template-columns: 76px minmax(0,1fr) 38px; }
+    .admin-frame.mobile { grid-template-columns: minmax(0,1fr) 38px; }
+    .admin-frame.mobile .admin-sidebar { display: block; position: absolute; z-index: 8; inset: 0 auto 0 0; width: min(304px, calc(100% - 38px)); box-shadow: 24px 0 60px rgba(0,0,0,.48); }
+    .admin-frame.mobile .admin-canvas { grid-column: 1; }
+    .admin-sidebar { min-width: 0; border-right: 1px solid #263653; background: #09101f; padding: 14px 12px; overflow: hidden; }
+    .admin-frame.compact .sidebar-expanded { display: none; }
+    .admin-frame.compact .admin-sidebar { padding-inline: 8px; }
+    .rail-only { display: none; }
+    .admin-frame.compact .rail-only { display: grid; gap: 10px; }
+    .rail-btn { width: 58px; height: 48px; border: 1px solid #293b5d; background: #111b31; border-radius: 12px; color: #b8c6dc; cursor: pointer; }
+    .rail-btn.current { color: #4ce0be; border-color: #2d9b8a; background: #102c30; }
+    .school-card { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid #2a3a59; border-radius: 14px; background: #101a30; }
+    .school-logo { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: linear-gradient(145deg,#693ee9,#1faeae); font-weight: 900; }
+    .admin-frame.operator .school-logo { background: linear-gradient(145deg,#e29b24,#8c4be8); }
+    .school-card strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+    .school-card small { color: #9dacC4; font-size: .7rem; }
+    .sync { width: 9px; height: 9px; border-radius: 50%; background: #4ce0a0; }
+    .side-search { width: 100%; margin: 12px 0; border: 1px solid #2a3a5b; border-radius: 11px; background: #0d172c; color: white; padding: 10px 11px; }
+    .sidebar-mode-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -4px 2px 10px; }
+    .mode-toggle { min-height: 29px; border: 1px solid #2a3a5b; border-radius: 9px; background: #101a30; color: #aab8ce; padding: 4px 8px; cursor: pointer; font-size: .68rem; }
+    .mode-toggle.active { color: #64e8c9; border-color: #2c887b; background: #102b30; }
+    #afterFrame.focus-mode .ambient-section { display: none; }
+    .side-section { margin-top: 13px; }
+    .side-title { display: flex; align-items: center; justify-content: space-between; margin: 0 5px 7px; color: #8493ae; font-size: .68rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-item { width: 100%; display: grid; grid-template-columns: 24px minmax(0,1fr) auto; align-items: center; gap: 8px; min-height: 39px; border: 1px solid transparent; border-radius: 10px; padding: 7px 9px; background: transparent; color: #dbe4f4; text-align: left; cursor: pointer; }
+    .nav-item:hover { background: #121f38; }
+    .nav-item.current { border-color: #2c927f; background: #102d31; color: #61ebc9; }
+    .nav-item.attention { border-color: #604a21; background: #241e17; }
+    .nav-icon { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; background: #17233c; font-size: .72rem; font-weight: 900; }
+    .count { border-radius: 999px; padding: 2px 6px; background: #273858; color: #dbe6f7; font-size: .65rem; }
+    .count.warn { background: #553c17; color: #ffd986; }
+    .side-note { margin: 8px 4px; color: #7e8ca6; font-size: .7rem; }
+    .area-button { width: 100%; display: flex; align-items: center; justify-content: space-between; min-height: 38px; border: 1px solid #273756; border-radius: 9px; padding: 7px 10px; background: #0f192e; color: #c9d4e7; cursor: pointer; }
+    .area-button + .area-button { margin-top: 5px; }
+    .area-button.current { color: #5ae7c6; border-color: #276f68; }
+    .admin-canvas { min-width: 0; padding: 24px; overflow: hidden; }
+    .canvas-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .breadcrumb { color: #63daba; font-size: .76rem; margin-bottom: 7px; }
+    .canvas-head h3 { margin-bottom: 4px; font-size: 1.55rem; letter-spacing: -.03em; }
+    .canvas-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(180px,18%); gap: 16px; }
+    .surface { border: 1px solid #293956; border-radius: 15px; background: #101a31; }
+    .surface-pad { padding: 17px; }
+    .form-section { padding: 16px; border-bottom: 1px solid #243450; }
+    .form-section:last-child { border-bottom: 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+    .field { min-width: 0; }
+    .field label { display: block; color: #9eaec8; margin-bottom: 5px; font-size: .7rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .fake-input { min-height: 39px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #2a3b5c; border-radius: 9px; padding: 8px 10px; background: #0a1427; color: #e9effa; }
+    .recommended { color: #66e7c7; font-size: .67rem; }
+    .archetype-panel.hidden { display: none; }
+    .native-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 14px; border-bottom: 1px solid #263653; }
+    .native-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+    .native-table th, .native-table td { padding: 11px 13px; text-align: left; border-bottom: 1px solid #263653; }
+    .native-table th { color: #74dfc4; font-size: .67rem; letter-spacing: .07em; text-transform: uppercase; }
+    .native-table tr:last-child td { border-bottom: 0; }
+    .native-table a { color: #5edfc1; text-decoration: none; font-weight: 700; }
+    .app-cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; padding: 15px; }
+    .app-card { min-height: 120px; padding: 14px; border: 1px solid #293a59; border-radius: 12px; background: #0d172b; }
+    .app-card strong { display: block; margin-bottom: 6px; }
+    .app-card small { color: #94a3bc; }
+    .operator-index-ctas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; padding: 12px; border: 1px solid #6d5427; border-radius: 12px; background: #221c15; }
+    .timeline { list-style: none; margin: 0; padding: 16px; display: grid; gap: 0; }
+    .timeline li { position: relative; display: grid; grid-template-columns: 100px 18px minmax(0,1fr); gap: 10px; min-height: 68px; color: #cbd6e7; }
+    .timeline li::after { content: ""; position: absolute; left: 108px; top: 23px; bottom: -5px; width: 1px; background: #314363; }
+    .timeline li:last-child::after { display: none; }
+    .timeline-dot { width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: #55dfb6; box-shadow: 0 0 0 4px #13352f; }
+    .timeline time { color: #8595af; font-size: .7rem; }
+    .rail-card { padding: 13px; border-bottom: 1px solid #263653; }
+    .rail-card:last-child { border-bottom: 0; }
+    .rail-card h4 { color: #a9b7cf; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+    .rail-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; color: #c9d4e7; font-size: .74rem; }
+    .tools { display: grid; align-content: start; justify-items: center; gap: 10px; padding-top: 16px; border-left: 1px solid #263653; background: #09101f; }
+    .tool { width: 28px; height: 34px; border: 1px solid #2a3b5d; border-radius: 8px; background: #111b31; color: #b7c4d8; cursor: pointer; }
+    .before .admin-frame { grid-template-columns: 242px minmax(0,1fr) 38px; }
+    .before .admin-sidebar { padding: 11px; }
+    .legacy-heading { color: #8492aa; margin: 12px 8px 5px; font-size: .65rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; }
+    .legacy-block { padding: 8px; border: 1px solid #263653; border-radius: 9px; margin-bottom: 5px; background: #0e182c; font-size: .75rem; }
+    .legacy-models { display: grid; gap: 4px; max-height: 300px; overflow: hidden; }
+    .legacy-model { padding: 6px 8px; color: #acb8cc; border-left: 2px solid #2a3957; font-size: .72rem; }
+    .before .admin-canvas { padding: 24px 18px; }
+    .before-form { width: 46%; min-width: 260px; }
+    .before-form .fake-input { width: 100%; }
+    .empty-waste { height: 520px; border: 1px dashed #24344f; border-radius: 14px; background: linear-gradient(90deg, rgba(25,36,61,.7) 0 47%, transparent 47%); }
+    .callout { display: grid; grid-template-columns: 32px minmax(0,1fr); gap: 10px; margin-top: 12px; padding: 12px; border: 1px solid color-mix(in srgb,var(--red) 55%,var(--line)); border-radius: 12px; background: color-mix(in srgb,var(--red) 8%,var(--surface)); }
+    .callout strong { display: block; }
+    .callout small { color: var(--muted); }
+    .admin-frame .callout { background: #101a31; border-color: #2a3b5d; color: #f4f7ff; }
+    .admin-frame .callout small { color: #9caac1; }
+    .flow { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 10px; align-items: stretch; }
+    .flow-step { position: relative; padding: 16px; box-shadow: none; }
+    .flow-step .num { color: var(--teal); font-size: .72rem; font-weight: 900; letter-spacing: .1em; }
+    .flow-step strong { display: block; margin: 7px 0 5px; }
+    .flow-step small { color: var(--muted); }
+    .proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+    .card { padding: 18px; }
+    .code-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0; }
+    .code-node { padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface-2); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .77rem; }
+    .arrow { color: var(--muted); }
+    .checklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+    .checklist li { display: grid; grid-template-columns: 24px minmax(0,1fr); gap: 8px; }
+    .check { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 7px; background: color-mix(in srgb,var(--green) 13%,var(--surface-3)); color: var(--green); font-size: .7rem; font-weight: 900; }
+    .approval { margin-top: 22px; padding: 20px; border: 1px solid color-mix(in srgb,var(--purple) 60%,var(--line)); border-radius: 18px; background: linear-gradient(120deg,color-mix(in srgb,var(--purple) 16%,var(--surface)),var(--surface)); }
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 50; max-width: 330px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); box-shadow: var(--shadow); opacity: 0; transform: translateY(10px); pointer-events: none; transition: .18s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .palette-backdrop { position: fixed; inset: 0; z-index: 60; display: grid; align-items: start; justify-items: center; padding: min(12vh,110px) 16px 20px; background: rgba(3,7,15,.76); backdrop-filter: blur(8px); }
+    .palette-backdrop.hidden { display: none; }
+    .palette { width: min(760px,100%); overflow: hidden; border: 1px solid #35496c; border-radius: 18px; background: #0b1427; color: #f5f7ff; box-shadow: 0 35px 110px rgba(0,0,0,.6); }
+    .palette-head { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; padding: 13px; border-bottom: 1px solid #263754; }
+    .palette-head input { width: 100%; min-height: 44px; border: 0; background: transparent; color: white; outline: 0; font-size: 1rem; }
+    .kbd { align-self: center; border: 1px solid #3a4a67; border-radius: 7px; padding: 3px 7px; color: #a9b8cf; background: #111c31; font-size: .68rem; }
+    .palette-body { display: grid; grid-template-columns: 150px minmax(0,1fr); min-height: 340px; }
+    .palette-groups { padding: 12px; border-right: 1px solid #263754; }
+    .palette-group { width: 100%; min-height: 35px; border: 0; border-radius: 9px; background: transparent; color: #aebbd0; text-align: left; padding: 7px 9px; cursor: pointer; }
+    .palette-group.active { background: #17243d; color: #66e5c7; }
+    .palette-results { padding: 12px; }
+    .palette-label { margin: 4px 8px 7px; color: #7f90ac; font-size: .66rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .palette-result { width: 100%; display: grid; grid-template-columns: 38px minmax(0,1fr) auto; gap: 10px; align-items: center; min-height: 55px; border: 1px solid transparent; border-radius: 11px; background: transparent; color: white; text-align: left; padding: 7px 9px; cursor: pointer; }
+    .palette-result:hover, .palette-result.active { border-color: #315c66; background: #10272e; }
+    .palette-result small { display: block; color: #8999b3; }
+    .scope-chip { border: 1px solid #39506f; border-radius: 999px; padding: 3px 7px; color: #aebdd3; font-size: .62rem; }
+    .why-panel { margin: 8px 0 0; padding: 10px; border: 1px solid #604a21; border-radius: 10px; background: #211c16; color: #d9c69a; font-size: .7rem; }
+    .replay-matrix { display: grid; gap: 7px; margin-top: 12px; }
+    .replay-card { margin-top: 16px; }
+    .replay-row { display: grid; grid-template-columns: 100px minmax(0,1fr) 110px; gap: 10px; align-items: center; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); font-size: .76rem; }
+    .replay-state { color: var(--muted); text-align: right; }
+    .replay-state.pass { color: var(--green); font-weight: 800; }
+    .hidden { display: none !important; }
+    @media (max-width: 1100px) {
+      .audit-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .ledger-row { grid-template-columns: 58px 1fr 1fr; }
+      .ledger-row > :last-child { grid-column: 2 / -1; }
+      .flow { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .flow-step:last-child { grid-column: 1 / -1; }
+      .admin-frame { grid-template-columns: 250px minmax(0,1fr) 38px; }
+      .canvas-grid { grid-template-columns: minmax(0,1fr); }
+      .canvas-rail { display: none; }
+    }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 20px,1760px); }
+      .topbar-inner { align-items: flex-start; padding: 10px 0; }
+      .brand small { display: none; }
+      .hero { padding-top: 34px; }
+      .audit-grid, .proof-grid, .flow { grid-template-columns: 1fr; }
+      .context-controls { grid-template-columns: 1fr; }
+      .context-note { text-align: left; }
+      .flow-step:last-child { grid-column: auto; }
+      .ledger-row { grid-template-columns: 1fr; }
+      .ledger-row > :last-child { grid-column: auto; }
+      .cell-label { display: block; }
+      .admin-frame, .before .admin-frame { min-height: 650px; grid-template-columns: minmax(0,1fr) 34px; }
+      .admin-sidebar { display: none; }
+      .admin-canvas { padding: 15px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .app-cards { grid-template-columns: 1fr; }
+      .palette-body { grid-template-columns: 1fr; }
+      .palette-groups { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid #263754; }
+      .replay-row { grid-template-columns: 82px minmax(0,1fr); }
+      .replay-state { grid-column: 2; text-align: left; }
+      .before-form { width: 100%; }
+      .toolbar .btn.good { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">R</span>
+        <div><strong>Admin system upgrade lab</strong><small>Audit automation + tenant sidebar v3</small></div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="themeToggle" type="button">Light theme</button>
+        <a class="btn good" href="#approval">Approval contract</a>
+        <button class="btn primary" type="button" data-open-tab="preview">View comparison</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Audit first - production unchanged</div>
+      <h1>The sidebar can become intelligent only when its state and its proof are trustworthy.</h1>
+      <p class="lede">The current v2 is a good navigation foundation. This proposal upgrades it into a page-aware work navigator and replaces permissive audit evidence with revisioned state, real-host behavior and fail-closed proof.</p>
+      <div class="status-row">
+        <span class="pill"><span class="dot warn"></span>8 targeted tests pass, but behavior coverage is thin</span>
+        <span class="pill"><span class="dot bad"></span>2 P0 state-correctness risks</span>
+        <span class="pill"><span class="dot bad"></span>2 P0 proof/CI risks</span>
+        <span class="pill"><span class="dot"></span>No production files changed</span>
+      </div>
+    </section>
+
+    <nav class="tabs" role="tablist" aria-label="Approval preview sections">
+      <button class="tab" type="button" role="tab" aria-selected="true" data-tab="findings">Audit findings</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-tab="preview">Before / after</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-tab="proof">Audit automation v3</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-tab="contract">Implementation contract</button>
+    </nav>
+
+    <section class="panel active" id="panel-findings" role="tabpanel">
+      <div class="section-head"><div><div class="eyebrow">What the current gates miss</div><h2>Root-cause ledger</h2></div><p class="muted">Prioritized by data-loss and false-confidence risk.</p></div>
+      <div class="audit-grid">
+        <div class="metric"><div class="value">8/8</div><div class="label">targeted Django tests pass</div></div>
+        <div class="metric"><div class="value">0</div><div class="label">concurrent-tab tests</div></div>
+        <div class="metric"><div class="value">0</div><div class="label">tenant browser behaviors in the current CI sweep</div></div>
+        <div class="metric"><div class="value">1</div><div class="label">proxy artifact accepted as Playwright proof</div></div>
+      </div>
+      <div class="ledger">
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority">P0</span></div><div><span class="cell-label">Issue</span><strong>Last write can lose</strong></div><div><span class="cell-label">Root cause</span>Full state is POSTed without a revision; rapid requests can finish out of order.</div><div><span class="cell-label">Upgrade</span>Semantic PATCH operations, compare-and-swap revision, mutation IDs, serialized client queue and conflict rebase.</div></div>
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority">P0</span></div><div><span class="cell-label">Issue</span><strong>Stale offline replay</strong></div><div><span class="cell-label">Root cause</span>A pending whole snapshot replaces the server state on load without a base revision.</div><div><span class="cell-label">Upgrade</span>Persist an operation log, fetch current state, rebase safe operations and retry with bounded backoff.</div></div>
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority">P0</span></div><div><span class="cell-label">Issue</span><strong>Proxy can pass browser gate</strong></div><div><span class="cell-label">Root cause</span>Render-contract and real-browser evidence share a permissive contract.</div><div><span class="cell-label">Upgrade</span>Separate immutable artifacts and require browser provenance, tenant host, git SHA, route digest and freshness.</div></div>
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority">P0</span></div><div><span class="cell-label">Issue</span><strong>Tenant behavior excluded</strong></div><div><span class="cell-label">Root cause</span>The Playwright workflow runs with tenant inclusion disabled and incomplete path triggers.</div><div><span class="cell-label">Upgrade</span>Mandatory operator + tenant hostname matrices triggered by sidebar, preference, template, cache and test changes.</div></div>
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority p1">P1</span></div><div><span class="cell-label">Issue</span><strong>Fragmented preference writers</strong></div><div><span class="cell-label">Root cause</span>Several features rewrite a shared JSON document with inconsistent locking.</div><div><span class="cell-label">Upgrade</span>One atomic namespaced preference service or a dedicated navigation preference model.</div></div>
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority p1">P1</span></div><div><span class="cell-label">Issue</span><strong>Raw paths, weak semantics</strong></div><div><span class="cell-label">Root cause</span>Pins are URL-centric and the server does not resolve them through a permission-aware destination registry.</div><div><span class="cell-label">Upgrade</span>Stable destination IDs with per-request reverse and permission validation; path only as a safe fallback.</div></div>
+        <div class="ledger-row"><div><span class="cell-label">Priority</span><span class="priority p2">P2</span></div><div><span class="cell-label">Issue</span><strong>Navigation is an app dump</strong></div><div><span class="cell-label">Root cause</span>Substring filtering and global expansion are not page-aware task navigation.</div><div><span class="cell-label">Upgrade</span>Command search, Now, This page, reorderable pins, current work area and secondary All models catalog.</div></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-preview" role="tabpanel">
+      <div class="section-head"><div><div class="eyebrow">Interactive approval render</div><h2>Before and after</h2></div><p class="muted">Use the controls; this is a standalone prototype, not production wiring.</p></div>
+      <div class="browser-controls">
+        <div class="segmented" aria-label="Comparison view"><button class="active" type="button" data-comparison="before">Before</button><button type="button" data-comparison="after">After</button></div>
+        <div class="segmented" aria-label="Preview width"><button class="active" type="button" data-device="desktop">Desktop</button><button type="button" data-device="compact">Compact rail</button><button type="button" data-device="mobile">Mobile</button></div>
+      </div>
+      <div class="context-controls">
+        <div><strong>Admin scope</strong><div class="segmented" aria-label="Admin scope"><button class="active" type="button" data-scope="tenant">Tenant</button><button type="button" data-scope="operator">Operator</button></div></div>
+        <div class="context-note" id="contextNote">Tenant hostname, school role and tenant-safe destinations only.</div>
+        <div><strong>Page contract</strong><div class="segmented" aria-label="Django page archetype"><button type="button" data-archetype="index">App index</button><button type="button" data-archetype="list">List</button><button class="active" type="button" data-archetype="add">Add</button><button type="button" data-archetype="history">History</button></div></div>
+      </div>
+
+      <div class="preview-state before" id="preview-before">
+        <div class="browser-shell">
+          <div class="browser-chrome"><span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span><div class="browser-address">https://gilead-tech.runmycampus.com/admin/academics/academicyear/add/</div></div>
+          <div class="admin-frame">
+            <aside class="admin-sidebar" aria-label="Current tenant admin sidebar">
+              <div class="school-card"><div class="school-logo">G</div><div><strong>Gilead Technical High School</strong><small>Configuration &amp; records</small></div><span class="sync"></span></div>
+              <input class="side-search" aria-label="Search current admin navigation" placeholder="Search apps and models...">
+              <div class="legacy-heading">Pinned</div><div class="legacy-block">Pin this page</div>
+              <div class="legacy-heading">Recent</div><div class="legacy-block">Add academic year - This form</div><div class="legacy-block">Academic years - This list</div>
+              <div class="legacy-heading">Start</div><div class="legacy-block">Dashboard</div><div class="legacy-block">Admin Home</div>
+              <div class="legacy-heading">School setup</div><div class="legacy-block">Config center</div><div class="legacy-block">Theme &amp; Experience</div><div class="legacy-block">Feature Control</div>
+              <div class="legacy-heading">Advanced</div><div class="legacy-block">Libraries &amp; help</div>
+              <div class="legacy-heading">Apps</div>
+              <div class="legacy-models"><div class="legacy-model">Academic years</div><div class="legacy-model">Terms</div><div class="legacy-model">Classrooms</div><div class="legacy-model">Subjects</div><div class="legacy-model">Students</div><div class="legacy-model">Guardians</div><div class="legacy-model">Invoices</div><div class="legacy-model">Payments</div><div class="legacy-model">Reports</div><div class="legacy-model">Schedules</div></div>
+            </aside>
+            <section class="admin-canvas">
+              <div class="canvas-head"><div><div class="breadcrumb">Gilead Technical High School / Academics / Academic years</div><h3>Add academic year</h3><div class="muted">Tenant-scoped records</div></div><button class="btn">History</button></div>
+              <div class="surface surface-pad">
+                <div class="before-form">
+                  <div class="field"><label>Name</label><div class="fake-input"></div></div><br>
+                  <div class="field"><label>Start date</label><div class="fake-input"><span></span><span>calendar</span></div></div><br>
+                  <div class="field"><label>End date</label><div class="fake-input"><span></span><span>calendar</span></div></div><br>
+                  <div class="field"><label>Locked by</label><div class="fake-input">-</div></div><br>
+                  <div class="field"><label>Soft closed by</label><div class="fake-input">-</div></div>
+                </div>
+              </div>
+              <div class="empty-waste" aria-label="Unused canvas space"></div>
+              <div class="callout"><div class="priority">!</div><div><strong>Visual density is not the central failure.</strong><small>Current navigation cannot explain why a destination matters now, and full-state preference writes can silently undo a user's later action.</small></div></div>
+            </section>
+            <aside class="tools" aria-label="Tool strip"><button class="tool" type="button">?</button><button class="tool" type="button">+</button></aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-state hidden" id="preview-after">
+        <div class="browser-shell">
+          <div class="browser-chrome"><span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span><div class="browser-address">https://gilead-tech.runmycampus.com/admin/academics/academicyear/add/</div></div>
+          <div class="admin-frame" id="afterFrame">
+            <aside class="admin-sidebar" aria-label="Proposed tenant admin sidebar">
+              <div class="rail-only">
+                <button class="rail-btn current" type="button" title="Academic years">AY</button><button class="rail-btn" type="button" title="Search">F</button><button class="rail-btn" type="button" title="Pinned">P</button><button class="rail-btn" type="button" title="All work areas">A</button>
+              </div>
+              <div class="sidebar-expanded">
+                <div class="school-card"><div class="school-logo" id="workspaceLogo">G</div><div><strong id="workspaceName">Gilead Technical High School</strong><small id="workspaceRole">Administrator - tenant scope</small></div><span class="sync" title="Synchronized"></span></div>
+                <input class="side-search" id="afterSearch" aria-label="Find a destination, record or action" placeholder="Find a page, record or action...">
+                <div class="sidebar-mode-row"><span class="side-note" id="scopeState">Tenant registry - revision 42</span><button class="mode-toggle" id="focusToggle" type="button">Focus mode</button></div>
+                <div class="side-section ambient-section" id="nowSection">
+                  <div class="side-title"><span>Now</span><span>2</span></div>
+                  <div class="nav-list" data-search-zone>
+                    <button class="nav-item attention" id="nowPrimary" type="button" data-search-text="complete academic year setup attention"><span class="nav-icon">!</span><span id="nowPrimaryLabel">Complete year setup</span><span class="count warn" id="nowPrimaryCount">2</span></button>
+                    <button class="nav-item" id="nowSecondary" type="button" data-search-text="review pending approvals workflow"><span class="nav-icon">W</span><span id="nowSecondaryLabel">Review approvals</span><span class="count" id="nowSecondaryCount">4</span></button>
+                  </div>
+                  <button class="mode-toggle" id="whyToggle" type="button">Why these actions?</button>
+                  <div class="why-panel hidden" id="whyPanel">Derived from two incomplete academic-year requirements and four approvals assigned to your role. Calculated 2 minutes ago; no student data used.</div>
+                </div>
+                <div class="side-section">
+                  <div class="side-title"><span>This page</span><span id="pageContextLabel">Academic year</span></div>
+                  <div class="nav-list" data-search-zone>
+                    <button class="nav-item current" id="pagePrimary" type="button" data-search-text="add academic year this page"><span class="nav-icon" id="pagePrimaryIcon">+</span><span id="pagePrimaryLabel">Add academic year</span><span></span></button>
+                    <button class="nav-item" id="pageSecondary" type="button" data-search-text="academic years list"><span class="nav-icon">L</span><span id="pageSecondaryLabel">All academic years</span><span></span></button>
+                  </div>
+                </div>
+                <div class="side-section ambient-section">
+                  <div class="side-title"><span>Pinned</span><button class="btn" id="reorderPins" type="button">Reorder</button></div>
+                  <div class="nav-list" id="pinList" data-search-zone>
+                    <button class="nav-item" type="button" data-search-text="school configuration pinned"><span class="nav-icon">C</span><span>School configuration</span><span class="count">1</span></button>
+                    <button class="nav-item" type="button" data-search-text="student profiles pinned"><span class="nav-icon">S</span><span>Student profiles</span><span></span></button>
+                  </div>
+                </div>
+                <div class="side-section">
+                  <div class="side-title"><span>Work areas</span><span>Current open</span></div>
+                  <button class="area-button current" type="button"><span id="areaOne">Academic management</span><span>Open</span></button>
+                  <button class="area-button" type="button"><span id="areaTwo">People &amp; access</span><span>6</span></button>
+                  <button class="area-button" type="button"><span id="areaThree">Finance</span><span>5</span></button>
+                  <button class="area-button" type="button"><span id="areaFour">Operations</span><span>4</span></button>
+                  <button class="area-button" type="button"><span id="areaFive">Reports &amp; analytics</span><span>5</span></button>
+                  <button class="area-button" type="button"><span id="areaSix">All Django models</span><span id="modelCount">277</span></button>
+                </div>
+                <div class="side-note" id="searchStatus" aria-live="polite">Revision 42 - synchronized</div>
+              </div>
+            </aside>
+            <section class="admin-canvas">
+              <div class="canvas-head"><div><div class="breadcrumb" id="canvasBreadcrumb">Gilead Technical High School / Academic management / Academic years</div><h3 id="canvasTitle">Add academic year</h3><div class="muted" id="canvasDescription">Suggested values remain editable; system evidence is bound automatically.</div></div><button class="btn">History</button></div>
+              <div class="canvas-grid">
+                <div>
+                <div class="surface archetype-panel" id="archetype-add">
+                  <div class="form-section"><div class="form-grid"><div class="field"><label><span id="addFieldOneLabel">Name</span> <span class="recommended">Recommended</span></label><div class="fake-input"><span id="addFieldOneValue">2026/2027 Academic Year</span><span>Edit</span></div></div><div class="field"><label id="addFieldTwoLabel">School</label><div class="fake-input"><span id="addFieldTwoValue">Gilead Technical High School</span><span>Bound</span></div></div></div></div>
+                  <div class="form-section"><h4 id="addSectionTwoHeading">Schedule</h4><div class="form-grid"><div class="field"><label><span id="addFieldThreeLabel">Start date</span> <span class="recommended">Recommended</span></label><div class="fake-input"><span id="addFieldThreeValue">2026-09-01</span><span>Open calendar</span></div></div><div class="field"><label><span id="addFieldFourLabel">End date</span> <span class="recommended">Recommended</span></label><div class="fake-input"><span id="addFieldFourValue">2027-06-25</span><span>Open calendar</span></div></div></div></div>
+                  <div class="form-section"><h4 id="addSectionThreeHeading">Operating state</h4><div class="form-grid"><div class="field"><label id="addFieldFiveLabel">Active</label><div class="fake-input"><span id="addFieldFiveValue">Yes</span><span>Change</span></div></div><div class="field"><label id="addFieldSixLabel">Registration</label><div class="fake-input"><span id="addFieldSixValue">Enabled</span><span>Change</span></div></div></div></div>
+                  <div class="form-section"><div class="muted" id="automationNote">Lock actors, lock timestamps, soft-close actors and audit evidence are omitted from manual entry and populated by governed server actions.</div></div>
+                  <div class="form-section"><button class="btn primary" type="button" id="previewSave">Save academic year</button> <button class="btn" type="button">Save and add another</button></div>
+                </div>
+                <div class="surface archetype-panel hidden" id="archetype-list">
+                  <div class="native-toolbar"><div><strong id="listHeading">Academic years</strong><div class="muted">Full native Django result table</div></div><div><button class="btn" type="button">Filters</button> <button class="btn primary" id="listAddButton" type="button">Add academic year</button></div></div>
+                  <table class="native-table"><thead><tr><th scope="col" id="listHeadOne">Name</th><th scope="col" id="listHeadTwo">Start</th><th scope="col" id="listHeadThree">End</th><th scope="col">State</th></tr></thead><tbody><tr><td><a href="#" id="listRowOneA">2026/2027 Academic Year</a></td><td id="listRowOneB">Sep 1, 2026</td><td id="listRowOneC">Jun 25, 2027</td><td id="listRowOneD">Active</td></tr><tr><td><a href="#" id="listRowTwoA">2025/2026 Academic Year</a></td><td id="listRowTwoB">Sep 2, 2025</td><td id="listRowTwoC">Jun 26, 2026</td><td id="listRowTwoD">Closed</td></tr><tr><td><a href="#" id="listRowThreeA">2024/2025 Academic Year</a></td><td id="listRowThreeB">Sep 3, 2024</td><td id="listRowThreeC">Jun 27, 2025</td><td id="listRowThreeD">Archived</td></tr></tbody></table>
+                </div>
+                <div class="archetype-panel hidden" id="archetype-index">
+                  <div class="operator-index-ctas hidden" id="operatorIndexCtas"><strong>Operator index actions only:</strong><button class="btn primary" type="button">Invite school</button><button class="btn" type="button">Open Studio</button><button class="btn" type="button">Fleet health</button></div>
+                  <div class="surface"><div class="native-toolbar"><div><strong id="indexHeading">Academic management</strong><div class="muted">Guided destinations first; raw models remain available.</div></div></div><div class="app-cards"><div class="app-card"><strong id="indexCardOne">Academic years</strong><small>Terms, operating dates and rollover state.</small></div><div class="app-card"><strong id="indexCardTwo">Classes &amp; subjects</strong><small>Structure, assignments and promotion mapping.</small></div><div class="app-card"><strong id="indexCardThree">Timetables</strong><small>Schedules, generation and conflict review.</small></div></div></div>
+                </div>
+                <div class="surface archetype-panel hidden" id="archetype-history">
+                  <div class="native-toolbar"><div><strong>Change history</strong><div class="muted">Immutable record evidence with actor and reason.</div></div></div>
+                  <ol class="timeline"><li><time>Aug 27, 2026<br>09:42</time><span class="timeline-dot"></span><span><strong>Registration enabled</strong><br><span class="muted">Changed by H. Yimga - preparing enrollment.</span></span></li><li><time>Aug 26, 2026<br>16:10</time><span class="timeline-dot"></span><span><strong>Operating dates confirmed</strong><br><span class="muted">Recommendation accepted, then manually adjusted by 2 days.</span></span></li><li><time>Aug 25, 2026<br>11:05</time><span class="timeline-dot"></span><span><strong>Record created</strong><br><span class="muted">Created from country-aware academic structure forecast.</span></span></li></ol>
+                </div>
+                </div>
+                <aside class="surface canvas-rail">
+                  <div class="rail-card"><h4>This record</h4><div class="rail-line"><span>Scope</span><strong>Tenant</strong></div><div class="rail-line"><span>Mode</span><strong>Adding</strong></div><div class="rail-line"><span>Revision</span><strong>New</strong></div></div>
+                  <div class="rail-card"><h4>Automation</h4><div class="rail-line"><span>Suggested</span><strong>3</strong></div><div class="rail-line"><span>Auto-bound</span><strong>5</strong></div><div class="rail-line"><span>Required empty</span><strong>0</strong></div></div>
+                  <div class="rail-card"><h4>On this page</h4><div class="rail-line"><span>1</span><span>Identity</span></div><div class="rail-line"><span>2</span><span>Schedule</span></div><div class="rail-line"><span>3</span><span>Operating state</span></div></div>
+                </aside>
+              </div>
+              <div class="callout"><div class="priority p2">OK</div><div><strong>Page-aware, complete and reversible.</strong><small>The sidebar prioritizes the current task while native Django records remain available. Preference mutations are revisioned, permission-checked and conflict-safe.</small></div></div>
+            </section>
+            <aside class="tools" aria-label="Tool strip"><button class="tool" type="button">?</button><button class="tool" type="button">+</button></aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-proof" role="tabpanel">
+      <div class="section-head"><div><div class="eyebrow">Fail closed, never imply proof</div><h2>Audit automation v3</h2></div><p class="muted">Five independent evidence layers tied to one build.</p></div>
+      <div class="flow">
+        <div class="flow-step"><span class="num">01</span><strong>Source + static</strong><small>Templates, resources, malformed glyphs, cache IDs, route manifest.</small></div>
+        <div class="flow-step"><span class="num">02</span><strong>Server behavior</strong><small>Scoping, permissions, validation, revision conflicts and atomic namespaces.</small></div>
+        <div class="flow-step"><span class="num">03</span><strong>Real-host browser</strong><small>Operator and tenant hosts; clicks, reloads, two tabs and offline recovery.</small></div>
+        <div class="flow-step"><span class="num">04</span><strong>Accessibility + visual</strong><small>Keyboard, zoom, reduced motion, contrast, themes and viewports.</small></div>
+        <div class="flow-step"><span class="num">05</span><strong>Evidence seal</strong><small>Git SHA, build IDs, route digest, timestamp, expiry and browser versions.</small></div>
+      </div>
+      <div class="proof-grid">
+        <article class="card"><div class="eyebrow">Current permissive path</div><h3>False confidence is possible</h3><div class="code-flow"><span class="code-node">token scan</span><span class="arrow">-&gt;</span><span class="code-node">render proxy</span><span class="arrow">-&gt;</span><span class="code-node">PASS</span></div><p class="muted">This path can pass without interacting with the tenant sidebar in a browser. It also lacks source-bound freshness.</p></article>
+        <article class="card"><div class="eyebrow">Required strict path</div><h3>Every claim has provenance</h3><div class="code-flow"><span class="code-node">SHA</span><span class="arrow">-&gt;</span><span class="code-node">real hosts</span><span class="arrow">-&gt;</span><span class="code-node">behavior</span><span class="arrow">-&gt;</span><span class="code-node">sealed artifact</span></div><p class="muted">A proxy remains useful source evidence, but it cannot impersonate browser proof or overwrite its artifact.</p></article>
+      </div>
+      <article class="card replay-card">
+        <div class="section-head"><div><div class="eyebrow">Deterministic evidence replay</div><h3>Replay the sealed behavior chain</h3></div><button class="btn primary" id="replayProof" type="button">Run preview replay</button></div>
+        <div class="replay-matrix">
+          <div class="replay-row"><strong>TRACE-01</strong><span>Tenant host: pin, reorder, reload</span><span class="replay-state">Ready</span></div>
+          <div class="replay-row"><strong>TRACE-02</strong><span>Two tabs: revision 42 conflict and rebase</span><span class="replay-state">Ready</span></div>
+          <div class="replay-row"><strong>TRACE-03</strong><span>Offline operations: reconnect and deterministic merge</span><span class="replay-state">Ready</span></div>
+          <div class="replay-row"><strong>TRACE-04</strong><span>Operator host: tenant destination rejection</span><span class="replay-state">Ready</span></div>
+        </div>
+      </article>
+      <div class="approval"><h3>Mandatory behavioral scenarios</h3><ul class="checklist"><li><span class="check">1</span><span>Pin, unpin, reorder, undo and reload on the tenant hostname.</span></li><li><span class="check">2</span><span>Two tabs issue overlapping mutations; the later intent survives deterministic conflict resolution.</span></li><li><span class="check">3</span><span>Offline operations rebase over the latest server revision instead of replacing it.</span></li><li><span class="check">4</span><span>Operator and tenant state, routes and permissions remain isolated.</span></li><li><span class="check">5</span><span>1440/1024/768/390, light/dark, keyboard, 400% zoom and reduced motion pass.</span></li><li><span class="check">6</span><span>Stale SHA, proxy provenance, missing host or expired evidence fails the release gate.</span></li></ul></div>
+    </section>
+
+    <section class="panel" id="panel-contract" role="tabpanel">
+      <div class="section-head"><div><div class="eyebrow">A-Z implementation boundary</div><h2>What approval authorizes</h2></div><p class="muted">No flat restyling and no simulated production controls.</p></div>
+      <div class="proof-grid">
+        <article class="card"><h3>Sidebar foundation</h3><ul class="checklist"><li><span class="check">1</span><span>Shared permission-aware destination registry with strict operator/tenant separation.</span></li><li><span class="check">2</span><span>Now, This page, Pinned, current work area and secondary All models layers.</span></li><li><span class="check">3</span><span>True expanded, compact rail and mobile drawer states.</span></li><li><span class="check">4</span><span>Native buttons, localized strings, empty states, undo and accessible keyboard behavior.</span></li></ul></article>
+        <article class="card"><h3>State foundation</h3><ul class="checklist"><li><span class="check">1</span><span>Versioned schema, monotonic revision, idempotent semantic operations and safe migration from v2.</span></li><li><span class="check">2</span><span>Atomic server updates and cross-feature preference isolation.</span></li><li><span class="check">3</span><span>Offline operation queue, deterministic rebase and typed errors.</span></li><li><span class="check">4</span><span>Permission and destination validation on every mutation.</span></li></ul></article>
+        <article class="card"><h3>Proof foundation</h3><ul class="checklist"><li><span class="check">1</span><span>Separate render-contract and real-browser evidence.</span></li><li><span class="check">2</span><span>Complete workflow triggers and mandatory tenant/operator browser coverage.</span></li><li><span class="check">3</span><span>Source/server, browser, then adversarial audit loops.</span></li><li><span class="check">4</span><span>Fail-closed freshness and artifact integrity verification.</span></li></ul></article>
+        <article class="card"><h3>Non-negotiable preservation</h3><ul class="checklist"><li><span class="check">1</span><span>Native Django tables and real form actions remain functional.</span></li><li><span class="check">2</span><span>Page awareness comes from route semantics and permissions, not duplicated page furniture.</span></li><li><span class="check">3</span><span>No operator-only controls on tenant pages and no tenant data in operator preference scope.</span></li><li><span class="check">4</span><span>Build, cache-bust and service-worker IDs move together.</span></li></ul></article>
+      </div>
+      <div class="approval" id="approval"><div class="eyebrow">Approval gate</div><h3>Production implementation has not started.</h3><p>Approve this proposal to implement the v3 sidebar and strict audit contracts, migrate existing preferences safely, run all three validation loops, and only then prepare a commit for review.</p></div>
+    </section>
+  </main>
+
+  <div class="palette-backdrop hidden" id="commandPalette" role="dialog" aria-modal="true" aria-labelledby="paletteTitle">
+    <div class="palette">
+      <div class="palette-head"><input id="paletteSearch" aria-label="Command search" placeholder="Search destinations, records and actions..."><span class="kbd">Esc</span></div>
+      <div class="palette-body">
+        <div class="palette-groups"><button class="palette-group active" type="button">Best match</button><button class="palette-group" type="button">Destinations</button><button class="palette-group" type="button">Records</button><button class="palette-group" type="button">Actions</button></div>
+        <div class="palette-results">
+          <div class="palette-label" id="paletteTitle">Permission-safe results</div>
+          <button class="palette-result active" type="button"><span class="nav-icon">AY</span><span><strong id="palettePrimary">Academic years</strong><small id="palettePrimaryDetail">Manage operating dates and rollover state</small></span><span class="scope-chip" id="paletteScope">Tenant</span></button>
+          <button class="palette-result" type="button"><span class="nav-icon">+</span><span><strong id="paletteAction">Add academic year</strong><small>Action - requires add permission</small></span><span class="scope-chip">Action</span></button>
+          <button class="palette-result" type="button"><span class="nav-icon">26</span><span><strong>2026/2027 Academic Year</strong><small>Record - active - updated yesterday</small></span><span class="scope-chip">Record</span></button>
+          <div class="side-note">Results are ranked by exact match, current work area, recency and permission-safe frequency. No cross-tenant records are searched.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (function () {
+      "use strict";
+      var tabs = Array.from(document.querySelectorAll("[data-tab]"));
+      var panels = Array.from(document.querySelectorAll(".panel"));
+      var toastTimer;
+      var currentScope = "tenant";
+      var currentArchetype = "add";
+      function setText(id, value) { document.getElementById(id).textContent = value; }
+      function showToast(message) {
+        var toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(function () { toast.classList.remove("show"); }, 2200);
+      }
+      function openTab(name) {
+        tabs.forEach(function (tab) { tab.setAttribute("aria-selected", String(tab.dataset.tab === name)); });
+        panels.forEach(function (panel) { panel.classList.toggle("active", panel.id === "panel-" + name); });
+        window.scrollTo({ top: document.querySelector(".tabs").offsetTop - 78, behavior: "smooth" });
+      }
+      function showAfter() {
+        var afterButton = document.querySelector('[data-comparison="after"]');
+        if (!afterButton.classList.contains("active")) afterButton.click();
+      }
+      function applyArchetype(archetype) {
+        currentArchetype = archetype;
+        document.querySelectorAll("[data-archetype]").forEach(function (button) { button.classList.toggle("active", button.dataset.archetype === archetype); });
+        document.querySelectorAll(".archetype-panel").forEach(function (panel) { panel.classList.toggle("hidden", panel.id !== "archetype-" + archetype); });
+        var operator = currentScope === "operator";
+        var contracts = operator ? {
+          index: ["Platform administration", "Operator-wide applications, registries and governed controls.", "Platform administration", "Operator home"],
+          list: ["Schools", "Full native Django result table with operator scope.", "Schools", "Add school"],
+          add: ["Add school", "Provisioning inputs are recommended; evidence and ownership are server-bound.", "Add school", "All schools"],
+          history: ["School history", "Immutable operator evidence for this school record.", "History", "Back to school"],
+        } : {
+          index: ["Academic management", "Guided academic destinations for this school.", "Academic management", "School dashboard"],
+          list: ["Academic years", "Full native Django result table with tenant scope.", "Academic years", "Add academic year"],
+          add: ["Add academic year", "Suggested values remain editable; system evidence is bound automatically.", "Add academic year", "All academic years"],
+          history: ["Academic year history", "Immutable tenant evidence for this academic year.", "History", "Back to academic year"],
+        };
+        var contract = contracts[archetype];
+        setText("canvasTitle", contract[0]);
+        setText("canvasDescription", contract[1]);
+        setText("pagePrimaryLabel", contract[2]);
+        setText("pageSecondaryLabel", contract[3]);
+        setText("pageContextLabel", archetype === "index" ? "App index" : archetype === "list" ? "This list" : archetype === "history" ? "Evidence" : operator ? "School" : "Academic year");
+        setText("pagePrimaryIcon", archetype === "add" ? "+" : archetype === "list" ? "L" : archetype === "history" ? "H" : "A");
+        setText("canvasBreadcrumb", (operator ? "RunMyCampus / Platform administration / " : "Gilead Technical High School / Academic management / ") + contract[0]);
+        document.getElementById("operatorIndexCtas").classList.toggle("hidden", !(operator && archetype === "index"));
+        showAfter();
+      }
+      function applyScope(scope) {
+        currentScope = scope;
+        var operator = scope === "operator";
+        document.querySelectorAll("[data-scope]").forEach(function (button) { button.classList.toggle("active", button.dataset.scope === scope); });
+        document.getElementById("afterFrame").classList.toggle("operator", operator);
+        setText("workspaceLogo", operator ? "R" : "G");
+        setText("workspaceName", operator ? "RunMyCampus Platform" : "Gilead Technical High School");
+        setText("workspaceRole", operator ? "Platform operator - global scope" : "Administrator - tenant scope");
+        setText("scopeState", operator ? "Operator registry - revision 19" : "Tenant registry - revision 42");
+        setText("contextNote", operator ? "Manager hostname, platform role and operator-only destinations. No tenant record results." : "Tenant hostname, school role and tenant-safe destinations only.");
+        setText("nowPrimaryLabel", operator ? "Review provisioning failures" : "Complete year setup");
+        setText("nowPrimaryCount", operator ? "3" : "2");
+        setText("nowSecondaryLabel", operator ? "Resolve policy drift" : "Review approvals");
+        setText("nowSecondaryCount", operator ? "7" : "4");
+        setText("whyPanel", operator ? "Derived from three failed provisioning workflows and seven policy-drift findings assigned to the operator role. Tenant content is excluded." : "Derived from two incomplete academic-year requirements and four approvals assigned to your role. Calculated 2 minutes ago; no student data used.");
+        setText("areaOne", operator ? "Schools & fleet" : "Academic management");
+        setText("areaTwo", operator ? "Provisioning" : "People & access");
+        setText("areaThree", operator ? "Blueprints & policies" : "Finance");
+        setText("areaFour", operator ? "Platform operations" : "Operations");
+        setText("areaFive", operator ? "Audit & compliance" : "Reports & analytics");
+        setText("areaSix", "All Django models");
+        setText("modelCount", operator ? "197" : "277");
+        setText("palettePrimary", operator ? "Schools" : "Academic years");
+        setText("palettePrimaryDetail", operator ? "Provisioning, tenancy and lifecycle controls" : "Manage operating dates and rollover state");
+        setText("paletteAction", operator ? "Invite school" : "Add academic year");
+        setText("paletteScope", operator ? "Operator" : "Tenant");
+        setText("indexHeading", operator ? "Platform administration" : "Academic management");
+        setText("indexCardOne", operator ? "Schools & lifecycle" : "Academic years");
+        setText("indexCardTwo", operator ? "Blueprints & policies" : "Classes & subjects");
+        setText("indexCardThree", operator ? "Fleet operations" : "Timetables");
+        setText("addFieldOneLabel", operator ? "School name" : "Name");
+        setText("addFieldOneValue", operator ? "Gilead Technical High School" : "2026/2027 Academic Year");
+        setText("addFieldTwoLabel", operator ? "Primary domain" : "School");
+        setText("addFieldTwoValue", operator ? "gilead-tech.runmycampus.com" : "Gilead Technical High School");
+        setText("addSectionTwoHeading", operator ? "Launch profile" : "Schedule");
+        setText("addFieldThreeLabel", operator ? "Launch date" : "Start date");
+        setText("addFieldThreeValue", operator ? "2026-09-01" : "2026-09-01");
+        setText("addFieldFourLabel", operator ? "Data region" : "End date");
+        setText("addFieldFourValue", operator ? "US East - recommended" : "2027-06-25");
+        setText("addSectionThreeHeading", operator ? "Provisioning state" : "Operating state");
+        setText("addFieldFiveLabel", operator ? "Lifecycle" : "Active");
+        setText("addFieldFiveValue", operator ? "Ready to provision" : "Yes");
+        setText("addFieldSixLabel", operator ? "First admin" : "Registration");
+        setText("addFieldSixValue", operator ? "Invite after provisioning" : "Enabled");
+        setText("automationNote", operator ? "Tenant ID, ownership evidence, provisioning actor and audit timestamps are server-bound. Recommendations are editable before the governed provision action." : "Lock actors, lock timestamps, soft-close actors and audit evidence are omitted from manual entry and populated by governed server actions.");
+        setText("previewSave", operator ? "Provision school" : "Save academic year");
+        setText("listHeading", operator ? "Schools" : "Academic years");
+        setText("listAddButton", operator ? "Add school" : "Add academic year");
+        setText("listHeadOne", operator ? "School" : "Name");
+        setText("listHeadTwo", operator ? "Domain" : "Start");
+        setText("listHeadThree", operator ? "Plan" : "End");
+        var tenantRows = [["2026/2027 Academic Year","Sep 1, 2026","Jun 25, 2027","Active"],["2025/2026 Academic Year","Sep 2, 2025","Jun 26, 2026","Closed"],["2024/2025 Academic Year","Sep 3, 2024","Jun 27, 2025","Archived"]];
+        var operatorRows = [["Gilead Technical High School","gilead-tech.runmycampus.com","Sovereign","Live"],["New Test High School","new-school.runmycampus.com","Enterprise","Setup"],["Saint Sebastian Academy","ssa.runmycampus.com","Professional","Live"]];
+        (operator ? operatorRows : tenantRows).forEach(function (row, index) {
+          var n = ["One", "Two", "Three"][index];
+          ["A", "B", "C", "D"].forEach(function (suffix, cell) { setText("listRow" + n + suffix, row[cell]); });
+        });
+        if (operator) applyArchetype("index"); else applyArchetype(currentArchetype);
+      }
+      tabs.forEach(function (tab) { tab.addEventListener("click", function () { openTab(tab.dataset.tab); }); });
+      document.querySelectorAll("[data-open-tab]").forEach(function (button) { button.addEventListener("click", function () { openTab(button.dataset.openTab); }); });
+      document.getElementById("themeToggle").addEventListener("click", function (event) {
+        var root = document.documentElement;
+        var light = root.dataset.theme !== "light";
+        root.dataset.theme = light ? "light" : "dark";
+        event.currentTarget.textContent = light ? "Dark theme" : "Light theme";
+      });
+      document.querySelectorAll("[data-comparison]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          document.querySelectorAll("[data-comparison]").forEach(function (item) { item.classList.toggle("active", item === button); });
+          document.getElementById("preview-before").classList.toggle("hidden", button.dataset.comparison !== "before");
+          document.getElementById("preview-after").classList.toggle("hidden", button.dataset.comparison !== "after");
+        });
+      });
+      document.querySelectorAll("[data-device]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          document.querySelectorAll("[data-device]").forEach(function (item) { item.classList.toggle("active", item === button); });
+          document.querySelectorAll(".admin-frame").forEach(function (frame) {
+            frame.classList.toggle("compact", button.dataset.device === "compact");
+            frame.classList.toggle("mobile", button.dataset.device === "mobile");
+          });
+        });
+      });
+      document.querySelectorAll("[data-scope]").forEach(function (button) {
+        button.addEventListener("click", function () { applyScope(button.dataset.scope); });
+      });
+      document.querySelectorAll("[data-archetype]").forEach(function (button) {
+        button.addEventListener("click", function () { applyArchetype(button.dataset.archetype); });
+      });
+      var palette = document.getElementById("commandPalette");
+      var paletteSearch = document.getElementById("paletteSearch");
+      function openPalette(query) {
+        palette.classList.remove("hidden");
+        paletteSearch.value = query || "";
+        window.setTimeout(function () { paletteSearch.focus(); }, 20);
+      }
+      function closePalette() {
+        palette.classList.add("hidden");
+        document.getElementById("afterSearch").focus();
+      }
+      document.getElementById("afterSearch").addEventListener("click", function (event) { openPalette(event.currentTarget.value); });
+      palette.addEventListener("click", function (event) { if (event.target === palette) closePalette(); });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !palette.classList.contains("hidden")) closePalette();
+        if (event.key === "/" && palette.classList.contains("hidden") && document.getElementById("preview-after").classList.contains("hidden") === false) {
+          event.preventDefault(); openPalette("");
+        }
+      });
+      paletteSearch.addEventListener("input", function (event) {
+        var query = event.currentTarget.value.trim().toLowerCase();
+        document.querySelectorAll(".palette-result").forEach(function (result) { result.classList.toggle("hidden", query && result.textContent.toLowerCase().indexOf(query) === -1); });
+      });
+      document.querySelectorAll(".palette-group").forEach(function (button) { button.addEventListener("click", function () { document.querySelectorAll(".palette-group").forEach(function (item) { item.classList.toggle("active", item === button); }); showToast(button.textContent + " results selected."); }); });
+      document.querySelectorAll(".palette-result").forEach(function (button) { button.addEventListener("click", function () { closePalette(); showToast("Prototype result selected: production navigation remains unchanged."); }); });
+      document.getElementById("focusToggle").addEventListener("click", function (event) {
+        var active = document.getElementById("afterFrame").classList.toggle("focus-mode");
+        event.currentTarget.classList.toggle("active", active);
+        event.currentTarget.textContent = active ? "Exit focus" : "Focus mode";
+        showToast(active ? "Focus mode hides ambient items only." : "All sidebar sections restored.");
+      });
+      document.getElementById("whyToggle").addEventListener("click", function () { document.getElementById("whyPanel").classList.toggle("hidden"); });
+      document.getElementById("afterSearch").addEventListener("input", function (event) {
+        var query = event.currentTarget.value.trim().toLowerCase();
+        var matches = 0;
+        document.querySelectorAll("#preview-after [data-search-text]").forEach(function (item) {
+          var visible = !query || item.dataset.searchText.indexOf(query) !== -1;
+          item.classList.toggle("hidden", !visible);
+          if (visible && query) matches += 1;
+        });
+        document.getElementById("searchStatus").textContent = query ? matches + " matching destinations" : "Revision 42 - synchronized";
+      });
+      document.getElementById("reorderPins").addEventListener("click", function () {
+        var list = document.getElementById("pinList");
+        if (list.children.length > 1) list.insertBefore(list.lastElementChild, list.firstElementChild);
+        showToast("Preview only: pin order changed. Production v3 would save mutation move with revision 42.");
+      });
+      document.getElementById("previewSave").addEventListener("click", function () { showToast("Preview only: no record was written."); });
+      document.getElementById("replayProof").addEventListener("click", function (event) {
+        var states = Array.from(document.querySelectorAll(".replay-state"));
+        var replayButton = event.currentTarget;
+        replayButton.disabled = true;
+        states.forEach(function (state, index) {
+          state.classList.remove("pass"); state.textContent = "Replaying...";
+          window.setTimeout(function () {
+            state.textContent = "Verified"; state.classList.add("pass");
+            if (index === states.length - 1) { replayButton.disabled = false; showToast("Preview replay complete: four sealed scenarios verified."); }
+          }, 180 + index * 160);
+        });
+      });
+      document.querySelectorAll(".nav-item, .area-button, .rail-btn, .tool").forEach(function (button) {
+        button.addEventListener("click", function () {
+          if (button.id !== "reorderPins") showToast("Prototype interaction: production navigation remains unchanged.");
+        });
+      });
+    }());
+  </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260820-tenant-admin-sidebar-v22",
-  "expected_sw": "sms-v4.06.71-tenant-admin-sidebar-server-preferences-2026-08-20",
+  "expected_cache_bust": "20260827-admin-navigation-v23",
+  "expected_sw": "sms-v4.06.81-admin-navigation-v3-2026-08-27",
   "content_pages": 11,
   "findings": []
 }

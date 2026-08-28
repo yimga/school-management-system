@@ -86,8 +86,10 @@ GATES: list[tuple[str, list[str]]] = [
     ("admin-production-upgrade", ["verify_admin_production_upgrade.py"]),
     ("admin-replacement-roadmap", ["verify_admin_replacement_roadmap.py"]),
     ("admin-super-help-nav-bridge", ["verify_admin_super_help_nav_bridge.py"]),
-    ("operator-admin-sidebar-v2", ["verify_operator_admin_sidebar_v2.py"]),
-    ("tenant-admin-sidebar-v2", ["verify_tenant_admin_sidebar_v2.py"]),
+    # One shared sidebar owner for both admin shells. Replaced the two v2 gates
+    # on 2026-08-27: they policed per-scope asset bundles that no longer exist,
+    # so they could only fail once v3 landed.
+    ("admin-sidebar-v3", ["verify_admin_sidebar_v3.py"]),
     # Red until 2026-08-21, and red for a reason that made them unwireable: they
     # asserted an EXACT service-worker version from var/admin-approval-build-lock.json
     # while the deploy checklist bumps CACHE_VERSION every wave. Now monotonic.

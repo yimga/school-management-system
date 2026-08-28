@@ -51,8 +51,7 @@ def main() -> int:
         ("shell_preview_parity", [py, "scripts/verify_platform_shell_preview_parity.py"]),
         ("manager_admin_layout", [py, "scripts/verify_manager_admin_cp_layout.py"]),
         ("django_admin_canvas_contract", [py, "scripts/audit_django_admin_canvas_contract.py"]),
-        ("tenant_sidebar", [py, "scripts/verify_tenant_admin_sidebar_v2.py"]),
-        ("operator_sidebar", [py, "scripts/verify_operator_admin_sidebar_v2.py"]),
+        ("admin_sidebar_v3", [py, "scripts/verify_admin_sidebar_v3.py"]),
     ]
     if not args.css_only:
         checks.extend(

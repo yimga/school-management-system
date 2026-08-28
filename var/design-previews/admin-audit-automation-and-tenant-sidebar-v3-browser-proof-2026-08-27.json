@@ -1,0 +1,212 @@
+{
+  "schema": "rmc.admin-audit-sidebar-v3.1-approval-browser-proof.v1",
+  "artifact": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\var\\design-previews\\admin-audit-automation-and-tenant-sidebar-v3-before-after-approval-2026-08-27.html",
+  "generated_at": "2026-08-27T20:02:42.405Z",
+  "pass": true,
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "tabResults": [
+        {
+          "tab": "findings",
+          "visible": true
+        },
+        {
+          "tab": "preview",
+          "visible": true
+        },
+        {
+          "tab": "proof",
+          "visible": true
+        },
+        {
+          "tab": "contract",
+          "visible": true
+        }
+      ],
+      "searchStatus": "3 matching destinations",
+      "paletteOpened": true,
+      "paletteClosed": true,
+      "reorderWorked": true,
+      "operatorWorkspace": true,
+      "operatorIndexCtas": true,
+      "operatorArea": "Schools & fleet",
+      "operatorList": true,
+      "operatorAdd": true,
+      "operatorHistory": true,
+      "tenantIsolated": true,
+      "focusApplied": true,
+      "ambientHidden": true,
+      "explanationVisible": true,
+      "replayPassed": true,
+      "theme": "light",
+      "compactApplied": true,
+      "mobileApplied": true,
+      "geometry": {
+        "clientWidth": 1440,
+        "scrollWidth": 1440,
+        "overflow": false,
+        "h1": 1,
+        "stylesheetsInBody": 0
+      },
+      "consoleErrors": [],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "tabResults": [
+        {
+          "tab": "findings",
+          "visible": true
+        },
+        {
+          "tab": "preview",
+          "visible": true
+        },
+        {
+          "tab": "proof",
+          "visible": true
+        },
+        {
+          "tab": "contract",
+          "visible": true
+        }
+      ],
+      "searchStatus": "3 matching destinations",
+      "paletteOpened": true,
+      "paletteClosed": true,
+      "reorderWorked": true,
+      "operatorWorkspace": true,
+      "operatorIndexCtas": true,
+      "operatorArea": "Schools & fleet",
+      "operatorList": true,
+      "operatorAdd": true,
+      "operatorHistory": true,
+      "tenantIsolated": true,
+      "focusApplied": true,
+      "ambientHidden": true,
+      "explanationVisible": true,
+      "replayPassed": true,
+      "theme": "light",
+      "compactApplied": true,
+      "mobileApplied": true,
+      "geometry": {
+        "clientWidth": 1024,
+        "scrollWidth": 1024,
+        "overflow": false,
+        "h1": 1,
+        "stylesheetsInBody": 0
+      },
+      "consoleErrors": [],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "tabResults": [
+        {
+          "tab": "findings",
+          "visible": true
+        },
+        {
+          "tab": "preview",
+          "visible": true
+        },
+        {
+          "tab": "proof",
+          "visible": true
+        },
+        {
+          "tab": "contract",
+          "visible": true
+        }
+      ],
+      "searchStatus": "3 matching destinations",
+      "paletteOpened": true,
+      "paletteClosed": true,
+      "reorderWorked": true,
+      "operatorWorkspace": true,
+      "operatorIndexCtas": true,
+      "operatorArea": "Schools & fleet",
+      "operatorList": true,
+      "operatorAdd": true,
+      "operatorHistory": true,
+      "tenantIsolated": true,
+      "focusApplied": true,
+      "ambientHidden": true,
+      "explanationVisible": true,
+      "replayPassed": true,
+      "theme": "light",
+      "compactApplied": true,
+      "mobileApplied": true,
+      "geometry": {
+        "clientWidth": 768,
+        "scrollWidth": 768,
+        "overflow": false,
+        "h1": 1,
+        "stylesheetsInBody": 0
+      },
+      "consoleErrors": [],
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "tabResults": [
+        {
+          "tab": "findings",
+          "visible": true
+        },
+        {
+          "tab": "preview",
+          "visible": true
+        },
+        {
+          "tab": "proof",
+          "visible": true
+        },
+        {
+          "tab": "contract",
+          "visible": true
+        }
+      ],
+      "searchStatus": "3 matching destinations",
+      "paletteOpened": true,
+      "paletteClosed": true,
+      "reorderWorked": true,
+      "operatorWorkspace": true,
+      "operatorIndexCtas": true,
+      "operatorArea": "Schools & fleet",
+      "operatorList": true,
+      "operatorAdd": true,
+      "operatorHistory": true,
+      "tenantIsolated": true,
+      "focusApplied": true,
+      "ambientHidden": true,
+      "explanationVisible": true,
+      "replayPassed": true,
+      "theme": "light",
+      "compactApplied": true,
+      "mobileApplied": true,
+      "geometry": {
+        "clientWidth": 390,
+        "scrollWidth": 390,
+        "overflow": false,
+        "h1": 1,
+        "stylesheetsInBody": 0
+      },
+      "consoleErrors": [],
+      "pass": true
+    }
+  ]
+}

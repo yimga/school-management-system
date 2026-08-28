@@ -126,7 +126,14 @@ class AdminNavigationPreferenceTests(TestCase):
 
         request = self._request()
         contract = build_admin_navigation_contract(request, tenant_admin_site)
-        self.assertEqual(contract["preferences"], preferences)
+        self.assertEqual(contract["version"], 3)
+        self.assertEqual(contract["preferences"]["mode"], "expanded")
+        self.assertTrue(contract["preferences"]["expansions"]["advanced"])
+        self.assertTrue(contract["preferences"]["expansions"]["models"])
+        self.assertEqual(
+            contract["preferences"]["pinned"][0]["id"],
+            "tenant_admin:people:studentprofile:list",
+        )
         self.assertEqual(contract["endpoint"], "/admin/navigation-preferences/")
         self.assertTrue(contract["scope"].startswith("nav-"))
         other_request = self._request()
@@ -170,7 +177,7 @@ class AdminNavigationPreferenceTests(TestCase):
         self.assertNotEqual(tenant["scope"], operator["scope"])
 
     def test_tenant_sidebar_runtime_owns_server_sync_search_and_active_app(self):
-        javascript = (ROOT / "static/js/rmc-tenant-admin-sidebar-v2.js").read_text(
+        javascript = (ROOT / "static/js/rmc-admin-sidebar-v3.js").read_text(
             encoding="utf-8"
         )
         template = (ROOT / "templates/admin/app_list.html").read_text(
@@ -182,13 +189,16 @@ class AdminNavigationPreferenceTests(TestCase):
         base = (ROOT / "templates/admin/base_site.html").read_text(encoding="utf-8")
         for token in (
             "rmcAdminNavigationContract",
-            "rmc-admin-navigation-pending-v1:",
-            'method: "POST"',
-            "Pinned is full",
-            "data-rmc-admin-search-empty",
+            "rmc-admin-navigation-ops-v3:",
+            'method: "PATCH"',
+            "revision_conflict",
+            "data-rmc-admin-command-open",
+            "BroadcastChannel",
         ):
             self.assertIn(token, javascript + template + sidebar)
-        self.assertIn("getAdminAppsState", template)
-        self.assertIn("data-admin-search=", template)
+        self.assertIn("data-rmc-admin-models", template)
+        self.assertIn("All Django models", template)
         self.assertNotIn("runmycampus-admin-pinned", base)
+        self.assertNotIn("rmc-tenant-admin-sidebar-v2.js", base)
+        self.assertNotIn("rmc-operator-admin-sidebar-v2.js", base)
         self.assertNotIn("admin-qa-setup-advanced", template)

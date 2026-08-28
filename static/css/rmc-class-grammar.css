@@ -399,6 +399,12 @@
   border-color: var(--status-info, #2563eb);
   color: var(--status-info-fg, var(--status-info, #1d4ed8));
 }
+
+.rmc-alert--success {
+  background: var(--status-success-bg, color-mix(in srgb, var(--status-success, #16a34a) 8%, transparent));
+  border-color: var(--status-success, #16a34a);
+  color: var(--status-success-fg, var(--status-success, #15803d));
+}
 .rmc-integration-mark {
   inline-size: 40px;
   block-size: 40px;
@@ -3119,6 +3125,11 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   border-color: var(--status-danger, var(--text-danger, #ef4444));
 }
 
+.rmc-card--success {
+  background: var(--status-success-bg, color-mix(in srgb, var(--status-success, #16a34a) 8%, transparent));
+  border-color: var(--status-success, #16a34a);
+}
+
 .rmc-card--attention {
   background: var(--status-warning-bg, color-mix(in srgb, var(--status-warning, #f59e0b) 8%, transparent));
   border-color: var(--status-warning, #f59e0b);
@@ -3406,6 +3417,167 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-quarantine-edit-row td {
   background: var(--surface-elevated, var(--surface-bg));
   border-top: none;
+}
+
+/* Held-for-review card stack — replaces wide 7-column table (no horizontal scroll). */
+.rmc-quarantine-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rmc-quarantine-card {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-xl, 16px);
+  background: var(--surface-elevated, var(--surface-bg));
+  padding: var(--space-4, 16px);
+  box-shadow: var(--elev-1, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.rmc-quarantine-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3, 12px);
+  min-width: 0;
+}
+
+.rmc-quarantine-card__select {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.rmc-quarantine-card__meta {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.rmc-quarantine-card__record {
+  font-size: 0.9375rem;
+}
+
+.rmc-quarantine-card__file {
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.rmc-quarantine-card__actions {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 4px);
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.rmc-quarantine-card__more {
+  position: relative;
+}
+
+.rmc-quarantine-card__more > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.rmc-quarantine-card__more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmc-quarantine-card__more-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+  min-width: 10rem;
+  padding: var(--space-2, 8px);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-popover, var(--surface-elevated));
+  box-shadow: var(--elev-2, 0 4px 12px rgba(0, 0, 0, 0.08));
+}
+
+.rmc-quarantine-card__body {
+  margin-top: var(--space-3, 12px);
+  min-width: 0;
+}
+
+.rmc-quarantine-card__guidance {
+  margin: 0 0 var(--space-2, 8px);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.rmc-quarantine-card__reason {
+  margin-top: var(--space-2, 8px);
+  font-size: 0.875rem;
+}
+
+.rmc-quarantine-card__reason > summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.rmc-quarantine-edit-panel {
+  margin-top: var(--space-3, 12px);
+  padding-top: var(--space-3, 12px);
+  border-top: 1px dashed var(--hairline);
+}
+
+.rmc-quarantine-toolbar--stacked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+
+.rmc-quarantine-toolbar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  min-width: 0;
+}
+
+.rmc-quarantine-toolbar__bulk > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.rmc-quarantine-toolbar__bulk > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmc-quarantine-toolbar__row--secondary {
+  margin-top: var(--space-2, 8px);
+  padding-top: var(--space-2, 8px);
+  border-top: 1px solid var(--hairline);
+}
+
+.rmc-quarantine-toolbar__row--primary {
+  justify-content: space-between;
+}
+
+.rmc-quarantine-shown-note {
+  font-size: 0.875rem;
+  margin-bottom: var(--space-3, 12px);
 }
 
 .rmc-check-label {

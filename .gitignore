@@ -244,3 +244,8 @@ mdm/
 # purpose: verified no tracked file in this repo carries the extension, so the rule
 # can only ever catch something that was pasted in rather than authored here.
 *.b64
+
+# Real-host browser evidence is a build artifact, never a committed one: a
+# committed file is exactly how render-contract PROXY evidence satisfied
+# scripts/verify_admin_playwright_sweep_audit.py before 2026-08-27.
+docs/generated/admin_playwright_sweep_audit.json

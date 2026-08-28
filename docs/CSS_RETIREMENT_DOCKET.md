@@ -1,6 +1,40 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-08-22
+**Last updated:** 2026-08-27
+
+## 2026-08-27 — Admin sidebar v2 retired; one shared v3 owner for both admin shells
+
+SW bumped to `sms-v4.06.81-admin-navigation-v3-2026-08-27`; admin cache-bust id `2026-08-27-v23.0`.
+
+**Retired (zero references confirmed before deletion):**
+
+| File | Replaced by |
+|---|---|
+| `static/css/rmc-tenant-admin-sidebar-v2.css` | `static/css/rmc-admin-sidebar-v3.css` |
+| `static/js/rmc-tenant-admin-sidebar-v2.js` | `static/js/rmc-admin-sidebar-v3.js` |
+| `static/css/rmc-operator-admin-sidebar-v2.css` | same shared v3 CSS |
+| `static/js/rmc-operator-admin-sidebar-v2.js` | same shared v3 JS |
+| `scripts/verify_operator_admin_sidebar_v2.py` | `scripts/verify_admin_sidebar_v3.py` |
+| `scripts/verify_tenant_admin_sidebar_v2.py` | same |
+| `apps/siteconfig/tests/test_operator_admin_sidebar_v2.py` | `apps/siteconfig/tests/test_admin_sidebar_v3.py` |
+| `apps/siteconfig/tests/test_tenant_admin_sidebar_v2.py` | same |
+
+Two per-scope bundles became **one owner served to both shells**, with scope carried as
+data (`data-rmc-admin-sidebar-scope`) and both templates including the same
+`admin/sidebar_v3_body.html`. Two bundles is how the operator and tenant sidebars drifted
+apart in the first place.
+
+**The retirement was half-done when it was picked up, and that half was load-bearing.**
+The v2 assets had already been unwired from `base_site.html`, but the two gate scripts
+that assert those assets are wired were still registered in
+`scripts/pre_push_boundary_check.py`, `architectural-boundaries.yml` and
+`verify_ci_gate_wiring.py::REQUIRED_GATES` — so the change could not be pushed at all:
+both gates failed against the tree that removed their subject. Four callers in total had
+to move (`audit_admin_os_cross_wave.py` and `verify_admin_manager_shell_aggressive.py`
+ran them as a pair), and two further advisory scripts
+(`verify_approved_tenant_dashboard_sidebar_contracts.py`,
+`verify_approved_ui_deploy_artifacts.py`) were still asserting the v2 filenames and had
+quietly gone red. A retired asset is not retired until the last gate that names it is too.
 
 ## 2026-08-22 (latest, second pass) — Tenant-only `{% url %}` in shared shell chrome, and a TLS decision the school gets to make
 
