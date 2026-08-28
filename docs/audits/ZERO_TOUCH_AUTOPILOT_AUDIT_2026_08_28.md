@@ -150,10 +150,43 @@ guardian, transcript or library row that carries real fields — which is the
 correct outcome and matches the stated expectation that real gaps still need
 human judgement.
 
+## What now closes the last open rule
+
+The spec's definition of done has one unchecked box: *every claim about
+behaviour is backed by a state read, not by reading the code and reasoning
+about it*. It could not be honoured with the real pass, because running
+autopilot to find out what it would do closes rows in order to answer.
+
+    python manage.py profile_bundle_quarantine --bundle-id N     # what is held
+    python manage.py preview_quarantine_autopilot --bundle-id N  # what autopilot does
+
+The second is new here, read-only, and reports three outcomes rather than two:
+
+| outcome | meaning |
+|---|---|
+| `auto_close` | a dismissal rule matches; the row closes |
+| `auto_replay` | a replay rule matches; the row is **re-landed and the land can fail** |
+| `needs_person` | nothing touches it, with the class, domain and artifact named |
+
+Keeping the middle column separate is the point. Folding an attempted replay
+into "will clear" is the same shape of over-claim as the three defects above.
+It also counts how many automated decisions rest on an `issue_class` guessed
+from the error text rather than declared by the lander -- the `reason_source`
+gap reported above, made visible without acting on it.
+
+A preview of a rules engine is a second implementation of that engine, so what
+keeps it honest is not shared code but
+`test_preview_agrees_with_the_real_pass`: predict, run the real pass on the same
+bundle, require every `auto_close` prediction to have happened and every
+`needs_person` row to still be held. Proven by mutating `_preview_one` to
+over-claim -- three tests go red.
+
+---
+
 ## Standing reds, unchanged
 
 `test_landers_fk_resolution.GradesLanderFKResolutionTests.test_assignment_without_teacher_quarantines`
 and `GuardianLanderRelinkTests.test_no_identity_quarantines_precisely` both fail
 here. Verified pre-existing by running the module at the parent commit; both are
 already registered in `var/known-red-tests.json`. `scripts/triage_test_run.py`
-reports **NEW: 0** across the 360-test relevant run.
+reports **NEW: 0** across the 367-test relevant run.
