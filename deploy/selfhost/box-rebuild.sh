@@ -89,6 +89,27 @@ running_commit() {
 container_id() { "${COMPOSE[@]}" ps -q web 2>/dev/null | head -1; }
 checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }
 
+# One reader for every value a box configures in its own .env. The last assignment
+# wins, quotes come off, and a CRLF line ending cannot smuggle a carriage return
+# into the value -- a trailing CR made "off" compare unequal to "off" and started a
+# terminator on a box that had no certificate to present.
+env_value() {
+  awk -F= -v key="$1" '
+    $0 ~ "^[[:space:]]*" key "[[:space:]]*=" { v = $2 }
+    END { gsub(/[^[:alnum:]_-]/, "", v); print v }
+  ' "$HERE/.env" 2>/dev/null
+}
+
+# A FETCH BUDGET, NOT A FETCH DEADLINE. Sixty seconds was a guess, and a box on a
+# school link does not fetch this repo in sixty seconds -- at which point `timeout`
+# kills it and the script calls a slow link an unreachable remote. Environment beats
+# .env beats the default, and anything that is not a plain number falls back rather
+# than being handed to `timeout` to choke on.
+FETCH_BUDGET="${RMC_GIT_FETCH_TIMEOUT:-$(env_value RMC_GIT_FETCH_TIMEOUT)}"
+case "$FETCH_BUDGET" in
+  ""|*[!0-9]*) FETCH_BUDGET=300 ;;
+esac
+
 # The TLS terminator runs behind a compose PROFILE, and a plain `up -d` does not
 # start a profiled service. On a box that was fully down -- `compose down`, a disk
 # swap, a rebuild after a stop -- that brings the stack back with NO HTTPS: :10000
@@ -96,9 +117,7 @@ checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }
 # configured mode and carry the profile when it has one. `off` is the default and
 # must stay profile-less: starting Caddy on a box with no certificate binds :443 to
 # a terminator that has nothing to present.
-edge_tls_mode() {
-  awk -F= '/^[[:space:]]*RMC_EDGE_TLS_MODE[[:space:]]*=/ {v=$2} END {gsub(/[^[:alnum:]_-]/, "", v); print v}' "$HERE/.env" 2>/dev/null
-}
+edge_tls_mode() { env_value RMC_EDGE_TLS_MODE; }
 TLS_MODE="$(edge_tls_mode)"
 PROFILE_ARGS=()
 if [ -n "$TLS_MODE" ] && [ "$TLS_MODE" != "off" ]; then
@@ -238,16 +257,37 @@ elif ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
   git -C "$REPO_ROOT" status --short 2>/dev/null | sed 's/^/       /' | head -10
   warn "resolve those first, or re-run with --no-pull to build them as they are"
   CHECKOUT_NOTE="the checkout has uncommitted changes, so it was not pulled"
-elif ! GIT_TERMINAL_PROMPT=0 timeout 60 git -C "$REPO_ROOT" fetch origin >/dev/null 2>&1; then
-  # Offline is the normal state for a box in a school. It is not an error, and it
-  # must never block a rebuild of code that is already on disk.
-  warn "could not reach the git remote (offline, or no stored credential)"
-  ok "building from the checkout as it stands"
-  CHECKOUT_NOTE="the git remote could not be reached (offline, or no stored credential)"
 else
+  # NEVER NAME A CAUSE THIS DID NOT MEASURE. The old branch sent the fetch's stderr
+  # to /dev/null and then asserted "offline, or no stored credential". On the Gilead
+  # box on 2026-08-28 BOTH were false -- `git ls-remote` answered that same URL from
+  # that same checkout with no prompt, returning the sha origin really was at. The
+  # script was holding git's own message and threw it away, so an operator got a
+  # guess, and the guess pointed at the network.
+  #
+  # A stopped fetch is a THIRD thing and the one a box is likeliest to hit. rc 124
+  # is `timeout` killing a fetch that was working, which is a slow link, not an
+  # outage, and it has a different remedy -- so it gets its own message.
+  #
+  # Offline remains the normal state for a box in a school. None of these block a
+  # rebuild of code already on disk; they only decide what is said about it.
   BEFORE_PULL="$HEAD_COMMIT"
-  if git -C "$REPO_ROOT" merge --ff-only "origin/$BRANCH" >/dev/null 2>&1; then
-    HEAD_COMMIT="$(checkout_commit)"
+  FETCH_ERR="$(GIT_TERMINAL_PROMPT=0 timeout "$FETCH_BUDGET" \
+    git -C "$REPO_ROOT" fetch origin 2>&1 >/dev/null)"
+  FETCH_RC=$?
+  if [ "$FETCH_RC" = "124" ]; then
+    warn "the fetch was still running after ${FETCH_BUDGET}s and was stopped"
+    warn "that is a slow link, not an outage. Give it longer:"
+    warn "    RMC_GIT_FETCH_TIMEOUT=1200 $HERE/box-rebuild.sh"
+    ok "building from the checkout as it stands"
+    CHECKOUT_NOTE="the fetch was stopped after ${FETCH_BUDGET}s without finishing"
+  elif [ "$FETCH_RC" != "0" ]; then
+    warn "the fetch failed (exit $FETCH_RC). In git's own words:"
+    printf '%s\n' "${FETCH_ERR:-(git said nothing)}" | sed 's/^/       /' | head -6
+    ok "building from the checkout as it stands"
+    CHECKOUT_NOTE="the fetch failed with exit $FETCH_RC -- git's message is above"
+  elif git -C "$REPO_ROOT" merge --ff-only "origin/$BRANCH" >/dev/null 2>&1; then
+  HEAD_COMMIT="$(checkout_commit)"
     # A successful ff-merge means BOTH "moved" and "was already there", and those
     # are worth telling apart: only one of them is news. Either way the checkout
     # has now been compared against the remote, which is what UPSTREAM records.
