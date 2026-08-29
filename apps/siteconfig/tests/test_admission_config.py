@@ -38,7 +38,11 @@ class AdmissionConfigTestCase(TestCase):
             spec_code="GEN",
             class_segment="F1",
         )
-        self.assertEqual(out, "26GIL0001GENF1")
+        # 26GIL[C]0001GENF1 -- the preview now shows the node mark, because a school
+        # sets its admission_number_pattern against this sample and every real number
+        # will carry it. A preview that omitted it taught the school a pattern that
+        # rejects its own enrolments.
+        self.assertEqual(out, "26GILC0001GENF1")
 
     def test_preview_year_seq_strategy(self):
         """Preview respects YEAR_SEQ strategy when set."""
@@ -50,7 +54,7 @@ class AdmissionConfigTestCase(TestCase):
         out = preview_admission_number(
             None, year_2digit="26", school_code="GIL", seq_4digit="0001"
         )
-        self.assertEqual(out, "26GIL0001")
+        self.assertEqual(out, "26GILC0001")
 
     def test_validate_matches_pattern(self):
         """Validation returns True for value matching policy pattern."""

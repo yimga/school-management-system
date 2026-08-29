@@ -2896,37 +2896,39 @@ register_platform_admin(
 try:
     from .models import SyncConflict
 
+    #: Admin Status -> the resolution token ``conflict_actions`` speaks.
+    _ADMIN_RESOLUTION_TOKENS = {
+        SyncConflict.Status.RESOLVED_SERVER: "server",
+        SyncConflict.Status.RESOLVED_CLIENT: "client",
+        SyncConflict.Status.DISCARDED: "discard",
+    }
+
     def _resolve_sync_conflict(conflict, resolution, resolved_by):
-        from django.utils import timezone
+        """Settle one conflict from the admin, through the SAME path as the Sync Center.
 
-        conflict.resolved_by = resolved_by
-        conflict.resolved_at = timezone.now()
-        conflict.status = resolution
-        if resolution == SyncConflict.Status.RESOLVED_CLIENT:
-            from apps.api.sync_services import _get_entity_config
+        THIS WAS A SECOND IMPLEMENTATION, and it had drifted into the weaker one. Its
+        own comment said it mirrored views_sync_center, which has since moved to
+        ``conflict_actions`` and grown two guards this copy never got:
 
-            # Full two-way registry: resolving an edge-sync conflict is edge-scoped, so a
-            # derived entity's "keep client version" must actually write (not silently
-            # no-op while marking RESOLVED_CLIENT). Mirrors views_sync_center._resolve.
-            config = _get_entity_config(include_derived=True)
-            if conflict.entity_type in config:
-                model, allowed = config[conflict.entity_type]
-                updates = {
-                    k: v
-                    for k, v in (conflict.client_data or {}).items()
-                    if k in allowed
-                }
-                if updates:
-                    try:
-                        instance = model.objects.get(pk=conflict.entity_id)
-                        for key, value in updates.items():
-                            setattr(instance, key, value)
-                        instance.save(
-                            update_fields=list(updates.keys()) + ["updated_at"]
-                        )
-                    except model.DoesNotExist:
-                        pass
-        conflict.save(update_fields=["status", "resolved_at", "resolved_by"])
+          * ``may_resolve`` -- a conflict on a cloud-authoritative record (money,
+            grades, identity) may only be settled in the client's favour by
+            someone who could have made that write directly. This copy asked nobody,
+            so the admin's own Keep-client action wrote a box's refused value
+            straight into the cloud record: the bypass that guard exists to close,
+            reachable by any staff user with change permission on SyncConflict alone.
+          * the down-only field strip -- salary, payroll and leave authorization,
+            offboarding and the grading coefficient ride DOWN only. The inbound rail
+            removes them from a box push; this copy wrote them.
+
+        Delegating is the fix rather than copying the guards across, because two
+        implementations of one rule is what produced the drift in the first place.
+        """
+        from apps.sync_engine.conflict_actions import apply_resolution
+
+        token = _ADMIN_RESOLUTION_TOKENS.get(resolution)
+        if token is None:
+            return False, "invalid_resolution"
+        return apply_resolution(conflict, token, resolved_by)
 
     class SyncConflictAdmin(ModelAdmin):
         list_display = (
@@ -2935,10 +2937,11 @@ try:
             "entity_type",
             "entity_id",
             "status",
+            "origin",
             "reported_by",
             "created_at",
         )
-        list_filter = ("school", "status", "entity_type")
+        list_filter = ("school", "status", "entity_type", "origin")
         search_fields = ("entity_type", "entity_id", "resolution_note")
         readonly_fields = (
             "school",
@@ -2946,6 +2949,8 @@ try:
             "entity_id",
             "client_data",
             "server_data",
+            "conflict_fields",
+            "origin",
             "client_updated_at",
             "server_updated_at",
             "reported_by",
@@ -2965,35 +2970,51 @@ try:
                 return qs.filter(school_id=school.id)
             return qs
 
+        def _settle(self, request, queryset, status, label):
+            """Run one bulk action and SAY what happened to every row.
+
+            Counted as it goes, not re-queried afterwards. The previous messages ran
+            the PENDING filter again AFTER the loop -- by then the rows they meant to
+            count had been resolved and were no longer PENDING, so a bulk action that
+            worked perfectly reported "Resolved 0 conflict(s)".
+
+            A refusal is surfaced rather than swallowed: with authority now enforced
+            here, some rows legitimately will not settle, and an action that silently
+            skips them looks identical to one that worked.
+            """
+            done, refused = 0, []
+            for obj in list(queryset.filter(status=SyncConflict.Status.PENDING)):
+                ok, reason = _resolve_sync_conflict(obj, status, request.user)
+                if ok:
+                    done += 1
+                else:
+                    refused.append("#%s: %s" % (obj.pk, reason))
+            self.message_user(
+                request, "Resolved %d conflict(s) (%s)." % (done, label)
+            )
+            if refused:
+                self.message_user(
+                    request,
+                    "Left unresolved: " + "; ".join(refused[:10]),
+                    level=messages.WARNING,
+                )
+
         @admin.action(description="Keep server version")
         def resolve_keep_server(self, request, queryset):
-            for obj in queryset.filter(status=SyncConflict.Status.PENDING):
-                _resolve_sync_conflict(
-                    obj, SyncConflict.Status.RESOLVED_SERVER, request.user
-                )
-            self.message_user(
-                request,
-                f"Resolved {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s) (server).",
+            self._settle(
+                request, queryset, SyncConflict.Status.RESOLVED_SERVER, "server"
             )
 
         @admin.action(description="Keep client version")
         def resolve_keep_client(self, request, queryset):
-            for obj in queryset.filter(status=SyncConflict.Status.PENDING):
-                _resolve_sync_conflict(
-                    obj, SyncConflict.Status.RESOLVED_CLIENT, request.user
-                )
-            self.message_user(
-                request,
-                f"Resolved {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s) (client).",
+            self._settle(
+                request, queryset, SyncConflict.Status.RESOLVED_CLIENT, "client"
             )
 
         @admin.action(description="Discard")
         def resolve_discard(self, request, queryset):
-            for obj in queryset.filter(status=SyncConflict.Status.PENDING):
-                _resolve_sync_conflict(obj, SyncConflict.Status.DISCARDED, request.user)
-            self.message_user(
-                request,
-                f"Discarded {queryset.filter(status=SyncConflict.Status.PENDING).count()} conflict(s).",
+            self._settle(
+                request, queryset, SyncConflict.Status.DISCARDED, "discard"
             )
 
     register_platform_admin(SyncConflict, SyncConflictAdmin)

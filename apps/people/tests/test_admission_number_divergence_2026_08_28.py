@@ -220,29 +220,206 @@ class TheNumberCarriesTheMarkTests(TestCase):
             )
         self.assertTrue(bare.student_code.startswith("TEMP-B-"))
 
-    def test_the_sequence_still_hands_a_deleted_students_number_back(self):
-        """NOT FIXED, and pinned so nobody reads the mark as a full repair.
+    def _enrol(self, first, last):
+        from apps.people.models import StudentProfile
 
-        The sequence is `count() + 1`, so it is neither monotonic nor unique over time.
-        The mark stops two nodes colliding with each other; it does nothing about one node
-        reissuing a number it already gave away. Fixing that needs a counter that survives
-        a delete -- a table and a migration.
+        return StudentProfile.objects.create(
+            school=self.school, first_name=first, last_name=last,
+            academic_year=self.year, specialty=self.specialty,
+            classroom=self.classroom,
+        )
+
+    def test_a_deleted_students_number_is_never_reissued(self):
+        """A count goes down when a row is deleted; a counter does not.
+
+        This is the case that used to hand a departed student's admission number to the
+        next arrival -- the one value a school treats as permanent, printed on documents
+        and filed with the ministry, quietly belonging to two people.
         """
         from apps.people.models import StudentProfile
 
-        def _enrol(first, last):
-            return StudentProfile.objects.create(
-                school=self.school, first_name=first, last_name=last,
-                academic_year=self.year, specialty=self.specialty,
-                classroom=self.classroom,
-            )
-
-        _enrol("ADA", "LOVELACE")
-        second = _enrol("GRACE", "HOPPER")
+        self._enrol("ADA", "LOVELACE")
+        second = self._enrol("GRACE", "HOPPER")
         issued = second.admission_number
         StudentProfile.objects.filter(pk=second.pk).delete()
 
-        self.assertEqual(_enrol("ALAN", "TURING").admission_number, issued)
+        self.assertNotEqual(self._enrol("ALAN", "TURING").admission_number, issued)
+
+    def test_the_counter_does_not_go_backwards_across_many_deletes(self):
+        # One delete could be survived by luck. Emptying the year cannot.
+        from apps.people.models import StudentProfile
+
+        issued = {self._enrol("S%d" % i, "X").admission_number for i in range(4)}
+        StudentProfile.objects.filter(school=self.school).delete()
+
+        after = {self._enrol("T%d" % i, "Y").admission_number for i in range(4)}
+        self.assertEqual(issued & after, set())
+
+    def test_a_number_a_legacy_row_already_holds_is_stepped_over(self):
+        """A school that deleted students before this existed has issued numbers ABOVE
+        its row count, so a counter seeded from that count starts on a number somebody
+        already has. What must be unique is the rendered number, not the sequence.
+        """
+        from apps.people.models import StudentProfile
+
+        first = self._enrol("ADA", "LOVELACE")
+        # Someone already holds what a fresh counter would produce next.
+        squatter = StudentProfile.objects.create(
+            school=self.school, first_name="LEGACY", last_name="ROW",
+            academic_year=self.year, specialty=self.specialty,
+            classroom=self.classroom,
+        )
+        taken = squatter.admission_number
+        from apps.people.models_identifier_sequence import AdmissionNumberSequence
+
+        AdmissionNumberSequence.objects.filter(school=self.school).update(next_seq=1)
+
+        fresh = self._enrol("ALAN", "TURING").admission_number
+        self.assertNotIn(fresh, {first.admission_number, taken})
+
+    def test_a_counter_created_on_an_EXISTING_school_does_not_restart_at_one(self):
+        """The seed, and why it is correctness rather than an optimisation.
+
+        Mutation caught this: with the counter seeded at 1 instead of at the school's row
+        count, every existing school gets a counter that walks up from the bottom of its
+        own number range -- and the first FREE number it finds is precisely the one a
+        deleted student used to hold. The defect returns, on exactly the deployments that
+        already have students, which is all of them.
+
+        `is_taken` cannot save it: a departed student's number is not taken.
+        """
+        from apps.people.models import StudentProfile
+        from apps.people.models_identifier_sequence import AdmissionNumberSequence
+
+        issued = [self._enrol("S%d" % i, "X").admission_number for i in range(3)]
+        # A school that enrolled before this migration existed has no counter row.
+        AdmissionNumberSequence.objects.filter(school=self.school).delete()
+        StudentProfile.objects.filter(
+            school=self.school, admission_number=issued[1]
+        ).delete()
+
+        fresh = self._enrol("ALAN", "TURING").admission_number
+        self.assertNotIn(fresh, issued)
+
+    def test_each_node_keeps_its_own_number_line(self):
+        from apps.people.models_identifier_sequence import AdmissionNumberSequence
+
+        with self.settings(RMC_DEPLOYMENT_PROFILE="edge"):
+            self._enrol("ON", "BOX")
+        with self.settings(RMC_DEPLOYMENT_PROFILE="online"):
+            self._enrol("ON", "CLOUD")
+
+        marks = set(
+            AdmissionNumberSequence.objects.filter(school=self.school).values_list(
+                "node_code", flat=True
+            )
+        )
+        # Two rows, not one shared counter -- neither node has to ask the other anything,
+        # which is what lets a box enrol with the internet down.
+        self.assertEqual(marks, {"B", "C"})
+
+    def test_the_counter_is_not_on_the_sync_rail(self):
+        # It is local bookkeeping. Syncing it would make two nodes fight over one number
+        # line for no benefit, and hand each the other's enrolment count.
+        from apps.api.sync_services import _get_entity_config
+
+        config = _get_entity_config(include_derived=True)
+        models = {m.__name__ for m, _allowed in config.values()}
+        self.assertNotIn("AdmissionNumberSequence", models)
+
+
+class TheSchoolsOwnPatternMustAcceptTheNewNumbersTests(TestCase):
+    """Adding a character to the number can break a rule the school already wrote."""
+
+    def setUp(self):
+        from apps.schools.models import School
+
+        uid = uuid.uuid4().hex[:8]
+        self.school = School.objects.create(
+            name=f"Pat {uid}", slug=f"pat-{uid}", subdomain=f"pat{uid}", is_active=True
+        )
+
+    def _check(self, policy):
+        from apps.siteconfig.identifier_policy_service import pattern_accepts_own_numbers
+
+        return pattern_accepts_own_numbers(self.school, policy=policy)
+
+    @override_settings(RMC_DEPLOYMENT_PROFILE="edge")
+    def test_a_pattern_that_would_reject_every_new_enrolment_is_reported(self):
+        """`StudentProfile.clean()` enforces admission_number_pattern, so a school whose
+        pattern pins the pre-mark shape would have every enrolment of the term refused --
+        by its own rule, with a message pointing at the number rather than the pattern.
+        Nobody can eyeball five hundred schools' regexes, so this answers it per school.
+        """
+        ok, sample, _pattern = self._check(
+            {"school_code": "GIL", "admission_number_pattern": "^[0-9]{2}GIL[0-9]{4}"}
+        )
+        self.assertFalse(ok)
+        self.assertIn("B", sample)
+
+    @override_settings(RMC_DEPLOYMENT_PROFILE="edge")
+    def test_a_pattern_with_room_for_the_mark_is_fine(self):
+        ok, _sample, _p = self._check(
+            {"school_code": "GIL", "admission_number_pattern": "^[0-9]{2}[A-Z0-9]{2,10}[0-9]{4}"}
+        )
+        self.assertTrue(ok)
+
+    def test_no_pattern_is_not_a_finding(self):
+        ok, _sample, _p = self._check({"school_code": "GIL"})
+        self.assertTrue(ok)
+
+    def test_an_uncompilable_pattern_is_not_reported_as_a_rejection(self):
+        # Validation cannot enforce what it cannot compile, so this check must not claim
+        # the school is broken when the thing that would break is the checker.
+        ok, _sample, _p = self._check(
+            {"school_code": "GIL", "admission_number_pattern": "^[unclosed"}
+        )
+        self.assertTrue(ok)
+
+
+class ThePreviewMatchesWhatIsIssuedTests(TestCase):
+    """A format a school validates against has to be the format it is given."""
+
+    def setUp(self):
+        from apps.schools.models import School
+
+        uid = uuid.uuid4().hex[:8]
+        self.school = School.objects.create(
+            name=f"Prev {uid}", slug=f"prev-{uid}", subdomain=f"prev{uid}", is_active=True
+        )
+
+    @override_settings(RMC_DEPLOYMENT_PROFILE="edge")
+    def test_the_preview_shows_the_node_mark_the_school_will_really_get(self):
+        """The preview and the mint were two separate copies of one rule, and they HAD
+        drifted: the preview knew nothing about the node mark, so a school setting its
+        `admission_number_pattern` against the sample would have rejected every real
+        enrolment of the term, for a reason nothing on screen explained.
+        """
+        from apps.siteconfig.identifier_policy_service import preview_admission_number
+
+        self.assertIn("B", preview_admission_number(self.school, seq_4digit="0001"))
+
+    @override_settings(RMC_DEPLOYMENT_PROFILE="edge")
+    def test_a_template_placeholder_the_preview_offers_is_one_the_mint_offers(self):
+        from apps.siteconfig.identifier_policy_service import render_admission_number
+
+        rendered = render_admission_number(
+            {"admission_number_template": "{school_code}/{node_code}/{seq_4digit}"},
+            year_2digit="26", school_code="GIL", seq_4digit="0001",
+            spec_code="SCI", class_segment="F1", node_code="B",
+        )
+        self.assertEqual(rendered, "GIL/B/0001")
+
+    def test_an_unknown_placeholder_falls_back_instead_of_failing_enrolment(self):
+        # A config typo must not be able to stop a school enrolling anybody.
+        from apps.siteconfig.identifier_policy_service import render_admission_number
+
+        rendered = render_admission_number(
+            {"admission_number_template": "{no_such_placeholder}"},
+            year_2digit="26", school_code="GIL", seq_4digit="0001",
+            spec_code="SCI", class_segment="F1", node_code="B",
+        )
+        self.assertEqual(rendered, "26GILB0001SCIF1")
 
 
 class TheRailCarriesTheNumberTests(TestCase):

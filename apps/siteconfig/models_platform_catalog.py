@@ -718,6 +718,26 @@ class SyncConflict(models.Model):
         blank=True,
         help_text="Current server version of the record (relevant fields)",
     )
+    conflict_fields = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Which fields actually diverge, decided at detection time by the rail's "
+            "own comparator. Empty means the row predates this column -- unknown, "
+            "never 'nothing differed': a conflict with no differing field would be "
+            "a row asking an operator to choose between a value and itself."
+        ),
+    )
+    origin = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text=(
+            "Which side asserted the refused change: edge-push (a box), cloud-pull "
+            "(the cloud), or empty for an online browser write. reported_by names a "
+            "USER, which on a sync write is only the paired service account."
+        ),
+    )
     client_updated_at = models.DateTimeField(null=True, blank=True)
     server_updated_at = models.DateTimeField(null=True, blank=True)
     reported_by = models.ForeignKey(

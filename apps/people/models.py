@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
+import hashlib
 import re
 import uuid
 
@@ -685,15 +686,22 @@ class StudentProfile(models.Model):
         classroom: Classroom,
         school=None,
     ) -> str:
-        """
-        Configurable generation: admissions shape from get_effective_policy(school) when present, else defaults from _get_admissions_policy.
-        Placeholders: year_2digit, school_code, seq_4digit, spec_code, class_segment.
+        """Issue the next admission number for this school-year, on THIS node.
+
+        Shape comes from get_effective_policy(school)["admissions"], else the platform
+        defaults in _get_admissions_policy. Placeholders: year_2digit, school_code,
+        seq_4digit, spec_code, class_segment, node_code.
+
+        The shape itself lives in ``identifier_policy_service.render_admission_number``,
+        shared with the setup preview, because a format a school validates against has to
+        be the format the school is given.
         """
         school = school or getattr(academic_year, "school", None)
         admissions = cls._get_admissions_policy(school)
         from apps.siteconfig.identifier_policy_service import (
             default_school_code_for,
             node_identifier_namespace,
+            render_admission_number,
         )
 
         school_code = (
@@ -708,34 +716,47 @@ class StudentProfile(models.Model):
         year_str = (academic_year.name or "")[:4]
         yy = year_str[-2:] if year_str and year_str[:4].isdigit() else "00"
 
-        seq = cls.objects.filter(academic_year=academic_year).count() + 1
-        seq_str = f"{seq:04d}"
-
         spec_segment = (specialty.code or "XX").upper()[:6] if specialty else "XX"
         class_segment = cls._class_segment(classroom)
         spec_segment = re.sub(r"[^A-Z0-9]", "", spec_segment)
         class_segment = re.sub(r"[^A-Z0-9]", "", class_segment)
 
-        template = (admissions.get("admission_number_template") or "").strip()
-        if template:
-            return template.format(
+        def _render(seq: int) -> str:
+            return render_admission_number(
+                admissions,
                 year_2digit=yy,
                 school_code=school_code,
-                seq_4digit=seq_str,
+                seq_4digit=f"{seq:04d}",
                 spec_code=spec_segment,
                 class_segment=class_segment,
                 node_code=node_code,
             )
 
-        strategy = admissions.get("admission_number_strategy") or "FULL"
-        if strategy == "YEAR_SEQ":
-            return f"{yy}{school_code}{node_code}{seq_str}"
-        if strategy == "SEQ_ONLY":
-            # Even here. SEQ_ONLY is the shortest form a school can choose, and it is
-            # exactly the form two nodes are most certain to collide on.
-            return f"{node_code}{seq_str}"
+        if school is None:
+            # No school means no counter to key, and no per-school uniqueness to defend.
+            # This is a preview-shaped call, not an enrolment; give it the sample number
+            # rather than allocating a real one nobody will use.
+            return _render(1)
 
-        return f"{yy}{school_code}{node_code}{seq_str}{spec_segment}{class_segment}"
+        # NOT `count() + 1`. A count goes DOWN when a row is deleted, so the next arrival
+        # was handed a departed student's number, and two concurrent enrolments read the
+        # same count and both believed they were issuing it. The counter row survives the
+        # delete and is claimed under a lock.
+        from apps.people.models_identifier_sequence import allocate_admission_seq
+
+        # What must be unique is the rendered NUMBER, not the sequence -- two strategies
+        # can map different sequences onto the same string. A school that has deleted
+        # students has issued numbers above its row count, so a counter seeded from that
+        # count can start on one somebody already holds.
+        seq = allocate_admission_seq(
+            school,
+            academic_year,
+            node_code,
+            is_taken=lambda candidate: cls.objects.filter(
+                school=school, admission_number=_render(candidate)
+            ).exists(),
+        )
+        return _render(seq)
 
     def save(self, *args, **kwargs):
         # A plan's student cap refuses THIS enrolment, not the school's whole
@@ -773,18 +794,44 @@ class StudentProfile(models.Model):
                     year, specialty, classroom, school=school
                 )
         if not self.student_code:
-            # The fallback is random, so the two nodes CANNOT agree on it -- two copies
-            # of one student get two codes and neither is more right. Marking which node
-            # minted it does not fix that; it makes it legible, which is what an operator
-            # holding a pile of code conflicts actually needs in order to decide.
-            from apps.siteconfig.identifier_policy_service import (
-                node_identifier_namespace,
-            )
+            # A PLACEHOLDER THE TWO NODES CAN BOTH ARRIVE AT, when there is anything to
+            # arrive at it FROM. `student_code` is on the rail and per-school unique, and
+            # `apply_edge_inserts` upserts by `client_offline_id` -- so when one offline
+            # row lands on both nodes, they are matched as ONE student and their codes
+            # are compared. A random placeholder made that disagreement permanent and
+            # unarbitrable: neither value is more right, and no later retry changes
+            # either one.
+            #
+            # THE NODE MARK IS DELIBERATELY ABSENT FROM THE DERIVED FORM, which reads
+            # like a regression and is the opposite. On an admission number the mark is
+            # what stops two nodes issuing the same number, and removing it would undo
+            # that. One row's placeholder has the inverse requirement -- the nodes must
+            # land on the SAME string -- and stamping the local node in guarantees they
+            # never do. The two identifiers want opposite things from the same mark.
+            #
+            # 64 bits of the digest: the column allows 50 characters and this needs 21,
+            # so there is no reason to shave it down to where a collision between two
+            # offline ids in one school stops being unthinkable -- that collision would
+            # surface as a refused enrolment, not a wrong number.
+            coid = (getattr(self, "client_offline_id", "") or "").strip()
+            if self.admission_number:
+                self.student_code = self.admission_number
+            elif coid:
+                self.student_code = "TEMP-%s" % (
+                    hashlib.sha256(coid.encode("utf-8")).hexdigest()[:16].upper(),
+                )
+            else:
+                # Nothing to converge WITH, so the code is local by nature and the mark
+                # earns its place again: an operator holding two of these needs to know
+                # which node invented which.
+                from apps.siteconfig.identifier_policy_service import (
+                    node_identifier_namespace,
+                )
 
-            self.student_code = self.admission_number or "TEMP-%s-%s" % (
-                node_identifier_namespace(getattr(self, "school", None)),
-                uuid.uuid4().hex[:8].upper(),
-            )
+                self.student_code = "TEMP-%s-%s" % (
+                    node_identifier_namespace(getattr(self, "school", None)),
+                    uuid.uuid4().hex[:8].upper(),
+                )
         if not self.referral_code:
             self.referral_code = f"REF-{uuid.uuid4().hex[:6].upper()}"
         from apps.people.student_search_index import build_student_search_index
@@ -2017,4 +2064,8 @@ from apps.people.models_merge import (  # noqa: E402,F401
 from apps.people.models_school_batch import (  # noqa: E402,F401
     BatchStateError,
     SchoolTransferBatch,
+)
+from apps.people.models_identifier_sequence import (  # noqa: E402,F401
+    AdmissionNumberSequence,
+    allocate_admission_seq,
 )

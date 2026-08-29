@@ -69,6 +69,12 @@ def field_comparison(conflict) -> list:
     client = dict(conflict.client_data or {})
     server = dict(conflict.server_data or {})
     down_only = set(_DOWN_ONLY_FIELDS_PER_ENTITY.get(conflict.entity_type or "", ()))
+    # The row's own answer wins when it has one. Detection decided this with the
+    # rail's field-aware comparator, which knows a datetime serialised two ways is one
+    # value; the str() fallback below cannot, and marked 8 of 17 rail entities as
+    # differing from themselves. Two notions of 'differs' in one system is how a
+    # reviewer is shown a difference the engine does not believe in.
+    recorded = set(getattr(conflict, "conflict_fields", None) or ())
     rows = []
     for name in sorted(set(client) | set(server)):
         c = client.get(name)
@@ -78,10 +84,13 @@ def field_comparison(conflict) -> list:
                 "name": name,
                 "server": srv,
                 "client": c,
-                # Compared as text: the two sides arrive from different paths (one from a
-                # JSON wire payload, one from a live model instance), so 3 and "3" are the
-                # same value reported differently and must not read as a difference.
-                "differs": (name in client) and str(c) != str(srv),
+                # Compared as text only when the row cannot say: the two sides arrive from
+                # different paths (one from a JSON wire payload, one from a live model
+                # instance), so 3 and "3" are the same value reported differently and must
+                # not read as a difference.
+                "differs": (name in recorded)
+                if recorded
+                else ((name in client) and str(c) != str(srv)),
                 "down_only": name in down_only,
             }
         )
@@ -174,9 +183,29 @@ def _client_updates_for(conflict):
         return None, {}, []
     model, allowed = entry
     down_only = set(_DOWN_ONLY_FIELDS_PER_ENTITY.get(conflict.entity_type, ()))
+    # ONLY THE FIELDS THE CONFLICT IS ACTUALLY ABOUT, when the row knows them.
+    #
+    # client_data is the whole incoming change set, and a conflict is typically one
+    # field of twenty. Writing all twenty was harmless at DETECTION time, when the
+    # other nineteen were identical -- but resolution happens whenever an operator
+    # gets to the queue, which on a real backlog is days. Any of those nineteen
+    # the server legitimately changed in between is silently reverted to a stale
+    # value, and nobody looks, because those fields were never what the conflict was
+    # about. Narrowing cannot lose an intended write: a field that was equal at
+    # detection is either still equal (the write was a no-op) or has since moved (the
+    # write was a revert). It stays faithful to the button's promise, too -- the
+    # client's version of an identical field IS the value already stored.
+    #
+    # An EMPTY list means the row predates the column, NOT that nothing differed. Old
+    # rows keep the old behaviour, because there is nothing better to be had from
+    # them; treating empty as an empty diff would resolve every legacy conflict by
+    # writing nothing while stamping it RESOLVED_CLIENT.
+    diverged = set(getattr(conflict, "conflict_fields", None) or ())
     updates, refused = {}, []
     for key, value in (conflict.client_data or {}).items():
         if key not in allowed:
+            continue
+        if diverged and key not in diverged:
             continue
         if key in down_only:
             refused.append(key)

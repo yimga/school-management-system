@@ -1612,6 +1612,24 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 server_data = _serialize_instance_for_conflict(
                     instance, entity_type, allowed
                 )
+                # WHICH fields this conflict is actually about, decided here rather than
+                # re-derived by every reader. `field_comparison` diffs the two stored blobs
+                # at render time with a str() comparison, which is enough to paint one
+                # screen and cannot answer 'how many of these are about student_code' -- a
+                # question that cost a full load-and-diff of 405 rows on a live box.
+                #
+                # The SAME comparator as the unchanged-check above, deliberately. Sharing
+                # it makes the list non-empty by construction: control only reaches here
+                # when at least one field differed, so an EMPTY list on a new row is not a
+                # tidy edge case, it is the 'conflict with itself' bug visible at the
+                # moment it regresses instead of 68,000 rows later.
+                diverged_fields = sorted(
+                    _k
+                    for _k, _v in updates.items()
+                    if not _same_field_value(
+                        type(instance), _k, getattr(instance, _k, None), _v
+                    )
+                )
                 conflict_id = None
                 if persist_conflicts:
                     from apps.siteconfig.models import SyncConflict
@@ -1635,6 +1653,13 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                                     entity_id=pk,
                                     client_data=dict(changes),
                                     server_data=server_data,
+                                    conflict_fields=diverged_fields,
+                                    # WHICH SIDE asserted it. reported_by is a User, and on
+                                    # a sync write that is the paired service account -- it
+                                    # cannot answer 'what did the box assert that the cloud
+                                    # refused', which is the only question that matters when
+                                    # one node is meant to be authoritative over the other.
+                                    origin=sync_origin or "",
                                     client_updated_at=client_updated_at,
                                     server_updated_at=server_dt,
                                     reported_by=user,
@@ -1657,6 +1682,8 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                         "entity_id": pk,
                         "client_data": dict(changes),
                         "server_data": server_data,
+                        "conflict_fields": diverged_fields,
+                        "origin": sync_origin or "",
                         "client_updated_at": client_updated_at.isoformat()
                         if client_updated_at
                         else None,
