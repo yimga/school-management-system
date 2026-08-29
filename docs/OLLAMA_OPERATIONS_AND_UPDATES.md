@@ -110,10 +110,23 @@ When `OLLAMA_AUTO_DISCOVER=1` (default), probe order is:
 | --- | --- | --- |
 | Windows native | Windows (tray / `ollama serve`) | `127.0.0.1` |
 | WSL | Windows | WSL gateway IP (auto) |
-| Docker | Windows / Mac host | `host.docker.internal` |
+| Docker (Desktop) | Windows / Mac host | `host.docker.internal` |
+| Docker (Linux, incl. a self-hosted box) | Linux host | `host.docker.internal` **only with** `extra_hosts: ["host.docker.internal:host-gateway"]`; otherwise the LAN IP |
 | Docker Compose sidecar | `ollama` service | set `OLLAMA_BASE_URL=http://ollama:11434` in `web` env |
 
 Pin one host only: `OLLAMA_AUTO_DISCOVER=0` and set `OLLAMA_BASE_URL` or `OLLAMA_ENDPOINT`.
+
+> **The Linux/Docker trap.** `host.docker.internal` is a Docker Desktop
+> convenience. On a Linux engine the name simply does not exist, so a container
+> configured with `OLLAMA_ENDPOINT=http://host.docker.internal:11434` fails every
+> discovery candidate -- `127.0.0.1` and `localhost` are the container itself --
+> and the gateway drops to the rules tier. The visible symptom is not an error:
+> the copilot answers every question with a canned table and the line *the
+> language model on this server is offline*, which reads like a product bug
+> rather than a networking one. `deploy/selfhost/docker-compose.yml` now maps
+> the name via `host-gateway`, and `python manage.py check_edge_readiness`
+> resolves and probes the endpoint instead of only checking that it is set.
+
 
 After starting Ollama, refresh discovery: `python scripts/verify_ollama_live.py --invoke` (forces a fresh probe).
 

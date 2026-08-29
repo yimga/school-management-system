@@ -50,6 +50,36 @@ def _resolves(hostname: str, timeout_seconds: float = 3.0) -> bool:
     return bool(outcome and outcome[0])
 
 
+def _ollama_host(endpoint: str) -> str:
+    """Hostname out of an Ollama endpoint, or "" when it cannot be read."""
+    from urllib.parse import urlsplit
+
+    try:
+        return (urlsplit(endpoint.strip()).hostname or "").strip()
+    except ValueError:
+        return ""
+
+
+def _ollama_answers(endpoint: str, timeout_seconds: float = 3.0) -> bool:
+    """Does the model server actually respond? Bounded, like :func:`_resolves`.
+
+    This command runs on EVERY container start, so a hung model host must not be
+    able to hold a school's box in a boot loop. No answer in time is reported as
+    "did not answer", which is what an operator needs to know either way.
+    """
+    import urllib.error
+    import urllib.request
+
+    base = endpoint.strip().rstrip("/")
+    if base.endswith("/api/generate"):
+        base = base[: -len("/api/generate")]
+    try:
+        with urllib.request.urlopen(f"{base}/api/tags", timeout=timeout_seconds) as resp:
+            return 200 <= int(getattr(resp, "status", 0) or 0) < 400
+    except (urllib.error.URLError, OSError, ValueError):
+        return False
+
+
 def _truthy(value) -> bool:
     return str(value if value is not None else "").strip().lower() in {"1", "true", "yes", "on"}
 
@@ -502,7 +532,34 @@ class Command(BaseCommand):
                 or os.environ.get("OLLAMA_ENDPOINT", "")
             ).strip()
             if ollama:
-                findings.append((OK, f"OLLAMA_ENDPOINT set ({ollama}) — run `ollama serve` + pull a model; if it's down, AI degrades to deterministic rules (no crash)."))
+                # A SET endpoint is not a REACHABLE one, and reporting OK for the
+                # first was how a box ran for weeks answering every copilot
+                # question with "the language model on this server is offline".
+                # The name is the usual culprit: host.docker.internal does not
+                # exist on Linux without an extra_hosts host-gateway mapping.
+                host = _ollama_host(ollama)
+                if host and not _resolves(host):
+                    hint = (
+                        " Add `extra_hosts: [\"host.docker.internal:host-gateway\"]` to the"
+                        " app service, or point OLLAMA_ENDPOINT at the host's LAN IP."
+                        if host == "host.docker.internal"
+                        else " Check the hostname, or use an IP."
+                    )
+                    findings.append((
+                        FAIL,
+                        f"OLLAMA_ENDPOINT={ollama} but {host} does not resolve from this "
+                        f"container — the AI copilot will answer from rules only and say the "
+                        f"model is offline.{hint}",
+                    ))
+                elif not _ollama_answers(ollama):
+                    findings.append((
+                        WARN,
+                        f"OLLAMA_ENDPOINT={ollama} resolves but did not answer /api/tags — "
+                        "start it with `ollama serve` and pull the model in OLLAMA_MODEL. "
+                        "Until then AI degrades to deterministic rules (no crash).",
+                    ))
+                else:
+                    findings.append((OK, f"OLLAMA_ENDPOINT={ollama} answered — local model tier is live."))
             else:
                 findings.append((WARN, "RMC_DEPLOYMENT_PROFILE=edge but OLLAMA_ENDPOINT is unset — AI will use deterministic rules only (no local LLM)."))
 
