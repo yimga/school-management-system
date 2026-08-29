@@ -34,7 +34,7 @@
       <div class="rmc-admin-catalog-model-grid mb-3">
         {% for model in admin_app_index_models %}
         <div class="rmc-admin-catalog-model-card">
-          <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{{ model.name }}</a>
+          <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{% firstof model.name model.object_name %}</a>
           <span class="rmc-admin-catalog-model-meta">{{ model.object_name }}</span>
           <div class="rmc-admin-catalog-model-actions">
             <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
@@ -53,10 +53,10 @@
                   <div class="admin-app-index__card">
                     {% if model.admin_url %}
                       <a href="{{ model.admin_url }}" class="admin-app-index__card-link"{% if model.admin_url in request.path %} aria-current="page"{% endif %}>
-                        {{ model.name }}
+                        {% firstof model.name model.object_name %}
                       </a>
                     {% else %}
-                      <span class="admin-app-index__card-link">{{ model.name }}</span>
+                      <span class="admin-app-index__card-link">{% firstof model.name model.object_name %}</span>
                     {% endif %}
                     <div class="admin-app-index__card-actions">
                       {% if model.add_url %}

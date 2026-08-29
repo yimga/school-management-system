@@ -15,6 +15,9 @@ different apps, and hardcoding one yields a 404 that looks like a finding.
 
 from __future__ import annotations
 
+import pathlib
+import re
+import unittest
 import uuid
 
 from django.contrib.auth import get_user_model
@@ -167,3 +170,96 @@ class AdminAppIndexTileContractTests(TestCase):
             [],
             f"{len(unreachable)}/{len(rows)} operator tiles have no changelist link",
         )
+
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
+CONTRAST_CSS = REPO_ROOT / "static" / "css" / "theme-platform-contrast.css"
+
+
+def _specificity(selector: str) -> tuple[int, int, int]:
+    """(ids, classes, elements) for one selector.
+
+    ``:not(x)`` contributes the specificity of x, which is the whole point
+    here: the accent rule earns three extra class-points from its :not()
+    chain, and a naive counter that ignores them concludes the override wins
+    when it does not.
+    """
+    sel = selector.strip()
+    inner = " ".join(re.findall(r":not\(([^)]*)\)", sel))
+    bare = re.sub(r":not\([^)]*\)", " ", sel)
+    both = bare + ' ' + inner
+    ids = len(re.findall(r"#[\w-]+", both))
+    classes = len(re.findall(r"\.[\w-]+", both))
+    classes += len(re.findall(r"\[[^\]]+\]", both))
+    elements = len(re.findall(r"(?:^|[\s>+~])([a-zA-Z][\w-]*)", both))
+    return (ids, classes, elements)
+
+
+class AppIndexTileTitleColourTests(unittest.TestCase):
+    """The tile TITLE must take title colour, not the school brand accent.
+
+    theme-platform-contrast.css paints every <a> in the main region with
+    ``--school-accent``. That is correct for a content hyperlink and wrong for
+    the app-index tile title, which is a card heading that happens to be a
+    link. Measured 2026-08-29 in Chromium over the real rendered page: the
+    accent gave contrast 2.54 against the light card (WCAG AA needs 4.5), and
+    a school whose accent sits near the card background loses the title
+    outright. It also rendered the SAME title in two different colours
+    depending on view permission, because the template emits a <span> rather
+    than an <a> in that case and the accent rule does not match spans.
+    """
+
+    def setUp(self) -> None:
+        self.css = CONTRAST_CSS.read_text(encoding="utf-8", errors="ignore")
+
+    def test_a_tile_title_rule_exists(self) -> None:
+        self.assertIn(
+            "admin-app-index__card-link",
+            self.css,
+            "no tile-title colour rule: the accent rule wins by default",
+        )
+
+    def test_tile_title_outranks_the_accent_rule(self) -> None:
+        accent = [
+            s
+            for s in re.findall(r"^#cp-main-content a:not[^,{]*", self.css, re.M)
+        ]
+        self.assertTrue(accent, "accent rule not found -- selector renamed?")
+        title = [
+            s
+            for s in re.findall(
+                r"^#cp-main-content a\.admin-app-index__card-link[^,{]*",
+                self.css,
+                re.M,
+            )
+        ]
+        self.assertTrue(
+            title, "no #cp-main-content tile-title selector to beat the accent"
+        )
+        self.assertGreater(
+            _specificity(title[0]),
+            _specificity(accent[0]),
+            f"tile title {_specificity(title[0])} does not outrank accent "
+            f"{_specificity(accent[0])}; the title would still be painted "
+            "with the school brand colour",
+        )
+
+    def test_the_specificity_helper_actually_discriminates(self) -> None:
+        # The assertion above passes by comparing two numbers, so it is only
+        # worth as much as this helper. Pin the :not() handling that the whole
+        # comparison turns on.
+        accent = "#cp-main-content a:not(.btn):not(.nav-link):not(.cp-btn)"
+        title = (
+            "#cp-main-content a.admin-app-index__card-link"
+            ":not(.btn):not(.nav-link):not(.cp-btn)"
+        )
+        self.assertEqual(_specificity(accent), (1, 3, 1))
+        self.assertEqual(_specificity(title), (1, 4, 1))
+        self.assertGreater(_specificity(title), _specificity(accent))
+        # and a selector that merely looks longer must NOT win
+        weak = "#cp-main-content .admin-app-index__card-link"
+        self.assertLess(_specificity(weak), _specificity(accent))
+
+
+if __name__ == "__main__":  # pragma: no cover
+    unittest.main()

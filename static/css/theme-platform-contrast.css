@@ -82,6 +82,16 @@ body.admin-manager-shell #main a:not(.btn):not(.nav-link):not(.cp-btn) {
   color: var(--school-accent, var(--brand-primary, var(--color-indigo-500)));
 }
 
+/* App-index tile titles are card headings, not content links: they take
+   title colour, never the school accent. Both the <a> form and the <span>
+   form the same template emits when the viewer lacks view permission. */
+#cp-main-content a.admin-app-index__card-link:not(.btn):not(.nav-link):not(.cp-btn),
+body.admin-manager-shell #main a.admin-app-index__card-link:not(.btn):not(.nav-link):not(.cp-btn),
+#cp-main-content .admin-app-index__card-link,
+body.admin-manager-shell #main .admin-app-index__card-link {
+  color: var(--text-primary, var(--admin-text, #f5f5f7));
+}
+
 #cp-main-content .rmc-section-nav a:not(.btn):not(.cp-btn),
 #cp-main-content .rmc-page-fold-nav a:not(.btn):not(.cp-btn),
 body.admin-manager-shell .rmc-section-nav a:not(.btn):not(.cp-btn),
