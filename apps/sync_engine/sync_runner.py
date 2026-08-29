@@ -773,6 +773,9 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
 
             posted_pages = 0
             drained_updates = True
+            # Refusals the CLOUD reported, accumulated across pages so the note can name
+            # them the way the pull leg's note already does.
+            push_skipped_reasons: dict = {}
             for index, page in enumerate(pages):
                 if posted_pages >= max_pages:
                     drained_updates = False
@@ -824,7 +827,20 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     break
                 posted_pages += 1
                 push_ledger.record_sent(school, page)
-                result["pushed"] += len(page)
+                # DELIVERED is not APPLIED. `len(page)` counts rows put on the wire; the
+                # cloud may have refused any of them (an absent parent, an entity held from
+                # creation, a value its schema will not take) and answers with the count.
+                # Attributing those to `pushed` is what let a cycle that landed nothing
+                # render as a clean push - the exact failure the pull leg already fixed.
+                # An older operator that does not send the key reports 0, which preserves
+                # today's arithmetic rather than inventing skips against it.
+                page_skipped = int(body.get("skipped") or 0)
+                result["pushed"] += len(page) - page_skipped
+                result["skipped"] += page_skipped
+                for reason, count in (body.get("skipped_reasons") or {}).items():
+                    push_skipped_reasons[reason] = (
+                        push_skipped_reasons.get(reason, 0) + int(count or 0)
+                    )
                 result["conflicts"] += int(body.get("conflicts") or 0)
                 # Advance only over the ground actually covered. Inserts carry no safe
                 # global position on their own (an insert may be older than an update we
@@ -838,8 +854,19 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                 # high-water so an echo-suppressed row (scanned but deliberately not sent)
                 # cannot be re-scanned forever.
                 set_sync_cursor(school, EdgeSyncCursor.PUSH, meta.get("high_water"))
-            if result["pushed"]:
-                notes.append(f"pushed {result['pushed']} in {posted_pages} bundle(s)")
+            if result["pushed"] or push_skipped_reasons:
+                note = f"pushed {result['pushed']} in {posted_pages} bundle(s)"
+                if push_skipped_reasons:
+                    # Named reasons, not just a count - the same contract the pull note
+                    # keeps, so one search finds a refusal whichever way it was travelling.
+                    detail = ", ".join(
+                        f"{k} x{v}" for k, v in sorted(push_skipped_reasons.items())
+                    )
+                    note += (
+                        f"; {sum(push_skipped_reasons.values())} NOT applied by the cloud "
+                        f"({detail})"
+                    )
+                notes.append(note)
         # Dry, empty, and live push all share the same 1/2 pulse so the poll bar
         # matches telemetry (row counts stay on pushed/pulled, not percent).
         push_note = notes[-1] if notes else "Push phase finished"

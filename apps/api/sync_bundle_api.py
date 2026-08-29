@@ -383,7 +383,7 @@ class SyncBundleUploadView(APIView):
         # box-local pk can never collide with a different operator record. The split is
         # SHARED with the box-side inbox (apps.sync_engine.edge_inbox.split_bundle_rows) so
         # the two receivers cannot drift on what a row means.
-        from apps.sync_engine.edge_inbox import split_bundle_rows
+        from apps.sync_engine.edge_inbox import split_bundle_rows, tally_skipped_rows
 
         update_rows, insert_rows, delete_rows, malformed = split_bundle_rows(rows)
 
@@ -404,13 +404,30 @@ class SyncBundleUploadView(APIView):
             if delete_rows
             else {"deleted": 0, "results": []}
         )
+        # The rows this side could not apply. The PULL leg has counted these since the
+        # inbox learned to ("a bundle in which every row was refused still read as a clean
+        # sync"); the push leg answered with `results` full of 409s and no tally, so the
+        # runner - which reads counts, not rows - recorded every sent row as pushed. The
+        # same refusal was a named reason coming down and silence going up.
+        skipped_reasons, missing_parents = tally_skipped_rows(
+            out["results"],
+            inserted["results"],
+            removed["results"],
+            conflict_indexes={c.get("index") for c in out["conflicts"]},
+        )
+        skipped_total = sum(skipped_reasons.values())
         try:
             from apps.sync_engine.sync_status import record_observed_cycle
 
             record_observed_cycle(
                 school,
                 ok=True,
-                pushed=len(rows),
+                # What LANDED, not what arrived. `len(rows)` counted a refused row as
+                # pushed, so the cloud's own "last sync" row overstated every cycle that
+                # refused anything -- on the one page an operator opens to check exactly
+                # that. `skipped` carries the difference rather than hiding it.
+                pushed=len(rows) - skipped_total,
+                skipped=skipped_total,
                 conflicts=len(out["conflicts"]),
                 created=int(inserted["created"] or 0),
                 upserted=int(inserted["updated"] or 0),
@@ -435,6 +452,11 @@ class SyncBundleUploadView(APIView):
                 "created": inserted["created"],
                 "upserted": inserted["updated"],
                 "deleted": removed["deleted"],
+                # Same three keys, same meaning, as the box-side inbox returns for a pull.
+                # A pusher that only reads counts can now tell "delivered" from "applied".
+                "skipped": skipped_total,
+                "skipped_reasons": skipped_reasons,
+                "skipped_missing_parents": missing_parents,
                 "results": out["results"],
                 "conflict_details": out["conflicts"],
                 "insert_results": inserted["results"],

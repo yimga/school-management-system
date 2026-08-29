@@ -57,6 +57,17 @@ x-app: &app
     # REMOVES capability -- it takes the control plane away from a box and grants
     # nothing -- and _IS_CLOUD_DEPLOYED still wins over it outright.
     RMC_SELFHOST_STACK: "1"
+  extra_hosts:
+    # Ollama runs on the HOST, not in this stack, and .env.edge.example points
+    # OLLAMA_ENDPOINT at host.docker.internal. Docker Desktop resolves that name
+    # by itself; a Linux box -- which is what an appliance actually is -- does
+    # NOT, unless it is mapped here. Without this line every Ollama candidate
+    # fails (127.0.0.1 and localhost are the container, host.docker.internal is
+    # NXDOMAIN), the gateway drops to the rules tier, and the copilot answers
+    # every question with "the language model on this server is offline" -- while
+    # check_edge_readiness reported OK, because the endpoint was SET.
+    # deploy/observability/docker-compose.yml has carried this line all along.
+    - "host.docker.internal:host-gateway"
   volumes:
     # Certificates the box mints for itself (manage.py edge_tls --issue-selfsigned)
     # and the box CA that signs them. A named volume because losing ca.key means

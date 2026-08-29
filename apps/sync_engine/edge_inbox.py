@@ -41,6 +41,61 @@ def split_bundle_rows(rows):
     return updates, inserts, deletes, malformed
 
 
+def tally_skipped_rows(
+    update_results, insert_results, delete_results, *, conflict_indexes=frozenset()
+):
+    """Count rows the far side sent that this side could NOT apply, keyed by reason.
+
+    A row that was neither applied nor raised as a conflict is SKIPPED, and it used to be
+    invisible: the caller saw "received N" and reported that as moved, so a bundle in which
+    every row was refused still read as a clean sync.
+
+    Shared by BOTH receivers - the box's pull inbox and the cloud's upload view - for the
+    same reason :func:`split_bundle_rows` is: the pull side learned to count refusals and
+    the push side did not, so the identical 409 was a named reason coming down and silence
+    going up. One implementation is what stops the two from drifting apart again.
+
+    Returns ``(skipped_reasons, missing_parents)``.
+
+    ``missing_parents`` records WHICH parent, not just how many. A `missing_reference` used
+    to arrive at the runner as a bare count, and the runner's only healing move - rewinding
+    the pull cursor for a full-corpus replay - is worth making ONLY when the absent parent
+    is a row the rail can actually deliver. A parent whose table does not ride will not
+    appear in a replay, in this replay or any future one, so on that evidence the rewind is
+    a guaranteed-futile re-download of the entire corpus, every cooldown, forever. Keeping
+    the model label here is what lets the runner tell the two cases apart.
+
+    ``conflict_indexes`` applies to ``update_results`` ONLY. The three result lists index
+    INDEPENDENTLY (each enumerates its own row list), and conflicts only ever come from
+    ``apply_changes``, so matching those indexes against the insert or delete results would
+    silently drop unrelated refusals that happen to share an index.
+    """
+    skipped_reasons: dict = {}
+    missing_parents: dict = {}
+
+    def _tally(results, indexes=frozenset()):
+        for res in results or ():
+            if res.get("status") in (200, 201):
+                continue
+            # A CONFLICT is not a skip: it has its own surface and its own operator
+            # workflow, and counting it twice would inflate the number whose whole meaning
+            # is "nobody is looking at this".
+            if res.get("index") in indexes:
+                continue
+            data = res.get("data") or {}
+            reason = str(data.get("error") or "unknown")
+            skipped_reasons[reason] = skipped_reasons.get(reason, 0) + 1
+            if reason == "missing_reference":
+                label = str(data.get("references") or "").strip()
+                if label:
+                    missing_parents[label] = missing_parents.get(label, 0) + 1
+
+    _tally(update_results, conflict_indexes)
+    _tally(insert_results)
+    _tally(delete_results)
+    return skipped_reasons, missing_parents
+
+
 def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud-pull") -> dict:
     """Verify a pulled bundle for ``school`` and apply its rows on the box.
 
@@ -115,39 +170,12 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
     # was invisible: the caller saw "received N" and reported that as pulled, so a bundle
     # in which every row was refused still read as a clean sync. Count them and keep the
     # reasons, so "sync is green" cannot mean "nothing landed".
-    skipped_reasons: dict = {}
-    # WHICH parent, not just how many. A `missing_reference` used to arrive at the runner
-    # as a bare count, and the runner's only healing move - rewinding the pull cursor for a
-    # full-corpus replay - is worth making ONLY when the absent parent is a row the rail can
-    # actually deliver. A parent whose table does not ride will not appear in a replay, in
-    # this replay or any future one, so on that evidence the rewind is a guaranteed-futile
-    # re-download of the entire corpus, every cooldown, forever. Keeping the model label
-    # here is what lets the runner tell the two cases apart.
-    missing_parents: dict = {}
-
-    def _tally(results, conflict_indexes=frozenset()):
-        for res in results:
-            if res.get("status") in (200, 201):
-                continue
-            # A CONFLICT is not a skip: it has its own surface and its own operator
-            # workflow, and counting it twice would inflate the number whose whole meaning
-            # is "nobody is looking at this".
-            if res.get("index") in conflict_indexes:
-                continue
-            data = res.get("data") or {}
-            reason = str(data.get("error") or "unknown")
-            skipped_reasons[reason] = skipped_reasons.get(reason, 0) + 1
-            if reason == "missing_reference":
-                label = str(data.get("references") or "").strip()
-                if label:
-                    missing_parents[label] = missing_parents.get(label, 0) + 1
-
-    # The two result lists index INDEPENDENTLY (one enumerates update_rows, the other
-    # insert_rows), so the conflict indexes — which only ever come from apply_changes —
-    # must not be matched against the insert results as well.
-    _tally(out["results"], {c.get("index") for c in out["conflicts"]})
-    _tally(inserted["results"])
-    _tally(removed["results"])
+    skipped_reasons, missing_parents = tally_skipped_rows(
+        out["results"],
+        inserted["results"],
+        removed["results"],
+        conflict_indexes={c.get("index") for c in out["conflicts"]},
+    )
 
     return {
         "ok": True,
@@ -168,4 +196,4 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
     }
 
 
-__all__ = ["apply_pulled_bundle", "split_bundle_rows"]
+__all__ = ["apply_pulled_bundle", "split_bundle_rows", "tally_skipped_rows"]
