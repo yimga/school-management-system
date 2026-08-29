@@ -50,6 +50,26 @@ def _resolves(hostname: str, timeout_seconds: float = 3.0) -> bool:
     return bool(outcome and outcome[0])
 
 
+def _is_loopback(host: str) -> bool:
+    """Does this endpoint point at the container ITSELF?
+
+    "Resolves but does not answer" has two very different causes and only one
+    fix each. A loopback target means nothing is listening HERE. A non-loopback
+    one usually means the model server IS up on the host but is bound to its own
+    127.0.0.1, which no container can reach -- and that failure looks exactly
+    like the DNS one, so the operator must be told which of the two they have.
+    """
+    import ipaddress
+
+    candidate = (host or "").strip().strip("[]").lower()
+    if candidate in {"localhost", "localhost.localdomain"}:
+        return True
+    try:
+        return ipaddress.ip_address(candidate).is_loopback
+    except ValueError:
+        return False
+
+
 def _ollama_host(endpoint: str) -> str:
     """Hostname out of an Ollama endpoint, or "" when it cannot be read."""
     from urllib.parse import urlsplit
@@ -552,11 +572,24 @@ class Command(BaseCommand):
                         f"model is offline.{hint}",
                     ))
                 elif not _ollama_answers(ollama):
+                    # DNS is no longer the problem. On a box the NEXT wall is the
+                    # bind: Ollama listens on 127.0.0.1:11434 by default, which is
+                    # the HOST's loopback, unreachable from inside a container. The
+                    # symptom is identical to the DNS failure above, so saying only
+                    # "start ollama" sends the operator to the one thing already fine.
+                    bind_hint = (
+                        " If Ollama is already running on the host, it is almost"
+                        " certainly bound to 127.0.0.1 and cannot be reached from this"
+                        " container: set OLLAMA_HOST=0.0.0.0 for the Ollama service and"
+                        " restart it."
+                        if host and not _is_loopback(host)
+                        else ""
+                    )
                     findings.append((
                         WARN,
                         f"OLLAMA_ENDPOINT={ollama} resolves but did not answer /api/tags — "
-                        "start it with `ollama serve` and pull the model in OLLAMA_MODEL. "
-                        "Until then AI degrades to deterministic rules (no crash).",
+                        "start it with `ollama serve` and pull the model in OLLAMA_MODEL."
+                        f"{bind_hint} Until then AI degrades to deterministic rules (no crash).",
                     ))
                 else:
                     findings.append((OK, f"OLLAMA_ENDPOINT={ollama} answered — local model tier is live."))

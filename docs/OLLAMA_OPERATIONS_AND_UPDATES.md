@@ -90,6 +90,7 @@ Live tests **fail** (not skip) when `RMC_AI_REQUIRE_LIVE=1` and Ollama is down. 
 | `AI_PROVIDER_PREFERENCE` | Default `ollama,rules`. Legacy token `gemini` is **ignored**. |
 | `OLLAMA_AUTO_DISCOVER` | Default `1` — probe common dev hosts and use the first reachable (see below). |
 | `OLLAMA_BASE_URL_CANDIDATES` | Optional comma-separated extra bases (LAN IP, etc.). |
+| `OLLAMA_HOST` | **Set on the Ollama service, not on Django.** Default `127.0.0.1:11434`, which only the host itself can reach. Use `0.0.0.0` when Django runs in a container or on another machine. |
 
 ### Multi-host auto-discover (Windows / WSL / Docker)
 
@@ -126,7 +127,16 @@ Pin one host only: `OLLAMA_AUTO_DISCOVER=0` and set `OLLAMA_BASE_URL` or `OLLAMA
 > rather than a networking one. `deploy/selfhost/docker-compose.yml` now maps
 > the name via `host-gateway`, and `python manage.py check_edge_readiness`
 > resolves and probes the endpoint instead of only checking that it is set.
-
+>
+> **And it has a second half.** Once the name resolves, the container reaches
+> the host *gateway* address -- but Ollama binds to `127.0.0.1:11434` by
+> default, so the host refuses the connection and the copilot prints the very
+> same canned table. It looks like the mapping did not work. Fix it on the
+> Ollama side, not in Django: `sudo systemctl edit ollama` and add
+> `Environment="OLLAMA_HOST=0.0.0.0"`, then
+> `sudo systemctl restart ollama`. `check_edge_readiness` tells the two apart --
+> a host that does not resolve is a FAIL, a host that resolves but does not
+> answer is a WARN that names the bind.
 
 After starting Ollama, refresh discovery: `python scripts/verify_ollama_live.py --invoke` (forces a fresh probe).
 

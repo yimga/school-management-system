@@ -98,6 +98,42 @@ class ReadinessProbesTheEndpointTests(SimpleTestCase):
         # Port 1 on the loopback: nothing listens, and it fails fast.
         self.assertFalse(mod._ollama_answers("http://127.0.0.1:1", timeout_seconds=1.0))
 
+    def test_it_tells_a_local_silence_from_an_unreachable_bind(self):
+        """The second half of the trap, and it wears the first half's costume.
+
+        Once host.docker.internal resolves, the container reaches the host
+        GATEWAY -- and Ollama binds to 127.0.0.1:11434 by default, so the host
+        refuses it and the copilot prints the same canned table. An operator who
+        is only told "start ollama" is sent back to the one thing already fine.
+        """
+        mod = self._module()
+
+        # Nothing is listening HERE -- the fix is to start it.
+        for here in ("127.0.0.1", "localhost", "::1", "[::1]", "127.0.1.5", "LocalHost"):
+            with self.subTest(host=here):
+                self.assertTrue(mod._is_loopback(here))
+
+        # Something is listening THERE but not for us -- the fix is the bind.
+        for there in ("172.17.0.1", "10.10.20.137", DESKTOP_ONLY_HOST, "ollama"):
+            with self.subTest(host=there):
+                self.assertFalse(mod._is_loopback(there))
+
+    def test_an_unreadable_host_is_not_claimed_to_be_local(self):
+        # Guessing "local" here would suppress the bind hint on exactly the
+        # container-to-host case that needs it, so the unknown answer is False.
+        mod = self._module()
+        for junk in ("", "   ", "not a host", "999.999.999.999"):
+            with self.subTest(host=junk):
+                self.assertFalse(mod._is_loopback(junk))
+
+    def test_the_docker_endpoint_reads_as_remote_end_to_end(self):
+        # The two helpers have to compose: this is the exact pair the readiness
+        # command evaluates for a box.
+        mod = self._module()
+        host = mod._ollama_host("http://host.docker.internal:11434")
+        self.assertFalse(mod._is_loopback(host), "a box would lose the bind hint")
+        self.assertTrue(mod._is_loopback(mod._ollama_host("http://localhost:11434/api/generate")))
+
     def test_a_generate_suffix_is_trimmed_before_probing(self):
         mod = self._module()
         seen: list[str] = []
