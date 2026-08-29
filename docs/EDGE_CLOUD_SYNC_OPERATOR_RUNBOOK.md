@@ -42,8 +42,12 @@ Source of truth: `_get_entity_config(include_derived=True)` in `apps/api/sync_se
 
 - **Finance / money** — cloud-authoritative, **down-only**. The box never overwrites the
   cloud's financial records; on a money conflict the cloud wins.
-- **Teacher records** (`TeacherProfile`) — deferred, because they carry salary/pay-grade
-  fields; two-way last-writer-wins would let a box edit override cloud compensation.
+- **Teacher records** (`TeacherProfile`) — the row rides, but **CREATE is refused in both
+  directions** (409 `insert_held_for_entity`): a profile needs an `accounts.User`, and the
+  rail must not mint logins. Roster edits to a teacher that already exists on both sides
+  converge two-way; a teacher that exists only on the cloud will **never** reach the box
+  by sync, however long you wait. Use **Step 2b** below. (Per-field direction rules,
+  including down-only pay columns, are in `docs/EDGE_SYNC_IDENTITY_HOLD.md`.)
 - **Grades / marks** (`Evaluation`) — not on the two-way rail.
 - **Specialty / trade catalog, documents, and most master data** — loaded by the bulk
   importer + the sovereign seed, not by delta sync.
@@ -114,6 +118,44 @@ python manage.py import_tenant_bundle --in /srv/rmc/gilead-tech.rmcbundle --expe
 
 > Confirm the exact flags with `--help` on the box's deployed build. `--fresh` is the
 > empty-shell path used for first bring-up; omit it to carry data.
+
+> **Do Step 2b FIRST if the school has staff.** The tenant bundle carries
+> `people.teacherprofile` but not the `accounts.User` rows it points at (`accounts` is
+> not a tenant app). `import_tenant_bundle` is one transaction, so the dangling FK does
+> not skip the teachers — it **fails the entire import and nothing lands**:
+> `DoesNotExist: User matching query does not exist.` Measured 2026-08-29.
+
+---
+
+## Step 2b — Move the staff logins (required before Step 2 on any school with teachers)
+
+Sync cannot do this and the tenant bundle cannot do this. It is a deliberate operator
+act, which is precisely what provisioning an identity is supposed to be.
+
+On the **cloud**:
+
+```bash
+python manage.py export_tenant_staff --slug gilead-tech --out gilead.rmcstaff
+```
+
+Move the file to the box — it is encrypted and signed for that one school, but it
+carries password hashes, so move it like a credential and delete it afterwards. Then on
+the **box**:
+
+```bash
+python manage.py import_tenant_staff --in gilead.rmcstaff --dry-run          # check first
+python manage.py import_tenant_staff --in gilead.rmcstaff --expect-school-id <school-uuid>
+```
+
+`--dry-run` verifies the signature and reports pk collisions without writing. A pk that
+belongs to a different account on the box aborts the import rather than overwriting a
+local login. `--reset-passwords` lands the accounts unusable + must-change instead of
+carrying hashes — safer, but each teacher then needs a reachable reset path on the box,
+which an offline box may not have. `is_superuser` is never carried either way.
+
+The import is pk-preserving and idempotent. **You will know it worked when the Sync
+Center's per-cycle "NOT applied" count drops** — those refusals were the teacher rows
+being re-offered and re-refused on every cycle.
 
 ---
 

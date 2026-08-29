@@ -128,10 +128,17 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
 # beats letting the insert reach the database and die on an IntegrityError every cycle,
 # which reports a confusing constraint error instead of the actual reason.
 _INSERT_HELD_ENTITIES: dict[str, str] = {
+    # The second sentence used to read "create the staff member on the cloud and the
+    # profile will sync down". It is not true and it was measured not to be: this same
+    # check runs in `_create_from_cloud_pull`, so a teacher created on the CLOUD is
+    # refused on the way DOWN too. An operator who followed that advice waited for a
+    # sync that could never happen -- 39 teachers refused on all 687 cycles of a day.
     "teacher": (
         "a teacher record requires an accounts.User, and provisioning a login is an "
-        "authentication decision the sync rail must not make; create the staff member on "
-        "the cloud and the profile will sync down"
+        "authentication decision the sync rail must not make. The refusal is symmetric: "
+        "a teacher created on the cloud cannot be created on a box either, and no "
+        "resync will change that. Move staff with the explicit operator step instead -- "
+        "export_tenant_staff on the cloud, then import_tenant_staff on the box"
     ),
 }
 

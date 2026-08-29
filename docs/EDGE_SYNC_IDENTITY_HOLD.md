@@ -55,8 +55,26 @@ The consequence is deliberately asymmetric:
   it reach the `NOT NULL` violation would report an opaque `IntegrityError` every cycle
   instead of the actual reason.
 
-  **Operational path:** create the staff member on the cloud; the profile syncs down to the
-  box on the next pull, and from then on the box may edit its roster fields.
+  **The refusal is SYMMETRIC, and this document used to get that wrong.** The same check
+  runs in `_create_from_cloud_pull`, so a teacher created on the CLOUD cannot be created
+  on a box either. This paragraph previously read "create the staff member on the cloud;
+  the profile syncs down to the box on the next pull" -- which is what the 409 payload
+  also said, and neither was true. Measured 2026-08-29 on a rebuilt Gilead box: 39
+  teachers on the cloud, refused on all 687 sync cycles of that day, ~39 rows of the
+  26,598 "NOT applied" total per cycle.
+
+  The tenant bundle does not rescue it either. `export_tenant_bundle` walks
+  TENANT_APP_LABELS, which includes `people`, so `people.teacherprofile` IS exported --
+  with `user_id` intact -- while `accounts` is not a tenant app, so the Users are not.
+  `import_tenant_bundle` runs inside `transaction.atomic()`, so the dangling FK does not
+  skip the teachers: it rolls the WHOLE tenant import back and nothing lands.
+
+  **Operational path:** `export_tenant_staff` on the cloud, `import_tenant_staff` on the
+  box (`apps/lifecycle/staff_portability.py`). It is pk-preserving, so once the rows
+  exist on both sides ordinary delta sync converges by UPDATE-by-pk -- which is exactly
+  what this hold permits -- and the per-cycle skip count for teachers falls to zero.
+  Running that command is the explicit human act condition 1 below asks for; nothing on
+  the sync rail can reach it, and it can never mint a superuser.
 
 ## Enforcement is on every inbound path
 
@@ -91,10 +109,14 @@ not be remapped (`_insert_fk_targets` only remaps FKs onto registered entities) 
 
 ## Conditions to revisit
 
-1. **Offline-created staff.** Would need a provisioning handshake that is explicitly an
-   authentication flow: the box submits a *request*, an authorized human on the cloud
-   approves it, and the User is minted there. That is a feature, not a sync-policy change,
-   and it must never be implicit in a bundle apply.
+1. **Offline-created staff (box -> cloud).** Still open. Would need a provisioning
+   handshake that is explicitly an authentication flow: the box submits a *request*, an
+   authorized human on the cloud approves it, and the User is minted there. That is a
+   feature, not a sync-policy change, and it must never be implicit in a bundle apply.
+
+   The **cloud -> box** half of this is now closed by `staff_portability`, and it was
+   always the easier half: the authentication decision has already been made, by a
+   human, on the cloud. All the box needs is to be handed the result.
 2. **Per-field conflict resolution.** Would remove the extra round trip described above.
 3. **`custom_attributes` is two-way and whole-blob.** LWW on a JSON dict overwrites the
    whole value, so a cloud-side key added during an outage can be lost when the box's
