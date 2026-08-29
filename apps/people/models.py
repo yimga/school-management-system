@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
+import hashlib
 import re
 import uuid
 
@@ -793,18 +794,44 @@ class StudentProfile(models.Model):
                     year, specialty, classroom, school=school
                 )
         if not self.student_code:
-            # The fallback is random, so the two nodes CANNOT agree on it -- two copies
-            # of one student get two codes and neither is more right. Marking which node
-            # minted it does not fix that; it makes it legible, which is what an operator
-            # holding a pile of code conflicts actually needs in order to decide.
-            from apps.siteconfig.identifier_policy_service import (
-                node_identifier_namespace,
-            )
+            # A PLACEHOLDER THE TWO NODES CAN BOTH ARRIVE AT, when there is anything to
+            # arrive at it FROM. `student_code` is on the rail and per-school unique, and
+            # `apply_edge_inserts` upserts by `client_offline_id` -- so when one offline
+            # row lands on both nodes, they are matched as ONE student and their codes
+            # are compared. A random placeholder made that disagreement permanent and
+            # unarbitrable: neither value is more right, and no later retry changes
+            # either one.
+            #
+            # THE NODE MARK IS DELIBERATELY ABSENT FROM THE DERIVED FORM, which reads
+            # like a regression and is the opposite. On an admission number the mark is
+            # what stops two nodes issuing the same number, and removing it would undo
+            # that. One row's placeholder has the inverse requirement -- the nodes must
+            # land on the SAME string -- and stamping the local node in guarantees they
+            # never do. The two identifiers want opposite things from the same mark.
+            #
+            # 64 bits of the digest: the column allows 50 characters and this needs 21,
+            # so there is no reason to shave it down to where a collision between two
+            # offline ids in one school stops being unthinkable -- that collision would
+            # surface as a refused enrolment, not a wrong number.
+            coid = (getattr(self, "client_offline_id", "") or "").strip()
+            if self.admission_number:
+                self.student_code = self.admission_number
+            elif coid:
+                self.student_code = "TEMP-%s" % (
+                    hashlib.sha256(coid.encode("utf-8")).hexdigest()[:16].upper(),
+                )
+            else:
+                # Nothing to converge WITH, so the code is local by nature and the mark
+                # earns its place again: an operator holding two of these needs to know
+                # which node invented which.
+                from apps.siteconfig.identifier_policy_service import (
+                    node_identifier_namespace,
+                )
 
-            self.student_code = self.admission_number or "TEMP-%s-%s" % (
-                node_identifier_namespace(getattr(self, "school", None)),
-                uuid.uuid4().hex[:8].upper(),
-            )
+                self.student_code = "TEMP-%s-%s" % (
+                    node_identifier_namespace(getattr(self, "school", None)),
+                    uuid.uuid4().hex[:8].upper(),
+                )
         if not self.referral_code:
             self.referral_code = f"REF-{uuid.uuid4().hex[:6].upper()}"
         from apps.people.student_search_index import build_student_search_index
