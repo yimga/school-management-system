@@ -48,6 +48,7 @@ import json
 import logging
 
 from django.apps import apps as django_apps
+from django.core.exceptions import FieldDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
@@ -242,7 +243,11 @@ def import_staff_bundle(
     for name in _NULLABLE_FK_FIELDS:
         try:
             field = Teacher._meta.get_field(name)
-        except Exception:  # noqa: BLE001 - a field this build does not have is not a gap
+        except FieldDoesNotExist:
+            # A field this build does not have is not a gap -- the list above is
+            # written against the model as it stands, and an older or newer tree may
+            # legitimately lack one. Named rather than caught broadly, so a real
+            # error here still surfaces.
             continue
         wanted = {row.get(field.attname) for row in teachers if row.get(field.attname)}
         if not wanted:
