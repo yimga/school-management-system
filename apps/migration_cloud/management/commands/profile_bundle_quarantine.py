@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from apps.migration_cloud.models import MigrationBundle
 from apps.migration_cloud.quarantine_profile import profile_quarantine_distribution
+from apps.migration_cloud.quarantine_resolution import format_bundle_choices
 
 
 class Command(BaseCommand):
@@ -17,7 +18,9 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        parser.add_argument("--bundle-id", type=int, required=True)
+        # Optional on purpose: with no id this LISTS bundles, which is the only
+        # way an operator on a Render shell or a box can discover a valid one.
+        parser.add_argument("--bundle-id", type=int, default=None)
         parser.add_argument(
             "--include-resolved",
             action="store_true",
@@ -27,9 +30,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         bundle_id = options["bundle_id"]
+        if bundle_id is None:
+            self.stdout.write(format_bundle_choices())
+            return
         bundle = MigrationBundle.objects.filter(pk=bundle_id).first()
         if bundle is None:
-            raise CommandError(f"Bundle {bundle_id} not found")
+            # Print the way forward, then still fail: a guessed id is an error and
+            # an `&&` chain must not carry on as though it had profiled anything.
+            self.stdout.write(format_bundle_choices())
+            raise CommandError(f"Bundle {bundle_id} not found -- see the list above.")
 
         profile = profile_quarantine_distribution(
             bundle,

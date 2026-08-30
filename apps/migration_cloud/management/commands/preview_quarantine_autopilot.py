@@ -32,7 +32,8 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        parser.add_argument("--bundle-id", type=int, required=True)
+        # Optional on purpose -- see profile_bundle_quarantine.
+        parser.add_argument("--bundle-id", type=int, default=None)
         parser.add_argument("--json", action="store_true", dest="as_json")
         parser.add_argument(
             "--list-held",
@@ -41,9 +42,16 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        bundle = MigrationBundle.objects.filter(pk=options["bundle_id"]).first()
+        from apps.migration_cloud.quarantine_resolution import format_bundle_choices
+
+        bundle_id = options["bundle_id"]
+        if bundle_id is None:
+            self.stdout.write(format_bundle_choices())
+            return
+        bundle = MigrationBundle.objects.filter(pk=bundle_id).first()
         if bundle is None:
-            raise CommandError(f"Bundle {options['bundle_id']} not found")
+            self.stdout.write(format_bundle_choices())
+            raise CommandError(f"Bundle {bundle_id} not found -- see the list above.")
 
         report = preview_autopilot_decisions(bundle)
 

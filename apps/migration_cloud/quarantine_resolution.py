@@ -122,6 +122,68 @@ def pending_quarantine_count(bundle) -> int:
     return quarantine_queryset_for_bundle(bundle, pending_only=True).count()
 
 
+def recent_bundles_overview(*, limit: int = 15) -> list[dict[str, Any]]:
+    """Bundles an operator could plausibly have meant, newest first.
+
+    Every command here takes ``--bundle-id``, and a bare "Bundle N not found"
+    is a dead end in the two places these are actually run: a Render shell and
+    an appliance. Neither operator has a psql prompt handy, so a command that
+    refuses an id owes them the ids that would have worked.
+
+    ``held`` is the pending count the profiler would report, so the list
+    doubles as the triage order.
+    """
+    from .models import MigrationBundle
+
+    try:
+        capped = max(1, int(limit))
+    except (TypeError, ValueError):
+        capped = 15
+
+    rows: list[dict[str, Any]] = []
+    # select_related BEFORE the slice: a sliced queryset cannot be refined.
+    qs = MigrationBundle.objects.select_related("school").order_by("-created_at")
+    for bundle in qs[:capped]:
+        school = getattr(bundle, "school", None)
+        rows.append(
+            {
+                "id": bundle.pk,
+                "label": (getattr(bundle, "label", "") or "").strip() or "—",
+                "school": (getattr(school, "name", "") or "").strip() or "—",
+                "status": str(getattr(bundle, "status", "") or "—"),
+                "created": (
+                    bundle.created_at.isoformat(timespec="seconds")
+                    if getattr(bundle, "created_at", None)
+                    else "—"
+                ),
+                "held": pending_quarantine_count(bundle),
+            }
+        )
+    return rows
+
+
+def format_bundle_choices(*, limit: int = 15) -> str:
+    """The bundle list as an operator-readable block, or a plain empty answer.
+
+    Shared by every ``--bundle-id`` command so the recovery path is identical
+    whichever one the operator happened to run first.
+    """
+    rows = recent_bundles_overview(limit=limit)
+    if not rows:
+        return (
+            "No migration bundles exist in this database at all -- so this is the "
+            "wrong environment, not the wrong id."
+        )
+    lines = [f"Bundles in this database (newest first, {len(rows)} shown):", ""]
+    lines.append(f"  {'id':>5}  {'held':>5}  {'status':<14}  {'created':<20}  label / school")
+    for row in rows:
+        lines.append(
+            f"  {row['id']:>5}  {row['held']:>5}  {row['status']:<14}  "
+            f"{row['created']:<20}  {row['label']} / {row['school']}"
+        )
+    return "\n".join(lines)
+
+
 def _source_row_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     row = payload.get("source_row")
     if isinstance(row, dict):
