@@ -45,11 +45,16 @@ class TheCleanTreePassesTests(SimpleTestCase):
         self.assertIn("0 FAIL", body)
         self.assertIn("internally sound", body)
 
-    def test_it_actually_inspected_all_seventeen_steps(self):
-        # A pass over an empty list also reports 0 FAIL.
+    def test_it_actually_inspected_every_step(self):
+        # A pass over an empty list also reports 0 FAIL, so assert the real counts.
+        # Derived, not hardcoded: the exact key list is already pinned by
+        # test_edge_onboarding.py::_EXPECTED_KEYS, so a DELETED step is caught there
+        # and this one need not be re-edited every time a step is legitimately added.
         body = _run()
-        self.assertIn("%d steps" % len(eo.EDGE_ONBOARDING_STEPS), body)
-        self.assertIn("6 of 17 steps carry a self-heal", body)
+        total = len(eo.EDGE_ONBOARDING_STEPS)
+        healable = sum(1 for s in eo.EDGE_ONBOARDING_STEPS if s.self_heal is not None)
+        self.assertIn("%d steps" % total, body)
+        self.assertIn("%d of %d steps carry a self-heal" % (healable, total), body)
 
 
 class EveryCheckMustFireTests(SimpleTestCase):

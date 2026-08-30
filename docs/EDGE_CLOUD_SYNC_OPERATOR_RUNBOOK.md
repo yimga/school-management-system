@@ -127,25 +127,44 @@ python manage.py import_tenant_bundle --in /srv/rmc/gilead-tech.rmcbundle --expe
 
 ---
 
-## Step 2b — Move the staff logins (required before Step 2 on any school with teachers)
+## Step 2b — Move the staff logins (before Step 2, and before `import_tenant_identities`)
 
 Sync cannot do this and the tenant bundle cannot do this. It is a deliberate operator
 act, which is precisely what provisioning an identity is supposed to be.
 
-On the **cloud**:
+> **Order matters, and it is not the obvious one.** Run this BEFORE
+> `import_tenant_identities`, not after. That command matches users by username and
+> otherwise creates them with a **fresh** primary key — its field list has no `id` — so
+> running it first mints the teacher logins at box-local pks. The staff bundle then
+> refuses the import (`staff_bundle_pk_collision`) rather than overwrite them, and the
+> Step 2 tenant bundle still fails on the dangling FK, because the `user_id` it carries
+> is the cloud's. Staff first, identities second: identities then finds the logins by
+> username and updates them in place, adding memberships and MFA to the same rows.
+
+On the **cloud** (a plain shell — the cloud is not containerised the way a box is):
 
 ```bash
 python manage.py export_tenant_staff --slug gilead-tech --out gilead.rmcstaff
 ```
 
 Move the file to the box — it is encrypted and signed for that one school, but it
-carries password hashes, so move it like a credential and delete it afterwards. Then on
-the **box**:
+carries password hashes, so move it like a credential and delete it afterwards.
+
+On the **box**, the app runs in a container from a baked image, and `/srv/rmc` is a
+checkout that is **not** mounted into it — so `python manage.py` finds no interpreter and
+`--in /srv/rmc/...` names a path the container cannot see. Copy the bundle in, then run
+inside the container:
 
 ```bash
-python manage.py import_tenant_staff --in gilead.rmcstaff --dry-run          # check first
-python manage.py import_tenant_staff --in gilead.rmcstaff --expect-school-id <school-uuid>
+cd /srv/rmc/deploy/selfhost
+./box-rebuild.sh --check      # is this box even running the code you just exported from?
+docker compose cp gilead.rmcstaff web:/app/gilead.rmcstaff
+docker compose exec web python manage.py import_tenant_staff --in /app/gilead.rmcstaff --dry-run
+docker compose exec web python manage.py import_tenant_staff --in /app/gilead.rmcstaff --expect-school-id <school-uuid>
 ```
+
+Replace `<school-uuid>` with the real UUID — the export command prints the exact line.
+(A bare `<...>` is shell redirection and will fail to parse.)
 
 `--dry-run` verifies the signature and reports pk collisions without writing. A pk that
 belongs to a different account on the box aborts the import rather than overwriting a

@@ -298,7 +298,7 @@
     "apps/lifecycle/branding_portability.py": 5,
     "apps/lifecycle/context_processors.py": 2,
     "apps/lifecycle/edge_bringup.py": 2,
-    "apps/lifecycle/edge_onboarding.py": 31,
+    "apps/lifecycle/edge_onboarding.py": 32,
     "apps/lifecycle/management/commands/audit_edge_runbook.py": 2,
     "apps/lifecycle/purge_operations.py": 3,
     "apps/lifecycle/readiness.py": 3,

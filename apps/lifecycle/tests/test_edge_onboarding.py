@@ -33,6 +33,7 @@ _EXPECTED_KEYS = (
     "sync_ownership_repair",
     "export_cloud_artifacts",
     "provision_shell",
+    "migrate_staff",
     "migrate_identities",
     "media_branding",
     "seed_operational_data",
