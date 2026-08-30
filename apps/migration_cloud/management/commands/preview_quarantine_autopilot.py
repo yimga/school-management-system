@@ -99,6 +99,16 @@ class Command(BaseCommand):
 
         if options["list_held"]:
             self.stdout.write("\nheld rows:")
+            # Per-row detail is SAMPLED. Printing a truncated list under a
+            # plain "held rows:" header would read as the whole set, which
+            # turns a partial answer into a false complete one.
+            omitted = int(report.get("rows_truncated") or 0)
+            if omitted:
+                self.stdout.write(
+                    f"  (showing the first {report['rows_returned']} row(s) of "
+                    f"{report['pending']}; {omitted} not listed \u2014 the counts above "
+                    "are exact, this list is a sample)"
+                )
             for row in report["rows"]:
                 if row["outcome"] != "needs_person":
                     continue

@@ -482,6 +482,19 @@ def auto_remediate_before_repair(bundle, *, user=None) -> dict[str, Any]:
     return results
 
 
+# A held-review page open runs five queryset passes and, for two of them, WRITES
+# (rows are re-landed). Bundle 83 on production carries 75,600 pending rows, so
+# 'however many there are' is not a budget -- that request would burn a worker
+# until the proxy killed it, and a reload would burn another. Above this many
+# pending rows the pass is a batch job, not a page-open side effect.
+REVIEW_OPEN_ROW_BUDGET = 5000  # magic-number-allow: autopilot-rows-per-page-open
+
+# The preview reports EXACT counts for every pending row, but keeps per-row
+# detail for only this many -- the detail exists to eyeball, and 75,600 dicts
+# is an out-of-memory kill, not an answer.
+PREVIEW_ROW_SAMPLE_CAP = 1000  # magic-number-allow: preview-rows-sampled
+
+
 def auto_remediate_on_review_open(bundle, *, user=None, skip_inference: bool = True) -> dict[str, Any]:
     """Zero-touch triage when the held-review page opens — no full re-apply.
 
@@ -501,6 +514,22 @@ def auto_remediate_on_review_open(bundle, *, user=None, skip_inference: bool = T
     }
     if pending_before == 0:
         results["pending_after"] = 0
+        results["auto_resolved_total"] = 0
+        return results
+
+    if pending_before > REVIEW_OPEN_ROW_BUDGET:
+        # Refuse rather than start something that cannot finish. A pass killed
+        # mid-flight by a request timeout leaves SOME rows closed and the rest
+        # held, with nothing told to the operator -- worse than not running.
+        logger.warning(
+            "auto_remediate: bundle %s has %s pending rows (budget %s) -- skipping the page-open pass; run preview_quarantine_autopilot / a batch repair instead",
+            getattr(bundle, "pk", None),
+            pending_before,
+            REVIEW_OPEN_ROW_BUDGET,
+        )
+        results["skipped_over_budget"] = True
+        results["row_budget"] = REVIEW_OPEN_ROW_BUDGET
+        results["pending_after"] = pending_before
         results["auto_resolved_total"] = 0
         return results
 
@@ -629,6 +658,7 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
     the same bundle and requires every ``auto_close`` prediction to have happened.
     """
     rows: list[dict[str, Any]] = []
+    pending = 0
     counts: dict[str, int] = {"auto_close": 0, "auto_replay": 0, "needs_person": 0}
     by_rule: dict[str, int] = {}
     held_breakdown: dict[str, int] = {}
@@ -664,6 +694,12 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
             # to refuse to act on a guess; nothing does yet, so at least count it.
             guessed_class_auto += 1
 
+        pending += 1
+        if len(rows) >= PREVIEW_ROW_SAMPLE_CAP:
+            # The counts above are exact; only the per-row DETAIL is sampled.
+            # iterator() was chosen so the queryset is not held in memory, and
+            # accumulating a dict per row put it straight back.
+            continue
         rows.append(
             {
                 "record_id": rec.pk,
@@ -679,7 +715,7 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
 
     return {
         "bundle_id": getattr(bundle, "pk", None),
-        "pending": len(rows),
+        "pending": pending,
         "counts": counts,
         "by_rule": dict(sorted(by_rule.items(), key=lambda kv: -kv[1])),
         "needs_person_breakdown": dict(
@@ -688,6 +724,10 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
         "auto_decided_on_guessed_class": guessed_class_auto,
         "held_because_class_was_guessed": held_on_guess,
         "rows": rows,
+        "rows_returned": len(rows),
+        # Never a silent cap: a truncated sample that reads as the whole set
+        # would make a partial answer look like a complete one.
+        "rows_truncated": max(0, pending - len(rows)),
     }
 
 
