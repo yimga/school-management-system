@@ -495,7 +495,13 @@ REVIEW_OPEN_ROW_BUDGET = 5000  # magic-number-allow: autopilot-rows-per-page-ope
 PREVIEW_ROW_SAMPLE_CAP = 1000  # magic-number-allow: preview-rows-sampled
 
 
-def auto_remediate_on_review_open(bundle, *, user=None, skip_inference: bool = True) -> dict[str, Any]:
+def auto_remediate_on_review_open(
+    bundle,
+    *,
+    user=None,
+    skip_inference: bool = True,
+    enforce_row_budget: bool = True,
+) -> dict[str, Any]:
     """Zero-touch triage when the held-review page opens — no full re-apply.
 
     Closes PDF noise and replayable rows that were never triaged because apply
@@ -512,12 +518,17 @@ def auto_remediate_on_review_open(bundle, *, user=None, skip_inference: bool = T
         "missing_required_replayed": 0,
         "trigger": "review_open",
     }
+    # enforce_row_budget=False is for the batch path, which runs outside any
+    # request and therefore has no proxy to be killed by. The budget exists to
+    # protect a PAGE OPEN, not to make large bundles unresolvable -- a guard that
+    # left 75,600 rows with nowhere to go would just be the old bug, refused
+    # politely.
     if pending_before == 0:
         results["pending_after"] = 0
         results["auto_resolved_total"] = 0
         return results
 
-    if pending_before > REVIEW_OPEN_ROW_BUDGET:
+    if enforce_row_budget and pending_before > REVIEW_OPEN_ROW_BUDGET:
         # Refuse rather than start something that cannot finish. A pass killed
         # mid-flight by a request timeout leaves SOME rows closed and the rest
         # held, with nothing told to the operator -- worse than not running.

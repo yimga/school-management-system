@@ -7,7 +7,10 @@ import json
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.migration_cloud.models import MigrationBundle
-from apps.migration_cloud.quarantine_profile import profile_quarantine_distribution
+from apps.migration_cloud.quarantine_profile import (
+    artifact_yield_overview,
+    profile_quarantine_distribution,
+)
 from apps.migration_cloud.quarantine_resolution import format_bundle_choices
 
 
@@ -45,8 +48,14 @@ class Command(BaseCommand):
             pending_only=not options["include_resolved"],
         )
 
+        yields = artifact_yield_overview(bundle)
+
         if options["as_json"]:
-            self.stdout.write(json.dumps(profile, indent=2, sort_keys=True))
+            self.stdout.write(
+                json.dumps(
+                    {**profile, "artifact_yield": yields}, indent=2, sort_keys=True
+                )
+            )
             return
 
         self.stdout.write(f"Bundle {bundle_id} — {profile['total']} held row(s)")
@@ -61,6 +70,24 @@ class Command(BaseCommand):
         self.stdout.write("\nBy artifact:")
         for key, count in profile["by_artifact"].items():
             self.stdout.write(f"  {count:4d}  {key}")
+        barren = [row for row in yields if row["produced_nothing"]]
+        if barren:
+            # Every discovered row of these files was quarantined, so they created
+            # nothing. Once autopilot dismisses those rows the bundle reads APPLIED
+            # with an empty queue, and this is the only place that still says so.
+            self.stdout.write(
+                "\nProduced NO records (every discovered row was quarantined):"
+            )
+            for row in barren:
+                self.stdout.write(
+                    f"  {row['artifact']}  — {row['rows_discovered']} row(s) read, "
+                    f"{row['held_total']} held ({row['held_resolved']} already resolved)"
+                )
+            self.stdout.write(
+                "  If one of these was meant to carry data, its mapping failed — a "
+                "clean queue is not the same as an import."
+            )
+
         self.stdout.write("\nMatrix (issue_class → domain|artifact):")
         for ic, cells in profile["matrix_issue_class_domain_artifact"].items():
             self.stdout.write(f"  [{ic}]")

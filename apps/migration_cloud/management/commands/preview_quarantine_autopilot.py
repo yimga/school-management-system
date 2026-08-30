@@ -34,6 +34,15 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         # Optional on purpose -- see profile_bundle_quarantine.
         parser.add_argument("--bundle-id", type=int, default=None)
+        parser.add_argument(
+            "--all",
+            action="store_true",
+            dest="do_all",
+            help=(
+                "Preview EVERY bundle that still has held rows, one summary line each. "
+                "Read-only, like the single-bundle form."
+            ),
+        )
         parser.add_argument("--json", action="store_true", dest="as_json")
         parser.add_argument(
             "--list-held",
@@ -42,9 +51,15 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        from apps.migration_cloud.quarantine_resolution import format_bundle_choices
+        from apps.migration_cloud.quarantine_resolution import (
+            format_bundle_choices,
+            recent_bundles_overview,
+        )
 
         bundle_id = options["bundle_id"]
+        if options["do_all"]:
+            self._preview_every_bundle(recent_bundles_overview(limit=200), options)
+            return
         if bundle_id is None:
             self.stdout.write(format_bundle_choices())
             return
@@ -121,3 +136,57 @@ class Command(BaseCommand):
             self.stdout.write(
                 "\nAutopilot would change nothing here. Every held row needs judgement."
             )
+
+    def _preview_every_bundle(self, listing, options):
+        """One line per bundle that still holds rows.
+
+        Running the single-bundle form once per bundle is how an operator ends up
+        reading three screens of logs to compare four numbers. The per-bundle
+        preview is unchanged and still available; this only removes the tedium of
+        finding out WHICH bundles are worth it.
+        """
+        rows = [row for row in listing if int(row.get("held") or 0) > 0]
+        if not rows:
+            self.stdout.write("No bundle is holding any rows.")
+            return
+
+        summaries = []
+        for row in rows:
+            bundle = MigrationBundle.objects.filter(pk=row["id"]).first()
+            if bundle is None:
+                continue
+            report = preview_autopilot_decisions(bundle)
+            counts = report["counts"]
+            summaries.append(
+                {
+                    "bundle_id": row["id"],
+                    "label": row["label"],
+                    "school": row["school"],
+                    "pending": report["pending"],
+                    "auto_close": counts["auto_close"],
+                    "auto_replay": counts["auto_replay"],
+                    "needs_person": counts["needs_person"],
+                    "held_because_class_was_guessed": report["held_because_class_was_guessed"],
+                }
+            )
+
+        if options["as_json"]:
+            self.stdout.write(json.dumps(summaries, indent=2, sort_keys=True, default=str))
+            return
+
+        header = (
+            f"  {'id':>5}  {'held':>7}  {'close':>7}  {'replay':>7}  {'person':>7}  label / school"
+        )
+        self.stdout.write("Every bundle still holding rows (read-only):")
+        self.stdout.write("")
+        self.stdout.write(header)
+        for s in summaries:
+            self.stdout.write(
+                f"  {s['bundle_id']:>5}  {s['pending']:>7}  {s['auto_close']:>7}  "
+                f"{s['auto_replay']:>7}  {s['needs_person']:>7}  {s['label']} / {s['school']}"
+            )
+        self.stdout.write("")
+        self.stdout.write(
+            "  close = certain. replay = attempted, a failed land stays held. "
+            "person = nothing touches it."
+        )
