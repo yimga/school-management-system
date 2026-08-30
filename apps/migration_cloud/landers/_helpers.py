@@ -537,9 +537,16 @@ def row_is_pdf_noise_hold(domain: str, source_row: dict | None, artifact: str = 
     if not domain_identity_is_known(domain):
         return False
     artifact_name = str(artifact or "").lower()
-    if "school_stats" in artifact_name and not row_has_domain_identity(domain, source_row):
-        return True
     if not artifact_name.endswith(".pdf"):
+        # This gate used to sit BELOW a `"school_stats" in artifact_name`
+        # shortcut, so a .csv or .xlsx whose NAME contained school_stats was
+        # dismissed by a rule whose whole contract is PDF tabularisation noise.
+        # Filenames are operator-supplied, and derived stats reports already
+        # have a stronger owner: is_derived_report() reads the HEADERS. If a
+        # school_stats.csv reached quarantine as academics rows, that check
+        # already declined to call it derived -- overruling it on a substring
+        # is a weaker test beating a better one, and it silently discards the
+        # real CSV mapping gaps that are supposed to reach a human.
         return False
     return not row_has_domain_identity(domain, source_row)
 
