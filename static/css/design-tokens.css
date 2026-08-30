@@ -682,6 +682,13 @@
   --admin-surface: #ffffff;
   /* Aliases for components for text/border on main content (theme-everywhere-dark.css retired 2026-05-12 — was a temporary bridge) */
   --admin-text: #0f172a;
+  /* The muted half of the admin text pair. Declared HERE, beside its own
+     family, because it was the only member of {surface,text,border,accent}
+     with no home: it resolved EMPTY on the admin shell, so every
+     unguarded var(--admin-muted) collapsed and inherited whatever colour
+     the surrounding shell happened to set. Slate-600 against the slate-900
+     text above, matching the ramp rather than inventing a second grey. */
+  --admin-muted: #475569;
   --admin-border: rgba(15, 23, 42, 0.12);
 
   /* Semantic role/stat colors for dashboards (admin stats, charts, badges) – theme-aware */
@@ -794,6 +801,7 @@ body.portal-backend-dark {
   --portal-border-strong: var(--hairline-strong, rgba(148, 163, 184, 0.35));
 
   --admin-text: #f1f5f9;
+  --admin-muted: #94a3b8;
   --admin-border: rgba(148, 163, 184, 0.25);
 
   /* v3.17 (2026-05-17) — status / accent token overrides for dark surfaces.
