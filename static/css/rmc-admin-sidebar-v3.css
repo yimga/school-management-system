@@ -46,7 +46,18 @@
 .rmc-admin-sidebar-v3__sync button { padding: .1rem .3rem; border: 1px solid currentColor; border-radius: .35rem; color: inherit; background: transparent; cursor: pointer; font: inherit; }
 .rmc-admin-sidebar-v3__sync button[hidden] { display: none; }
 
-.rmc-admin-sidebar-v3__commands { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .4rem; }
+/* The search affordance gets its own row; the two toggles share the next.
+   One row cannot hold all three: the sidebar is 240-320px, "Focus" and
+   "Compact" take fixed `auto` tracks (~60px and ~75px), and the search
+   button was left the remainder -- measured 2026-08-31 at 77-84px, inside
+   which the icon (8px) and the "Ctrl K" badge (33-44px) consumed everything,
+   collapsing the label column to exactly 0px. That is the admin's primary
+   "find anything" control rendering as a bare icon, on BOTH sites: 0px at
+   1440px and 1280px on tenant, and at 1920/1440/1280 on operator.
+   The accessible name survived (screen readers were unaffected), so this was
+   sighted-user-only -- which is exactly why nothing caught it. */
+.rmc-admin-sidebar-v3__commands { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; }
+.rmc-admin-sidebar-v3__commands > .rmc-admin-sidebar-v3__command { grid-column: 1 / -1; }
 .rmc-admin-sidebar-v3__commands button { min-block-size: 2.4rem; border: 1px solid var(--nav-border); border-radius: .7rem; color: inherit; background: var(--nav-panel); cursor: pointer; }
 .rmc-admin-sidebar-v3__command { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .45rem; padding: .42rem .55rem; text-align: start; }
 .rmc-admin-sidebar-v3__command > span:nth-child(2) { overflow: hidden; color: var(--text-secondary, #a8b1c5); font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
