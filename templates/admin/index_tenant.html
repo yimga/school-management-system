@@ -163,7 +163,7 @@
             <div class="rmc-admin-catalog-model-grid">
               {% for app in section.apps %}
               {% for model in app.models %}
-              <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-card" data-admin-search="{{ model.search_blob }}">
+              <a {% if model.admin_url %}href="{{ model.admin_url }}"{% elif model.add_url %}href="{{ model.add_url }}"{% endif %} class="rmc-admin-catalog-model-card" data-admin-search="{{ model.search_blob }}">
                 <span class="rmc-admin-catalog-model-card__name">{{ model.name }}</span>
                 <span class="rmc-admin-catalog-model-card__app text-muted small">{{ app.app_name }}</span>
               </a>

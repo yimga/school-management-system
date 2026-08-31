@@ -34,10 +34,10 @@
       <div class="rmc-admin-catalog-model-grid mb-3">
         {% for model in admin_app_index_models %}
         <div class="rmc-admin-catalog-model-card">
-          <a href="{{ model.admin_url }}" class="rmc-admin-catalog-model-name text-decoration-none">{% firstof model.name model.object_name %}</a>
+          <a {% if model.admin_url %}href="{{ model.admin_url }}"{% elif model.add_url %}href="{{ model.add_url }}"{% endif %} class="rmc-admin-catalog-model-name text-decoration-none">{% firstof model.name model.object_name %}</a>
           <span class="rmc-admin-catalog-model-meta">{{ model.object_name }}</span>
           <div class="rmc-admin-catalog-model-actions">
-            <a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>
+            {% if model.admin_url %}<a href="{{ model.admin_url }}">{% trans "Changelist" %}</a>{% endif %}
             {% if model.add_url %}<a href="{{ model.add_url }}">{% trans "Add" %}</a>{% endif %}
             {% if model.super_url %}<a href="{{ model.super_url }}" class="fw-semibold">{% trans "Operator view" %}</a>{% endif %}
           </div>

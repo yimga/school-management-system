@@ -55,10 +55,16 @@ def build_platform_admin_catalog(
         for model in app.get("models") or []:
             if model.get("hidden"):
                 continue
+            # A model the viewer may ADD but not view carries no admin_url:
+            # _build_app_dict sets it only for "change" or "view" permission.
+            # Dropping the row here deleted the tile outright, then took its
+            # app down with it when no model survived, then took the whole
+            # section when no app survived -- so a permission shape silently
+            # emptied the catalog. Keep the row; only the LINK is conditional.
             admin_url = model.get("admin_url") or ""
-            if not admin_url:
-                continue
-            bridge_key = bridge_by_admin_url.get(admin_url)
+            bridge_key = (
+                bridge_by_admin_url.get(admin_url) if admin_url else None
+            )
             super_url = ""
             if bridge_key:
                 try:
@@ -181,10 +187,12 @@ def enrich_app_index_models(app_info: dict[str, Any]) -> list[dict[str, Any]]:
     for model in app_info.get("models") or []:
         if model.get("hidden"):
             continue
+        # Same rule as the catalog above: an add-only model still gets a tile.
+        # Returning [] here also made app_index fall through to its bare
+        # fallback branch, which is how one permission shape lost both the
+        # tile labels and the "Changelist" links at once.
         admin_url = model.get("admin_url") or ""
-        if not admin_url:
-            continue
-        bridge_key = bridge_by_admin_url.get(admin_url)
+        bridge_key = bridge_by_admin_url.get(admin_url) if admin_url else None
         super_url = ""
         if bridge_key:
             super_url = _super_first_url_for_bridge(bridge_key) or _super_url_for_admin_url(
