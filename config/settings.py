@@ -4350,6 +4350,78 @@ try:
 except ValueError:
     RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS = 120
 
+# ── Pull paging (G2) ─────────────────────────────────────────────────────────
+# The PUSH leg has paged at RMC_SYNC_BUNDLE_MAX_ROWS since the backlog work; the PULL leg
+# did not. One GET with no limit meant a first sync built, sorted and buffered the entire
+# corpus in memory on the operator and streamed it as one body — 31,043 rows on a measured
+# box — and a link that dropped at 90% restarted from zero. Rows now get the resumability
+# `file_sync` already gives bytes: a page, a cursor, and a header saying whether more
+# remain. See apps/sync_engine/edge_outbox.page_delta_rows for why a page boundary may
+# never split rows that share one `updated_at`.
+try:
+    RMC_EDGE_SYNC_PULL_PAGE_ROWS = max(
+        1, int(os.getenv("RMC_EDGE_SYNC_PULL_PAGE_ROWS", "500"))
+    )
+except ValueError:
+    RMC_EDGE_SYNC_PULL_PAGE_ROWS = 500
+# Pages per cycle. Hitting the ceiling is not a failure: the cursor advanced over every
+# page that applied, so the next cycle resumes there. It is what keeps one tick bounded
+# instead of holding a request open until a proxy kills it.
+try:
+    RMC_EDGE_SYNC_MAX_PULL_PAGES_PER_CYCLE = max(
+        1, int(os.getenv("RMC_EDGE_SYNC_MAX_PULL_PAGES_PER_CYCLE", "20"))
+    )
+except ValueError:
+    RMC_EDGE_SYNC_MAX_PULL_PAGES_PER_CYCLE = 20
+# Server-side ceiling on the page a box may ASK for. A request above it is served in
+# pages rather than refused — the box is asking for something legitimate, it simply does
+# not get to make the operator buffer a corpus to grant it.
+try:
+    RMC_SYNC_PULL_PAGE_MAX_ROWS = max(
+        1, int(os.getenv("RMC_SYNC_PULL_PAGE_MAX_ROWS", "5000"))
+    )
+except ValueError:
+    RMC_SYNC_PULL_PAGE_MAX_ROWS = 5000
+
+# ── Sync wire compression (G6) ───────────────────────────────────────────────
+# Delta bundles are NDJSON — one repeated object shape per line — and nothing on the rail
+# was compressed in either direction. Applied per-endpoint rather than by adding
+# GZipMiddleware: see apps/sync_engine/compression.py for the three reasons (blast radius
+# over every HTML response in the project, BREACH on pages that DO mix a secret with
+# reflected input, and GZipMiddleware's streaming behaviour). Off restores the previous
+# wire byte for byte.
+RMC_SYNC_WIRE_COMPRESSION_ENABLED = os.getenv(
+    "RMC_SYNC_WIRE_COMPRESSION_ENABLED", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+# Ceiling on what a gzip REQUEST body may inflate to on the operator. An authenticated
+# box is still an untrusted source of a compression ratio, and without a bound a few
+# kilobytes of crafted gzip is an out-of-memory.
+try:
+    RMC_SYNC_MAX_DECOMPRESSED_BUNDLE_BYTES = max(
+        1, int(os.getenv("RMC_SYNC_MAX_DECOMPRESSED_BUNDLE_BYTES", str(64 * 1024 * 1024)))
+    )
+except ValueError:
+    RMC_SYNC_MAX_DECOMPRESSED_BUNDLE_BYTES = 64 * 1024 * 1024
+
+# ── Clock offset (G7) ────────────────────────────────────────────────────────
+# Every cursor in the sync engine is a wall-clock `updated_at` position compared across
+# two machines, and nothing measured how far apart their clocks actually are. The cloud's
+# `Date` response header answers it for free on every cycle. Defaults to the cursor
+# overlap above, because that is the exact tolerance the design has for disagreement: once
+# drift exceeds it, a row can fall behind the cursor and never be re-offered.
+try:
+    RMC_EDGE_SYNC_CLOCK_SKEW_WARN_SECONDS = max(
+        1,
+        int(
+            os.getenv(
+                "RMC_EDGE_SYNC_CLOCK_SKEW_WARN_SECONDS",
+                str(RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS or 120),
+            )
+        ),
+    )
+except ValueError:
+    RMC_EDGE_SYNC_CLOCK_SKEW_WARN_SECONDS = 120
+
 # ── Cascading OTA (code + UI/UX asset delivery over the sync rail) ────────────
 # The cloud half is READ-ONLY (serve a manifest, serve a byte range) and defaults ON:
 # it costs nothing until a box asks. The box half — the part that rewrites a running
