@@ -329,7 +329,12 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             set_urlconf(request_urlconf)
         try:
             app_dict = self._build_app_dict(request, app_label)
-        except LookupError as e:
+        # NoReverseMatch too: Django reverses admin:app_list inside
+        # _build_app_dict unguarded, and a 500 on the admin index is a
+        # worse outcome than a logged warning and a degraded list. The
+        # platform sibling already behaved this way; keeping the two
+        # sites symmetric is the point of this change.
+        except (LookupError, NoReverseMatch) as e:
             logging.getLogger(__name__).warning(
                 "Admin app list skip missing app: %s", e
             )
@@ -1393,9 +1398,23 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
 
     def get_app_list(self, request, app_label=None):
         """AdminOpsShell: group and order apps by platform IA (Platform Configuration, Catalog Records, etc.)."""
+        # Pin the request's urlconf before building the app dict, exactly as
+        # BaseRunMyCampusAdminSite.get_app_list does. set_urlconf is
+        # thread-local: Django's handler sets it per request, but any
+        # in-process caller (management command, preview generator, audit
+        # script, test) that renders both sites in one process leaves it
+        # pointing at whichever site ran last. Django's own _build_app_dict
+        # then reverses "admin:app_list" against the WRONG tree and raises
+        # NoReverseMatch -- which this method did not catch, so the platform
+        # index blew up while the tenant one self-corrected. Observed
+        # 2026-08-31: it made a catalog-coverage audit report a phantom
+        # mismatch on the operator site.
+        request_urlconf = getattr(request, "urlconf", None)
+        if request_urlconf:
+            set_urlconf(request_urlconf)
         try:
             app_dict = self._build_app_dict(request, app_label)
-        except LookupError as e:
+        except (LookupError, NoReverseMatch) as e:
             # Missing app (e.g. brand_experience not in INSTALLED_APPS on some envs) — skip so admin index still loads
             logging.getLogger(__name__).warning(
                 "Admin app list skip missing app: %s", e
