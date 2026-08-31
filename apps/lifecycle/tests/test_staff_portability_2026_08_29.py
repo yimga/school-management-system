@@ -25,6 +25,7 @@ from apps.lifecycle.staff_portability import (
     BUNDLE_FORMAT,
     export_staff_bundle,
     import_staff_bundle,
+    inspect_staff_bundle,
 )
 from apps.lifecycle.tenant_dr_snapshot import decrypt_blob
 from apps.lifecycle.tenant_portability import export_tenant_bundle, import_tenant_bundle
@@ -350,3 +351,65 @@ class ManagementCommandTests(TestCase):
                 stdout=io.StringIO(),
             )
         self.assertIn("school_mismatch", str(ctx.exception))
+
+
+class ProfileNumberedDifferentlyTests(TestCase):
+    """The live-box shape, measured on the Gilead appliance 2026-08-31.
+
+    39 real staff on both sides, the SAME people, USER pks agreeing -- and teacher
+    PROFILE pks disagreeing, because each side created its own profile row locally
+    (cloud 2+, box 28+). The user-only guard is silent on that, so the import used to
+    reach `update_or_create(pk=<cloud pk>)` and violate the `TeacherProfile.user`
+    OneToOne index: an opaque IntegrityError rolling the whole import back, which is
+    exactly the failure the guard exists to replace with a reason.
+    """
+
+    def _diverge(self, prefix):
+        """Cloud bundle in hand; box holds the same person's profile at another pk."""
+        school, _owner, uid = _school(prefix)
+        users, profiles = _teachers(school, uid, n=1)
+        data = export_staff_bundle(school)
+        cloud_pk = profiles[0].pk
+        TeacherProfile.objects.filter(pk=cloud_pk).delete()
+        # Explicit pk: deleting the max rowid and re-inserting would REUSE it on
+        # SQLite, and the test would then prove nothing.
+        local = TeacherProfile.objects.create(
+            pk=cloud_pk + 5000, school=school, user=users[0], staff_id=f"LOCAL-{uid}"
+        )
+        self.assertNotEqual(local.pk, cloud_pk)
+        return school, uid, data, local
+
+    def test_it_is_refused_with_a_reason_not_an_integrity_error(self):
+        school, uid, data, local = self._diverge("prof")
+
+        with self.assertRaises(ValueError) as ctx:
+            import_staff_bundle(data, expected_school_id=school.id)
+        message = str(ctx.exception)
+        self.assertIn("staff_bundle_pk_collision", message)
+        self.assertIn("already holds teacher profile", message)
+        self.assertEqual(
+            TeacherProfile.objects.get(pk=local.pk).staff_id,
+            f"LOCAL-{uid}",
+            "a refused import must leave the box's own row exactly as it was",
+        )
+
+    def test_the_dry_run_says_the_same_thing(self):
+        """A dry run that passes where the import refuses is worse than no dry run."""
+        school, _uid, data, _local = self._diverge("dry")
+
+        report = inspect_staff_bundle(data, expected_school_id=school.id)
+        self.assertTrue(report["collisions"])
+        self.assertIn("already holds teacher profile", report["collisions"][0])
+
+    def test_an_ordinary_re_import_is_still_idempotent(self):
+        """The guard must fire on DIVERGENCE only -- never on the same row twice."""
+        school, _owner, uid = _school("idem2")
+        _users, _profiles = _teachers(school, uid, n=2)
+        data = export_staff_bundle(school)
+
+        first = import_staff_bundle(data, expected_school_id=school.id)
+        second = import_staff_bundle(data, expected_school_id=school.id)
+        self.assertEqual(first["teachers"], 2)
+        self.assertEqual(second["teachers"], 2)
+        self.assertEqual(TeacherProfile.objects.filter(school=school).count(), 2)
+

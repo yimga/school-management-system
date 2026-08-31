@@ -74,8 +74,8 @@ class Command(BaseCommand):
             if collisions:
                 self.stdout.write(
                     self.style.ERROR(
-                        "  REFUSED: these pks belong to different accounts here — "
-                        + "; ".join(collisions)
+                        "  REFUSED — this deployment already numbers these people "
+                        "differently:\n    " + "\n    ".join(collisions)
                     )
                 )
             else:
