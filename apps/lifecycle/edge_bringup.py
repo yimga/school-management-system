@@ -36,6 +36,7 @@ class BringupInputs:
     owner_email: str = ""
     bundle_path: str = ""      # .rmcbundle -> import_sovereign_tenant --fresh
     data_bundle_path: str = ""  # .rmcbundle -> import_tenant_bundle (NOT --fresh)
+    staff_path: str = ""       # .rmcstaff -> import_tenant_staff (BEFORE identities)
     identity_path: str = ""    # .rmcidentity -> import_tenant_identities
     brand_path: str = ""       # .rmcbrand -> import_school_branding
     mint_credential: bool = False
@@ -60,6 +61,18 @@ def plan_prep_actions(inputs: BringupInputs) -> list[dict]:
         if inputs.country:
             args += ["--country", inputs.country]
         actions.append({"key": "provision_shell", "cmd": "import_sovereign_tenant", "args": args})
+
+    # BEFORE identities, and the order is load-bearing. import_tenant_identities
+    # matches Users by username and otherwise takes a FRESH pk (its field list has no
+    # `id`), so running it first lands the teacher logins at box-local pks: the staff
+    # bundle then refuses rather than overwrite them, and import_tenant_bundle still
+    # dies on the dangling FK because the user_id it carries is the cloud's -- rolling
+    # the WHOLE operational seed back, not just the teachers.
+    if inputs.staff_path:
+        actions.append({
+            "key": "migrate_staff", "cmd": "import_tenant_staff",
+            "args": ["--in", inputs.staff_path],
+        })
 
     if inputs.identity_path:
         actions.append({

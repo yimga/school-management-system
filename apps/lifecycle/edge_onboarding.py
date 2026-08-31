@@ -24,6 +24,7 @@ where those tables are FORCE RLS + default-deny (the ``School`` parent itself is
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
@@ -100,16 +101,67 @@ def _country(school) -> str:
     return str(getattr(school, "country_code", "") or "").upper()
 
 
-def _fill_command(template: str, school) -> str:
+# What an operator must actually type ON A BOX. Three facts every box template here
+# used to ignore, all of them measured on a live appliance: the selfhost stack runs a
+# BAKED image (deploy/selfhost/box-rebuild.sh exists to close exactly that trap),
+# there is no host interpreter -- `python: command not found` is the first thing a
+# real operator sees -- and /srv/rmc is a checkout that is NOT mounted into the
+# container (that volume line is commented out in docker-compose.yml), so a bundle
+# sitting beside it is invisible to `--in`. Both are overridable for a box that does
+# not run Docker; setting RMC_BOX_MANAGE_PREFIX to "python manage.py" restores the
+# old, native-install behaviour exactly.
+_DEFAULT_BOX_MANAGE_PREFIX = (
+    "docker compose -f /srv/rmc/deploy/selfhost/docker-compose.yml exec web python manage.py"
+)
+_DEFAULT_BOX_COMPOSE = "docker compose -f /srv/rmc/deploy/selfhost/docker-compose.yml"
+
+# `--in /srv/rmc/<name>` -- a HOST path the container cannot see.
+_BOX_IN_RE = re.compile(r"--in\s+/srv/rmc/(\S+)")
+
+
+def _box_manage_prefix() -> str:
+    return str(getattr(settings, "RMC_BOX_MANAGE_PREFIX", "") or _DEFAULT_BOX_MANAGE_PREFIX)
+
+
+def _box_compose() -> str:
+    return str(getattr(settings, "RMC_BOX_COMPOSE", "") or _DEFAULT_BOX_COMPOSE)
+
+
+def _boxify(command: str) -> str:
+    """Rewrite a filled box command into one that can actually be run on a box.
+
+    Copies any `--in /srv/rmc/<file>` artifact into the container first and points
+    the flag at the copy, then swaps the bare `python manage.py` for the container
+    exec form. Lines that are not `python manage.py` invocations pass through
+    untouched, so a step whose command is prose or a shell one-liner is unaffected.
+    """
+    prefix = _box_manage_prefix()
+    if prefix == "python manage.py":
+        return command  # native install: the template is already correct
+    out: "list[str]" = []
+    for line in str(command).split("\n"):
+        stripped = line.strip()
+        if not stripped.startswith("python manage.py"):
+            out.append(line)
+            continue
+        for name in _BOX_IN_RE.findall(stripped):
+            out.append(f"{_box_compose()} cp /srv/rmc/{name} web:/app/{name}")
+        stripped = _BOX_IN_RE.sub(lambda m: f"--in /app/{m.group(1)}", stripped)
+        out.append(prefix + stripped[len("python manage.py"):])
+    return "\n".join(out)
+
+
+def _fill_command(template: str, school, *, runs_on: str = "") -> str:
     """Fill a command template for ``school``. Plain string substitution (not
     ``str.format``) so a template that happens to contain shell/Python braces is
     never mis-parsed."""
-    return (
+    filled = (
         str(template)
         .replace("{slug}", _slug(school))
         .replace("{school_id}", _school_id(school))
         .replace("{country}", _country(school))
     )
+    return _boxify(filled) if runs_on == RUNS_ON_BOX else filled
 
 
 def _operator_base() -> str:
@@ -207,6 +259,51 @@ def _validate_provision_shell(school) -> "tuple[bool, str]":
         return True, "School parent is active and entitled."
     except Exception as exc:  # noqa: BLE001
         return False, f"provision check failed: {exc}"
+
+
+def _validate_migrate_staff(school) -> "tuple[bool, str]":
+    """Teacher logins + profiles are on this box, landed pk-preserving.
+
+    THE STEP WHOSE ABSENCE BROKE EVERY BRING-UP ON A SCHOOL WITH STAFF, measured
+    2026-08-30. `migrate_identities` carries no TeacherProfile and cannot preserve
+    pks -- its field list has no `id`, so it matches on username and otherwise takes
+    a fresh one. `seed_operational_data` DOES carry `people.teacherprofile`, with the
+    CLOUD's `user_id` still on it, because `people` is a tenant app while `accounts`
+    is shared. With nothing pk-preserving between them that FK dangles, and
+    `import_tenant_bundle` runs in ONE `transaction.atomic()` -- so it does not skip
+    the teachers, it rolls the WHOLE operational seed back and nothing lands at all.
+    The broad guard is REQUIRED, not lazy: ``audit_edge_runbook`` check D calls every
+    ``validate()`` directly with a hostile object and fails the tree if one raises, so
+    each check owns its own guard rather than relying on the suite's.
+    """
+    try:
+        from apps.people.models import TeacherProfile
+
+        with rls_bypass():
+            base = TeacherProfile.objects.filter(school=school)
+            total = base.count()
+            # A profile whose user_id resolves to nothing. Impossible while the FK is
+            # enforced, which is exactly why it is worth asserting: it is the shape
+            # the old sequence produced, and SQLite does not always enforce it.
+            orphaned = base.filter(user__isnull=True).count()
+        if orphaned:
+            return (
+                False,
+                f"{orphaned} of {total} teacher profile(s) point at a login that does "
+                "not exist here. Re-run import_tenant_staff -- the profiles were "
+                "seeded without their pk-preserved users.",
+            )
+        if total:
+            return True, f"{total} teacher profile(s) present, every one with a login."
+        return (
+            False,
+            "No teacher profiles -- import the staff bundle (import_tenant_staff) "
+            "BEFORE import_tenant_identities and import_tenant_bundle. It is the only "
+            "pk-preserving path for staff; run it out of order and the operational "
+            "seed rolls back whole. A school with no teachers on the cloud can skip it.",
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"staff check failed: {exc}"
 
 
 def _validate_migrate_identities(school) -> "tuple[bool, str]":
@@ -514,9 +611,9 @@ def _validate_export_cloud_artifacts(school) -> "tuple[bool, str]":
         if not _school_id(school):
             return False, "School has no UUID — export would not pin."
         return True, (
-            "Source tenant can be exported (identities + branding + sovereign data). "
-            "Confirm the three files exist on disk before the box import — the engine "
-            "cannot see /srv/rmc."
+            "Source tenant can be exported (staff + identities + branding + sovereign "
+            "data). Confirm the four files exist on disk before the box import — the "
+            "engine cannot see /srv/rmc."
         )
     except Exception as exc:  # noqa: BLE001
         return False, f"export-readiness check failed: {exc}"
@@ -1064,13 +1161,15 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
     ),
     EdgeOnboardingStep(
         key="export_cloud_artifacts",
-        title="Export identity, branding, and sovereign data (cloud)",
+        title="Export staff, identity, branding, and sovereign data (cloud)",
         purpose=(
-            "Package three artifacts on the cloud: identities, branding, and the "
-            "pk-preserving operational data bundle. Copy them to the box before import."
+            "Package four artifacts on the cloud: staff (teacher logins + profiles), "
+            "identities, branding, and the pk-preserving operational data bundle. "
+            "Copy them to the box before import."
         ),
         category="export",
         command_template=(
+            "python manage.py export_tenant_staff --slug {slug} --out /srv/rmc/{slug}.rmcstaff\n"
             "python manage.py export_tenant_identities --slug {slug} --out /srv/rmc/{slug}.rmcidentity\n"
             "python manage.py export_school_branding --slug {slug} --out /srv/rmc/{slug}.rmcbrand\n"
             "python manage.py export_tenant_bundle --slug {slug} --out /srv/rmc/{slug}.rmcbundle"
@@ -1078,7 +1177,10 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         validate=_validate_export_cloud_artifacts,
         workaround=(
             "If an export command is missing, you are on a build that cannot seed the box. "
-            "Do not invent a CSV copy — use these three commands."
+            "Do not invent a CSV copy — use these four commands. A missing "
+            "export_tenant_staff specifically means the deploy predates the staff path; "
+            "seeding a school that HAS teachers from that build rolls the whole "
+            "operational import back."
         ),
         runs_on=RUNS_ON_CLOUD,
         evidence=EVIDENCE_OPERATOR_FILE,
@@ -1107,6 +1209,33 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_SOURCE_TENANT,
         help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
+    ),
+    EdgeOnboardingStep(
+        key="migrate_staff",
+        title="Import the staff bundle (teacher logins + profiles), pk-preserving",
+        purpose=(
+            "Land the school's teachers on the box with the SAME primary keys as the "
+            "cloud. This must run BEFORE the identity bundle and before the "
+            "operational data bundle: it is the only step that preserves user pks, "
+            "and both of those depend on them."
+        ),
+        category="identity",
+        command_template=(
+            "python manage.py import_tenant_staff --in /srv/rmc/{slug}.rmcstaff "
+            "--expect-school-id {school_id}"
+        ),
+        validate=_validate_migrate_staff,
+        workaround=(
+            "Dry-run it first: import_tenant_staff --dry-run verifies the signature "
+            "and reports pk collisions without writing anything. If the school has no "
+            "teachers on the cloud the export says so and this step is legitimately "
+            "empty. Do NOT try to reach the same end with delta sync -- a teacher "
+            "CREATE is refused in BOTH directions by design (see "
+            "docs/EDGE_SYNC_IDENTITY_HOLD.md), so Sync now will never carry staff."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        help_doc="docs/EDGE_SYNC_IDENTITY_HOLD.md",
     ),
     EdgeOnboardingStep(
         key="migrate_identities",
@@ -1513,7 +1642,7 @@ def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> di
     steps: list[dict] = []
     for step in EDGE_ONBOARDING_STEPS:
         try:
-            command = _fill_command(step.command_template, school)
+            command = _fill_command(step.command_template, school, runs_on=step.runs_on)
         except Exception:  # noqa: BLE001 — a template fill must never crash the runbook
             command = step.command_template
         steps.append(

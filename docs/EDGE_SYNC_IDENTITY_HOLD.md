@@ -76,6 +76,18 @@ The consequence is deliberately asymmetric:
   Running that command is the explicit human act condition 1 below asks for; nothing on
   the sync rail can reach it, and it can never mint a superuser.
 
+  **It must run BEFORE `import_tenant_identities`, and the order is not the obvious
+  one.** That command matches Users by `username__iexact` and otherwise constructs
+  `User(username=...)` with a fresh pk -- its `_USER_FIELDS` has no `id`, so it cannot
+  preserve one. Run it first and the teacher logins land at box-local pks; the staff
+  bundle then refuses (`staff_bundle_pk_collision`) rather than overwrite them, and the
+  operational bundle still dies on the dangling FK because the `user_id` it carries is
+  the cloud's. Staff first, identities second: identities then finds those same rows by
+  username and updates them in place, adding memberships and MFA without touching pks.
+  `apps/lifecycle/edge_onboarding.py` orders the two steps accordingly, and
+  `apps/lifecycle/tests/test_edge_onboarding_staff_sequence_2026_08_30.py` drives the
+  real step list rather than a copy, so a reorder fails there.
+
 ## Enforcement is on every inbound path
 
 The first version of this policy guarded only `_apply_changes_inner` (update-by-pk).

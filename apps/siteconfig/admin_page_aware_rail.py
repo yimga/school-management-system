@@ -7,6 +7,7 @@ instead of static prose. Used by ``admin_page_aware`` template tags.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from django.urls import NoReverseMatch, reverse
@@ -263,6 +264,52 @@ def build_changelist_rail(
     }
 
 
+def _section_model_count(section: Any) -> int:
+    """How many models one catalog section holds.
+
+    Sections do not carry a ``models`` list: they carry ``apps`` plus a
+    precomputed ``model_count``. A reader that knows only ``models`` scores
+    every section zero, which the rail renders as an em dash, not a number.
+    """
+    models = getattr(section, "models", None)
+    if models is None and isinstance(section, Mapping):
+        models = section.get("models")
+    if models is not None:
+        return len(list(models))
+    if isinstance(section, Mapping):
+        count = section.get("model_count")
+        if isinstance(count, int):
+            return count
+        total = 0
+        for app in section.get("apps") or []:
+            rows = (
+                app.get("models")
+                if isinstance(app, Mapping)
+                else getattr(app, "models", None)
+            )
+            total += len(list(rows or []))
+        return total
+    return 0
+
+
+def _catalog_totals(catalog: Any) -> tuple[int, int]:
+    """(section_count, model_count) for either shape the callers pass.
+
+    Producers hand the rail the catalog MAPPING -- {sections, entries,
+    model_count, ...}. A mapping iterates over its KEYS, so treating one as
+    the section list reports the number of dict keys as the section count:
+    five, always, whatever the catalog actually holds.
+    """
+    if isinstance(catalog, Mapping):
+        sections = list(catalog.get("sections") or [])
+        total = catalog.get("model_count")
+        if not isinstance(total, int):
+            total = sum(_section_model_count(s) for s in sections)
+        return len(sections), total
+    sections = list(catalog or [])
+    return len(sections), sum(_section_model_count(s) for s in sections)
+
+
 def build_index_rail(
     *,
     request,
@@ -273,11 +320,7 @@ def build_index_rail(
     section_count = 0
     model_count = 0
     try:
-        sections = list(admin_catalog or [])
-        section_count = len(sections)
-        for sec in sections:
-            models = getattr(sec, "models", None) or (sec.get("models") if isinstance(sec, dict) else None) or []
-            model_count += len(models)
+        section_count, model_count = _catalog_totals(admin_catalog)
     except Exception:  # noqa: BLE001
         section_count = 0
         model_count = 0

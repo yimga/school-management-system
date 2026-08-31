@@ -8,6 +8,7 @@ ready to go offline.
     # Full box bring-up from cloud artifacts:
     python manage.py edge_bringup --slug gilead-tech --country CM \
         --bundle /srv/rmc/gilead-tech.rmcbundle \
+        --staff /srv/rmc/gilead-tech.rmcstaff \
         --identity /srv/rmc/gilead-tech.rmcidentity \
         --brand /srv/rmc/gilead-tech.rmcbrand \
         --mint-credential --credential-user gilead_owner --require-offline-ready
@@ -36,6 +37,15 @@ class Command(BaseCommand):
             dest="data_bundle",
             default="",
             help="Path to the pk-preserving DATA .rmcbundle (import_tenant_bundle, never --fresh).",
+        )
+        parser.add_argument(
+            "--staff",
+            default="",
+            help=(
+                "Path to the .rmcstaff bundle (teacher logins + profiles). Planned "
+                "BEFORE --identity: it is the only pk-preserving staff path, and the "
+                "data bundle's teacherprofile rows point at those pks."
+            ),
         )
         parser.add_argument("--identity", default="", help="Path to the .rmcidentity bundle.")
         parser.add_argument("--brand", default="", help="Path to the .rmcbrand branding bundle.")
@@ -71,6 +81,7 @@ class Command(BaseCommand):
             owner_email=(options.get("owner_email") or "").strip(),
             bundle_path=(options.get("bundle") or "").strip(),
             data_bundle_path=(options.get("data_bundle") or "").strip(),
+            staff_path=(options.get("staff") or "").strip(),
             identity_path=(options.get("identity") or "").strip(),
             brand_path=(options.get("brand") or "").strip(),
             mint_credential=bool(options.get("mint_credential")),
