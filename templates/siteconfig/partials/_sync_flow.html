@@ -37,8 +37,14 @@ question.
       A row the box RECEIVED but could not apply. Not a failure (the cycle ran) and not
       a conflict (nobody is being asked to choose). Without its own figure it hid inside
       "down", so a pull that refused every row read as a healthy sync.
+
+      THE LABEL SAYS "attempts" BECAUSE THE NUMBER IS ATTEMPTS. This is
+      Sum(EdgeSyncRun.skipped) over the selected window -- a sum over CYCLES. One box
+      refused the same 39 teacher rows on all 687 cycles of a day and this tile read
+      26,598, which looks like 26,598 records and is 39. The RECORDS are listed, with
+      their reasons and ages, in the work queue below.
       {% endcomment %}
-      <span class="rmc-sc-figure__label">{% trans "Not applied" %}</span>
+      <span class="rmc-sc-figure__label">{% trans "Not applied (attempts)" %}</span>
       <span class="rmc-sc-figure__value" data-rmc-sc-fig="skipped">0</span>
     </div>
     <div>

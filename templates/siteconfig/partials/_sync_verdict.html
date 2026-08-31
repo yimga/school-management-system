@@ -15,7 +15,8 @@ names which of the two it is.
 Rendered server-side and refreshed by the poll, so the answer is there with JavaScript off.
 {% endcomment %}
 
-<section class="rmc-sc-band" data-rmc-section-anchor="1" data-rmc-edge-sync-panel="1"
+{# id: the work-queue band links here, because the control that acts on a stuck row (full resync / sync now) lives in this band. #}
+<section id="sync-verdict" class="rmc-sc-band" data-rmc-section-anchor="1" data-rmc-edge-sync-panel="1"
          data-rmc-sc-verdict="1" id="edge-sync"
          aria-label="{% trans 'Sync status' %}">
   <div class="rmc-sc-verdict">
