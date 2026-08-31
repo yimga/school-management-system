@@ -58,6 +58,10 @@ class ReconciliationReport:
     per_domain: list[DomainParity] = field(default_factory=list)
     idempotency_check: dict[str, Any] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
+    # PASS 2 verdict (verification.verify_bundle_checksums.as_dict()). Carries
+    # the per-record SHA-256 source-vs-landed comparison, its closing bucket
+    # tally, and every divergence by name. Empty dict when the pass did not run.
+    checksum_verification: dict[str, Any] = field(default_factory=dict)
 
 
 def reconcile_bundle(
@@ -234,6 +238,31 @@ def reconcile_bundle(
             "failed) — the bundle stays APPLIED and the encrypted source blobs are "
             "retained until the landed rows are confirmed."
         )
+    # PASS 2 — the cryptographic proof. Everything above counted rows; this
+    # re-reads each SOURCE record from the encrypted artifact and each LANDED row
+    # from the tenant database, independently, and compares them by SHA-256. Only
+    # BLOCKING findings go into ``notes`` (a non-empty ``notes`` is what holds the
+    # bundle at APPLIED); the full closing tally always lands in the summary below,
+    # so a clean pass is still on the record rather than merely implied.
+    checksum_summary: dict[str, Any] = {}
+    if scoped_readonly:
+        # A scoped drill-down never seals, so it never pays for the re-read.
+        checksum_summary = {"ran": False, "reason": "scoped_readonly_reconcile"}
+    elif not _checksum_pass_enabled():
+        checksum_summary = {"ran": False, "reason": "disabled_by_setting"}
+    else:
+        checksum_report = _safe_verify_checksums(bundle)
+        if checksum_report is None:
+            checksum_summary = {"ran": False, "reason": "verifier_error"}
+            notes.append(
+                "Post-apply checksum verification (Pass 2) could not be completed "
+                "— the bundle stays APPLIED and the encrypted source blobs are "
+                "retained until source-vs-landed integrity is proven."
+            )
+        else:
+            checksum_summary = checksum_report.as_dict()
+            checksum_summary["ran"] = True
+            notes.extend(_checksum_blocking_notes(checksum_report))
     if scoped_readonly:
         notes.append(
             "Scoped drill-down reconcile — read-only. The bundle was NOT closed "
@@ -248,6 +277,7 @@ def reconcile_bundle(
         per_domain=parities,
         idempotency_check=idempotency,
         notes=notes,
+        checksum_verification=checksum_summary,
     )
 
     bundle.reconciliation_summary = _report_to_dict(report)
@@ -666,4 +696,109 @@ def _report_to_dict(report: ReconciliationReport) -> dict[str, Any]:
         "per_domain": [asdict(d) for d in report.per_domain],
         "idempotency_check": report.idempotency_check,
         "notes": report.notes,
+        "checksum_verification": report.checksum_verification,
     }
+
+
+def _checksum_pass_enabled() -> bool:
+    """Whether reconcile runs PASS 2 (the cryptographic source-vs-landed compare).
+
+    Defaults ON. Turning it off means a bundle may seal — and purge its encrypted
+    source blobs — on ROW COUNTS alone, which cannot see a truncated field, a
+    mis-mapped column, or a coerced value. The reconciliation summary records
+    ``{"ran": False, "reason": "disabled_by_setting"}`` so the omission is visible on
+    the bundle rather than silent.
+    """
+    from django.conf import settings
+
+    return bool(getattr(settings, "RMC_MIGRATION_CHECKSUM_VERIFY_ENABLED", True))
+
+
+def _safe_verify_checksums(bundle: MigrationBundle):
+    """Run PASS 2 for ``bundle``; never raises.
+
+    Delegates to :func:`apps.migration_cloud.verification.verify_bundle_checksums`.
+    Returns the report, or ``None`` when the verifier itself failed — a distinct
+    signal the caller turns into a BLOCKING note, so a verifier that could not run is
+    never mistaken for one that ran clean.
+    """
+    try:
+        from .verification import verify_bundle_checksums
+
+        return verify_bundle_checksums(bundle)
+    except Exception:  # noqa: BLE001
+        logger.warning("reconcile: checksum (pass 2) verification failed", exc_info=True)
+        return None
+
+
+def _checksum_blocking_notes(report: Any) -> list[str]:
+    """Notes for PASS 2 findings that must hold the bundle at APPLIED.
+
+    Only BLOCKING findings belong here: a non-empty ``notes`` list is the seal gate,
+    so an informational line would wedge every healthy bundle. The full outcome —
+    including a clean one — is written to ``reconciliation_summary.checksum_
+    verification`` regardless.
+
+    Every note carries its domain's WHOLE bucket tally, because a partial breakdown is
+    worse than none: a refusal, a row nobody could identify, and a genuinely absent row
+    would otherwise wear the same shape. Divergences are ENUMERATED by identity and
+    field, not merely counted — a count tells an operator that something is wrong and
+    nothing about which record to look at.
+    """
+    notes: list[str] = []
+    for d in report.per_domain:
+        # Every bucket, every time. A breakdown that omits one lets a refusal, a
+        # row nobody could identify and a genuinely absent row wear the same shape.
+        tally = (
+            f"{d.source_records} source record(s) = {d.matched} matched"
+            f" + {d.divergent} divergent + {d.missing_in_destination} missing"
+            f" + {d.unidentified} unidentified"
+            f" + {d.unresolved_identity} unresolved-identity"
+            f" + {d.ambiguous_destination} ambiguous-destination"
+            f" + {d.skipped_over_cap} over-cap"
+        )
+        depth = getattr(d, "depth", "value")
+        if not d.tally_closes:
+            notes.append(
+                f"{d.domain}: checksum verification did not account for every source "
+                f"record ({tally}; bucketed {d.bucketed}). The pass disagreed with "
+                "itself, so its result cannot be trusted — not sealing."
+            )
+            continue
+        if d.divergent or d.missing_in_destination:
+            detail = "; ".join(_describe_divergence(x) for x in d.divergences[:10])
+            more = ""
+            recorded = len(d.divergences)
+            total = d.divergent + d.missing_in_destination
+            if recorded > 10:
+                more = f" (+{recorded - 10} more recorded on the bundle)"
+            elif total > recorded:
+                more = f" (+{total - recorded} more not individually recorded)"
+            notes.append(
+                f"{d.domain} ({depth}): SHA-256 comparison of the source artifact "
+                f"against the landed rows found divergence — {tally}. Diverging "
+                f"records: {detail}{more}. The migration is NOT verified; the bundle "
+                "stays APPLIED and its encrypted source is retained for repair."
+            )
+        elif d.source_records > 0 and d.matched == 0:
+            notes.append(
+                f"{d.domain}: not one source record could be matched to a landed row "
+                f"({tally}). An applied bundle whose rows were all dismissed leaves "
+                "exactly this shape — zero divergences over zero comparisons is not a "
+                "clean import, so the bundle is not sealed."
+            )
+    return notes
+
+
+def _describe_divergence(div: Any) -> str:
+    """One diverging record, named, with the fields that actually differ."""
+    if getattr(div, "kind", "") == "missing_in_destination":
+        return f"{div.identity!r} is not in the destination"
+    fields = getattr(div, "field_diffs", None) or {}
+    if not fields:
+        return f"{div.identity!r} digest mismatch"
+    shown = ", ".join(
+        f"{name}: source {values[0]!r} vs landed {values[1]!r}"
+        for name, values in list(fields.items())[:4]
+    )
+    return f"{div.identity!r} ({shown})"
