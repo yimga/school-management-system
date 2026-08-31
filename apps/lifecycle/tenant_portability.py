@@ -28,7 +28,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.utils import timezone
 
-from apps.lifecycle.schema_scope import school_schema
+# ONE implementation of "enter this school's tenant schema", deliberately not a
+# second one. It lives in staff_portability because that is where it was first
+# needed; the odd home is worth less than a duplicate that can drift.
+from apps.lifecycle.staff_portability import school_schema
 from apps.lifecycle.tenant_dr_snapshot import (
     decrypt_blob,
     encrypt_blob,
@@ -216,7 +219,11 @@ def export_tenant_bundle(school) -> bytes:
     # The schema the rows are READ from. In schema mode `_scope_queryset` drops the
     # school filter because the schema is the scope -- so entering it is not an
     # optimisation, it is the only thing making the export tenant-safe.
-    with school_schema(school) as source_schema:
+    # Provenance: which schema the rows came from. Read off the tenant client rather
+    # than the context manager, which yields nothing.
+    _client = getattr(school, "tenant_client", None)
+    source_schema = str(getattr(_client, "schema_name", "") or "")
+    with school_schema(school):
         for model in _tenant_models():
             label = _label(model)
             qs = _scope_queryset(model, school, schema_mode=schema_mode)

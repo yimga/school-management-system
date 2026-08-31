@@ -54,8 +54,14 @@ class Command(BaseCommand):
         out.write_bytes(data)
 
         from apps.people.models import TeacherProfile
+        from apps.lifecycle.staff_portability import school_schema
 
-        count = TeacherProfile.objects.filter(school=school).count()
+        # In the SAME schema the bundle was read from. Counting here on the default
+        # connection is what made a wrong export look right: public and the tenant
+        # schema both held 39 rows, so the reported number agreed with the cloud
+        # while the rows themselves were the stale ones.
+        with school_schema(school):
+            count = TeacherProfile.objects.filter(school=school).count()
         if not count:
             self.stdout.write(
                 self.style.WARNING(

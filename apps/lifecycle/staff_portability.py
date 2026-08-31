@@ -43,6 +43,7 @@ SAFETY PROPERTIES
 from __future__ import annotations
 
 import base64
+import contextlib
 import gzip
 import json
 import logging
@@ -52,7 +53,6 @@ from django.core.exceptions import FieldDoesNotExist
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
-from apps.lifecycle.schema_scope import school_schema
 from apps.lifecycle.tenant_dr_snapshot import (
     decrypt_blob,
     encrypt_blob,
@@ -107,6 +107,70 @@ def _teacher_model():
     return django_apps.get_model("people", "TeacherProfile")
 
 
+def _resolve_school(school_or_id):
+    """A School instance from either an instance or a pk. ``None`` if unresolvable."""
+    if school_or_id is None:
+        return None
+    if hasattr(school_or_id, "_meta"):
+        return school_or_id
+    return (
+        django_apps.get_model("schools", "School")
+        .objects.filter(pk=school_or_id)
+        .first()
+    )
+
+
+@contextlib.contextmanager
+def school_schema(school_or_id):
+    """Run the enclosed block inside the school's TENANT schema.
+
+    ``TeacherProfile`` is a TENANT model, and the two deployments disagree about what
+    that means. On a sovereign box (``USE_DJANGO_TENANTS=0``, RLS) every school shares
+    one set of tables and this is a no-op. On the cloud (``USE_DJANGO_TENANTS=1``) each
+    school owns a schema -- and a MANAGEMENT COMMAND runs in ``public``, not in it.
+
+    MEASURED, 2026-08-30. ``export_tenant_staff`` read ``public`` and found 39 rows at
+    pks 28-66; the same school's tenant schema held 39 DIFFERENT rows at pks 2-40, and
+    the sync rail (an HTTP view, so tenant middleware had already switched schema)
+    served those. The export was pk-preserving and the import was pk-preserving, and
+    they still could not converge: the pks were faithfully copied from the wrong table.
+    The box then refused all 26 pulled teacher rows as ``insert_held_for_entity`` --
+    not because the hold was wrong, but because a lookup by a pk from another schema
+    can only miss. That is the whole bug, and it is invisible on the box, where this
+    function does nothing and every test therefore passes.
+
+    FAILS CLOSED. Under schema-per-tenant a school with no resolvable tenant client is
+    an error, never a silent fall-back to ``public``: falling back is precisely how the
+    wrong 39 rows were exported, signed, and shipped as though they were right.
+    """
+    from django.conf import settings
+
+    # Gate on the tenancy-mode SOT, not on whether django_tenants imports: under
+    # USE_DJANGO_TENANTS=0 the package is installed and importable while every row
+    # lives in one schema, so switching would be wrong rather than merely redundant.
+    if not getattr(settings, "USE_DJANGO_TENANTS", False):
+        yield
+        return
+
+    school = _resolve_school(school_or_id)
+    # A reverse OneToOne raises RelatedObjectDoesNotExist, which Django makes a
+    # subclass of AttributeError precisely so getattr(..., None) reads as absent.
+    client = getattr(school, "tenant_client", None) if school is not None else None
+    if client is None or not getattr(client, "schema_name", ""):
+        raise ValueError(
+            "staff_bundle_no_tenant_schema: %r has no tenant client on a "
+            "schema-per-tenant deployment. Refusing to read or write staff in "
+            "the public schema -- that is how a stale pre-split copy of "
+            "people_teacherprofile gets exported as though it were live."
+            % (getattr(school, "slug", None) or school_or_id,)
+        )
+
+    from django_tenants.utils import tenant_context
+
+    with tenant_context(client):
+        yield
+
+
 def _teacher_rows(school) -> list[dict]:
     """Every TeacherProfile for ``school`` as a plain dict of concrete local fields."""
     model = _teacher_model()
@@ -119,19 +183,13 @@ def _teacher_rows(school) -> list[dict]:
 
 
 def export_staff_bundle(school) -> bytes:
-    """Serialize the school's teacher logins + profiles into an encrypted, signed bundle.
-
-    The profile read runs inside the school's OWN schema. Without that it lands on
-    ``public``, which on a schema-per-tenant deployment holds a legacy copy of the
-    roster -- same people, different pks, not what the tenant UI serves. See
-    ``apps.lifecycle.schema_scope``.
-    """
-    with school_schema(school) as source_schema:
+    """Serialize the school's teacher logins + profiles into an encrypted, signed bundle."""
+    with school_schema(school):
         teachers = _teacher_rows(school)
-    # accounts.User is a SHARED app: it lives in `public` on every deployment, so it is
-    # read on the default connection rather than through the tenant schema.
-    user_ids = sorted({row["user_id"] for row in teachers if row.get("user_id")})
-    users = list(_user_model().objects.filter(pk__in=user_ids).values(*_USER_FIELDS))
+        user_ids = sorted({row["user_id"] for row in teachers if row.get("user_id")})
+        users = list(
+            _user_model().objects.filter(pk__in=user_ids).values(*_USER_FIELDS)
+        )
 
     payload = {
         "format": BUNDLE_FORMAT,
@@ -140,9 +198,6 @@ def export_staff_bundle(school) -> bytes:
         "users": users,
         "teachers": teachers,
         "counts": {"users": len(users), "teachers": len(teachers)},
-        # Provenance: the one fact that separates a correct export from the silent
-        # `public` one. Absent in bundles written before 2026-08-31.
-        "source_schema": source_schema,
     }
     raw = json.dumps(payload, cls=DjangoJSONEncoder).encode("utf-8")
     blob = encrypt_blob(gzip.compress(raw), school_id=str(school.id))
@@ -253,13 +308,6 @@ def _all_collisions(users: "list[dict]", teachers: "list[dict]") -> "list[str]":
     return _pk_collisions(users) + _profile_collisions(teachers)
 
 
-def _school_for(payload) -> object:
-    """The School row this bundle is for. SHARED app, so always readable from public."""
-    from apps.schools.models import School
-
-    return School.objects.filter(pk=payload.get("school_id")).first()
-
-
 def inspect_staff_bundle(container_bytes: bytes, *, expected_school_id=None) -> dict:
     """Verify a bundle and report what it WOULD land. Writes nothing.
 
@@ -269,17 +317,19 @@ def inspect_staff_bundle(container_bytes: bytes, *, expected_school_id=None) -> 
     """
     payload = _open_bundle(container_bytes, expected_school_id=expected_school_id)
     users = payload.get("users") or []
-    teachers = payload.get("teachers") or []
-    with school_schema(_school_for(payload)) as target_schema:
-        collisions = _all_collisions(users, teachers)
+    # IN THE TENANT SCHEMA. `_profile_collisions` reads people_teacherprofile, which is
+    # a TENANT table -- asked on the default connection it would answer from public and
+    # report collisions against rows the import will never touch (or, worse, report
+    # none while the real ones sit in the tenant schema). A dry run that inspects a
+    # different schema from the one the import writes to is not a dry run.
+    with school_schema(payload.get("school_id")):
+        collisions = _all_collisions(users, payload.get("teachers") or [])
     return {
         "school_id": payload.get("school_id", ""),
         "tenant_slug": payload.get("tenant_slug", ""),
         "users": len(users),
-        "teachers": len(teachers),
+        "teachers": len(payload.get("teachers") or []),
         "collisions": collisions,
-        "source_schema": payload.get("source_schema", ""),
-        "target_schema": target_schema,
     }
 
 
@@ -294,11 +344,15 @@ def import_staff_bundle(
     users = payload.get("users") or []
     teachers = payload.get("teachers") or []
 
-    # Everything below touches TENANT tables (TeacherProfile and the optional FK
-    # targets), so it runs in the school's own schema. accounts.User is SHARED and
-    # resolves from `public` either way, since django-tenants keeps it on the
-    # search_path. On a box this is a no-op: one schema, nothing to enter.
-    with school_schema(_school_for(payload)):
+    # The tenant schema is chosen from the BUNDLE's school, not from whatever schema
+    # the command happens to run in -- see school_schema for what reading `public`
+    # cost. _open_bundle has already refused a bundle for a different school.
+    #
+    # The collision check is INSIDE, and in the same entry as the write. It reads
+    # people_teacherprofile (a TENANT table), so on the default connection it would
+    # vet the bundle against public while landing the rows in the tenant schema --
+    # guarding one table and writing another.
+    with school_schema(payload.get("school_id")):
         collisions = _all_collisions(users, teachers)
         if collisions:
             raise ValueError(
