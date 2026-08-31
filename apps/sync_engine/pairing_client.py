@@ -235,6 +235,13 @@ def current_request() -> dict:
 
 def _explain_failure(status: int, body: dict, base: str) -> str:
     """Say what to DO, and never blame a setting without evidence."""
+    # A protocol refusal arrives as HTTP 200 with ok=False (every pairing outcome does,
+    # so a box never mistakes an answer for a broken network). When the cloud sent a
+    # sentence, that sentence IS the diagnosis and inventing a worse one here -- "the
+    # cloud refused the pairing request (HTTP 200)" -- would bury it.
+    server_message = str(body.get("message") or "").strip()
+    if status == 200 and server_message:
+        return server_message
     if status == 0:
         return (
             f"Could not reach {base}. Check the box's internet connection and that "
