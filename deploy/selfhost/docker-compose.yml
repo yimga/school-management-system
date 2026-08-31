@@ -191,6 +191,93 @@ services:
       retries: 3
       start_period: 180s
 
+  # THE SCHOOL'S OWN RECORDS. A nightly encrypted pg_dump, read back before it counts,
+  # onto a volume of its own. See deploy/selfhost/box-backup.sh for the mechanism and
+  # docs/EDGE_BOX_BACKUP_RUNBOOK.md for the arithmetic and the restore.
+  #
+  # NOT behind a profile, deliberately. The terminator above is opt-in because a school
+  # may reasonably run plain HTTP on its own LAN; no school reasonably chooses to hold
+  # the only copy of its fee ledger on one SSD. A bare `docker compose up -d` starts
+  # this, which is the point.
+  #
+  # The image is the SAME one `db` runs, and that is not a detail to "simplify" later:
+  # pg_dump refuses to dump a server newer than itself, so the two have to move
+  # together -- and reusing the image means this service adds ZERO new bytes to pull on
+  # a box that is offline in a school building.
+  backup:
+    image: pgvector/pgvector:pg16
+    # A shell loop, not the postgres entrypoint. Bind-mounted from the checkout the
+    # same way the terminator's config is, so a `git pull` changes the schedule
+    # without an image rebuild -- which matters on hardware where a rebuild is an
+    # afternoon.
+    entrypoint: ["bash", "/usr/local/bin/box-backup.sh"]
+    # The subcommand goes in `command`, not on the end of `entrypoint`, and that is
+    # not a style choice: this image's own CMD is `postgres`, and overriding only the
+    # entrypoint does NOT clear it -- docker appends it, so the container would have
+    # run `box-backup.sh loop postgres`. The loop ignores the extra argument today,
+    # which is exactly how that survives until the day something reads $2.
+    command: ["loop"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: "5432"
+      PGDATABASE: "${POSTGRES_DB:-runmycampus}"
+      PGUSER: "${POSTGRES_USER:-rmc}"
+      PGPASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}"
+      # The quiet window is read in the CONTAINER's local time, and a container is UTC
+      # unless told otherwise. A box in Buea is UTC+1, so leaving this alone shifts the
+      # backup by an hour -- harmless. Setting it makes the window mean what whoever
+      # set it thought it meant.
+      TZ: "${TZ:-UTC}"
+      RMC_BOX_BACKUP_INTERVAL_HOURS: "${RMC_BOX_BACKUP_INTERVAL_HOURS:-24}"
+      RMC_BOX_BACKUP_WINDOW_START: "${RMC_BOX_BACKUP_WINDOW_START:-1}"
+      RMC_BOX_BACKUP_WINDOW_END: "${RMC_BOX_BACKUP_WINDOW_END:-5}"
+      RMC_BOX_BACKUP_KEEP_DAILY: "${RMC_BOX_BACKUP_KEEP_DAILY:-7}"
+      RMC_BOX_BACKUP_KEEP_WEEKLY: "${RMC_BOX_BACKUP_KEEP_WEEKLY:-4}"
+      RMC_BOX_BACKUP_KEEP_MONTHLY: "${RMC_BOX_BACKUP_KEEP_MONTHLY:-3}"
+      # 4 GiB of database dumps, 2 GiB of media, and 1 GiB this service will not take
+      # the machine below under any circumstances. Worst case on disk is about 8 GiB
+      # counting the transient during a media swap. Read the arithmetic in
+      # docs/EDGE_BOX_BACKUP_RUNBOOK.md before raising any of the three: a backup job
+      # that fills the disk stops Postgres writing and takes the school offline, which
+      # is worse than the risk it was mitigating.
+      RMC_BOX_BACKUP_MAX_BYTES: "${RMC_BOX_BACKUP_MAX_BYTES:-4294967296}"
+      RMC_BOX_BACKUP_MEDIA_MAX_BYTES: "${RMC_BOX_BACKUP_MEDIA_MAX_BYTES:-2147483648}"
+      RMC_BOX_BACKUP_MIN_FREE_BYTES: "${RMC_BOX_BACKUP_MIN_FREE_BYTES:-1073741824}"
+      RMC_BOX_BACKUP_MEDIA: "${RMC_BOX_BACKUP_MEDIA:-auto}"
+      RMC_BOX_BACKUP_DRILL_DAYS: "${RMC_BOX_BACKUP_DRILL_DAYS:-30}"
+    volumes:
+      - ./box-backup.sh:/usr/local/bin/box-backup.sh:ro
+      # NOT pgdata, and this is the whole reason the volume exists. A backup sitting on
+      # the same volume as the data is not a backup: one `docker compose down -v`, one
+      # corrupt volume, one mistyped `docker volume rm` takes the original and the copy
+      # in the same second.
+      - backupdata:/backups
+      # The passphrase, deliberately in a THIRD volume. It is the only arrangement in
+      # which `docker compose cp backup:/backups .` carries the dumps off this box
+      # WITHOUT carrying the key that opens them -- the same separation edge-bootstrap.sh
+      # asks for between the CA bundle and its passphrase, for the same reason.
+      - backupkeys:/keys
+      # Read-only. This service reads the media tree to archive it; it must never be
+      # able to modify a school's uploaded documents.
+      - mediadata:/media-src:ro
+      # The copy that survives a dead SSD, which is the failure everything above this
+      # line does NOT protect against -- all of it lives on that same disk. The default
+      # is a named volume: honest rather than useful, and box-audit.sh compares device
+      # numbers and says which one this box has. Set RMC_BOX_BACKUP_OFFBOX_DIR to an
+      # ABSOLUTE host path (a mounted USB disk, a NAS share) and the copy happens by
+      # itself on every run. A value containing no "/" is read as a volume name, which
+      # is what makes the default safe on a box where no such path exists.
+      - "${RMC_BOX_BACKUP_OFFBOX_DIR:-backupoffbox}:/offbox"
+    # No healthcheck, on purpose. This service must never be able to influence anything
+    # else on the box, and a healthcheck is a claim other services can be made to
+    # depend on. Whether it is doing its job is a question box-audit.sh asks of the
+    # RECORD it writes, which is the only evidence that means anything anyway.
+    stop_grace_period: 30s
+    restart: unless-stopped
+
   # TLS terminator. OPT-IN: it only starts with `--profile tls`, so an existing
   # plain-HTTP box is completely unaffected by this file until a school chooses
   # otherwise. Which certificate it presents is the school's decision
@@ -244,3 +331,13 @@ volumes:
   edgetlsdata:
   edgecaddydata:
   edgecaddyconfig:
+  # The school's own records. Separate from pgdata on purpose -- see the backup
+  # service above; a copy that shares a volume with the original is not a copy.
+  backupdata:
+  # The passphrase that opens them, kept apart from them so the dumps can leave the
+  # box on their own.
+  backupkeys:
+  # The default off-box target: same disk, named rather than pretended about, so
+  # box-audit.sh can report it as not-independent. Replaced by an absolute host path
+  # in .env when there is real off-box storage to point at.
+  backupoffbox:

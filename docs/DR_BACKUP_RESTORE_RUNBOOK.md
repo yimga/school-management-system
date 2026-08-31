@@ -82,3 +82,48 @@ python scripts/restore_drill.py --backup-ts 2026-07-19T12:00:00Z --apply
 - **Cross-region failover**: Cloud infrastructure decision, documented in
   `var/dr-drill-schedule.json` field `cross_region_failover_allowed`
 - **Production restore verification**: Real tenant data recovery into a side instance
+
+---
+
+## Sovereign / edge boxes (self-hosted appliances)
+
+Everything above assumes a hosted database an operator can reach. A **sovereign box**
+is the opposite case: one school, one mini-PC, one disk, in a school building, usually
+offline. It replicates roughly seventeen entities to the cloud, so the cloud backup
+above covers a small fraction of what that school does, and none of its media.
+
+Its backup is therefore **on the box, automated, and gated by the box's own audit** —
+not a procedure an operator runs. Canonical page:
+[`EDGE_BOX_BACKUP_RUNBOOK.md`](EDGE_BOX_BACKUP_RUNBOOK.md).
+
+| | Cloud (above) | Sovereign box |
+|---|---|---|
+| Scope | platform + every tenant schema + object storage | the whole box database + the media tree |
+| Runs | operator tooling / managed snapshots | `backup` service in `deploy/selfhost/docker-compose.yml`, nightly |
+| At rest | provider-managed | `openssl enc -aes-256-cbc -pbkdf2`, key in a volume of its own |
+| Read back | quarterly drill (below) | **every run**, `pg_restore -f /dev/null` end to end; full into-a-database drill monthly |
+| Restore | `scripts/restore_drill.py` | `bash deploy/selfhost/box-restore.sh --yes-destroy-current-data` |
+| Gate | `verify_dr_drill_schedule.py` | `box-audit.sh` section C2, which fails the box |
+
+### Independent-store classification, for a box
+
+The tiers in the section above apply, with one change: on a box the tier is
+**measured, not declared**. The backup service compares the filesystem of its backup
+volume against the filesystem of its off-box target and records the answer, and
+`box-audit.sh` reports it:
+
+| Tier | On a box | Repo-provable? |
+|---|---|---|
+| Same disk (default) | a named docker volume — protects against a bad migration, a wrong delete, a lost `pgdata` volume; **not** against the disk dying | NO — needs a running box |
+| Independent volume | `RMC_BOX_BACKUP_OFFBOX_DIR` pointed at a mounted USB disk or a NAS share | NO — needs the mount |
+
+A box that has not been given an off-box target is not misconfigured; it is a box
+whose backups all live on the disk they are protecting, and it says so out loud.
+
+### RPO / RTO on a box
+
+RPO is the backup interval, default 24h, with one deliberate exception: a box switched
+off overnight would never be inside the quiet window, so a backup more than half an
+interval overdue runs regardless of the hour. RTO is a `pg_restore` of one dump plus
+the app restarting — minutes, not hours, because there is no infrastructure to
+provision.
