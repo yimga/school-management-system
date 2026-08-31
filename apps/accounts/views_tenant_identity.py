@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, password_validation
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -41,6 +42,98 @@ from services.post_delete_navigation import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# --------------------------------------------------------------------------- #
+# One-time credential handover (deliberately NOT django.contrib.messages)
+# --------------------------------------------------------------------------- #
+# MESSAGE_STORAGE is unset project-wide, so Django falls back to FallbackStorage
+# = (CookieStorage, SessionStorage). A message added on a REDIRECT is never
+# rendered by that response, so the framework PERSISTS it: the cleartext lands in
+# the signed-but-UNENCRYPTED ``messages`` cookie (recoverable with nothing but
+# SECRET_KEY, written to the admin's browser and echoed back on the next request)
+# and spills into the ``django_session`` table once the queue outgrows
+# CookieStorage.max_cookie_size. "Never logged" is not "never persisted".
+#
+# So a freshly minted temporary password is handed over through a server-side,
+# TTL-bounded, delete-on-read slot and rendered by the very next page instead --
+# a response that DOES consume the message, which is the only delivery that
+# leaves no copy at rest.
+ONE_TIME_CREDENTIAL_TTL_SECONDS = 300
+_ONE_TIME_CREDENTIAL_PREFIX = "rmc:one-time-credential:"
+# Non-secret breadcrumb: "a credential WAS issued for this pk". Carries no
+# password, so it is safe in the session -- and the session is exactly the store
+# that still works when the cache does not (see stash_one_time_credential).
+_CREDENTIAL_ISSUED_SESSION_KEY = "rmc_credential_issued_for"
+
+# Returned by pop_one_time_credential when a reset DID mint a credential but the
+# store no longer has it. Distinct from None ("no reset happened"), because the
+# caller must say so out loud instead of rendering a blank where a password was.
+CREDENTIAL_MISSED = "credential-missed"
+
+
+def _one_time_credential_key(actor_pk, target_pk) -> str:
+    return "%s%s:%s" % (_ONE_TIME_CREDENTIAL_PREFIX, actor_pk, target_pk)
+
+
+def stash_one_time_credential(request, target_pk, *, username, password) -> None:
+    """Hold ``password`` for exactly one follow-up render by this admin.
+
+    DEPLOYMENT DEPENDENCY -- read this before debugging "the temporary password
+    never shows up on staging". The password rides ``django.core.cache``, and
+    ``config/settings.py`` defaults CACHES to a per-process LocMemCache unless
+    ``CACHE_BACKEND`` or ``REDIS_URL`` is set. On a MULTI-WORKER deploy with
+    neither, the POST that stashes and the GET that pops can land on different
+    workers, so the pop misses and the credential is never displayed. Sessions do
+    NOT hide this for you and are not a counter-example: SESSION_ENGINE is
+    ``cached_db`` only WITH Redis and falls back to plain ``db`` without it, so
+    logins keep working perfectly while this one handoff silently misses. The
+    fix is to set CACHE_BACKEND (or REDIS_URL) -- NOT to move the password into
+    the session, which is one of the two at-rest leaks this whole mechanism
+    exists to close.
+
+    The miss is safe (nothing leaks; the operator simply resets again) but it must
+    never be silent, so the non-secret breadcrumb below is written to the session,
+    which survives precisely the configuration where the cache does not.
+    """
+    cache.set(
+        _one_time_credential_key(request.user.pk, target_pk),
+        {"username": username, "password": password},
+        ONE_TIME_CREDENTIAL_TTL_SECONDS,
+    )
+    request.session[_CREDENTIAL_ISSUED_SESSION_KEY] = str(target_pk)
+    request.session.modified = True
+
+
+def pop_one_time_credential(request, target_pk):
+    """Return the credential once, ``CREDENTIAL_MISSED``, or None.
+
+    Three outcomes, kept deliberately distinct:
+
+    * a ``{"username", "password"}`` dict -- deleted from the store BEFORE it is
+      returned, so a browser refresh shows nothing. That is the "shown once" half
+      of the contract the reset views promise.
+    * ``CREDENTIAL_MISSED`` -- a reset on this session did mint a credential, but
+      the cache no longer holds it (expired, or a different worker). The caller
+      must SAY so; a blank where a password was reads as "the reset failed" and
+      sends the operator hunting for it in a log it was never written to.
+    * ``None`` -- no reset happened here; render nothing at all.
+
+    The cache slot is keyed to the ACTING admin as well as the target, so a second
+    admin opening the same person never sees a credential someone else issued.
+    """
+    issued_for = request.session.get(_CREDENTIAL_ISSUED_SESSION_KEY)
+    if issued_for is None or str(issued_for) != str(target_pk):
+        # No reset here, or a breadcrumb for somebody else -- leave theirs alone.
+        return None
+    del request.session[_CREDENTIAL_ISSUED_SESSION_KEY]
+    request.session.modified = True
+    key = _one_time_credential_key(request.user.pk, target_pk)
+    payload = cache.get(key)
+    if payload:
+        cache.delete(key)
+        return payload
+    return CREDENTIAL_MISSED
 
 
 _IDENTITY_HUB_MANAGE_ROLES = frozenset(
@@ -212,6 +305,39 @@ def tenant_identity_detail(request, user_id: int):
         return HttpResponseForbidden("Not permitted.")
     user = get_object_or_404(User, pk=user_id)
     membership = get_object_or_404(SchoolMembership, school=school, user=user)
+    # A temporary password issued by tenant_identity_reset_password is handed over
+    # HERE, on a response that actually renders it (the shell chrome consumes
+    # ``messages``), so the framework stores nothing: no ``messages`` cookie, no
+    # django_session row. Popped, so a refresh does not show it a second time.
+    handover = pop_one_time_credential(request, user.pk)
+    one_time_credential = handover if isinstance(handover, dict) else None
+    if one_time_credential:
+        messages.success(
+            request,
+            _(
+                "Temporary password for %(user)s: %(pw)s — shown once, share it "
+                "securely."
+            )
+            % {
+                "user": one_time_credential["username"],
+                "pw": one_time_credential["password"],
+            },
+        )
+    elif handover == CREDENTIAL_MISSED:
+        # Say the miss plainly. A blank where a password was reads as "the reset
+        # failed" and sends the admin hunting for the password in a log it was
+        # never written to. This notice carries the USERNAME only -- never the
+        # credential it is reporting the loss of.
+        messages.warning(
+            request,
+            _(
+                "The temporary password for %(user)s was issued but can no longer "
+                "be displayed — it is shown once and is stored nowhere, not even in "
+                "the logs. Their old password no longer works, so reset the "
+                "password again to issue one you can hand over."
+            )
+            % {"user": user.get_username()},
+        )
     sessions = []
     now = timezone.now()
     for session in Session.objects.filter(expire_date__gte=now).order_by("-expire_date")[
@@ -260,6 +386,7 @@ def tenant_identity_detail(request, user_id: int):
             # Same resolver, same partial as the person's own profile.
             "access_summary": effective_access_summary(user, school=school),
             "mfa_ok": mfa_enrolled_for_user(user),
+            "one_time_credential": one_time_credential,
             "sessions": sessions,
             "roster_url": roster_url,
             "return_url": return_url,
@@ -975,13 +1102,24 @@ def tenant_identity_reset_password(request, user_id: int):
     if request.user.pk != target.pk:
         # Kill live sessions so the old password stops working right away.
         _revoke_user_sessions(target.pk)
+    # The cleartext goes into a one-shot server-side slot, NOT into a message: a
+    # message added here would ride the redirect and be persisted by
+    # FallbackStorage into the ``messages`` cookie (and django_session on
+    # overflow). The detail page pops it below and renders it once.
+    stash_one_time_credential(
+        request,
+        target.pk,
+        username=target.get_username(),
+        password=temp_password,
+    )
     messages.success(
         request,
         _(
-            "Temporary password for %(user)s: %(pw)s — share it securely. They must "
-            "set a new password (and set up MFA) at next sign-in."
+            "Password reset for %(user)s — the one-time temporary password is shown "
+            "once below. They must set a new password (and set up MFA) at next "
+            "sign-in."
         )
-        % {"user": target.get_username(), "pw": temp_password},
+        % {"user": target.get_username()},
     )
     if was_inactive:
         messages.info(

@@ -127,6 +127,11 @@ def _link_parent(student, parent_email: str, parent_phone: str) -> bool:
         defaults={"username": email, "role": User.Role.PARENT, "is_active": True},
     )
     if created:
+        # No password is minted here, so requires_password_change /
+        # profile_setup_completed are NOT applicable: the credential is the
+        # one-time set-password link sent below, and guardian_invite clears
+        # requires_password_change when the guardian redeems it. Mirrors the
+        # online backend_student_create parent leg exactly.
         parent_user.set_unusable_password()
         parent_user.save(update_fields=["password"])
     elif getattr(parent_user, "role", None) != User.Role.PARENT:
@@ -285,12 +290,19 @@ def _apply_teacher_create(
 
     try:
         with transaction.atomic():
+            # The admin set a TEMPORARY password on the offline form (same
+            # field, same wording as the online backend_teacher_create): force
+            # the teacher through set-password + profile setup on first login
+            # via OnboardingEnforcementMiddleware. Without these two markers a
+            # teacher onboarded offline keeps a durable, admin-known password.
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password,
                 role=User.Role.TEACHER,
                 is_active=True,
+                requires_password_change=True,
+                profile_setup_completed=False,
             )
             teacher = form.save(commit=False)
             teacher.user = user
