@@ -220,24 +220,33 @@ backlog as though the matrix were sound, and the next `--compare` is then green
 about a question nobody answered — which is the failure mode this whole gate
 exists to prevent, arriving through its own escape hatch.
 
-### Not yet wired into CI
+### Wired into CI (2026-08-31)
 
-The auditor runs and is sealed by tests, but it is **not** yet invoked from
-`.github/workflows/` or `scripts/pre_push_boundary_check.py`, so today it only
-fails when someone runs it or runs
-`apps/sync_engine/tests/test_edge_sync_rail_coverage_2026_08_31.py`. Three edits
-close that, all in files outside this change's ownership:
+The gate is enforced in four places, and the fourth is the one this repo insists on:
 
-1. `.github/workflows/architectural-boundaries.yml` — a `rail-coverage` job (or
-   step) running `python scripts/audit_rail_coverage.py --compare`. It needs
-   Django, so if that workflow's job is the deps-free one, it belongs in
-   `ci.yml::django-tests` alongside the other registry-reading verifiers.
-2. `scripts/pre_push_boundary_check.py` — add it to the `DJANGO_GATES` phase.
-3. `scripts/verify_ci_gate_wiring.py::REQUIRED_GATES` — add
-   `audit_rail_coverage`, so the gate cannot later be silently un-wired.
+1. `.github/workflows/ci.yml::django-tests` runs
+   `python scripts/audit_rail_coverage.py --compare`. It rides that job rather
+   than the deps-free boundary workflow because it resolves the rail registry out
+   of `apps.api.sync_services` and therefore needs the live Django app registry.
+2. `scripts/pre_push_boundary_check.py::DJANGO_GATES` carries it as
+   `edge-rail-coverage`. **This is the arm that actually bites today** -- the
+   pre-push hook enforces by default, whereas GitHub Actions has run no jobs
+   since the billing interruption, so the `ci.yml` step is correct but currently
+   inert.
+3. `scripts/verify_ci_gate_wiring.py::REQUIRED_GATES` lists
+   `scripts/audit_rail_coverage.py`, so the gate cannot later be quietly
+   un-wired without a reviewed edit to that tuple.
+4. `scripts/verify_gates_can_fail.py::MUTATIONS["edge-rail-coverage"]` carries the
+   planted defect that proves the gate does something. A gate cannot enter
+   `DJANGO_GATES` in this repo without one; `verify_gates_can_fail --list` fails
+   the push otherwise.
 
-Until then the seal is the test file, which is real but runs only when that
-directory is collected.
+The mutation is a **migration**, not a class in `models.py`, and that distinction
+is the gate's own lesson turned back on itself: `tenant_models()` reads migration
+state, so a bare model class would not be seen and the harness would report a
+false DEAD -- its own notes warn at length about exactly that mistake. Planted, the
+auditor exits 1 naming `student360.gateproofundeclaredtenantmodel`; removed, it
+returns to 0.
 
 ### The detector was proved before its zero was trusted
 

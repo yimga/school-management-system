@@ -717,6 +717,52 @@ MUTATIONS["gates-can-fail-coverage"] = Mutation(
     ),
 )
 
+MUTATIONS["edge-rail-coverage"] = Mutation(
+    kind="create",
+    path="apps/student360/migrations/0002_gateproof_undeclared_tenant_model.py",
+    defect=(
+        "a new tenant model added with no edge-rail posture - nobody ever decided whether "
+        "it crosses the cloud/box boundary, and on a sovereign box it simply would not"
+    ),
+    # A MIGRATION, not a models.py class, and that is the whole point of the gate.
+    # rail_coverage.tenant_models() reads MIGRATION STATE rather than the runtime app
+    # registry, precisely because the registry is not import-order-proof: three migrated
+    # portal forum models were invisible to a registry walk because their module is
+    # imported lazily, and the gate reported a truthful-looking "0 undeclared" against an
+    # incomplete denominator. Planting a bare class in models.py would therefore prove
+    # nothing here -- it would not be seen, and a DEAD verdict would be the harness's own
+    # fault, which is the failure mode this file's own notes warn about at length.
+    content=(
+        b'"""Planted by verify_gates_can_fail. Never commit this file."""'
+        + chr(10).encode()
+        + b"from django.db import migrations, models"
+        + chr(10).encode() * 2
+        + chr(10).encode()
+        + b"class Migration(migrations.Migration):"
+        + chr(10).encode()
+        + b'    dependencies = [("student360", "0001_immutable_transcript")]'
+        + chr(10).encode()
+        + b"    operations = ["
+        + chr(10).encode()
+        + b"        migrations.CreateModel("
+        + chr(10).encode()
+        + b'            name="GateProofUndeclaredTenantModel",'
+        + chr(10).encode()
+        + b"            fields=["
+        + chr(10).encode()
+        + b'                ("id", models.BigAutoField(primary_key=True, serialize=False)),'
+        + chr(10).encode()
+        + b'                ("note", models.CharField(max_length=64)),'
+        + chr(10).encode()
+        + b"            ],"
+        + chr(10).encode()
+        + b"        ),"
+        + chr(10).encode()
+        + b"    ]"
+        + chr(10).encode()
+    ),
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",
