@@ -116,6 +116,65 @@ def row_savepoint():
         yield
 
 
+# Columns a model REGENERATES inside its own ``save()`` instead of taking them
+# from the caller. On ``StudentProfile`` that is ``search_index`` (rebuilt from
+# name + codes + dynamic fields on EVERY save), the minted ``admission_number``
+# / ``student_code``, ``referral_code``, and the ``auto_now`` ``updated_at``.
+# Django writes ONLY the columns named in ``update_fields``, so a narrowed save
+# computes these and then throws them away: a roster name correction left the
+# pupil unfindable under their corrected name, and a specialty link minted an
+# admission number that never reached the row. Any narrowed write carries them.
+_DERIVED_ON_SAVE_FIELDS = (
+    "search_index",
+    "admission_number",
+    "student_code",
+    "referral_code",
+    "updated_at",
+)
+
+
+def save_scoped(obj, fields) -> None:
+    """``obj.save()`` narrowed to the columns this source row actually supplied.
+
+    A bare ``save()`` rewrites EVERY column from the in-memory snapshot the
+    lander read earlier in the row, so anything committed to that row in the
+    meantime is silently reverted -- including the columns the source file never
+    mentioned. That window is not theoretical: apply runs the artifacts of one
+    wave in PARALLEL threads on separate connections
+    (``orchestrator._run_waves``), and wave 1 holds ``students`` AND ``alumni``,
+    which upsert the same ``StudentProfile`` rows.
+
+    Narrowing is not a lock. Two writers that both supply the SAME field still
+    race on it, and nothing here can order them -- the canonical row carries no
+    version, epoch or source timestamp to compare (see the students ontology
+    entry). What narrowing removes is the blast radius: the ~30 untouched
+    columns a full save was re-asserting from a stale snapshot.
+
+    ``_DERIVED_ON_SAVE_FIELDS`` ride along so narrowing never silently drops a
+    value the model generated for itself. Falls back to a full save on an
+    unsaved instance or a model whose ``_meta`` cannot be read, so this is safe
+    on every tenant model shape a lander meets.
+    """
+    try:
+        concrete: set[str] = set()
+        for f in obj._meta.local_concrete_fields:
+            concrete.add(f.name)
+            concrete.add(f.attname)
+        concrete -= {obj._meta.pk.name, obj._meta.pk.attname}
+    except Exception:  # noqa: BLE001 -- unknown model shape: keep the old behaviour
+        obj.save()
+        return
+    if getattr(obj, "pk", None) is None:
+        obj.save()
+        return
+    scoped = {f for f in fields if f in concrete}
+    scoped.update(f for f in _DERIVED_ON_SAVE_FIELDS if f in concrete)
+    if not scoped:
+        obj.save()
+        return
+    obj.save(update_fields=sorted(scoped))
+
+
 _EXTERNAL_ID_CANDIDATES = ("external_id", "sis_external_id", "source_id", "admission_number")
 
 
@@ -124,6 +183,48 @@ def student_lookup_field(available: set[str]) -> str:
         if c in available:
             return c
     return "admission_number"
+
+
+# Every column a pupil's source id may actually have LANDED in. ``student_code``
+# is here and NOT in ``_EXTERNAL_ID_CANDIDATES`` on purpose: the students lander
+# prefers ``student_code`` as its upsert key (student_lander._lookup_field), so a
+# roster whose source id differs from its admission number -- the normal case,
+# not the edge case -- lands the id in ``student_code`` while ``admission_number``
+# holds the school's own number. Every history lander then asked for the id under
+# ``admission_number``, missed, and quarantined the row as "no pupil carries the
+# id" for a pupil that had just landed in the same bundle.
+#
+# The repair is a WIDENING, never a reordering. ``student_lookup_field`` still
+# answers with exactly the column it answered with before -- 13 landers and
+# ``verification.py`` read that answer -- and that column is still tried FIRST.
+# ``student_code`` is appended LAST so it can only ever be reached where the
+# caller would otherwise have fallen through to name matching or quarantined.
+#
+# Order is load-bearing because NOTHING constrains these columns against each
+# other. StudentProfile.Meta carries three INDEPENDENT partial unique indexes
+# (school+client_offline_id, school+student_code, school+admission_no), so one
+# pupil's student_code may legally equal a DIFFERENT pupil's admission number.
+# Trying the caller's own column first means such a clash resolves to the same
+# pupil it resolves to today: this widening cannot introduce a wrong match, and
+# it does not pretend to cure the pre-existing one.
+_STUDENT_IDENTITY_LOOKUP_FIELDS = _EXTERNAL_ID_CANDIDATES + ("student_code",)
+
+
+def student_identity_fields(available, *, primary: str = "") -> tuple[str, ...]:
+    """Identity columns to try when resolving a pupil by source id, in order.
+
+    ``primary`` -- the caller's own ``student_lookup_field`` answer -- is tried
+    first and unchanged, so every row that resolves today resolves to the same
+    pupil. The rest are additive fallbacks. Only columns the model actually
+    carries are returned, so this stays schema-tolerant.
+    """
+    ordered: list[str] = []
+    if primary and primary in available:
+        ordered.append(primary)
+    for c in _STUDENT_IDENTITY_LOOKUP_FIELDS:
+        if c in available and c not in ordered:
+            ordered.append(c)
+    return tuple(ordered)
 
 
 def staff_lookup_field(available: set[str]) -> str:
@@ -316,9 +417,15 @@ def resolve_student(
 
     external_id = str(external_id or "").strip()
     if external_id:
-        found = qs.filter(**{lookup_field: external_id}).first()
-        if found is not None:
-            return found
+        # The caller's own column first (unchanged), then the other columns a
+        # source id can have landed in -- above all ``student_code``, which is
+        # what the students lander upserts on. See _STUDENT_IDENTITY_LOOKUP_FIELDS.
+        for field in student_identity_fields(
+            model_field_names(student_model), primary=lookup_field
+        ):
+            found = qs.filter(**{field: external_id}).first()
+            if found is not None:
+                return found
 
     name = student_name_from_row(row)
     if not name:
