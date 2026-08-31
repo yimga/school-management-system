@@ -265,6 +265,49 @@ def _pk_collisions(users: list[dict]) -> list[str]:
     return problems
 
 
+def _profile_collisions(teachers: "list[dict]") -> "list[str]":
+    """Users who already hold a DIFFERENT teacher profile on this deployment.
+
+    ``TeacherProfile.user`` is a ``OneToOneField``. Landing the bundle's profile at its
+    cloud pk while a box-local profile already holds that same user violates the unique
+    index -- mid-transaction, as an opaque ``IntegrityError`` that rolls the whole
+    import back and names no cause. Refusing with the actual reason is the entire point
+    of the pk guard, and checking ``accounts.User`` alone missed this: the two sides can
+    agree perfectly on USER pks (minted once, on the cloud) and still disagree on
+    PROFILE pks, because each side created its own profile row locally.
+
+    Measured on a live box 2026-08-31: 39 real staff, identical people on both sides,
+    user pks matching, profile pks 28+ on the box against 2+ on the cloud.
+    """
+    model = _teacher_model()
+    incoming: "dict[int, object]" = {}
+    for row in teachers:
+        user_id = row.get("user_id")
+        if user_id:
+            incoming[int(user_id)] = row.get("id")
+    if not incoming:
+        return []
+
+    existing = dict(
+        model.objects.filter(user_id__in=list(incoming)).values_list("user_id", "pk")
+    )
+    return [
+        f"user {user_id} already holds teacher profile pk {existing[user_id]} here, but "
+        f"the bundle carries that person at pk {incoming[user_id]}"
+        for user_id in sorted(existing)
+        if existing[user_id] != incoming[user_id]
+    ]
+
+
+def _all_collisions(users: "list[dict]", teachers: "list[dict]") -> "list[str]":
+    """Every reason this bundle cannot be landed pk-preserving, in one list.
+
+    One seam so the dry run and the real import can never answer differently -- the
+    duplication that let the profile case ship unchecked.
+    """
+    return _pk_collisions(users) + _profile_collisions(teachers)
+
+
 def inspect_staff_bundle(container_bytes: bytes, *, expected_school_id=None) -> dict:
     """Verify a bundle and report what it WOULD land. Writes nothing.
 
@@ -279,7 +322,7 @@ def inspect_staff_bundle(container_bytes: bytes, *, expected_school_id=None) -> 
         "tenant_slug": payload.get("tenant_slug", ""),
         "users": len(users),
         "teachers": len(payload.get("teachers") or []),
-        "collisions": _pk_collisions(users),
+        "collisions": _all_collisions(users, payload.get("teachers") or []),
     }
 
 
@@ -294,7 +337,7 @@ def import_staff_bundle(
     users = payload.get("users") or []
     teachers = payload.get("teachers") or []
 
-    collisions = _pk_collisions(users)
+    collisions = _all_collisions(users, teachers)
     if collisions:
         raise ValueError(
             "staff_bundle_pk_collision: refusing to overwrite local account(s) -- "

@@ -60,11 +60,26 @@ def artifact_yield_overview(bundle) -> list[dict[str, Any]]:
         else:
             slot["held_resolved"] += count
 
+    # A derived report (school_stats and friends) is detected up front by
+    # is_derived_report() and lands ZERO records on purpose -- report_lander exists
+    # to do exactly that. It contributes nothing and holds nothing, so the
+    # "everything was quarantined" test cannot see it, and listing it beside a real
+    # mapping failure would train the operator to ignore the list. Two different
+    # questions, kept apart.
+    discovery = (getattr(bundle, "discovery_summary", None) or {}).get(
+        "per_artifact_domain"
+    ) or {}
+
     rows: list[dict[str, Any]] = []
     for artifact in bundle.artifacts.all():
         key = _artifact_key(artifact.path_within_bundle) or _artifact_key(artifact.filename)
         slot = tallies.get(key) or {"held_total": 0, "held_pending": 0, "held_resolved": 0}
         discovered = artifact.row_count
+        path = artifact.path_within_bundle or artifact.filename
+        domain = str(
+            getattr(artifact, "assigned_domain", "")
+            or ((discovery.get(path) or {}).get("domain") or "")
+        ).strip().lower()
         # row_count is null for archives and binaries -- formats that were never
         # going to yield rows. Unknown is not zero, so they are not accused.
         produced_nothing = bool(
@@ -72,13 +87,17 @@ def artifact_yield_overview(bundle) -> list[dict[str, Any]]:
         )
         rows.append(
             {
-                "artifact": artifact.path_within_bundle or artifact.filename,
+                "artifact": path,
                 "format": str(artifact.detected_format or ""),
+                "domain": domain,
                 "rows_discovered": discovered,
                 "held_total": slot["held_total"],
                 "held_pending": slot["held_pending"],
                 "held_resolved": slot["held_resolved"],
                 "produced_nothing": produced_nothing,
+                "skipped_as_report": domain == "reports",
+                "unreadable": bool(getattr(artifact, "quarantined", False)),
+                "unreadable_reason": str(getattr(artifact, "quarantine_reason", "") or ""),
             }
         )
     rows.sort(key=lambda r: (not r["produced_nothing"], str(r["artifact"])))

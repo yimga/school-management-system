@@ -70,6 +70,27 @@ class Command(BaseCommand):
         self.stdout.write("\nBy artifact:")
         for key, count in profile["by_artifact"].items():
             self.stdout.write(f"  {count:4d}  {key}")
+        reports = [
+            row
+            for row in yields
+            if row["skipped_as_report"] and not row["produced_nothing"]
+        ]
+        if reports:
+            # Zero records BY DESIGN. Named so a reader of the section below does
+            # not have to wonder whether these were missed too.
+            self.stdout.write("\nSkipped as derived reports (zero records is correct):")
+            for row in reports:
+                self.stdout.write(
+                    f"  {row['artifact']}  — {row['rows_discovered']} row(s) read, "
+                    "landed by design as a report"
+                )
+
+        unreadable = [row for row in yields if row["unreadable"]]
+        if unreadable:
+            self.stdout.write("\nCould not be read at all:")
+            for row in unreadable:
+                self.stdout.write(f"  {row['artifact']}  — {row['unreadable_reason']}")
+
         barren = [row for row in yields if row["produced_nothing"]]
         if barren:
             # Every discovered row of these files was quarantined, so they created
