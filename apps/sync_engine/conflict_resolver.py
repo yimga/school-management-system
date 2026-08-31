@@ -32,6 +32,23 @@ DEFAULT_STRATEGY_PER_ENTITY: dict[str, str] = {
 
 
 def _parse_causal_rank(value: Any) -> tuple[int, int, str] | None:
+    """A causal rank, or ``None`` when the value carries no causality.
+
+    A WALL-CLOCK TIMESTAMP IS DELIBERATELY NOT ACCEPTED, and the temptation to accept one
+    is worth naming because the only production caller supplies exactly that.
+    ``conflict_actions._policy_payload`` puts ``client_updated_at.isoformat()`` into
+    ``remote_clock``; an aware ISO timestamp has FOUR colon-separated parts, so
+    :meth:`HLC.from_wire` rejects it and :func:`_causal_decision` answers
+    ``manual_review`` - after which ``_decision_to_status`` settles the row by comparing
+    those two wall clocks itself, under its own honest comment saying so.
+
+    Widening this parser to read a timestamp would silently convert that visible fallback
+    into a decision this module would report as ``causal_lww``: the same wall-clock race,
+    now wearing a causal name and no longer distinguishable from a real logical clock by
+    anything a reviewer can see. The delta rail carries no logical clock (only the CRDT
+    rail does, for the four entities ``validate_crdt_kind`` authorises), so the honest
+    answer here is that there is no causal order to report.
+    """
     if isinstance(value, HLC):
         return (value.physical_ms, value.logical, value.actor_id)
     if isinstance(value, str):

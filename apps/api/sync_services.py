@@ -1327,7 +1327,9 @@ def _sync_conflict_policy(entity_type):
     return p.strategy, p.protected
 
 
-def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
+def _conflict_decision(
+    entity_type, sync_origin, client_updated_at, server_dt, *, base_updated_at=None
+):
     """Decide how to apply one delta row: ``"apply"`` | ``"conflict"`` | ``"reject"``.
 
     * LWW master data — newest ``updated_at`` wins; a provably older incoming change is a
@@ -1338,6 +1340,26 @@ def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
       This is the money = cloud-authoritative rule, enforced by policy not by entity name.
     * ``ONLINE_REQUIRED`` domains (credentials, lifecycle, settlement) are never applied
       through the offline/sync path (``reject``).
+
+    CAUSALITY, WHEN THE ROW CAN PROVE IT. ``base_updated_at`` is the version of THIS side's
+    row that the incoming edit was derived from. It is what turns the question from "whose
+    clock is larger" - a comparison of two machines' wall clocks, one of which is an
+    appliance in a school with no time source and is therefore SYSTEMATICALLY ahead - into
+    "did this side move on independently of the edit I am being handed", which is the
+    actual definition of a concurrent write and has no clock in it. When it is present:
+
+      * ``server_dt > base_updated_at`` means this side changed after the version the edit
+        descends from. The two edits are CONCURRENT and neither may silently win, so the
+        row goes to Sync Center exactly like any other conflict - no new vocabulary, no
+        parallel hold mechanism.
+      * otherwise this side has not moved since, the edit descends from what is held here,
+        and it applies - even when the sender's clock is behind, which is the case a
+        wall-clock comparison gets wrong in the other direction and loses a real write to.
+
+    Policy still outranks causality: ``ONLINE_REQUIRED`` and ``protected`` are decided
+    above this, so a well-formed base version is never a way past a cloud-authoritative
+    record. And absent - which is every box shipping today, because the delta wire does not
+    yet carry the field - every rule below behaves exactly as it did before.
     """
     from apps.sync_engine.policy_registry import MergeStrategy
 
@@ -1352,7 +1374,21 @@ def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
     # Both-missing (a brand-new row with no server-side timestamp to beat) still applies.
     if client_updated_at is None:
         return "conflict" if server_dt is not None else "apply"
+    # CAUSALITY FIRST when the row carries it -- see the docstring. This is deliberately
+    # ahead of the timestamp comparison: the whole point is that it answers a question the
+    # clocks cannot, in both directions.
+    if base_updated_at is not None and server_dt is not None:
+        return "conflict" if server_dt > base_updated_at else "apply"
     if server_dt is not None and client_updated_at < server_dt:
+        return "conflict"
+    # A TIE IS NOT AN ORDERING. Two writes stamped identically by two different clocks are
+    # concurrent by definition, and handing the tie to the incoming row is the box-favouring
+    # default in miniature -- the one case where the clocks say nothing at all, settled for
+    # the box anyway. Nothing legitimate produces it: no registered entity ships
+    # ``updated_at`` as a rail field, so the two stamps are independent ``auto_now`` values,
+    # and `_apply_changes_inner`'s unchanged-value short circuit runs BEFORE this, so
+    # reaching here means the values genuinely differ.
+    if server_dt is not None and client_updated_at == server_dt:
         return "conflict"
     return "apply"
 
@@ -1704,8 +1740,19 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             ):
                 _grade_against = None
 
+            # CAUSALITY, when the sender supplies it. `base_updated_at` names the
+            # version of THIS side's row the incoming edit descends from, which lets the
+            # decision below be causal rather than a race between two machines' clocks.
+            # No box emits it yet (the delta producer has nowhere to read the peer's
+            # version from -- SyncApplyLedger records the LOCAL stamp, for echo
+            # suppression), so today this is None and every rule is unchanged; a box that
+            # starts sending it is honoured the moment it does.
             decision = _conflict_decision(
-                entity_type, sync_origin, client_updated_at, _grade_against
+                entity_type,
+                sync_origin,
+                client_updated_at,
+                _grade_against,
+                base_updated_at=_parse_client_updated_at(item.get("base_updated_at")),
             )
             if decision == "reject":
                 # Domain may only change through a live online transaction (policy
