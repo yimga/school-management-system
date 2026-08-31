@@ -144,11 +144,53 @@ class Command(BaseCommand):
                 f"Pulled bundle failed verification: {result.get('errors')}. Cursor NOT advanced."
             )
 
+        # EVERY bucket, not a chosen six. This line used to print received, applied,
+        # created, upserted, conflicts and malformed -- and drop `deleted` and
+        # `skipped`. So a pull that received 75,755 rows reported 75,709 applied and
+        # left 46 with no account anywhere in the output, which an operator can only
+        # read as "something did not arrive".
+        #
+        # Both readings of that silence are expensive, and the box measured on
+        # 2026-08-31 produced both on the same day: the 46 were tombstones applied
+        # exactly as intended, while a REAL 26-row refusal on the same rail wore the
+        # identical shape. A number that does not appear cannot be told apart from a
+        # number that is fine, so print the whole tally and let it sum to `received`.
         self.stdout.write(self.style.SUCCESS(
             f"Pulled {result['received']} row(s) -> applied {result['applied']}, "
             f"created {result['created']}, upserted {result['upserted']}, "
-            f"conflicts {result['conflicts']}, malformed {result['malformed']}."
+            f"deleted {result['deleted']}, conflicts {result['conflicts']}, "
+            f"malformed {result['malformed']}, skipped {result['skipped']}."
         ))
+        # A SKIP is the one outcome with no other surface. A conflict is persisted and
+        # reviewable; a malformed row is a wire fault; a skip is simply a row the cloud
+        # sent and this box did not apply, recorded nowhere. ``apply_pulled_bundle`` has
+        # always returned the reasons -- ``tally_skipped_rows`` exists for exactly this
+        # -- and this command threw them away, which is why diagnosing 26 refused
+        # teachers meant rebuilding the call by hand in a shell to read a dict that the
+        # command had already computed and discarded.
+        skipped_reasons = result.get("skipped_reasons") or {}
+        if skipped_reasons:
+            self.stdout.write(self.style.WARNING(
+                "  NOT applied, by reason: "
+                + ", ".join(
+                    f"{reason} x{count}"
+                    for reason, count in sorted(skipped_reasons.items())
+                )
+            ))
+        # WHICH parent, not just how many. ``tally_skipped_rows`` keeps the model label
+        # for a missing_reference because the repair depends on it: a parent that rides
+        # the rail is cured by a full re-pull, and a parent that does not ride will not
+        # appear in this replay or any future one. Without the label the two cases are
+        # indistinguishable, and the operator re-downloads the whole corpus forever.
+        missing_parents = result.get("skipped_missing_parents") or {}
+        if missing_parents:
+            self.stdout.write(self.style.WARNING(
+                "  absent parent row(s): "
+                + ", ".join(
+                    f"{label} x{count}"
+                    for label, count in sorted(missing_parents.items())
+                )
+            ))
         # Advance the pull cursor ONLY on a successfully applied bundle. An empty pull
         # (no changes) has no high-water — leave the cursor where it is.
         if cursor_file and high_water:
