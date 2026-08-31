@@ -9,6 +9,15 @@ Running a command on the host is itself a credential: whoever can do it can alre
 read the school's database. That is why ``--unpair`` is available here and nowhere on
 the LAN — re-pairing a sealed box demands either an authenticated admin session or
 physical/shell access, never merely being on the network.
+
+ONE BOX PER SCHOOL. The cloud refuses to bind a second box to a school that already
+has one, and says so here rather than in a logfile: the engine's echo-suppression is
+device-blind, so a second box would be silently starved of the first one's changes
+instead of failing. Re-pairing the SAME box (same ``RMC_EDGE_DEVICE_ID``, which
+defaults to ``edge-<slug>``) is not a second box and is always allowed. To move a
+school onto different hardware, release the old box on the cloud first — revoke its
+device in the operator console — then pair the new one. See
+``docs/EDGE_ONE_BOX_PER_SCHOOL_2026_08_31.md``.
 """
 from __future__ import annotations
 
