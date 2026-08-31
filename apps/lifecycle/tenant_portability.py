@@ -28,6 +28,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, transaction
 from django.utils import timezone
 
+from apps.lifecycle.schema_scope import school_schema
 from apps.lifecycle.tenant_dr_snapshot import (
     decrypt_blob,
     encrypt_blob,
@@ -179,6 +180,11 @@ def _scope_queryset(model, school, *, schema_mode: bool):
     """The rows to export for one model, or ``None`` if it cannot be scoped here."""
     if schema_mode:
         # Schema-per-tenant: the schema IS the tenant — every row belongs to it.
+        # That premise is only true INSIDE the tenant schema. The caller is
+        # responsible for entering it (see `school_schema`); run this on the default
+        # connection and it is an unfiltered read of `public`, which holds a legacy
+        # copy plus other tenants' rows. Measured 2026-08-31: that shipped one
+        # school's teacher inside another school's bundle.
         return model._default_manager.all()
     path = _school_lookup_path(_label(model))
     if path is not None:
@@ -207,21 +213,25 @@ def export_tenant_bundle(school) -> bytes:
     skipped: list[str] = []
     errored: dict[str, str] = {}
 
-    for model in _tenant_models():
-        label = _label(model)
-        qs = _scope_queryset(model, school, schema_mode=schema_mode)
-        if qs is None:
-            skipped.append(label)
-            continue
-        try:
-            rows = json.loads(serialize("json", qs))
-        except Exception as exc:  # noqa: BLE001 — record, never silently drop a table
-            errored[label] = str(exc)
-            logger.warning("tenant_portability: export failed for %s: %s", label, exc)
-            continue
-        if rows:
-            tables[label] = rows
-            counts[label] = len(rows)
+    # The schema the rows are READ from. In schema mode `_scope_queryset` drops the
+    # school filter because the schema is the scope -- so entering it is not an
+    # optimisation, it is the only thing making the export tenant-safe.
+    with school_schema(school) as source_schema:
+        for model in _tenant_models():
+            label = _label(model)
+            qs = _scope_queryset(model, school, schema_mode=schema_mode)
+            if qs is None:
+                skipped.append(label)
+                continue
+            try:
+                rows = json.loads(serialize("json", qs))
+            except Exception as exc:  # noqa: BLE001 — record, never silently drop a table
+                errored[label] = str(exc)
+                logger.warning("tenant_portability: export failed for %s: %s", label, exc)
+                continue
+            if rows:
+                tables[label] = rows
+                counts[label] = len(rows)
 
     payload = {
         "format": BUNDLE_FORMAT,
@@ -229,6 +239,9 @@ def export_tenant_bundle(school) -> bytes:
         "school_id": str(school.id),
         "created_at_iso": timezone.now().isoformat(),
         "mode": "schema" if schema_mode else "rls",
+        # Which schema the rows actually came from. Absent in bundles written before
+        # 2026-08-31, which is exactly the set that may carry `public`.
+        "source_schema": source_schema,
         "counts": counts,
         "skipped": skipped,   # models that couldn't be scoped (RLS, no school FK)
         "errored": errored,   # models that failed to serialize (never silent)
@@ -314,16 +327,24 @@ def import_tenant_bundle(container_bytes: bytes, *, expected_school_id=None) -> 
 
     imported: dict[str, int] = {}
     order = _order_labels_by_dependency(list(tables.keys()))
-    with transaction.atomic():
-        with connection.constraint_checks_disabled():
-            for label in order:
-                rows = tables.get(label) or []
-                n = 0
-                for obj in deserialize("json", json.dumps(rows), ignorenonexistent=True):
-                    obj.save()  # pk preserved
-                    n += 1
-                imported[label] = n
-        connection.check_constraints()
+    # Land the rows in the school's OWN schema, for the same reason the export reads
+    # from it: on the default connection these writes go to `public`, where they are
+    # invisible to the tenant UI and mixed in with other tenants' legacy rows. A box
+    # has one schema, so this is a no-op there.
+    from apps.schools.models import School
+
+    target = School.objects.filter(pk=school_id).first()
+    with school_schema(target):
+        with transaction.atomic():
+            with connection.constraint_checks_disabled():
+                for label in order:
+                    rows = tables.get(label) or []
+                    n = 0
+                    for obj in deserialize("json", json.dumps(rows), ignorenonexistent=True):
+                        obj.save()  # pk preserved
+                        n += 1
+                    imported[label] = n
+            connection.check_constraints()
 
     return {
         "school_id": school_id,
