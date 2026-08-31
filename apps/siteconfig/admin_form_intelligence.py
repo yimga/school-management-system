@@ -25,6 +25,7 @@ import logging
 from typing import Any, Iterable
 
 from django.contrib.admin.utils import flatten_fieldsets
+from django.contrib.admin.widgets import AdminSplitDateTime
 from django.core.exceptions import (
     FieldDoesNotExist,
     FieldError,
@@ -35,6 +36,7 @@ from django.db import DatabaseError, transaction
 from django.http import HttpRequest, JsonResponse
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.text import capfirst
 from django.utils.translation import gettext
 from django.views.decorators.http import require_http_methods
 
@@ -190,6 +192,106 @@ def _preference_endpoint(admin_site, request: HttpRequest | None = None) -> str:
 
 def _ordered_unique(values: Iterable[str]) -> list[str]:
     return list(dict.fromkeys(str(value) for value in values if value))
+
+
+def _declared_field_names(model_admin) -> list[str]:
+    """Field names a ModelAdmin/InlineModelAdmin NAMES in its own layout.
+
+    Reads the class attributes on purpose rather than calling
+    ``get_fieldsets``/``get_fields``: those fall back to
+    ``get_readonly_fields``, and the only caller is inside it.
+    """
+
+    names: list[str] = []
+
+    def _add(entry):
+        # Django allows a nested tuple to put several fields on one line.
+        if isinstance(entry, (list, tuple)):
+            for part in entry:
+                _add(part)
+        elif entry:
+            names.append(str(entry))
+
+    for _label, options in getattr(model_admin, "fieldsets", None) or ():
+        _add((options or {}).get("fields", ()) or ())
+    _add(getattr(model_admin, "fields", None) or ())
+    return names
+
+
+def _declared_but_excluded(model_admin, request, obj=None) -> list[str]:
+    """Names the admin both EXCLUDES from the form and NAMES in its layout.
+
+    That combination is a hard 500, not a cosmetic slip: Django's fieldset
+    renderer looks the name up with ``form[name]`` and raises KeyError for
+    every user, on every add AND change view. ``get_exclude`` on the mixins
+    below drops "school" from every tenant-site form, so any admin that also
+    lists "school" in its fieldsets is permanently unopenable -- exactly what
+    CommunicationTemplateAdmin was, reproduced 2026-08-31.
+
+    Returning the name for ``get_readonly_fields`` renders it read-only, which
+    is the cure already applied by hand at ``siteconfig/admin.py`` and
+    ``schools/admin.py``. The security property is untouched: an excluded
+    field still cannot be set by a crafted POST.
+
+    Scoped to DECLARED names so it stays a no-op for the ~485 admins that
+    never mention the field. An unconditional append would ADD a school row
+    to every admin that declares no fieldsets at all, because
+    ``ModelAdmin.get_fields()`` returns the form fields PLUS the readonly ones.
+    """
+
+    excluded = set(model_admin.get_exclude(request, obj) or ())
+    if not excluded:
+        return []
+    return [
+        name
+        for name in _declared_field_names(model_admin)
+        if name in excluded and _field_exists(model_admin.model, name)
+    ]
+
+
+def _name_split_datetime_subwidgets(db_field, formfield) -> None:
+    """Give each half of a split date/time control an accessible name.
+
+    Django renders a DateTimeField in the admin as ``AdminSplitDateTime``:
+    two text inputs preceded by the BARE TEXT "Date:" and "Time:". Neither
+    has a label bound to it, and the field's own <label> carries no ``for``
+    either, because ``MultiWidget.id_for_label()`` returns None by design.
+
+    Measured 2026-08-31 with CDP ``Accessibility.getPartialAXTree`` on the
+    rendered admin: every one of those inputs reported ``name: ""`` -- 32
+    nodes across 5 add-forms on both sites. A screen reader announced "edit
+    text" with nothing to say WHICH field, so a form with a start and an end
+    datetime offered four indistinguishable boxes. WCAG 2.1 SC 4.1.2.
+
+    Naming the sub-inputs here rather than in a template is deliberate: form
+    widgets render through ``FORM_RENDERER``, a STANDALONE engine that reads
+    ``django/forms/templates`` plus installed-app template dirs and NOT this
+    project's ``TEMPLATES['DIRS']``.  A repo-level
+    ``templates/admin/widgets/split_datetime.html`` is therefore never
+    consulted (verified by rendering it), and the only app that precedes
+    ``django.contrib.admin`` in INSTALLED_APPS is ``unfold``.  The
+    alternatives -- switching FORM_RENDERER to TemplatesSetting, or inserting
+    a shim app ahead of contrib.admin -- both change rendering for every form
+    in the product, and the schema-mode SHARED_APPS/TENANT_APPS split makes
+    the second one a trap.  Setting the attribute reaches exactly the two
+    inputs that are broken.
+
+    The visible "Date:"/"Time:" text is left alone, so the accessible name
+    still contains the visible label (WCAG SC 2.5.3) and sighted users lose
+    nothing.  ``formfield_for_dbfield`` builds a fresh widget per field per
+    request, so this never leaks across requests.
+    """
+
+    widget = getattr(formfield, "widget", None)
+    if not isinstance(widget, AdminSplitDateTime):
+        return
+    subwidgets = getattr(widget, "widgets", None) or ()
+    if len(subwidgets) < 2:  # pragma: no cover - upstream shape changed
+        return
+    label = capfirst(str(getattr(db_field, "verbose_name", "") or db_field.name))
+    for subwidget, part in zip(subwidgets, (gettext("date"), gettext("time"))):
+        subwidget.attrs = dict(subwidget.attrs or {})
+        subwidget.attrs.setdefault("aria-label", f"{label} {part}")
 
 
 @dataclass(frozen=True)
@@ -609,7 +711,14 @@ class AdminFormAutomationMixin:
         for name in SYSTEM_EVIDENCE_FIELDS:
             if _field_exists(self.model, name):
                 readonly.append(name)
+        readonly.extend(_declared_but_excluded(self, request, obj))
         return tuple(_ordered_unique(readonly))
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if formfield is not None:
+            _name_split_datetime_subwidgets(db_field, formfield)
+        return formfield
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         base_form = super().get_form(request, obj, change=change, **kwargs)
@@ -803,7 +912,14 @@ class AdminInlineAutomationMixin:
         for name in SYSTEM_EVIDENCE_FIELDS:
             if _field_exists(self.model, name):
                 readonly.append(name)
+        readonly.extend(_declared_but_excluded(self, request, obj))
         return tuple(_ordered_unique(readonly))
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if formfield is not None:
+            _name_split_datetime_subwidgets(db_field, formfield)
+        return formfield
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)

@@ -180,6 +180,35 @@ body.rmc-admin-sidebar-compact-v3 .rmc-admin-sidebar-v3__rail a:is(:hover, :focu
   .rmc-admin-command-v3 footer { flex-wrap: wrap; }
 }
 
+/* WCAG 2.2 SC 2.5.8 Target Size (Minimum).
+   The ambient sections ("Libraries & help", recents) render their <li><a>
+   with no rule of their own, so each link is a bare 17px line box and
+   adjacent links sit 20.8px centre-to-centre. Measured 2026-08-31 at
+   390x844 on operator-index and the billing changelist.
+
+   Both of the standard's get-outs were checked before changing anything:
+   the INLINE exception does not apply (these are discrete list items, not
+   links inside a sentence), and the SPACING exception does not either --
+   24px circles centred on neighbouring links overlap at 20.8px. Two links
+   per operator page failed on both counts; every other undersized target on
+   the surface was cleared by one exception or the other and is left alone.
+
+   24px is the minimum the criterion asks for, so that is what this sets --
+   the extra ~7px of height per row is the smallest change that passes. The
+   gap also separates the leading glyph from its label, which were touching. */
+.rmc-admin-sidebar-v3__section > ol > li > a {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  min-block-size: 24px;
+  padding-inline: .25rem;
+  border-radius: .4rem;
+}
+
+.rmc-admin-sidebar-v3__section > ol > li > a:hover {
+  background: color-mix(in srgb, var(--nav-accent) 9%, transparent);
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-rmc-admin-sidebar-v3="1"] *,
   .rmc-admin-command-v3 * { scroll-behavior: auto !important; transition-duration: .001ms !important; }

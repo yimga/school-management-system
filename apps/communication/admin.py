@@ -139,7 +139,18 @@ class CommunicationTemplateAdmin(admin.ModelAdmin):
     list_display = ("key", "school", "locale", "is_active", "sensitivity", "updated_at")
     list_filter = ("is_active", "sensitivity", "school")
     search_fields = ("key", "subject_template", "body_template", "notes")
-    readonly_fields = ("created_at", "updated_at")
+    # "school" is READ-ONLY, not editable: this admin is mounted on the tenant
+    # site, where AdminFormAutomationMixin.get_exclude() strips "school" from
+    # every form so a tenant cannot post another school's id. The fieldset
+    # below still NAMES it, and Django's fieldset renderer resolves a named
+    # field with form[name] -- which raised
+    #   KeyError: "Key 'school' not found in 'RmcValidatedCommunicationTemplateForm'"
+    # on add AND change, for every user, every time (reproduced 2026-08-31).
+    # Listing it here is the same cure used by SchoolWaiverRequestAdmin and
+    # TenantApiUsageAdmin. The mixin now also does this automatically for any
+    # declared-but-excluded field; the explicit entry keeps this admin
+    # readable on its own.
+    readonly_fields = ("school", "created_at", "updated_at")
     fieldsets = (
         (None, {"fields": ("school", "key", "locale", "is_active")}),
         ("Content", {"fields": ("subject_template", "body_template", "channels", "audience", "sensitivity")}),
