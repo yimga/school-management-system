@@ -80,6 +80,31 @@ EXPECTED_LANDED = [
 ]
 
 
+def tenant_schema_name(school) -> str:
+    """The schema name a REAL bundle for ``school`` carries.
+
+    Fixtures must stamp this, because a bundle with a BLANK ``schema_name`` is not
+    a realistic bundle and Pass 2 deliberately refuses to verify one: on a
+    schema-per-tenant connection the landed-row read would fall through to the
+    PUBLIC schema, which holds stale copies of the tenant tables, and a false clean
+    there is the outcome that purges the encrypted source.
+
+    That refusal is runner-visible. ``manage.py test`` installs the reliable
+    runner's single-schema shim (config/reliable_test_runner.py), which adds a
+    NO-OP ``set_schema`` to the sqlite wrapper so ``schema_context`` is harmless
+    here -- but that also makes ``hasattr(connection, "set_schema")`` true, so the
+    connection LOOKS schema-per-tenant and the refusal fires. pytest installs no
+    such shim, so it does not. A blank schema_name therefore turned every
+    verification below into a silent no-verify under the runner CI actually uses,
+    while staying green under pytest. Resolving the school's real schema fixes the
+    fixture on both, and keeps these tests asserting VERIFICATION rather than the
+    verifier declining to run.
+    """
+    from apps.migration_cloud.schema_binding import resolve_school_schema_name
+
+    return resolve_school_schema_name(school) or "public"
+
+
 class DigestPrimitiveTests(SimpleTestCase):
     """The digest itself: field-ordered, collision-resistant, representation-stable."""
 
@@ -178,9 +203,7 @@ class _RosterFixture(TestCase):
             idempotency_key="two-pass-checksum-20260831",
             status=BundleStatus.APPLIED,
             school=self.school,
-            # Blank on this single-schema test lane; verify_bundle_checksums refuses to
-            # run against PUBLIC only when the connection is genuinely schema-per-tenant.
-            schema_name="",
+            schema_name=tenant_schema_name(self.school),
             discovery_summary={
                 "per_artifact_domain": {"roster.csv": {"domain": "students"}}
             },
@@ -600,7 +623,7 @@ class _PlantCycleMixin(TestCase):
             idempotency_key=f"pass2-{label}",
             status=BundleStatus.APPLIED,
             school=self.school,
-            schema_name="",
+            schema_name=tenant_schema_name(self.school),
             discovery_summary={
                 "per_artifact_domain": {f"{domain}.csv": {"domain": domain}}
             },
@@ -1313,3 +1336,125 @@ class CoverageIsQueryableTests(SimpleTestCase):
                 set(spec.fields) - identity,
                 f"{domain} claims value verification but only hashes its own identity",
             )
+
+
+class BlankSchemaNameIsRefusedNotVerifiedTests(_RosterFixture):
+    """The public-schema guard, pinned independently of which runner is in play.
+
+    This is the defect that made the suite green under pytest and red under
+    ``manage.py test``: whether the guard fires depends on
+    ``hasattr(connection, "set_schema")``, and that attribute is absent on the raw
+    sqlite wrapper but PRESENT under ``manage.py test``, where the reliable runner
+    installs a no-op shim (config/reliable_test_runner.py). So the test patches the
+    attribute in explicitly and pins the GUARD rather than the lane it happens to
+    run on.
+
+    Both halves matter. Asserting only the refusal would be the same class of defect
+    as the count-based Pass 2 this work replaced: a suite that proves the verifier
+    declines to verify is green while testing nothing. The second half therefore
+    requires the SAME bundle, with a real schema stamped, to actually verify.
+    """
+
+    def _schema_per_tenant_connection(self):
+        """Make the connection look schema-per-tenant on EITHER runner.
+
+        Patches the same FOUR attributes on the same class that
+        config/reliable_test_runner.py's shim patches -- ``type(connections[alias])``,
+        the real DatabaseWrapper. Two traps live here:
+
+        * ``set_schema`` alone is not enough. It is what the guard tests for, but
+          entering ``schema_context`` afterwards also touches ``tenant`` /
+          ``set_tenant``, so a partial patch kills the positive half of this pair
+          inside the context manager instead of verifying.
+        * ``django.db.connection`` is a ConnectionProxy, so ``type(connection)`` is
+          the PROXY class. Patching that satisfies ``hasattr`` (the proxy forwards)
+          while ``schema_context`` -- which resolves ``connections[alias]`` directly
+          -- still sees a wrapper with no ``set_schema``.
+        """
+        import contextlib
+        from unittest import mock
+
+        from django.db import DEFAULT_DB_ALIAS, connections
+
+        cls = type(connections[DEFAULT_DB_ALIAS])
+
+        def _noop(self, *args, **kwargs):
+            return None
+
+        stack = contextlib.ExitStack()
+        for attr, value in (
+            ("set_schema", _noop),
+            ("set_schema_to_public", _noop),
+            ("set_tenant", _noop),
+            ("tenant", None),
+        ):
+            stack.enter_context(
+                mock.patch.object(cls, attr, create=True, new=value)
+            )
+        return stack
+
+    def test_a_blank_schema_name_refuses_rather_than_reading_public(self):
+        self.land_roster()
+        self.bundle.schema_name = ""
+        self.bundle.save(update_fields=["schema_name"])
+
+        with self._schema_per_tenant_connection():
+            report = verify_bundle_checksums(self.bundle)
+
+        self.assertEqual(
+            report.per_domain,
+            [],
+            "Pass 2 compared rows it had no business reading — on a schema-per-tenant "
+            "connection a blank schema_name resolves to PUBLIC, which holds stale "
+            "copies of the tenant tables",
+        )
+        self.assertIn("*", report.unverifiable_domains)
+        self.assertFalse(report.complete)
+        self.assertTrue(
+            any("PUBLIC schema" in note for note in report.notes),
+            f"the refusal was not explained to the operator: {report.notes}",
+        )
+
+    def test_the_same_bundle_verifies_once_it_carries_its_real_schema(self):
+        """The guard must DISCRIMINATE, not refuse everything.
+
+        Without this half the test above would still pass if Pass 2 had been broken
+        into refusing unconditionally.
+        """
+        self.land_roster()
+        self.assertTrue(
+            self.bundle.schema_name,
+            "the fixture must stamp the schema a real bundle carries",
+        )
+
+        with self._schema_per_tenant_connection():
+            report = verify_bundle_checksums(self.bundle)
+
+        d = self.students_result(report)
+        self.assertEqual(d.matched, 3)
+        self.assertEqual(d.divergent, 0)
+        self.assertTrue(report.ok)
+
+    def test_the_command_reports_a_refusal_as_could_not_verify_not_as_clean(self):
+        """Exit 2, never 0. "I could not check" must not read as "I checked"."""
+        self.land_roster()
+        self.bundle.schema_name = ""
+        self.bundle.save(update_fields=["schema_name"])
+
+        with self._schema_per_tenant_connection():
+            code, output = self._cmd_for(self.bundle)
+
+        self.assertEqual(code, 2, output)
+        self.assertIn("NOT VERIFIED", output)
+
+    def _cmd_for(self, bundle):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        out = StringIO()
+        try:
+            call_command("verify_migration_checksums", bundle=bundle.pk, stdout=out)
+        except SystemExit as exc:
+            return int(exc.code), out.getvalue()
+        return 0, out.getvalue()
