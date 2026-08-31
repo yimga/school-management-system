@@ -14,6 +14,7 @@ from .models import (
 from .models_kb import (
     FAQCategory,
     FAQ,
+    HostedOfficeDocument,
     KBCategory,
     KBArticle,
     KBArticleAttachment,
@@ -298,4 +299,21 @@ register_tenant_admin(KBCategory, KBCategoryAdmin)
 register_tenant_admin(KBArticle, KBArticleAdmin)
 register_tenant_admin(KBArticleAttachment, KBArticleAttachmentAdmin)
 register_tenant_admin(KBComment, KBCommentAdmin)
+class HostedOfficeDocumentAdmin(admin.ModelAdmin):
+    """Moved here verbatim from the never-imported apps/portal/admin_kb.py.
+
+    That module carried a bare @admin.register(HostedOfficeDocument), which
+    targets Django's default admin.site -- a site no urlconf in this repo
+    mounts. It was also never imported, so the registration did not even run:
+    the model had no admin anywhere. apps.portal is in TENANT_APPS, so this
+    is a school's own document library and belongs on the tenant site.
+    """
+
+    list_display = ["title", "help_audience", "school", "updated_at", "created_by"]
+    list_filter = ["help_audience", "school", "updated_at"]
+    search_fields = ["title", "file"]
+    readonly_fields = ["created_at", "updated_at"]
+
+
 register_tenant_admin(UserContribution, UserContributionAdmin)
+register_tenant_admin(HostedOfficeDocument, HostedOfficeDocumentAdmin)

@@ -6,7 +6,13 @@
   "use strict";
 
   var TEXT_SHIELD_SELECTOR = [
-    ".btn:not(.rmc-btn-wrap):not(.btn-link):not(.dropdown-toggle)",
+    // .rmc-info-tag__btn is exempt for the same reason .btn-link and
+    // .dropdown-toggle are: it is an icon-only button with no label, so
+    // there is nothing for the shield to clamp. Stamping it made the CSS
+    // rule [data-rmc-text-shield] apply overflow:hidden, which CLIPPED the
+    // invisible 24x24 touch region rmc-class-grammar.css gives it. Keep in
+    // sync with the matching selector in rmc-isomorphic-grid-sweep.css.
+    ".btn:not(.rmc-btn-wrap):not(.btn-link):not(.dropdown-toggle):not(.rmc-info-tag__btn)",
     ".cp-primary-nav__pill",
     ".tp-primary-nav__pill",
     ".modal-title",

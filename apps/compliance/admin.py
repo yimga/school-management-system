@@ -21,7 +21,10 @@ from .models import (
 
 
 # Pass 9.B: FERPA disclosure admin — US K-12 audit-window requirement.
-@admin.register(FerpaDisclosure)
+# A bare @admin.register(Model) lands on Django's DEFAULT admin.site, which
+# no urlconf in this repo mounts (config/urls, tenant_urls, manager_urls and
+# public_urls were all read). The screen was therefore unreachable from any
+# host. Registered explicitly below instead.
 class FerpaDisclosureAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -254,6 +257,7 @@ class EraseRequestAdmin(admin.ModelAdmin):
 
 register_tenant_admin(ExportJob, ExportJobAdmin)
 register_tenant_admin(EraseRequest, EraseRequestAdmin)
+register_tenant_admin(FerpaDisclosure, FerpaDisclosureAdmin)
 
 # Registers AuditLog (platform + tenant via admin_audit), AccessLog, UserActivitySession, etc.
 from . import admin_audit  # noqa: F401
