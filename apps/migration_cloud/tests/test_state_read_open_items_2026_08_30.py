@@ -138,6 +138,55 @@ class OpenItemsTests(TestCase):
         self.assertIn("Produced NO records", text)
         self.assertIn(ARTIFACT, text)
 
+    def test_a_derived_report_is_not_listed_as_a_failure(self):
+        """Bundle 85 shipped the SAME stats report twice, 7 seconds apart:
+
+            school_stats_...22_47_25.pdf    row_count=88  held=88
+            school_stats_...22_47_32.xlsx   row_count=40  held=0
+
+        The xlsx holds nothing because it was detected as a derived report and
+        skipped -- report_lander lands zero records on purpose. It contributed
+        nothing, but so does every report, and putting it in the same list as a
+        mapping failure is how a warning list becomes noise nobody reads.
+        """
+        art = self._artifact("school_stats.xlsx", row_count=40, fmt="xlsx")
+        art.assigned_domain = "reports"
+        art.save(update_fields=["assigned_domain"])
+
+        rows = {r["artifact"]: r for r in artifact_yield_overview(self.bundle)}
+        row = rows["school_stats.xlsx"]
+        self.assertTrue(row["skipped_as_report"])
+        self.assertFalse(row["produced_nothing"], "a report is not a failure")
+
+    def test_the_two_answers_appear_in_different_sections(self):
+        # The failure and the by-design zero, side by side, as in bundle 85.
+        self._artifact(ARTIFACT, row_count=88)
+        self._holds(88)
+        report = self._artifact("school_stats.xlsx", row_count=40, fmt="xlsx")
+        report.assigned_domain = "reports"
+        report.save(update_fields=["assigned_domain"])
+
+        out = StringIO()
+        call_command("profile_bundle_quarantine", "--bundle-id", self.bundle.pk, stdout=out)
+        text = out.getvalue()
+        self.assertIn("Produced NO records", text)
+        self.assertIn("Skipped as derived reports", text)
+        # The report must not be under the failure heading.
+        failure_section = text.split("Produced NO records", 1)[1].split("Skipped as", 1)[0]
+        self.assertNotIn("school_stats.xlsx", failure_section)
+
+    def test_an_unreadable_artifact_gets_its_own_answer(self):
+        art = self._artifact("scan.pdf", row_count=0)
+        art.quarantined = True
+        art.quarantine_reason = "no working reader for this format"
+        art.save(update_fields=["quarantined", "quarantine_reason"])
+
+        rows = {r["artifact"]: r for r in artifact_yield_overview(self.bundle)}
+        self.assertTrue(rows["scan.pdf"]["unreadable"])
+        out = StringIO()
+        call_command("profile_bundle_quarantine", "--bundle-id", self.bundle.pk, stdout=out)
+        self.assertIn("Could not be read at all", out.getvalue())
+
     # -------------------------------------------------------- 1. batch path --
     def test_the_batch_path_can_do_what_a_page_open_refuses(self):
         self._artifact(ARTIFACT, row_count=REVIEW_OPEN_ROW_BUDGET + 10)
