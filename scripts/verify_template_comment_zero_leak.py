@@ -26,6 +26,14 @@ def iter_templates() -> list[Path]:
 
 
 def main() -> int:
+    # Snippets carry whatever the template holds -- arrows, em dashes,
+    # non-Latin names. On a cp1252 console print() raises
+    # UnicodeEncodeError and the gate dies mid-report with a traceback
+    # instead of naming its findings (observed 2026-08-31 on U+2192).
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):  # pragma: no cover - exotic stdout
+        pass
     findings: list[tuple[str, int, str]] = []
     for path in iter_templates():
         text = path.read_text(encoding="utf-8", errors="replace")
