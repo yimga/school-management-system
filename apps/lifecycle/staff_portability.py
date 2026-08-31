@@ -317,12 +317,19 @@ def inspect_staff_bundle(container_bytes: bytes, *, expected_school_id=None) -> 
     """
     payload = _open_bundle(container_bytes, expected_school_id=expected_school_id)
     users = payload.get("users") or []
+    # IN THE TENANT SCHEMA. `_profile_collisions` reads people_teacherprofile, which is
+    # a TENANT table -- asked on the default connection it would answer from public and
+    # report collisions against rows the import will never touch (or, worse, report
+    # none while the real ones sit in the tenant schema). A dry run that inspects a
+    # different schema from the one the import writes to is not a dry run.
+    with school_schema(payload.get("school_id")):
+        collisions = _all_collisions(users, payload.get("teachers") or [])
     return {
         "school_id": payload.get("school_id", ""),
         "tenant_slug": payload.get("tenant_slug", ""),
         "users": len(users),
         "teachers": len(payload.get("teachers") or []),
-        "collisions": _all_collisions(users, payload.get("teachers") or []),
+        "collisions": collisions,
     }
 
 
@@ -337,17 +344,22 @@ def import_staff_bundle(
     users = payload.get("users") or []
     teachers = payload.get("teachers") or []
 
-    collisions = _all_collisions(users, teachers)
-    if collisions:
-        raise ValueError(
-            "staff_bundle_pk_collision: refusing to overwrite local account(s) -- "
-            + "; ".join(collisions)
-        )
-
     # The tenant schema is chosen from the BUNDLE's school, not from whatever schema
     # the command happens to run in -- see school_schema for what reading `public`
     # cost. _open_bundle has already refused a bundle for a different school.
+    #
+    # The collision check is INSIDE, and in the same entry as the write. It reads
+    # people_teacherprofile (a TENANT table), so on the default connection it would
+    # vet the bundle against public while landing the rows in the tenant schema --
+    # guarding one table and writing another.
     with school_schema(payload.get("school_id")):
+        collisions = _all_collisions(users, teachers)
+        if collisions:
+            raise ValueError(
+                "staff_bundle_pk_collision: refusing to overwrite local account(s) -- "
+                + "; ".join(collisions)
+            )
+
         User = _user_model()
         Teacher = _teacher_model()
         dropped: dict[str, int] = {}
