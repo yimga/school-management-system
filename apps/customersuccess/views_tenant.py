@@ -109,6 +109,7 @@ def _resolve_csv_target_school(request):
         return None, {"ok": False, "error": "school_id_required"}
 
     member_ids = list(
+        # tenant-isolation-allow: resolves which schools the caller belongs to, capped at two to force disambiguation; a superuser is refused above rather than guessed at (both tenancy modes, reviewed 2026-09-01)
         SchoolMembership.objects.filter(user_id=getattr(user, "pk", None))
         .values_list("school_id", flat=True)
         .distinct()[:2]

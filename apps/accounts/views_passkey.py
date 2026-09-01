@@ -354,6 +354,7 @@ def passkey_login_verify(request):
             if membership is None and not passkey.user.is_superuser:
                 raise ValueError("tenant mismatch")
         else:
+            # tenant-isolation-allow: no tenant is bound on this host, so this resolves the passkey owner's own membership; the school-bound branch above is the one that enforces the tenant match (both tenancy modes, reviewed 2026-09-01)
             membership = SchoolMembership.objects.filter(user=passkey.user).first()
 
         public_key = base64.urlsafe_b64decode(

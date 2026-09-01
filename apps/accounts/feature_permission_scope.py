@@ -41,6 +41,7 @@ def set_direct_permissions(user, permissions, *, school) -> None:
             # still scopes that code to this user, or revoking here would revoke
             # it everywhere.
             still_scoped = set(
+                # tenant-isolation-allow: deliberately cross-school: dropping the M2M grant is only safe once no OTHER school still scopes this code to this user (both tenancy modes, reviewed 2026-09-01)
                 FeaturePermissionScope.objects.filter(
                     user=user, permission_id__in=stale_ids
                 ).values_list("permission_id", flat=True)

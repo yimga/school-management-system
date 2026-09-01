@@ -101,6 +101,7 @@ def _install_destination(request):
     school = getattr(request, "school", None)
     if school is None:
         membership = (
+            # tenant-isolation-allow: the request carries no school, so this resolves the acting user's own primary membership instead of defaulting to every tenant (both tenancy modes, reviewed 2026-09-01)
             SchoolMembership.objects.filter(user=user)
             .select_related("school")
             .order_by("-is_primary")

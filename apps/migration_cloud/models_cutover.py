@@ -337,6 +337,7 @@ def cutover_signoff_pending_for_bundle(bundle) -> bool:
         )
     except ImportError:  # pragma: no cover
         return False
+    # tenant-isolation-allow: bounded to one bundle by real_bundle_id, and a bundle is school-owned, so this cannot span tenants (both tenancy modes, reviewed 2026-09-01)
     return CutoverRunbook.objects.filter(
         real_bundle_id=bundle.pk,
     ).exclude(

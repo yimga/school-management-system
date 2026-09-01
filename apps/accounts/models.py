@@ -434,6 +434,7 @@ class User(AbstractUser):
         anyone who belongs to both. See ``FeaturePermissionScope``.
         """
         scoped = list(
+            # tenant-isolation-allow: returns the school_ids that scope this grant, so this query IS the tenant resolution the docstring above describes (both tenancy modes, reviewed 2026-09-01)
             FeaturePermissionScope.objects.filter(
                 user_id=self.pk, permission__code=code
             ).values_list("school_id", flat=True)

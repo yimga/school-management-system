@@ -98,6 +98,7 @@ def quarantine_runs_for_bundle(bundle) -> list[int]:
     from apps.automation.models import MigrationRun
 
     return list(
+        # tenant-isolation-allow: bounded to one bundle's runs by execution_summary__bundle_id, and a bundle is school-owned (both tenancy modes, reviewed 2026-09-01)
         MigrationRun.objects.filter(
             execution_summary__bundle_id=bundle.pk
         ).values_list("pk", flat=True)

@@ -763,6 +763,7 @@ def _apply_donation_intake(school_id, user_id: int, payload: dict[str, Any]) -> 
     # gift and double-credit its fund. The partial-unique (donor, client_offline_id)
     # index makes the replay land on the first gift instead.
     if client_key:
+        # tenant-isolation-allow: bounded to one donor, which is school-owned; this is the replay dedup the comment above describes (both tenancy modes, reviewed 2026-09-01)
         dup = AdvancementGift.objects.filter(
             donor=donor, client_offline_id=client_key
         ).first()
@@ -781,6 +782,7 @@ def _apply_donation_intake(school_id, user_id: int, payload: dict[str, Any]) -> 
             )
     except IntegrityError:
         # Concurrent replay won the partial-unique (donor, client_offline_id) race.
+        # tenant-isolation-allow: bounded to one donor, which is school-owned; second half of the same replay dedup (both tenancy modes, reviewed 2026-09-01)
         dup = AdvancementGift.objects.filter(
             donor=donor, client_offline_id=client_key
         ).first()
