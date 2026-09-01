@@ -66439,3 +66439,55 @@ msgid ""
 "{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be "
 "applied"
 msgstr ""
+
+msgid "%(label)s skip recorded on this host."
+msgstr ""
+
+msgid ""
+"A campus that does not have an uplink, LAN DNS, USB/NAS, SIS files, or a "
+"logo can waive that matching line on this page with a written reason of at "
+"least 12 characters. Owner login and SECRET_KEY cannot be skipped."
+msgstr ""
+
+msgid ""
+"A skip is already on file ({{ counter }} character).{% plural %}A skip is "
+"already on file ({{ counter }} characters)."
+msgstr ""
+
+msgid ""
+"A skip is on file on this cloud tenant ({{ counter }} character).{% plural "
+"%}A skip is on file on this cloud tenant ({{ counter }} characters)."
+msgstr ""
+
+msgid "Box backup skip recorded."
+msgstr ""
+
+msgid "Copy skip command"
+msgstr ""
+
+msgid ""
+"Go-dark reads the box overlay, not this cloud school. Paste the skip command"
+" on the box too."
+msgstr ""
+
+msgid ""
+"Go-dark reads the box overlay, not this cloud school. Paste this command on "
+"the box:"
+msgstr ""
+
+msgid "Note skip on this cloud tenant"
+msgstr ""
+
+msgid "Skip reason was too short. Use at least 12 characters."
+msgstr ""
+
+msgid "Skip {{ label }} (reason, 12+ characters)"
+msgstr ""
+
+msgid ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, verified backup, and go-dark checklist must run on the edge box with:"
+msgstr ""
+
+msgid "This skip is evaluated on the cloud (this host)."
+msgstr ""
