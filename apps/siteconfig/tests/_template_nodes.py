@@ -215,6 +215,85 @@ def assert_urls_reverse(case, path: str | Path) -> None:
         f"so nothing was actually reversed",
     )
 
+def _condition_text(node) -> str:
+    """One {% if %} condition rendered back to source-like text."""
+    if node is None:
+        return ""
+    operator = getattr(node, "id", None)
+    first = getattr(node, "first", None)
+    second = getattr(node, "second", None)
+    if operator is not None and first is not None:
+        if second is None:
+            return f"{operator} {_condition_text(first)}"
+        return f"{_condition_text(first)} {operator} {_condition_text(second)}"
+    value = getattr(node, "value", None)
+    token = getattr(value, "token", None)
+    return str(token) if token is not None else str(node)
+
+
+def branch_conditions(path: str | Path) -> list[str]:
+    """Every {% if %} / {% elif %} condition this template branches on.
+
+    Normalised back to source-like text: ``a == 'b'``, ``not a.b.c``,
+    ``a != 'b'``. Whitespace is single-spaced, so an assertion written
+    against this does not break when someone reflows the tag.
+
+    An {% else %} arm contributes nothing -- it has no condition.
+
+    Sound for the same reason as the rest of this module: a template whose
+    body is one {% comment %} parses to zero IfNodes.
+    """
+    from django.template.defaulttags import IfNode
+
+    source = Path(path).read_text(encoding="utf-8")
+    template = engines["django"].from_string(source).template
+    out: list[str] = []
+    for node in template.nodelist.get_nodes_by_type(IfNode):
+        for condition, _nodelist in node.conditions_nodelists:
+            text = _condition_text(condition)
+            if text:
+                out.append(text)
+    return out
+
+
+def assert_branches_on(case, path: str | Path, *expressions: str) -> None:
+    """Fail unless ``path`` really branches on every one of ``expressions``.
+
+    Match is on the normalised condition text, so give it the way the
+    template writes it: ``request.public_host_kind == 'manager'``.
+
+    A clause of a compound condition counts: real templates write
+    ``{% if nav_role != 'STUDENT' and nav_role != 'TEACHER' %}`` and a test
+    that means "this is gated on nav_role" should not break when a third
+    clause is added. Exact-match would have made the helper unusable on the
+    very tests that asked for it.
+    """
+    conditions = branch_conditions(path)
+    for expression in expressions:
+        wanted = " ".join(expression.split())
+        case.assertTrue(
+            any(wanted == c or wanted in c for c in conditions),
+            f"{path} does not branch on {wanted!r}. "
+            f"It branches on {len(conditions)} condition(s): {conditions[:12]}",
+        )
+
+
+def assert_does_not_branch_on(case, path: str | Path, *expressions: str) -> None:
+    """The mirror -- and the reason this pair exists.
+
+    A test whose whole claim is that a template must NOT branch on something
+    (a raw role column, an impersonation flag) cannot be made sound by an
+    absence alone: emptying the template satisfies it. Pair it with an
+    assert_branches_on for the condition that SHOULD be there.
+    """
+    conditions = branch_conditions(path)
+    for expression in expressions:
+        unwanted = " ".join(expression.split())
+        case.assertFalse(
+            any(unwanted == c or unwanted in c for c in conditions),
+            f"{path} still branches on {unwanted!r}",
+        )
+
 def rendered_source(path: str | Path, context: dict | None = None) -> str:
     """Render the template FROM ITS BYTES and return the output.
 
