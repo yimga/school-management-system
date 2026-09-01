@@ -86,6 +86,19 @@ SAFE_KWARGS = {
     "tenant__in",
 }
 
+# A lookup on the row's OWN primary key. A pk is globally unique, so a caller
+# holding one cannot reach another tenant's row with it -- `filter(pk=obj.pk)`
+# is a re-read of a row you already have. Deliberately NOT `<fk>_id`: a
+# `user_id=` is somebody else's identity, which bounds nothing.
+IDENTITY_KWARGS = {
+    "pk",
+    "pk__in",
+    "pk__exact",
+    "id",
+    "id__in",
+    "id__exact",
+}
+
 # Methods that are inherently safe to call on a Manager / QuerySet without
 # adding a tenant filter — they return per-instance state, not querysets.
 INHERENTLY_SAFE_METHODS = {
@@ -180,9 +193,29 @@ def collect_tenant_models() -> dict[str, set[str]]:
     return tenant_models
 
 
+def _kwarg_is_scoping(name: str) -> bool:
+    """Does this ORM kwarg bound the query to one tenant, or to one row?
+
+    Split on the ORM's ``__`` separator and look for a ``school`` segment, so a
+    scope reached through a relation counts: ``donor__school_id``,
+    ``bundle__school``, ``a__b__school_id``. Splitting is what keeps
+    ``schoolyear`` out -- it is one segment that merely starts with the word,
+    and a substring test would read it as a tenant scope.
+    """
+    if not name:
+        return False
+    if name in SAFE_KWARGS or name in IDENTITY_KWARGS:
+        return True
+    segments = name.split("__")
+    if any(seg in {"school", "school_id", "tenant", "tenant_id"} for seg in segments):
+        return True
+    # `pk` / `id` only as the WHOLE lookup path's field, never as a relation hop.
+    return len(segments) > 1 and segments[0] in {"pk", "id"}
+
+
 def _has_safe_kwarg(call: ast.Call) -> bool:
     for kw in call.keywords:
-        if kw.arg in SAFE_KWARGS:
+        if _kwarg_is_scoping(kw.arg):
             return True
         # Q-object detection: any positional arg that mentions a SAFE_KWARGS
         # key is treated as safe.
@@ -276,6 +309,68 @@ def _marker_covers_line(source: str, lineno: int, *, lookback: int = 12) -> bool
     return False
 
 
+def _names_scoped_later(tree: ast.Module) -> set[str]:
+    """Local names that are re-bound to a tenant-scoped narrowing of THEMSELVES.
+
+    The idiom this exists for is a base queryset narrowed on the next line::
+
+        qs = AcademicYear.objects.all()
+        if school is not None:
+            qs = qs.filter(school=school)
+
+    Reading only the first line calls that a leak. It is not: nothing consumes
+    ``qs`` before the narrowing. Keyed on the name being narrowed FROM ITSELF,
+    so scoping a different queryset nearby cannot launder this one.
+    """
+    scoped: set[str] = set()
+    for func in ast.walk(tree):
+        if not isinstance(func, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Module)):
+            continue
+        for node in ast.walk(func):
+            if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+                continue
+            target = node.targets[0]
+            if not isinstance(target, ast.Name):
+                continue
+            call = node.value
+            if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Attribute):
+                continue
+            if call.func.attr not in {"filter", "exclude"}:
+                continue
+            base = call.func.value
+            if not isinstance(base, ast.Name) or base.id != target.id:
+                continue
+            if _has_safe_kwarg(call):
+                scoped.add(target.id)
+    return scoped
+
+
+def _scoping_context(tree: ast.Module) -> tuple[dict[int, str], set[int]]:
+    """``({id(call): assigned_name}, {id(call) handed to a scoping wrapper})``.
+
+    The wrapper half covers the fail-closed helper idiom::
+
+        queryset_for_scope(Widget.objects.filter(is_active=True), school=school)
+
+    The inner queryset is deliberately broad; the wrapper is what bounds it, and
+    the wrapper is named right there in the same expression.
+    """
+    assigned: dict[int, str] = {}
+    wrapped: set[int] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            if isinstance(node.targets[0], ast.Name) and isinstance(node.value, ast.Call):
+                assigned[id(node.value)] = node.targets[0].id
+        if isinstance(node, ast.Call) and any(
+            _kwarg_is_scoping(kw.arg) for kw in node.keywords
+        ):
+            for arg in list(node.args) + [kw.value for kw in node.keywords]:
+                for inner in ast.walk(arg):
+                    if isinstance(inner, ast.Call):
+                        wrapped.add(id(inner))
+    return assigned, wrapped
+
+
 def scan_file(path: Path, tenant_model_names: set[str]) -> list[dict]:
     tree = _safe_parse(path)
     if tree is None:
@@ -283,6 +378,8 @@ def scan_file(path: Path, tenant_model_names: set[str]) -> list[dict]:
     findings: list[dict] = []
     source = path.read_text(encoding="utf-8", errors="ignore")
     allowed = _allowlisted_lines(source)
+    scoped_names = _names_scoped_later(tree)
+    assigned_to, wrapped_calls = _scoping_context(tree)
 
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
@@ -314,6 +411,11 @@ def scan_file(path: Path, tenant_model_names: set[str]) -> list[dict]:
         if node.lineno in allowed:
             continue
         if _marker_covers_line(source, node.lineno):
+            continue
+        # Scope that arrives after the call, or around it.
+        if assigned_to.get(id(node)) in scoped_names:
+            continue
+        if id(node) in wrapped_calls:
             continue
 
         if method == "all":
