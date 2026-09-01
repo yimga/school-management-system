@@ -89,9 +89,10 @@
       <h2 class="h6 text-uppercase text-muted" id="edge-onboarding-sync-gate-h">{% trans "Pre-offline sync gate" %}</h2>
       <div class="rmc-banner rmc-banner--info mb-2" role="note">
         <strong>{% trans "Runs on the box." %}</strong>
-        {% trans "This console shows source-tenant readiness only. The dry gate, live Class-A proof, and go-dark checklist must run on the edge box with:" %}
+        {% trans "This console shows source-tenant readiness only. The dry gate, live Class-A proof, verified backup, and go-dark checklist must run on the edge box with:" %}
         <code>python manage.py edge_onboarding_verify --slug {{ runbook.slug }} --include-gate</code>
         {% trans "Delta sync is not a bulk loader — do not Sync now to seed students, staff, or finance." %}
+        {% trans "A campus that does not have an uplink, LAN DNS, USB/NAS, SIS files, or a logo can waive that matching line on this page with a written reason of at least 12 characters. Owner login and SECRET_KEY cannot be skipped." %}
       </div>
       {% if year_governance %}
       <p class="small text-muted mb-0">
@@ -212,16 +213,44 @@
             <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{{ step.named_url }}">{% trans "Open related console" %}</a>
             {% endif %}
           </div>
-          {% if step.key == "migration_cloud_apply" %}
+          {% for waive in step.waives %}
           <form method="post" class="mt-2" data-rmc-scroll-policy="paginate">
             {% csrf_token %}
             <input type="hidden" name="school" value="{{ selected_school.slug|default:selected_school.id }}">
-            <input type="hidden" name="lifecycle_action" value="skip_migration_cloud">
-            <label class="form-label small" for="edge-mc-skip">{% trans "Skip Migration Cloud (reason, 12+ characters)" %}</label>
-            <textarea class="form-control mb-2" id="edge-mc-skip" name="skip_reason" rows="2" minlength="{{ mc_skip_min }}" required></textarea>
+            <input type="hidden" name="lifecycle_action" value="skip_aspect">
+            <input type="hidden" name="skip_aspect" value="{{ waive.key }}">
+            <label class="form-label small" for="edge-skip-{{ waive.key }}">
+              {% blocktrans with label=waive.label %}Skip {{ label }} (reason, 12+ characters){% endblocktrans %}
+            </label>
+            <p class="small text-muted mb-1">{{ waive.hint }}</p>
+            {% if waive.must_record_on_box %}
+            <p class="small text-muted mb-1">
+              {% trans "Go-dark reads the box overlay, not this cloud school. Paste this command on the box:" %}
+            </p>
+            {% else %}
+            <p class="small text-muted mb-1">
+              {% trans "This skip is evaluated on the cloud (this host)." %}
+            </p>
+            {% endif %}
+            {% if waive.recorded_chars %}
+            <p class="small mb-1" role="status">
+              {% if waive.must_record_on_box %}
+              {% blocktrans count counter=waive.recorded_chars %}A skip is on file on this cloud tenant ({{ counter }} character).{% plural %}A skip is on file on this cloud tenant ({{ counter }} characters).{% endblocktrans %}
+              {% else %}
+              {% blocktrans count counter=waive.recorded_chars %}A skip is already on file ({{ counter }} character).{% plural %}A skip is already on file ({{ counter }} characters).{% endblocktrans %}
+              {% endif %}
+            </p>
+            {% endif %}
+            <pre class="bg-body-secondary border rounded-lg p-2 mb-2" id="edge-skip-cli-{{ waive.key }}"><code>{{ waive.cli }}</code></pre>
+            <button type="button" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-rmc-copy-from="#edge-skip-cli-{{ waive.key }}">{% trans "Copy skip command" %}</button>
+            <textarea class="form-control mb-2 mt-2" id="edge-skip-{{ waive.key }}" name="skip_reason" rows="2" minlength="{{ mc_skip_min }}" required></textarea>
+            {% if waive.must_record_on_box %}
+            <button type="submit" class="rmc-btn rmc-btn--ghost">{% trans "Note skip on this cloud tenant" %}</button>
+            {% else %}
             <button type="submit" class="rmc-btn rmc-btn--ghost">{% trans "Record skip" %}</button>
+            {% endif %}
           </form>
-          {% endif %}
+          {% endfor %}
           <details>
             <summary class="small text-muted">{% trans "If this step can't complete" %}</summary>
             <p class="small mb-0 mt-1">{{ step.workaround }}</p>

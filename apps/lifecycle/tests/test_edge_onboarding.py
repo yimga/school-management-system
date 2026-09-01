@@ -9,6 +9,10 @@ clears only when edge sync is enabled AND the operator is reachable.
 from __future__ import annotations
 
 import dataclasses
+import json
+import os
+import tempfile
+import time
 import uuid
 from unittest import mock
 
@@ -45,11 +49,13 @@ _EXPECTED_KEYS = (
     "enable_configure_sync",
     "verify_and_sync_gate",
     "live_sync_proof",
+    "box_backup_verified",
     "go_dark_checklist",
 )
 _CLOUD_PREVIEW_EXCLUDED = (
     "verify_and_sync_gate",
     "live_sync_proof",
+    "box_backup_verified",
     "go_dark_checklist",
 )
 _STEP_COUNT = len(_EXPECTED_KEYS)
@@ -128,7 +134,7 @@ class EdgeOnboardingEngineTests(TestCase):
 
     def test_verification_suite_excludes_gate_when_include_gate_false(self):
         # Cloud preview omits cloud_preview=False steps (dry gate, live proof,
-        # go-dark). No network probe, and NO EdgeSyncRun recorded.
+        # verified backup, go-dark). No network probe, and NO EdgeSyncRun recorded.
         from apps.sync_engine.models import EdgeSyncRun
 
         school = self._make_school(active=False)
@@ -342,6 +348,7 @@ class EdgeOnboardingEngineTests(TestCase):
         self.assertFalse(go_ok)
         self.assertIn("roster=empty", go_detail)
         self.assertIn("conversion=locked", go_detail)
+        self.assertIn("backup=missing", go_detail)
         self.assertIn("cloud owns", go_detail.lower())
 
         with rls_bypass():
@@ -360,5 +367,30 @@ class EdgeOnboardingEngineTests(TestCase):
         data_ok, _ = edge_onboarding._validate_seed_operational_data(school)
         self.assertTrue(data_ok)
         go_ok, go_detail = edge_onboarding._validate_go_dark_checklist(school)
-        self.assertTrue(go_ok, go_detail)
-        self.assertIn("Go-dark checklist cleared", go_detail)
+        self.assertFalse(go_ok, "go-dark must not pass without a verified backup")
+        self.assertIn("backup=missing", go_detail)
+
+        dump = "rmc-box-db-20260831T020000Z.dump.enc"
+        now = int(time.time())
+        payload = {
+            "schema": 1,
+            "last_file": dump,
+            "last_success_epoch": now,
+            "verified_at": "2026-08-31T02:01:00Z",
+            "verified_file": dump,
+            "verified_full_read": "true",
+            "verified_toc_entries": 40,
+            "offbox_independent": "true",
+        }
+        handle, path = tempfile.mkstemp(suffix=".json")
+        os.close(handle)
+        try:
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(payload, fh)
+            with override_settings(RMC_BOX_BACKUP_STATE_FILE=path):
+                go_ok, go_detail = edge_onboarding._validate_go_dark_checklist(school)
+            self.assertTrue(go_ok, go_detail)
+            self.assertIn("Go-dark checklist cleared", go_detail)
+            self.assertIn("backup=ok", go_detail)
+        finally:
+            os.unlink(path)
