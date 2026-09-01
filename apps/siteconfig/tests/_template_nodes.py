@@ -87,6 +87,45 @@ def assert_does_not_wire(case, path: str | Path, *names: str) -> None:
         )
 
 
+def static_assets(path: str | Path) -> set[str]:
+    """Every asset this template loads through ``{% static %}``.
+
+    A stylesheet or script name is the single most common thing these
+    contract tests assert, and it is the one thing neither literal_text nor
+    wired_templates can see: the argument of ``{% static %}`` is a filter
+    expression inside a tag, not emitted text and not a template include. The
+    honest alternatives were a full render -- which most shells cannot do
+    standalone, they need SITE and a request -- or reading the file, which is
+    the vacuous assertion this module exists to replace.
+
+    Sound for the same reason as the rest: a template whose body is one
+    ``{% comment %}`` parses to zero StaticNodes.
+    """
+    from django.templatetags.static import StaticNode
+
+    source = Path(path).read_text(encoding="utf-8")
+    template = engines["django"].from_string(source).template
+    out: set[str] = set()
+    for node in template.nodelist.get_nodes_by_type(StaticNode):
+        var = getattr(node.path, "var", None)
+        literal = getattr(var, "literal", None)
+        name = literal if literal is not None else str(var)
+        if name:
+            out.add(str(name).strip("\"'"))
+    return out
+
+
+def assert_loads_static(case, path: str | Path, *names: str) -> None:
+    """Fail unless ``path`` really loads every one of ``names`` via {% static %}."""
+    assets = static_assets(path)
+    for name in names:
+        case.assertTrue(
+            any(a == name or a.endswith("/" + name) for a in assets),
+            f"{path} does not load {name} through a static tag. "
+            f"It loads {len(assets)} asset(s): {sorted(assets)[:12]}",
+        )
+
+
 def literal_text(path: str | Path) -> str:
     """Everything the template emits VERBATIM, as the parser sees it.
 
