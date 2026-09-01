@@ -2,7 +2,10 @@
 
 Displays the engine in ``apps.lifecycle.edge_onboarding``. A GET never runs the
 sync gate, never writes ``EdgeSyncRun``, and never auto-applies Migration Cloud
-or live sync. POST is limited to recording a Migration Cloud skip reason.
+or live sync. POST records a per-aspect skip reason (≥12 characters) for
+infrastructure that this campus does not have. Identity login and SECRET_KEY
+cannot be skipped. ``skip_migration_cloud`` and ``skip_box_backup`` remain as
+aliases.
 """
 from __future__ import annotations
 
@@ -18,6 +21,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.lifecycle import edge_onboarding
+from apps.lifecycle.onboarding_waivers import WAIVE_BY_KEY
 from apps.lifecycle.services import actor_hash, _sanitize_payload
 from apps.schools.models import School
 
@@ -174,7 +178,9 @@ def _render_text(school, runbook: dict, verification: dict) -> HttpResponse:
     lines.append("")
     lines.append("HONEST SCOPE: this console previews the SOURCE TENANT, not the box.")
     lines.append("Delta sync is not a bulk loader. Never use Sync now to seed students/staff/finance.")
-    lines.append("Pre-offline sync gate + live proof + go-dark: RUN ON THE BOX.")
+    lines.append(
+        "Pre-offline sync gate + live proof + verified backup + go-dark: RUN ON THE BOX."
+    )
     lines.append("  Command: python manage.py edge_onboarding_verify --slug <slug> --include-gate")
     lines.append("Finance stays cloud-authoritative / down-only. Cloud owns year hard-close and soft-close.")
     lines.append("")
@@ -202,6 +208,16 @@ def _render_text(school, runbook: dict, verification: dict) -> HttpResponse:
         lines.append("   Command:")
         lines.append(f"     {step.get('command')}")
         lines.append(f"   If it can't complete: {step.get('workaround')}")
+        for waive in step.get("waives") or []:
+            recorded = int(waive.get("recorded_chars") or 0)
+            on_file = f" (already on file, {recorded} chars)" if recorded else ""
+            lines.append(
+                f"   Skip {waive.get('label')}{on_file}: {waive.get('cli')}"
+            )
+            if waive.get("must_record_on_box"):
+                lines.append(
+                    "   (Record this on the BOX — go-dark does not read the cloud overlay.)"
+                )
         if step.get("help_doc"):
             lines.append(f"   Help: {step.get('help_doc')}")
     lines.append("")
@@ -233,17 +249,30 @@ def super_edge_onboarding_runbook(request):
     skip_notice = ""
     if request.method == "POST" and selected is not None:
         action = (request.POST.get("lifecycle_action") or "").strip()
-        if action == "skip_migration_cloud":
+        if action in ("skip_aspect", "skip_migration_cloud", "skip_box_backup"):
+            if action == "skip_migration_cloud":
+                aspect_key = "migration_cloud_apply"
+            elif action == "skip_box_backup":
+                aspect_key = "box_backup_verified"
+            else:
+                aspect_key = (request.POST.get("skip_aspect") or "").strip()
             reason = request.POST.get("skip_reason") or ""
-            ok, detail = edge_onboarding.set_migration_cloud_skip_reason(selected, reason)
+            spec = WAIVE_BY_KEY.get(aspect_key)
+            ok, _detail = edge_onboarding.set_aspect_skip_reason(selected, aspect_key, reason)
             if ok:
                 _record_run(
                     selected,
-                    kind="skip_mc",
+                    kind=(spec.run_kind if spec else "skip_aspect"),
                     actor=getattr(request, "user", None),
-                    payload={"reason_len": len(reason.strip())},
+                    payload={
+                        "reason_len": len(reason.strip()),
+                        "aspect": aspect_key[:64],
+                    },
                 )
-            extra = {"skip_ok": "1" if ok else "0"}
+            extra = {
+                "skip_ok": "1" if ok else "0",
+                "skip_kind": aspect_key or action,
+            }
             if not ok:
                 extra["skip_err"] = "1"
             return _redirect_to_school(request, selected, extra)
@@ -286,9 +315,35 @@ def super_edge_onboarding_runbook(request):
         progress_pct = 0
 
     if request.GET.get("skip_ok") == "1":
-        skip_notice = _("Migration Cloud skip recorded.")
+        kind = (request.GET.get("skip_kind") or "").strip()
+        spec = WAIVE_BY_KEY.get(kind)
+        if spec is not None:
+            skip_notice = _("%(label)s skip recorded on this host.") % {
+                "label": spec.label
+            }
+            form_step = spec.form_step()
+            step_meta = next(
+                (
+                    row
+                    for row in edge_onboarding.EDGE_ONBOARDING_STEPS
+                    if row.key == form_step
+                ),
+                None,
+            )
+            if (
+                step_meta is not None
+                and step_meta.runs_on != edge_onboarding.RUNS_ON_CLOUD
+            ):
+                skip_notice += " " + _(
+                    "Go-dark reads the box overlay, not this cloud school. "
+                    "Paste the skip command on the box too."
+                )
+        elif kind == "backup":
+            skip_notice = _("Box backup skip recorded.")
+        else:
+            skip_notice = _("Migration Cloud skip recorded.")
     elif request.GET.get("skip_err") == "1":
-        skip_notice = _("Skip reason was too short.")
+        skip_notice = _("Skip reason was too short. Use at least 12 characters.")
 
     context = {
         "schools": list(page_obj.object_list.values("id", "name", "slug", "country_code")),

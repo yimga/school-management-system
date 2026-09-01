@@ -15,6 +15,8 @@ class EdgeOnboardingRun(models.Model):
     class Kind(models.TextChoices):
         PREVIEW = "preview", "Readiness preview"
         SKIP_MC = "skip_mc", "Migration Cloud skip reason"
+        SKIP_BACKUP = "skip_backup", "Box backup skip reason"
+        SKIP_ASPECT = "skip_aspect", "Infrastructure aspect skip reason"
         VERIFY = "verify", "Box-side verify snapshot"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
