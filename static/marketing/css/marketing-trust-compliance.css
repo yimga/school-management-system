@@ -131,7 +131,13 @@
 
 .mkt-trust-evidence-chip--verified {
   background: color-mix(in srgb, var(--mkt-accent, #1e4d3a) 12%, transparent);
-  color: var(--mkt-accent, #1e4d3a);
+  /* A 12% tint barely darkens the page, so the accent used as its own label
+     measured 4.34:1 on the resulting #F8E8E2 — under AA by a hair, and only on
+     this variant (--partial already uses a deeper #9A6700 on a 14% tint).
+     Mixing the accent toward black keeps the chip's hue and works for any
+     accent a lane sets, because darker is always higher contrast on a light
+     tint of itself. Terracotta lane: 6.2:1. */
+  color: color-mix(in srgb, var(--mkt-accent, #1e4d3a) 78%, #000000);
 }
 
 .mkt-trust-evidence-chip--documented {

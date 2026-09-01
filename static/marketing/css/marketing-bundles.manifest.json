@@ -1,9 +1,9 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-09-01T02:17:32Z",
+  "generated_utc": "2026-09-01T03:04:33Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 21960,
+    "bytes": 22050,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
@@ -22,8 +22,8 @@
       },
       {
         "path": "static/marketing/css/marketing-accessibility-hardening.css",
-        "sha256": "1884d02bc7d1726002fb8209663c05d40e2f656e8a2c9b76a4a80dd2491e5da4",
-        "bytes": 14615
+        "sha256": "bdd67b8124c9e27ca9a3cb815f4ea298daa5f05da6a1a852196423c08cf58981",
+        "bytes": 15115
       },
       {
         "path": "static/marketing/css/marketing-fonts.css",
@@ -34,7 +34,7 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 322614,
+    "bytes": 322714,
     "sources": [
       {
         "path": "static/marketing/css/rmc-class-grammar-marketing-subset.css",
@@ -183,8 +183,8 @@
       },
       {
         "path": "static/css/platform-high-end.css",
-        "sha256": "3307cc539d114510a1961570010e06d8abfe7be36442d2aa446f99f35dfe574b",
-        "bytes": 18745
+        "sha256": "b4ab96bb0c803399c0c842f09326d2d2751b56062bdaacb54762303c697c9470",
+        "bytes": 19206
       },
       {
         "path": "static/css/marketing-static-bundle.css",

@@ -56,8 +56,12 @@ const OUT_PATH = path.resolve(
 );
 const BASELINE_PATH = path.resolve(ROOT, "var/a11y-marketing-axe-baseline.json");
 
-// Same page list as tests/e2e/marketing-visual-truth.spec.js. Kept in sync by
-// scripts/verify_marketing_axe_sweep_pages.py.
+// The UNION of the two page lists that already exist in the suite:
+// tests/e2e/marketing-visual-truth.spec.js (home, hubs, v3 pages) and
+// tests/e2e/marketing-accessibility.spec.js (platform + solutions pages).
+// Scanning only one of them is how /platform/analytics/ and
+// /platform/security/ kept a serious color-contrast failure while a sweep of
+// the other list reported the surface clean.
 const PAGES = [
   "/",
   "/pricing/",
@@ -73,7 +77,19 @@ const PAGES = [
   "/pay/",
   "/communicate/",
   "/grow/",
+  "/platform/",
   "/platform/integrations/",
+  "/platform/admissions/",
+  "/platform/fees-payments/",
+  "/platform/parent-portal/",
+  "/platform/teacher-portal/",
+  "/platform/analytics/",
+  "/platform/security/",
+  "/solutions/private-schools/",
+  "/solutions/international-schools/",
+  "/solutions/multi-campus/",
+  "/solutions/faith-based-schools/",
+  "/solutions/growing-school-networks/",
 ];
 
 const VIEWPORTS = [

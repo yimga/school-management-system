@@ -116,7 +116,13 @@
 }
 
 .mkt-security-card {
-  background: rgba(19, 78, 74, 0.25); /* off-token-allow: rgba-decorative */
+  /* rgba(19,78,74,0.25) composited to #BFCFD0 on the light marketing surface,
+     putting this card's three light inks at 1.17:1, 1.08:1 and 1.54:1. Raising
+     alpha alone is not enough here — --mkt-security-accent #14B8A6 is still
+     only 3.32:1 on rgba(19,78,74,0.95) — so the base deepens too. At
+     rgba(12,38,36,0.95) the panel is #18312F and the three inks measure 7.28,
+     8.14 and 5.55. */
+  background: rgba(12, 38, 36, 0.95); /* off-token-allow: rgba-decorative */
   border: 1px solid rgba(45, 212, 191, 0.22); /* off-token-allow: rgba-decorative */
   border-radius: 14px;
   padding: 1.25rem 1.35rem;

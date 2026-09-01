@@ -499,15 +499,20 @@ body.portal-backend-dark .card,
    their own dark-on-cream / cream-on-dark contrast pair scoped to the
    editorial palette and the :not chain above was outranking them by
    specificity (3 :not's vs 1 attr+class), producing dark-on-dark on the
-   Book-a-demo button. The exclusion preserves luxury-text on body copy. */
-a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link) {
+   Book-a-demo button. The exclusion preserves luxury-text on body copy.
+   .mkt-surface-anchor is the general form of the same escape: any anchor
+   that paints its OWN background chooses its own ink, and this rule must
+   not repaint it. Without it the platform handoff chips rendered
+   #0F172A on their #32394A tile (1.54:1). Keep the exclusion list in sync
+   with the sibling rule in marketing-accessibility-hardening.css. */
+a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link):not(.mkt-surface-anchor) {
   color: var(--luxury-text, #1A1A1A);
 }
-html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link),
-body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link) {
+html[data-theme="dark"] a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link):not(.mkt-surface-anchor),
+body.portal-backend-dark a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link):not(.mkt-surface-anchor) {
   color: var(--luxury-text, #F5F5F5);
 }
-a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link):hover {
+a:not(.btn):not(.nav-link):not(.dropdown-item):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-mega-link):not(.mkt-surface-anchor):hover {
   color: var(--luxury-primary, #0A0A0A);
   transition: color var(--luxury-motion-duration) var(--luxury-motion-ease);
 }

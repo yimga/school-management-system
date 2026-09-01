@@ -271,7 +271,10 @@
           {% trans "Run on local time, in the right language, with the academic structure your country actually uses. No forks. No regional plug-ins. One platform that bends to each campus." %}
         </p>
         {% comment %} Phase 4 — bell-clock scale signal: live-count signal, not a static stat. {% endcomment %}
-        <p class="mkt-scale-signal" aria-label="{% trans 'Platform scale' %}">
+        {% comment %}No aria-label here: role=paragraph prohibits an accessible
+           name, so screen readers ignored it while axe reported
+           aria-prohibited-attr (serious). The sentence below is the label.{% endcomment %}
+        <p class="mkt-scale-signal">
           <span class="mkt-scale-signal__mark" aria-hidden="true">{% include "components/_bell_clock_mark.html" with size=16 filled_segments=4 accessible_label="" %}</span>
           <span>{% blocktrans %}Running across <span class="mkt-scale-signal__count">{{ marketing_scale_school_count|default:"40+" }}</span> schools in <span class="mkt-scale-signal__count">{{ marketing_scale_country_count|default:"12" }}</span> countries{% endblocktrans %}</span>
         </p>

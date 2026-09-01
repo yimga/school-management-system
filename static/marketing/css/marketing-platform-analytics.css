@@ -117,7 +117,11 @@
 }
 
 .mkt-analytics-card {
-  background: rgba(30, 27, 75, 0.45); /* off-token-allow: rgba-decorative */
+  /* 0.45 -> 0.92: at 0.45 this "dark" panel composited to #9696AC on the light
+     marketing surface and every ink inside it failed AA (1.52 / 1.86 / 1.60).
+     At 0.92 the panel is #2F2D59 and the same three inks measure 6.74, 7.59 and
+     7.08. Same idiom as .mkt-analytics-handoff-grid a below. */
+  background: rgba(30, 27, 75, 0.92); /* off-token-allow: rgba-decorative */
   border: 1px solid rgba(99, 102, 241, 0.25); /* off-token-allow: rgba-decorative */
   border-radius: 14px;
   padding: 1.25rem 1.35rem;

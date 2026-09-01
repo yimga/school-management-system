@@ -7,13 +7,15 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="mkt-trust-cert-grid" role="list" aria-label="{% trans 'Certification honesty' %}">
     {% for item in trust_certification_honesty %}
-    <article class="mkt-trust-cert-card mkt-trust-cert-card--{{ item.status }}" role="listitem">
+    {% comment %}div, not article — see aria-allowed-role note in
+       trust_compliance_command_center.html.{% endcomment %}
+    <div class="mkt-trust-cert-card mkt-trust-cert-card--{{ item.status }}" role="listitem">
       <h3 class="mkt-trust-cert-card__label">{{ item.label }}</h3>
       <p class="mkt-trust-cert-card__status">
         {% if item.status == "published" %}{% trans "Published attestation" %}{% else %}{% trans "Not published" %}{% endif %}
       </p>
       <p class="mkt-trust-cert-card__detail small mb-0">{{ item.detail }}</p>
-    </article>
+    </div>
     {% endfor %}
   </div>
   {% endif %}

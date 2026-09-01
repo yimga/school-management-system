@@ -222,6 +222,60 @@ const CASES = [
     was: 3.19,
     why: 'white on the raw personality accent',
   },
+  {
+    route: '/platform/analytics/',
+    selector: '.mkt-analytics-card--before h3',
+    was: 1.52,
+    why: 'a translucent "dark" card composited to a mid grey on the light marketing surface',
+  },
+  {
+    route: '/platform/analytics/',
+    selector: '.mkt-analytics-card li',
+    was: 1.86,
+    why: 'same card, list ink',
+  },
+  {
+    route: '/platform/analytics/',
+    selector: '.mkt-analytics-card--after h3',
+    was: 1.6,
+    why: 'same card, accent heading',
+  },
+  {
+    route: '/platform/analytics/',
+    selector: '.mkt-analytics-handoff-grid a',
+    was: 1.35,
+    why: 'the generic marketing link ink repainting an anchor that carries its own dark tile',
+  },
+  {
+    route: '/platform/security/',
+    selector: '.mkt-security-card--before h3',
+    was: 1.17,
+    why: 'same translucent-card defect on the security page',
+  },
+  {
+    route: '/platform/security/',
+    selector: '.mkt-security-card li',
+    was: 1.08,
+    why: 'same card, list ink',
+  },
+  {
+    route: '/platform/security/',
+    selector: '.mkt-security-card--after h3',
+    was: 1.54,
+    why: 'same card, accent heading',
+  },
+  {
+    route: '/platform/security/',
+    selector: '.mkt-security-handoff-grid a',
+    was: 1.44,
+    why: 'same self-coloured-anchor defect on the security page',
+  },
+  {
+    route: '/platform/security/',
+    selector: '.mkt-trust-evidence-chip--verified',
+    was: 4.34,
+    why: 'the accent used as its own label on a 12% tint of itself',
+  },
 ];
 
 test.describe('marketing colour-contrast tokens', () => {

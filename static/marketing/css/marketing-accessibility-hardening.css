@@ -39,9 +39,18 @@ body.marketing-surface .btn.btn-outline-secondary:focus-visible {
    did exactly that to the featured pricing CTA: #0645ad on the dark
    --mkt-edt-ink pill, 2.03:1. The same four exclusions are carried by the
    sibling rule in static/css/platform-high-end.css -- keep the two in sync. */
-body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost),
+body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-surface-anchor),
 body.marketing-surface .link-primary {
   color: #0645ad; /* off-token-allow: hex-literal-decorative */
+}
+
+/* Opt-out marker for an anchor that paints its OWN surface (a chip, a tile, a
+   card). The rule above is for prose links; on a self-coloured anchor it wins
+   on specificity and replaces the ink the component chose for its background —
+   which put #0645AD on the #32394A platform handoff chips at 1.35:1. Add this
+   class rather than growing the :not() list one component at a time. */
+body.marketing-surface a.mkt-surface-anchor {
+  text-decoration: none;
 }
 
 body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):hover,
