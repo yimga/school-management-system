@@ -14,6 +14,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 STUDIO = REPO_ROOT / "templates" / "studio_os"
 SHELLS = [STUDIO / "shell.html", STUDIO / "partials" / "shell_main_content.html"]
@@ -23,12 +25,13 @@ LAYOUT_CSS = REPO_ROOT / "static" / "css" / "studio-shell-layout.css"
 
 class StudioHeaderCompactionTests(SimpleTestCase):
     def test_both_shells_include_the_command_pill(self) -> None:
+        # "include" is an {% include %}, so ask the parser. B1's whole point is
+        # that search + Commands collapse into ONE pill; a commented-out include
+        # leaves the filename in the bytes and the header with no pill at all.
         for shell in SHELLS:
             with self.subTest(shell=shell.name):
-                self.assertIn(
-                    "studio_os/partials/studio_command_pill.html",
-                    shell.read_text(encoding="utf-8"),
-                    f"{shell.name} must include the shared command pill.",
+                assert_wires(
+                    self, shell, "studio_os/partials/studio_command_pill.html"
                 )
 
     def test_buggy_search_input_is_gone_from_both_shells(self) -> None:
@@ -66,4 +69,9 @@ class StudioHeaderCompactionTests(SimpleTestCase):
         for shell in SHELLS:
             src = shell.read_text(encoding="utf-8")
             with self.subTest(shell=shell.name):
+                # The host gate is an {% if %} CONDITION -- template code that no
+                # parse and no render can see -- so it stays a source read. What
+                # the engine can confirm is that the thing being gated is still
+                # there: the Home affordance the condition wraps.
+                assert_markup(self, shell, "bi-house-door")
                 self.assertIn("request.public_host_kind == 'manager'", src)
