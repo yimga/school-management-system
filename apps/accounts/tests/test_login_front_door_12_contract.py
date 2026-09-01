@@ -91,6 +91,15 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         self.assertIn("applyRoleSurface", js)
         self.assertIn("has-returning", js)
         self.assertIn("data-rmc-i18n-continue-as", login)
+        # The immersive canvas carries its own share of the contract and the
+        # same argument applies to it: these are attributes the front-door JS
+        # queries for, so they have to be EMITTED, not merely present in a file.
+        assert_markup(
+            self,
+            LOGIN_CANVAS,
+            "data-rmc-local-state",
+            "data-rmc-sponsored-region",
+        )
         self.assertIn("data-rmc-local-state", canvas)
         self.assertIn("data-rmc-sponsored-region", canvas)
         self.assertIn("navigator.credentials.get", js)
