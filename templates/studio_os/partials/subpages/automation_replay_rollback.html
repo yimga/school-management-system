@@ -12,8 +12,8 @@
       <div class="table-responsive mb-3">
         <table class="table table-sm align-middle">
           <thead><tr>
-            <th>{% trans "Workflow" %}</th><th>{% trans "Trigger" %}</th>
-            <th>{% trans "Status" %}</th><th>{% trans "When" %}</th>
+            <th scope="col">{% trans "Workflow" %}</th><th scope="col">{% trans "Trigger" %}</th>
+            <th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "When" %}</th>
           </tr></thead>
           <tbody>
             {% for run in recent_runs %}
