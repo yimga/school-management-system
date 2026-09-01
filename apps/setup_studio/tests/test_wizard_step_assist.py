@@ -10,18 +10,24 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 _REPO = Path(__file__).resolve().parents[3]
+_HELP_RAIL = _REPO / "templates" / "setup_studio" / "partials" / "wizard_help_rail.html"
 
 
 class WizardStepAssistWiringTests(SimpleTestCase):
     def test_help_rail_exposes_assist_hook_and_reuses_endpoint(self):
         tpl = (_REPO / "templates" / "setup_studio" / "partials" / "wizard_help_rail.html").read_text(encoding="utf-8")
-        self.assertIn("data-rmc-wizard-assist", tpl)
-        # Reuses the working tenant copilot endpoint (no new endpoint).
+        # Reuses the working tenant copilot endpoint (no new endpoint). The route
+        # name is a {% url %} argument and the `as` form is the tag's own syntax:
+        # both are template code, so both stay source reads.
         self.assertIn("portal:copilot_rail_send", tpl)
         # Safe `as` form so it no-ops on operator hosts.
         self.assertIn("as rmc_wizard_assist_endpoint", tpl)
-        self.assertIn("data-step", tpl)
+        # "Exposes" is a claim about the rendered rail, and both hooks are emitted
+        # markup, so ask the engine rather than the bytes.
+        assert_markup(self, _HELP_RAIL, "data-rmc-wizard-assist", "data-step")
 
     def test_assist_endpoint_resolves_on_tenant_urlconf(self):
         """The assist depends on ``portal:copilot_rail_send`` resolving where the
