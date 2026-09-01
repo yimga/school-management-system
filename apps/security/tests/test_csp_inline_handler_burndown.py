@@ -117,13 +117,11 @@ class CspHandlerModuleTests(SimpleTestCase):
         self.assertIn("requestSubmit", src)
         self.assertIn('el.tagName === "FORM"', src)
 
-    def test_shells_load_the_handler_module(self):
-        for shell in _SHELLS:
-            self.assertIn(
-                "js/rmc-csp-handlers.js",
-                shell.read_text(encoding="utf-8"),
-                f"{shell} must load the CSP-safe handler module",
-            )
+    # test_shells_load_the_handler_module was a substring check on each
+    # shell's SOURCE and measured VACUOUS. It is now
+    # CspHandlerReachesTheBrowserTests at the bottom of this file, which
+    # renders the shells and reads the OUTPUT -- because a handler module the
+    # browser never receives defends nothing.
 
 
 class InlineHandlerConversionTests(SimpleTestCase):
@@ -146,13 +144,8 @@ class DeferredCssBurndownTests(SimpleTestCase):
                 f"{path} still ships an inline onload media flip (blocked by strict script-src)",
             )
 
-    def test_deferred_partials_use_data_attribute(self):
-        for path in _DEFERRED_PARTIALS:
-            self.assertIn(
-                "data-rmc-async-style",
-                path.read_text(encoding="utf-8"),
-                f"{path} must mark async stylesheets with data-rmc-async-style",
-            )
+    # test_deferred_partials_use_data_attribute: same defect, same move --
+    # see CspHandlerReachesTheBrowserTests below.
 
 
 # STEP 2c — generic delegated conversions: onchange="this.form.submit()",
@@ -286,3 +279,61 @@ class Batch2InlineHandlerBurndownTests(SimpleTestCase):
             "inline on*= handlers present: "
             + ", ".join(f"{f['file']}:{f['line']}[{f['event']}]" for f in findings),
         )
+
+
+# --------------------------------------------------------------------------
+# Rendered-output replacements (2026-09-01).
+#
+# scripts/verify_test_asserts_behaviour.py measured the source checks these
+# replace as VACUOUS: each still passed with the template it named made to
+# render nothing, while every string it asserts stayed in the file's bytes.
+#
+# They are TestCase, not SimpleTestCase, and that is not an oversight. The
+# shells query the database while rendering (a context processor does), so a
+# SimpleTestCase raises DatabaseOperationForbidden -- measured, not assumed.
+# The consequence is deliberate and worth knowing: the harness only measures
+# DB-free tests, so a test fixed this way leaves its scope rather than
+# flipping to SOUND inside it.
+# --------------------------------------------------------------------------
+
+from django.test import TestCase  # noqa: E402
+
+from apps.siteconfig.tests._shell_render import (  # noqa: E402
+    BASE_URLCONF,
+    MANAGER_URLCONF,
+    PUBLIC_URLCONF,
+    TENANT_URLCONF,
+    render_shell,
+)
+
+#: Each shell with the host it is actually served on. A shell renders
+#: differently per host, so a render assertion that does not name a host is
+#: asserting about one that may not exist.
+_SERVED_SHELLS = (
+    ("base.html", BASE_URLCONF, "tenant"),
+    ("portal_base.html", TENANT_URLCONF, "tenant"),
+    ("control_plane_skeleton.html", MANAGER_URLCONF, "manager"),
+    ("marketing/base_marketing.html", PUBLIC_URLCONF, "base"),
+)
+
+
+class CspHandlerReachesTheBrowserTests(TestCase):
+    """The CSP-safe handler module and the async-style marker must be SERVED."""
+
+    def test_every_shell_serves_the_handler_module(self):
+        for shell, urlconf, host_kind in _SERVED_SHELLS:
+            with self.subTest(shell=shell):
+                self.assertIn(
+                    "js/rmc-csp-handlers.js",
+                    render_shell(shell, urlconf=urlconf, host_kind=host_kind),
+                    f"{shell} must SERVE the CSP-safe handler module",
+                )
+
+    def test_every_shell_serves_the_async_style_marker(self):
+        for shell, urlconf, host_kind in _SERVED_SHELLS:
+            with self.subTest(shell=shell):
+                self.assertIn(
+                    "data-rmc-async-style",
+                    render_shell(shell, urlconf=urlconf, host_kind=host_kind),
+                    f"{shell} must SERVE stylesheets marked for promotion",
+                )

@@ -207,13 +207,15 @@ def run_edge_bringup(
     prep_ok = all(e["ok"] for e in report["prep"]) if report["prep"] else True
     report["offline_ready"] = bool(prep_ok and report["steps_ok"] and gate_cleared is True)
 
-    # 6) Steps 16-17: prove one live round-trip, then the go-dark composite.
+    # 6) Prove one live round-trip, then the go-dark composite.
     #
     # These cannot come from the loop in (3). That loop walks
     # run_verification_suite(include_gate=False), which keeps only cloud_preview
-    # steps -- and all three verification steps are cloud_preview=False precisely
-    # because their evidence is a real sync. So they are healed explicitly, here,
-    # after the gate has cleared.
+    # steps -- live proof, verified backup, the dry gate and go-dark are
+    # cloud_preview=False because their evidence lives on the box. Live proof
+    # and the checklist are healed explicitly here after the gate has cleared.
+    # The backup step has no self-heal (only the backup container dumps); the
+    # checklist names it when it is still missing.
     #
     # Ordering is not incidental: a live cycle attempted before the dry gate clears
     # fails for the same reason the gate would have, and writes a failed LIVE run

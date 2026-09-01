@@ -14,6 +14,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.lifecycle import edge_onboarding
 from apps.schools.models import School
 from apps.schools.rls_context import rls_bypass
 from apps.sync_engine.models import EdgeSyncRun
@@ -172,6 +173,62 @@ class EdgeOnboardingOperatorUITests(TestCase):
         self.assertEqual(ok.status_code, 302)
         self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_mc").count(), 1)
 
+    def test_skip_box_backup_post_requires_12_char_reason(self):
+        from apps.lifecycle.models_edge_onboarding import EdgeOnboardingRun
+
+        short = self.client.post(
+            self.url,
+            {"school": self.SLUG, "lifecycle_action": "skip_box_backup", "skip_reason": "nope"},
+            HTTP_HOST=MANAGER_HOST,
+        )
+        self.assertIn(short.status_code, (302, 200))
+        self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_backup").count(), 0)
+
+        ok = self.client.post(
+            self.url,
+            {
+                "school": self.SLUG,
+                "lifecycle_action": "skip_box_backup",
+                "skip_reason": "Lab box — USB dump already taken by hand.",
+            },
+            HTTP_HOST=MANAGER_HOST,
+        )
+        self.assertEqual(ok.status_code, 302)
+        self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_backup").count(), 1)
+
+    def test_skip_aspect_post_records_a_live_sync_waiver(self):
+        from apps.lifecycle.models_edge_onboarding import EdgeOnboardingRun
+
+        short = self.client.post(
+            self.url,
+            {
+                "school": self.SLUG,
+                "lifecycle_action": "skip_aspect",
+                "skip_aspect": "live_sync_proof",
+                "skip_reason": "nope",
+            },
+            HTTP_HOST=MANAGER_HOST,
+        )
+        self.assertIn(short.status_code, (302, 200))
+        self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_aspect").count(), 0)
+
+        ok = self.client.post(
+            self.url,
+            {
+                "school": self.SLUG,
+                "lifecycle_action": "skip_aspect",
+                "skip_aspect": "live_sync_proof",
+                "skip_reason": "No uplink at this campus, sovereign-only.",
+            },
+            HTTP_HOST=MANAGER_HOST,
+        )
+        self.assertEqual(ok.status_code, 302)
+        self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_aspect").count(), 1)
+        self.school.refresh_from_db()
+        self.assertTrue(
+            edge_onboarding.aspect_is_waived(self.school, "live_sync_proof")
+        )
+
     # (c') a school with failures renders the failures, never 500 --------------
     def test_school_with_failures_renders_without_500(self):
         response = self.client.get(
@@ -181,6 +238,11 @@ class EdgeOnboardingOperatorUITests(TestCase):
         body = response.content.decode("utf-8")
         self.assertIn("Readiness preview", body)
         self.assertIn("Runs on the box", body)
+        self.assertIn("Record skip", body)
+        self.assertIn("skip_aspect", body)
+        self.assertIn("edge_onboarding_skip", body)
+        self.assertIn("Go-dark reads the box overlay", body)
+        self.assertIn("Note skip on this cloud tenant", body)
 
     # (d) a non-operator is denied --------------------------------------------
     def test_non_operator_is_denied(self):

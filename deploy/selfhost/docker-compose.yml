@@ -83,6 +83,10 @@ x-app: &app
     # after every successful flip, and a box that cannot spare the room refuses the
     # swap and keeps running rather than filling its disk.
     # - otareleases:/srv/rmc
+    # The backup RECORD (not the passphrase). Read-only so the onboarding
+    # runbook can refuse go-dark without a verified dump, without being able to
+    # delete one. The key stays on backupkeys, which is NOT mounted here.
+    - backupdata:/backups:ro
     # PERSIST uploaded media (student/teacher photos, evaluation evidence, logos,
     # receipts, documents). MEDIA_ROOT is /app/media INSIDE the container; without a
     # named volume `docker compose up --build` recreates the web container and WIPES all

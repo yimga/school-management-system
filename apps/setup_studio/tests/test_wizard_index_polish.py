@@ -428,14 +428,34 @@ class BespokeIndexSurfaceTests(SimpleTestCase):
         self.assertNotIn("{% block extra_head %}", tpl)
 
 
-class OffcanvasDoublingGuardTests(SimpleTestCase):
-    def test_mobile_offcanvas_is_hidden_on_large_screens(self):
-        portal_base = (
-            _REPO_ROOT / "templates" / "portal_base.html"
-        ).read_text(encoding="utf-8")
-        # The offcanvas sidebar carries d-lg-none so it cannot render inline
-        # under the desktop sidebar (the "doubled nav" artifact).
+# --------------------------------------------------------------------------
+# Rendered-output replacements (2026-09-01).
+#
+# scripts/verify_test_asserts_behaviour.py measured the source checks these
+# replace as VACUOUS: each still passed with the template it named made to
+# render nothing, while every string it asserts stayed in the file's bytes.
+#
+# They are TestCase, not SimpleTestCase, and that is not an oversight. The
+# shells query the database while rendering (a context processor does), so a
+# SimpleTestCase raises DatabaseOperationForbidden -- measured, not assumed.
+# The consequence is deliberate and worth knowing: the harness only measures
+# DB-free tests, so a test fixed this way leaves its scope rather than
+# flipping to SOUND inside it.
+# --------------------------------------------------------------------------
+
+from django.test import TestCase  # noqa: E402
+
+from apps.siteconfig.tests._shell_render import (  # noqa: E402
+    TENANT_URLCONF,
+    render_shell,
+)
+
+
+class OffcanvasRendersHiddenOnDesktopTests(TestCase):
+    def test_the_offcanvas_sidebar_carries_d_lg_none_on_the_page(self):
+        # Without d-lg-none the offcanvas renders inline under the desktop
+        # sidebar -- the "doubled nav" artifact.
         self.assertIn(
             'class="offcanvas offcanvas-start d-lg-none"',
-            portal_base,
+            render_shell("portal_base.html", urlconf=TENANT_URLCONF, host_kind="tenant"),
         )
