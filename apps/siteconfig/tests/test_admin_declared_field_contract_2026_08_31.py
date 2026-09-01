@@ -31,12 +31,17 @@ the model meta and the site, and template loading is a filesystem question.
 
 from __future__ import annotations
 
+import ast
+import pathlib
+
 from django.contrib.admin.options import BaseModelAdmin
 from django.template import TemplateDoesNotExist
 from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase
 
 from config.admin import platform_admin_site, tenant_admin_site
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 
 SITES = (("tenant", tenant_admin_site), ("platform", platform_admin_site))
 
@@ -341,3 +346,101 @@ class SplitDateTimeHasAnAccessibleNameTests(SimpleTestCase):
         self.assertEqual(
             formfield.widget.widgets[1].attrs["aria-label"], "Starts at time"
         )
+
+
+class AutomationHooksChainToSuperTests(SimpleTestCase):
+    """An admin that overrides one of the mixin's hooks must call super().
+
+    AdminFormAutomationMixin is composed ahead of the ModelAdmin, so it only acts
+    if the subclass chains. apps/siteconfig/admin.py's WaiverRequestAdmin returned
+    ``list(self.readonly_fields)`` directly, which silently discarded both the
+    SYSTEM_EVIDENCE_FIELDS the mixin forces readonly and the declared-but-excluded
+    backstop. Nothing was editable that should not have been -- WaiverRequest's two
+    evidence fields were already listed by hand -- but the contract was off, and the
+    next evidence field added to that model would have shipped editable.
+    """
+
+    HOOKS = frozenset(
+        {"get_readonly_fields", "formfield_for_dbfield", "get_fieldsets", "get_form"}
+    )
+
+    @staticmethod
+    def _base_names(cls_node):
+        out = []
+        for b in cls_node.bases:
+            if isinstance(b, ast.Attribute):
+                out.append(b.attr)
+            elif isinstance(b, ast.Name):
+                out.append(b.id)
+        return out
+
+    @staticmethod
+    def _calls_super(fn):
+        for n in ast.walk(fn):
+            if (
+                isinstance(n, ast.Call)
+                and isinstance(n.func, ast.Attribute)
+                and isinstance(n.func.value, ast.Call)
+                and isinstance(n.func.value.func, ast.Name)
+                and n.func.value.func.id == "super"
+            ):
+                return True
+        return False
+
+    def _scan(self):
+        offenders = []
+        checked = 0
+        for path in sorted((REPO_ROOT / "apps").rglob("*.py")):
+            rel = path.as_posix()
+            if "/tests/" in rel or "/migrations/" in rel:
+                continue
+            src = path.read_text(encoding="utf-8", errors="ignore")
+            if not any(h in src for h in self.HOOKS):
+                continue
+            try:
+                tree = ast.parse(src)
+            except SyntaxError:  # pragma: no cover - unparsable module
+                continue
+            for cls in [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]:
+                if not any(
+                    "Admin" in b or "Inline" in b for b in self._base_names(cls)
+                ):
+                    continue
+                for fn in cls.body:
+                    if not isinstance(fn, ast.FunctionDef) or fn.name not in self.HOOKS:
+                        continue
+                    checked += 1
+                    if not self._calls_super(fn):
+                        offenders.append(
+                            f"{path.relative_to(REPO_ROOT).as_posix()}:{fn.lineno} "
+                            f"{cls.name}.{fn.name}() does not call super()"
+                        )
+        return offenders, checked
+
+    def test_every_admin_hook_override_chains_to_super(self):
+        offenders, checked = self._scan()
+        self.assertGreater(checked, 0, "scanned no overrides -- the reader is broken")
+        self.assertEqual(sorted(offenders), [], chr(10).join(sorted(offenders)))
+
+    def test_the_reader_actually_discriminates(self):
+        """A detector that cannot fail is not evidence. Prove both verdicts."""
+        chained = ast.parse(
+            chr(10).join(
+                [
+                    "class A(admin.ModelAdmin):",
+                    "    def get_readonly_fields(self, request, obj=None):",
+                    "        return list(super().get_readonly_fields(request, obj))",
+                ]
+            )
+        ).body[0]
+        bare = ast.parse(
+            chr(10).join(
+                [
+                    "class B(admin.ModelAdmin):",
+                    "    def get_readonly_fields(self, request, obj=None):",
+                    "        return list(self.readonly_fields)",
+                ]
+            )
+        ).body[0]
+        self.assertTrue(self._calls_super(chained.body[0]))
+        self.assertFalse(self._calls_super(bare.body[0]))

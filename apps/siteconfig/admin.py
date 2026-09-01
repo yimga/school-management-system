@@ -2457,14 +2457,16 @@ class WaiverRequestAdmin(ModelAdmin):
     reason_short.short_description = "Reason"
 
     def get_readonly_fields(self, request, obj=None):
+        # Chain to super(). AdminFormAutomationMixin forces SYSTEM_EVIDENCE_FIELDS
+        # readonly and re-adds any field a fieldset declares but the form excludes;
+        # returning self.readonly_fields directly dropped both on the floor. Today
+        # WaiverRequest's only evidence fields (created_at, updated_at) are already
+        # listed explicitly, so this changes nothing now -- it is what keeps the next
+        # evidence field added to this model from silently becoming editable.
+        readonly = list(super().get_readonly_fields(request, obj))
         if obj and obj.status != WaiverRequest.Status.PENDING:
-            return list(self.readonly_fields) + [
-                "status",
-                "decided_by",
-                "decided_at",
-                "decision_note",
-            ]
-        return list(self.readonly_fields)
+            readonly += ["status", "decided_by", "decided_at", "decision_note"]
+        return readonly
 
     @admin.action(description="Approve selected waiver requests")
     def approve_waiver_requests(self, request, queryset):
