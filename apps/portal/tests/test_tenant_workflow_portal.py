@@ -11,9 +11,18 @@ from apps.accounts.models import User
 from apps.accounts.views import redirect_view
 from apps.portal.tenant_workflow_portal import build_tenant_workflow_portal
 from apps.siteconfig.portal_sidebar_items import build_portal_sidebar_items
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 
 ROOT = Path(__file__).resolve().parents[3]
+
+WORKFLOW_PORTAL = ROOT / "templates/partials/tenant/workflow_portal.html"
+PORTAL_SIDEBAR = ROOT / "templates/partials/portal_sidebar.html"
+WORKFLOW_CENTERS = (
+    ROOT / "templates/parent/workflow_center.html",
+    ROOT / "templates/teacher/workflow_center.html",
+    ROOT / "templates/student/workflow_center.html",
+)
 
 
 class TenantWorkflowPortalTests(SimpleTestCase):
@@ -53,20 +62,21 @@ class TenantWorkflowPortalTests(SimpleTestCase):
         self.assertEqual(payload["role"], User.Role.TEACHER)
 
     def test_templates_use_shared_workflow_portal(self):
-        for rel in (
-            "templates/parent/workflow_center.html",
-            "templates/teacher/workflow_center.html",
-            "templates/student/workflow_center.html",
-        ):
-            text = (ROOT / rel).read_text(encoding="utf-8")
-            self.assertIn("partials/tenant/workflow_portal.html", text)
-
-        partial = (ROOT / "templates/partials/tenant/workflow_portal.html").read_text(
-            encoding="utf-8"
+        # "uses the shared portal" is an {% include %}, so ask the parser. The
+        # string "partials/tenant/workflow_portal.html" is still in a workflow
+        # centre's bytes when the include has been commented out, and then the
+        # page has no workflow portal on it at all.
+        for centre in WORKFLOW_CENTERS:
+            assert_wires(self, centre, "partials/tenant/workflow_portal.html")
+        # The three data- hooks are what the workflow JS reads, and a hook that
+        # is only in the file emits nothing -- so the engine answers for them.
+        assert_markup(
+            self,
+            WORKFLOW_PORTAL,
+            "data-rmc-tenant-workflow-portal",
+            "data-rmc-workflow-focus",
+            "data-rmc-workflow-step",
         )
-        self.assertIn("data-rmc-tenant-workflow-portal", partial)
-        self.assertIn("data-rmc-workflow-focus", partial)
-        self.assertIn("data-rmc-workflow-step", partial)
 
     def test_student_workflow_route_resolves(self):
         self.assertEqual(
@@ -118,6 +128,14 @@ class TenantWorkflowPortalTests(SimpleTestCase):
         builder = (ROOT / "apps/siteconfig/portal_sidebar_items.py").read_text(
             encoding="utf-8"
         )
+        # Everything below is either an {% if %} condition or an ABSENCE, and
+        # neither survives a parse -- so those stay source reads. What can be
+        # asked of the engine is the other half of the same claim: the role tree
+        # lives in the Python projector and the template merely renders the
+        # groups it hands back. A commented-out include would leave every string
+        # below intact while the sidebar showed nothing.
+        assert_wires(self, PORTAL_SIDEBAR, "partials/portal_sidebar_v8_groups.html")
+        assert_markup(self, PORTAL_SIDEBAR, 'data-rmc-portal-sidebar-group="quick-access"')
         # Hats are resolved in the Python projector, not a second hardcoded
         # role tree in the template.
         self.assertIn("get_nav_portal_role", builder)
