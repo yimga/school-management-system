@@ -69021,3 +69021,377 @@ msgstr ""
 
 msgid "…and {{ extra }} more"
 msgstr ""
+
+msgid "%(model)s history"
+msgstr ""
+
+msgid ""
+"%(pdf)s PDF lines skipped; %(replay)s rows auto-imported after references or"
+" missing fields were resolved."
+msgstr ""
+
+msgid ""
+"<strong>{{ counter }}</strong> row needs your decision. Autopilot runs when "
+"you open this page — PDF stat lines close automatically. {% plural %} "
+"<strong>{{ counter }}</strong> rows need your decision. Autopilot runs when "
+"you open this page — PDF stat lines close automatically."
+msgstr ""
+
+msgid "Accept & re-import"
+msgstr ""
+
+msgid "Accept edits"
+msgstr ""
+
+msgid ""
+"Add expected invoice count and total before cutover, or re-import with "
+"guardrails on the intake form."
+msgstr ""
+
+msgid "Admin command palette"
+msgstr ""
+
+msgid "Admin work areas"
+msgstr ""
+
+msgid "All Django models"
+msgstr ""
+
+msgid "All operator destinations"
+msgstr ""
+
+msgid "Anomalies + held rows for {{ name }}."
+msgstr ""
+
+msgid "Applications and models"
+msgstr ""
+
+msgid "Autopilot closed {{ count }} row(s) automatically."
+msgstr ""
+
+msgid ""
+"Autopilot will close safe rows first, then skip anything still pending. "
+"Continue?"
+msgstr ""
+
+msgid "Awaiting cutover sign-off"
+msgstr ""
+
+msgid "Back to %(model)s"
+msgstr ""
+
+msgid "Back to record"
+msgstr ""
+
+msgid "Bulk actions & export"
+msgstr ""
+
+msgid "Change %(model)s"
+msgstr ""
+
+msgid "Choose a ticket type."
+msgstr ""
+
+msgid ""
+"Confirm or edit them before cutover sign-off — inferred totals match "
+"observed counts but are not a substitute for source-provided control "
+"figures."
+msgstr ""
+
+msgid "Contact your operator"
+msgstr ""
+
+msgid "Control totals were inferred from what landed."
+msgstr ""
+
+msgid "Cutover sign-off is still required."
+msgstr ""
+
+msgid "Delete %(model)s"
+msgstr ""
+
+msgid "Delete selected %(model)s"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v23.0 on operator /admin/"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v23.0 on tenant /admin/"
+msgstr ""
+
+msgid "Dismiss recommendation"
+msgstr ""
+
+msgid "Django models"
+msgstr ""
+
+msgid "Drift & log"
+msgstr ""
+
+msgid "Expected payroll gross total"
+msgstr ""
+
+msgid "Expected payroll net total"
+msgstr ""
+
+msgid "Expected payroll rows"
+msgstr ""
+
+msgid ""
+"Expected totals from your operator compared with what this import actually "
+"landed. Repair cannot bypass a failed money check — fix the source export or"
+" expected totals, then re-import."
+msgstr ""
+
+msgid ""
+"Export CSV or fix the source file, then re-import — rows without durable "
+"records cannot be replayed."
+msgstr ""
+
+msgid "Finance landed without verified control totals."
+msgstr ""
+
+msgid "Financial control totals"
+msgstr ""
+
+msgid "Financial control totals — variance detected"
+msgstr ""
+
+msgid "Find a page, record or action"
+msgstr ""
+
+msgid ""
+"Held rows and control totals must be resolved before this bundle can close "
+"the migration runbook."
+msgstr ""
+
+msgid "Import closed"
+msgstr ""
+
+msgid "Import closed — %(count)s auto-resolved (PDF lines skipped)"
+msgstr ""
+
+msgid "Import closed — no rows awaiting review"
+msgstr ""
+
+msgid "Import closure"
+msgstr ""
+
+msgid "Import log & reconciliation drift"
+msgstr ""
+
+msgid "Included {{ pdf }} PDF/stat lines that were not importable records."
+msgstr ""
+
+msgid "Issue Remediator — Awaiting cutover sign-off"
+msgstr ""
+
+msgid "Mapping intel"
+msgstr ""
+
+msgid "Mapping intelligence"
+msgstr ""
+
+msgid "Mismatch"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Move pin down"
+msgstr ""
+
+msgid "Move pin up"
+msgstr ""
+
+msgid "Navigation changed in another tab; rebasing"
+msgstr ""
+
+msgid "Navigation could not be saved"
+msgstr ""
+
+msgid "No permitted destinations match your search."
+msgstr ""
+
+msgid "No pilot evidence recorded yet."
+msgstr ""
+
+msgid "No sponsor commitments configured."
+msgstr ""
+
+msgid ""
+"Non-standard columns import as tracked custom fields — nothing is dropped."
+msgstr ""
+
+msgid "North star"
+msgstr ""
+
+msgid ""
+"Nothing is waiting on you — mapping intel and drift are below if you want to"
+" inspect them."
+msgstr ""
+
+msgid "Observed"
+msgstr ""
+
+msgid "Offline changes queued"
+msgstr ""
+
+msgid "Open admin navigation"
+msgstr ""
+
+msgid ""
+"PDF and stat-sheet lines were skipped — they were not importable records."
+msgstr ""
+
+msgid "PDF lines auto-closable"
+msgstr ""
+
+msgid "Permission-aware pages, records and actions"
+msgstr ""
+
+msgid "Pilot scorecard could not be read."
+msgstr ""
+
+msgid "Pinned is full (%(limit)s)."
+msgstr ""
+
+msgid "Remove pin"
+msgstr ""
+
+msgid "Reset navigation"
+msgstr ""
+
+msgid ""
+"Reset your navigation preferences for this admin workspace? No records or "
+"permissions will be changed."
+msgstr ""
+
+msgid "Resets this workspace only; records and permissions stay unchanged."
+msgstr ""
+
+msgid "Review control totals"
+msgstr ""
+
+msgid "Review sections"
+msgstr ""
+
+msgid "Run autopilot"
+msgstr ""
+
+msgid "Run autopilot (close {{ n }} PDF lines)"
+msgstr ""
+
+msgid ""
+"Run autopilot now? PDF lines and replayable rows close without manual "
+"review."
+msgstr ""
+
+msgid "Saving navigation"
+msgstr ""
+
+msgid "Search pages, records and actions…"
+msgstr ""
+
+msgid "Skip (waive)"
+msgstr ""
+
+msgid "Slot"
+msgstr ""
+
+msgid "Some held rows could not be stored for review."
+msgstr ""
+
+msgid "Staff id / employee number"
+msgstr ""
+
+msgid "Staff name"
+msgstr ""
+
+msgid "Subject / course code"
+msgstr ""
+
+msgid "Subject / course name"
+msgstr ""
+
+msgid "Technical reason"
+msgstr ""
+
+msgid ""
+"This bundle is your school's live cutover import. Domain sign-off on the "
+"operator cutover runbook is still pending — your operator must record sign-"
+"off before the migration is fully sealed."
+msgstr ""
+
+msgid "This page"
+msgstr ""
+
+msgid "Unpin this page"
+msgstr ""
+
+msgid "Verdict"
+msgstr ""
+
+msgid "View import summary"
+msgstr ""
+
+msgid "Work areas"
+msgstr ""
+
+msgid "You do not have permission to view any Django models."
+msgstr ""
+
+msgid ""
+"Your place is held, but we could not raise the invoice automatically — "
+"please contact the school office to pay."
+msgstr ""
+
+msgid ""
+"Your school's live cutover bundle is imported, but domain sign-off on the "
+"operator cutover runbook is still pending. Your operator must record sign-"
+"off before this migration is fully sealed."
+msgstr ""
+
+msgid "awaiting review"
+msgstr ""
+
+msgid "custom fields"
+msgstr ""
+
+msgid "date"
+msgstr ""
+
+msgid "low-confidence"
+msgstr ""
+
+msgid "time"
+msgstr ""
+
+msgid "{{ counter }} needs a person{% plural %}{{ counter }} need a person"
+msgstr ""
+
+msgid ""
+"{{ counter }} remaining step can finish itself{% plural %}{{ counter }} "
+"remaining steps can finish themselves"
+msgstr ""
+
+msgid ""
+"{{ counter }} skipped on this host{% plural %}{{ counter }} skipped on this "
+"host"
+msgstr ""
+
+msgid ""
+"{{ counter }} step can only be checked on the box{% plural %}{{ counter }} "
+"steps can only be checked on the box"
+msgstr ""
+
+msgid "{{ done }} of {{ total }} steps complete"
+msgstr ""
+
+msgid "{{ done }} of {{ total }} steps complete ({{ pct }}%)"
+msgstr ""
+
+msgid ""
+"{{ file }}: {{ held }} held, {{ recorded }} stored, {{ dropped }} not "
+"reviewable"
+msgstr ""

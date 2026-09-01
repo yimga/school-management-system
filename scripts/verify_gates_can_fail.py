@@ -705,6 +705,20 @@ MUTATIONS.update({
     ),
 })
 
+MUTATIONS["i18n-catalog-fresh-fast"] = Mutation(
+    kind="create",
+    path=f"templates/{_PROOF}_i18n_drift.html",
+    defect=(
+        "a translatable string wrapped in a template but never extracted into "
+        "locale/en/LC_MESSAGES/django.po - every locale renders it in English "
+        "and no translator is ever asked for it"
+    ),
+    content=(
+        b"{% load i18n %}"
+        b"<span>{% trans 'gateproof planted i18n drift 2026-08-31' %}</span>"
+    ),
+)
+
 MUTATIONS["gates-can-fail-coverage"] = Mutation(
     kind="patch",
     path="scripts/pre_push_boundary_check.py",

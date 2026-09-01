@@ -218,6 +218,19 @@ GATES: list[tuple[str, list[str]]] = [
     # person choosing to run a 40-minute script. Added on measurement, not
     # instinct: 1s + 3s + 6s against a hook that already runs 45 gates.
     # verify_i18n_catalog_fresh is deliberately NOT here -- it costs ~7 min.
+    # Its FAST sibling is, since 2026-08-31. Same question, same corpus, same
+    # extractor functions (imported from apps/siteconfig/i18n_catalog_builder.py,
+    # not copied), and a byte-identical missing-msgid set -- asserted by
+    # apps/siteconfig/tests/test_i18n_fast_gate_parity.py. The minutes were never
+    # in the question: 16.9s of django.setup() for a scanner that imports nothing
+    # from Django, ast.parse over all 7,670 .py files when only 747 contain `_(`
+    # or `gettext` at all, and polib on a 2 MB catalog where a msgid-only scan of
+    # the same bytes answers in 0.06s. MEASURED on 2026-08-31: 170.5s -> 11.0s.
+    # It found 110 real gaps on main the day it was written (the slow gate had
+    # been red and unenforced since GitHub Actions stopped running on 08-15);
+    # those were closed by `manage.py sync_i18n_catalog --compile` in the same
+    # commit, so this lands GREEN against the pre-existing zero baseline.
+    ("i18n-catalog-fresh-fast", ["verify_i18n_catalog_fresh_fast.py", "--compare"]),
     #
     # A page that extends control_plane_base and joins neither PHASE7 nor the
     # exempt set. Mirrors architectural-boundaries `control-plane-registry-drift`.
