@@ -1344,3 +1344,8 @@ register_tenant_admin(PaymentRail, PaymentRailAdmin)
 register_tenant_admin(RegionPaymentProfile, RegionPaymentProfileAdmin)
 register_tenant_admin(TenantPaymentPolicy, TenantPaymentPolicyAdmin)
 register_tenant_admin(OfflinePaymentIntent, OfflinePaymentIntentAdmin)
+
+# Registers Transaction / RefundRequest / PaymentReconciliation / PaymentAuditLog on
+# the tenant site. Django only auto-imports <app>/admin.py, so without this line the
+# module never loads and those four models have no admin screen at all.
+from . import payment_admin  # noqa: E402,F401

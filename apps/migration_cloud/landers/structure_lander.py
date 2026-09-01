@@ -32,11 +32,17 @@ reference (idempotent, so a whole cohort's overlapping rows collapse)::
 Guardrails (nothing is chanced):
   * REUSE-FIRST by (school, name): an existing target structure is never
     modified or duplicated — the row binds to what the school already has.
-  * ``Department``/``Specialty``/``Classroom`` carry a GLOBALLY-unique ``code``
-    (not per-school). The source's code MUST NOT be reused at the target — on
-    a single-schema deployment it would collide or, worse, resolve the SOURCE
-    school's row (cross-tenant leak). We look up by name and MINT a fresh
-    target-scoped code on create.
+  * ``Department``/``Specialty``/``Classroom`` carry a ``code`` that is unique
+    PER SCHOOL, not globally: ``uniq_department_school_code`` (academics
+    migration 0076) and ``uniq_classroom_school_code`` /
+    ``uniq_specialty_school_code`` (academics migration 0085). A SPLIT still
+    MINTS a fresh target-scoped code rather than reusing the source's, because
+    the target school may already hold that code for structure of its own, and
+    on a single-schema (RLS) deployment a lookup by bare code could resolve the
+    SOURCE school's row. What must NOT happen is treating ANOTHER tenant's use
+    of a code as the reason to mint — that is a global question about a
+    per-school column, and it is what ``specialty_lander._pick_code`` was fixed
+    to stop asking (2026-09-01 closeout).
   * The teacher is a NEW, TARGET-SCOPED ``User`` (role TEACHER, UNUSABLE
     password — no credential is minted) + its own ``TeacherProfile``. We never
     re-link the source teacher's ``User``: ``TeacherProfile.user`` is OneToOne,
@@ -52,6 +58,8 @@ import hashlib
 import re
 from typing import Any, Iterator
 
+from django.core.exceptions import FieldDoesNotExist
+
 from ._helpers import (
     coerce_date,
     coerce_decimal,
@@ -59,6 +67,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     record_row_error,
+    row_savepoint,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
@@ -70,6 +79,21 @@ def _truthy(v: Any) -> bool:
     if isinstance(v, bool):
         return v
     return str(v).strip().lower() in ("1", "true", "yes", "y", "t")
+
+
+def _max_length(model, field: str) -> int | None:
+    """The column's OWN declared ``max_length``, for code that must clip.
+
+    A clip width restated as a literal drifts away from its column and the
+    drift is invisible on SQLite, which does not enforce ``max_length`` (see
+    ``_get_or_create_term``, where the CREATE clipped and the LOOKUP did
+    not). ``None`` — no declared width, or the field is absent on this
+    deploy — slices to the whole string.
+    """
+    try:
+        return model._meta.get_field(field).max_length
+    except FieldDoesNotExist:
+        return None
 
 
 def _mint_code(*, prefix: str, name: str, school, model, code_field: str = "code") -> str:
@@ -140,22 +164,31 @@ class StructureLander(Lander):
                 continue
 
             try:
-                self._provision_row(
-                    row=row,
-                    school=school,
-                    ctx=ctx,
-                    result=result,
-                    models=(
-                        AcademicYear,
-                        Term,
-                        Department,
-                        Classroom,
-                        Specialty,
-                        Subject,
-                        SubjectAssignment,
-                    ),
-                    names=(year_name, term_name, classroom_name, specialty_name, subject_name),
-                )
+                # A savepoint, or the per-row quarantine below is a lie: an
+                # IntegrityError raised inside the apply transaction marks the
+                # connection ``needs_rollback``, so the next row's first query
+                # raises TransactionManagementError and the whole scaffold goes
+                # down with the one bad row.
+                with row_savepoint():
+                    self._provision_row(
+                        row=row,
+                        school=school,
+                        ctx=ctx,
+                        result=result,
+                        models=(
+                            AcademicYear,
+                            Term,
+                            Department,
+                            Classroom,
+                            Specialty,
+                            Subject,
+                            SubjectAssignment,
+                        ),
+                        names=(
+                            year_name, term_name, classroom_name,
+                            specialty_name, subject_name,
+                        ),
+                    )
             except Exception as exc:  # noqa: BLE001 — per-row quarantine, never abort the scaffold
                 record_row_error(
                     result,
@@ -300,8 +333,17 @@ class StructureLander(Lander):
         return obj
 
     def _get_or_create_term(self, *, Term, school, year, row, term_name, result):
+        # Clip ONCE, then look up AND create with that same value. The lookup
+        # used to ask for the raw ``term_name`` while the create wrote
+        # ``term_name[:20]``, so a term label longer than the column could
+        # never match its own stored row: every re-import of the same file
+        # missed and tried to create the term again, which the
+        # ``(academic_year, name)`` / ``(academic_year, position)`` unique
+        # constraints then refused — quarantining the whole structure row on
+        # the second pass. Landing a bundle twice must be a no-op.
+        name = term_name[:_max_length(Term, "name")]
         qs = Term.objects.filter(academic_year=year)  # tenant-isolation-allow: academic_year is school-bound; scoped via its parent
-        obj = qs.filter(name=term_name).order_by("pk").first()
+        obj = qs.filter(name=name).order_by("pk").first()
         if obj is not None:
             return obj
         position = None
@@ -310,8 +352,10 @@ class StructureLander(Lander):
             position = int(raw_pos)
         kwargs: dict[str, Any] = {
             "academic_year": year,
-            "name": term_name[:20],
-            "custom_label": (row.get("term_label") or "").strip()[:30],
+            "name": name,
+            "custom_label": (row.get("term_label") or "").strip()[
+                : _max_length(Term, "custom_label")
+            ],
             "start_date": coerce_date(row.get("term_start"))
             or getattr(year, "start_date", None)
             or _fallback_year_start(),

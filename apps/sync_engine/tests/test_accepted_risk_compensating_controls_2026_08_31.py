@@ -62,70 +62,26 @@ while this file still claims the old one.
 """
 from __future__ import annotations
 
-import os
-
 from django.test import SimpleTestCase, override_settings
 
-#: A school day is ~8h; twice a day means a morning slip is found before the day ends.
-PARITY_INTERVAL_CEILING_SECONDS = 6 * 60 * 60  # magic-number-allow: 6h parity sweep ceiling
+# PROMOTED 2026-09-01. The bounds and the check itself now live in the repo gate an
+# operator can point at a real deployment -- ``scripts/verify_sync_semantics.py``,
+# which calls it in ``main()`` -- because the thing being asserted is a property of a
+# DEPLOYMENT's settings, not of the code. A check that only ever ran inside the test
+# suite answered the question for the CI settings and for nothing else.
+#
+# Imported, never re-implemented: a second copy here would drift, and this file would
+# go on claiming a trade the gate had already stopped enforcing -- which is the exact
+# failure mode the module docstring above warns about.
+from apps.platform_runtime.tests.support.script_loading import load_repo_script
 
+_gate = load_repo_script(
+    "scripts/verify_sync_semantics.py", "rmc_gate_verify_sync_semantics"
+)
 
-def cursor_overlap_floor_seconds() -> int:
-    """The longest transaction a web request can hold open on this deployment.
-
-    Derived, not declared: it is the gunicorn worker timeout, because the worker is
-    killed at it. Reading the real plan rather than hard-coding 120 means an operator
-    who RAISES ``GUNICORN_TIMEOUT`` also raises this floor, which is the correct
-    direction -- a longer permitted request is a longer window to cover.
-    """
-    try:
-        from services.web_runtime import plan_web_runtime
-
-        return int(plan_web_runtime(os.environ).timeout)
-    except Exception:  # noqa: BLE001 - a guard that cannot read the plan still guards
-        # The static fallback gunicorn itself uses when sizing is unavailable.
-        return 120
-
-
-def compensating_control_violations() -> list[str]:
-    """Every way the G8 trade is currently weaker than it was accepted at.
-
-    Returns a list of sentences, empty when the trade still holds. A list rather than a
-    raise so the test can drive it under a deliberately weakened setting and SEE it fire
-    -- a guard nobody has watched fail is not a guard.
-    """
-    from apps.sync_engine import parity
-    from apps.sync_engine.models import cursor_overlap_seconds
-
-    violations: list[str] = []
-
-    floor = cursor_overlap_floor_seconds()
-    overlap = cursor_overlap_seconds()
-    if overlap < floor:
-        violations.append(
-            f"protected cursor overlap was weakened: "
-            f"RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS={overlap} is below the "
-            f"{floor}s gunicorn worker timeout, so a request-bound transaction can "
-            f"commit behind the cursor and never be re-offered"
-        )
-
-    if not parity.enabled():
-        violations.append(
-            "protected parity sweep was disabled: RMC_SYNC_PARITY_ENABLED is off, so a "
-            "row that slipped past the cursor can never be found again -- an "
-            "incremental delta only offers what changed SINCE the cursor"
-        )
-
-    interval = parity.interval_seconds()
-    if interval > PARITY_INTERVAL_CEILING_SECONDS:
-        violations.append(
-            f"protected parity sweep was weakened: "
-            f"RMC_SYNC_PARITY_INTERVAL_SECONDS={interval} exceeds the "
-            f"{PARITY_INTERVAL_CEILING_SECONDS}s ceiling, so a row that slips in the "
-            f"morning is not looked for before the school day ends"
-        )
-
-    return violations
+PARITY_INTERVAL_CEILING_SECONDS = _gate.PARITY_INTERVAL_CEILING_SECONDS
+cursor_overlap_floor_seconds = _gate.cursor_overlap_floor_seconds
+compensating_control_violations = _gate.compensating_control_violations
 
 
 class CompensatingControlGuardTests(SimpleTestCase):

@@ -162,7 +162,20 @@ def main() -> int:
         ("1486-all-corpus-merge", _ok("apps/portal/workflow_kb_corpus.py", "ALL_WORKFLOW_KB_CORPUS")),
         ("1486-audit-refresh-cmd", (ROOT / "scripts/refresh_workflow_help_kb_audit_kb_status.py").is_file()),
         ("1486-auto-draft-posture", (ROOT / "scripts/verify_help_auto_draft_posture.py").is_file()),
-        ("1486-admin-tenant-help", _ok("templates/admin/app_list.html", "feedback:help_center")),
+        # The admin's help-centre link moved in 4bc5375fa (Admin navigation v3):
+        # app_list.html lost it and the new templates/admin/sidebar_v3_body.html
+        # gained it. The check kept naming the old file, so it has been failing on
+        # main ever since -- unnoticed, because Actions billing has been down since
+        # 2026-08-15. What the gate is actually for is that an admin user can reach
+        # the help centre from the admin chrome, so accept it in either surface
+        # rather than pinning one filename the next nav revision will move again.
+        ("1486-admin-tenant-help", any(
+            _ok(rel, "feedback:help_center")
+            for rel in (
+                "templates/admin/sidebar_v3_body.html",
+                "templates/admin/app_list.html",
+            )
+        )),
         ("1486-admin-super-bridge", (ROOT / "scripts/verify_admin_super_help_nav_bridge.py").is_file()),
         # Batch 1487 — editorial high-stakes runbooks + admin/super nav convergence
         ("1487-editorial-corpus", (ROOT / "apps/portal/workflow_kb_corpus_editorial.py").is_file()),

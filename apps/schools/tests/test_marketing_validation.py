@@ -5,6 +5,7 @@ Ensures all key marketing routes resolve and return 200 on canonical host; landi
 
 import json
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 from unittest.mock import patch
@@ -18,7 +19,7 @@ from django.test import (
     TransactionTestCase,
     override_settings,
 )
-from django.core.management import call_command
+from django.core.management import call_command, get_commands
 from django.urls import reverse
 
 from apps.schools.marketing_ai import get_marketing_ai_asset_url
@@ -406,11 +407,36 @@ class MarketingPageExtrasTests(MarketingPublicRouteTransactionCase):
                 self.assertContains(resp, "data-mkt-archetype")
 
     def test_platform_student_portal_still_renders_detail_page(self):
+        """The detail page renders with the visual that is ITS OWN.
+
+        This asserted ``mkt-v3-dashboard-frame`` until now and had been red
+        for it. The frame was removed from this page on purpose in
+        b2499d8ac, whose message gives the reason: ``_dashboard_frame`` was
+        being fed a generic artifact that did not match the page it sat on.
+        Here it was ``_artifact_parent_phone_compact`` -- a PARENT's phone
+        under a STUDENT portal heading. Grading, workflows and offline-first
+        lost the same mismatched frame in that commit; only this assertion
+        was left behind, so it has failed ever since while the page was
+        correct. 18 of the 21 type_platform_*.html pages carry no dashboard
+        frame at all, so its presence was never the detail-page contract.
+
+        Re-pointed at the purpose-built student SVG that replaced it. The
+        negative pins the defect rather than the removal: a dashboard frame
+        may legitimately come back, but not one showing a parent's phone.
+        """
         resp = self.client.get("/platform/student-portal/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "data-mkt-archetype")
         self.assertContains(resp, "mkt-page-platform-student-portal")
-        self.assertContains(resp, "mkt-v3-dashboard-frame")
+        self.assertContains(resp, "data-mkt-platform-visual")
+        # No ".svg": a hashed static URL carries a digest before the
+        # extension, and this must hold under either storage backend.
+        self.assertContains(resp, "platform-student-self-service")
+        self.assertNotContains(
+            resp,
+            "parent-phone-compact-title",
+            msg_prefix="the student portal is showing a parent's phone again",
+        )
 
 
 class MarketingJsonLoaderTests(SimpleTestCase):
@@ -454,6 +480,31 @@ class MarketingRegionalJsonIntegrationTests(MarketingPublicRouteTransactionCase)
         self.assertContains(resp, "GDPR")
 
 
+#: Marketing route names that exist on the DEV urlconf (config.urls) and are
+#: not mounted on the public marketing host. iter_marketing_smoke_targets()
+#: reverses against get_resolver(), which outside a request is
+#: settings.ROOT_URLCONF -- the dev superset -- while the GET below resolves
+#: config.public_urls. So these come back 404 for a HOST reason, not a dead
+#: route, and reporting them as ordinary failures buried two real content
+#: regressions in the same module.
+#:
+#: Each entry carries its reason and is pinned in BOTH directions: the test
+#: asserts these 404 on the marketing host, so a route that later becomes
+#: public fails here until its entry is removed. A THIRD divergence fails
+#: outright rather than being absorbed.
+_DEV_ONLY_MARKETING_ROUTES = {
+    "marketing_threshold_era_preview": (
+        "deprecated stakeholder preview -- its own view docstring says use "
+        "/storefront/ instead, and it is served noindex, nofollow"
+    ),
+    "marketing_compare_replacement": (
+        "/compare/replacement/ carries page_slug compare-replacement, which has "
+        "no COMPARE_PAGE_DEFINITIONS entry (power-school, blackbaud and "
+        "infinite-campus are the three that do)"
+    ),
+}
+
+
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
 class MarketingFullUrlInventoryTests(MarketingPublicRouteTransactionCase):
     """GET every marketing_* route after CMS seed (aligns with validate_marketing_urls --full --seed-cms)."""
@@ -490,10 +541,30 @@ class MarketingFullUrlInventoryTests(MarketingPublicRouteTransactionCase):
         for target in iter_marketing_smoke_targets():
             with self.subTest(name=target.name, path=target.path):
                 resp = self._get(target.path)
+                reason = _DEV_ONLY_MARKETING_ROUTES.get(target.name)
+                if reason is not None:
+                    self.assertEqual(
+                        resp.status_code,
+                        404,
+                        f"{target.name} is now served on the marketing host; "
+                        f"remove it from _DEV_ONLY_MARKETING_ROUTES ({reason})",
+                    )
+                    continue
                 self.assertTrue(
                     target.accepts(resp.status_code),
                     f"{target.name} GET {target.path} -> {resp.status_code}, "
                     f"expected one of {sorted(target.ok_statuses)}",
+                )
+
+    def test_every_dev_only_route_is_still_in_the_inventory(self):
+        """Otherwise a renamed route leaves a dead entry nobody notices."""
+        names = {t.name for t in iter_marketing_smoke_targets()}
+        for name in _DEV_ONLY_MARKETING_ROUTES:
+            with self.subTest(name=name):
+                self.assertIn(
+                    name,
+                    names,
+                    f"{name} no longer reverses at all -- delete its entry",
                 )
 
     def test_all_adjacent_marketing_surface_urls_return_200(self):
@@ -791,7 +862,31 @@ class DeveloperHubPublicUrlconfTests(MarketingPublicRouteTransactionCase):
             resp = Client().get("/developer-portal/sandbox/", HTTP_HOST="runmycampus.com")
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "developer-app-sandbox-frame")
-        self.assertContains(resp, "ensure_demo_environment")
+        # This asserted ``ensure_demo_environment`` and had been red for it.
+        # 734de5226 changed the slab to ``ensure_developer_sandbox_tenant`` --
+        # a purpose-built command that provisions the sandbox tenant, and
+        # added an 'Open sandbox tenant' link beside it -- without updating
+        # the test. The page was right; the assertion was stale.
+        #
+        # Asserting the new NAME would only move the staleness one rename
+        # along. The page hands a developer a line to paste, so the contract
+        # is that the line RUNS: every manage.py command printed here is
+        # read back off the rendered page and looked up in the real command
+        # registry. Now a rename fails whichever side moves first.
+        printed = re.findall(r"manage\.py ([a-z_][a-z0-9_]+)", resp.content.decode())
+        self.assertTrue(
+            printed, "the sandbox page no longer shows a command to run"
+        )
+        registry = get_commands()
+        for name in sorted(set(printed)):
+            with self.subTest(command=name):
+                self.assertIn(
+                    name,
+                    registry,
+                    f"/developer-portal/sandbox/ tells a developer to run "
+                    f"manage.py {name}, which is not a management command",
+                )
+        self.assertIn("ensure_developer_sandbox_tenant", printed)
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)

@@ -26,9 +26,11 @@ WHAT THESE TESTS HOLD.
   (c) Policy still outranks causality. A protected (money/grades/identity) row is not
       made overwritable by a well-formed token.
   (d) The findings this audit could NOT close are sealed as findings, not papered over:
-      the delta wire carries no causality field of its own yet, ``clock_offset``'s
-      measurement never reaches the decision, and ``conflict_resolver``'s causal branch
-      is unreachable from its production caller.
+      ``clock_offset``'s measurement never reaches the decision, and
+      ``conflict_resolver``'s causal branch is unreachable from its production caller.
+      The third - that the delta wire carried no causality field of its own - was CLOSED
+      on 2026-09-01 and its seal now points the other way; see
+      ``test_causal_base_version_2026_09_01`` for the behaviour it was replaced by.
   (e) G8 parity: the row COUNT the module header claims as the XOR fold's mitigation is
       real and compared on the ENTITY path - and was entirely absent from the BUCKET path,
       which is not a diagnostic but the thing that decides which rows a repair serves.
@@ -272,20 +274,37 @@ class TheGapsThisAuditCouldNotCloseTests(SimpleTestCase):
     re-read the finding rather than inherit a stale one.
     """
 
-    def test_the_delta_wire_still_carries_no_causality_field_of_its_own(self):
-        """The producer does not yet stamp a base version onto a row.
+    def test_the_delta_wire_now_carries_a_base_version_and_nothing_heavier(self):
+        """CLOSED 2026-09-01, and re-sealed pointing the other way.
 
-        ``_conflict_decision`` honours one; ``edge_outbox`` does not emit one, because
-        neither side stores the PEER's version of a row (``SyncApplyLedger`` records the
-        LOCAL ``updated_at`` after an apply, for echo suppression). Closing this needs a
-        column and a wire field, which is the remaining half of the work.
+        This test used to assert that ``edge_outbox`` emitted NO causality field, because
+        neither side stored the PEER's version of a row - ``SyncApplyLedger`` recorded the
+        LOCAL ``updated_at`` after an apply, for echo suppression, which cannot answer the
+        question. It named the remaining work as "a column and a wire field". Both landed:
+        ``SyncApplyLedger.peer_updated_at`` (migration 0025) and the ``base_updated_at``
+        key the producer stamps onto each delta row. See
+        ``apps/sync_engine/tests/test_causal_base_version_2026_09_01.py``, which holds the
+        behaviour - including the convergence property that makes the design safe.
+
+        What is asserted here is the SHAPE of the closure, which is the part worth
+        pinning. A base version is one nullable timestamp on a row that already carries
+        timestamps; a Lamport clock, an HLC or a version vector is a new clock domain on
+        every synced entity, a wire format, and a merge procedure - a rewrite of the rail
+        rather than a field on it. If one of those names ever appears in this producer, it
+        is not an increment of this work and must be argued for on its own.
         """
         source = (
             (_REPO / "apps" / "sync_engine" / "edge_outbox.py")
             .read_text(encoding="utf-8")
             .lower()
         )
-        for token in ("lamport", "hlc", "version_vector", "base_updated_at"):
+        self.assertIn(
+            "base_updated_at",
+            source,
+            "edge_outbox stopped emitting the causality token; _conflict_decision's "
+            "causal branch is inert again and the audit finding is REOPEN",
+        )
+        for token in ("lamport", "hlc", "version_vector"):
             self.assertNotIn(
                 token, source, f"edge_outbox now emits {token!r}; re-read the finding"
             )

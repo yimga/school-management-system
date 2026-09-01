@@ -134,10 +134,15 @@ class NoRepoAdminOnTheUnmountedDefaultSiteTests(SimpleTestCase):
         this static pass covers that half.
         """
         offenders = []
-        for path in sorted((REPO_ROOT / "apps").rglob("admin*.py")):
+        # Every .py, not just admin*.py. That glob is a PREFIX match, so it
+        # silently skipped apps/finance/payment_admin.py -- which carried five
+        # bare registrations and cost four finance models their only screen.
+        for path in sorted((REPO_ROOT / "apps").rglob("*.py")):
             if "/tests/" in path.as_posix() or "/migrations/" in path.as_posix():
                 continue
             src = path.read_text(encoding="utf-8", errors="ignore")
+            if "register" not in src:
+                continue  # cheap pre-filter: nothing here can register a model
             rel = path.relative_to(REPO_ROOT).as_posix()
             try:
                 hits = bare_registrations(src)
@@ -250,3 +255,59 @@ class InfoGlyphTextShieldExemptionTests(SimpleTestCase):
         plain = ".btn:not(.rmc-btn-wrap):not(.btn-link):not(.dropdown-toggle)"
         self.assertIsNotNone(SHIELD_BTN.search(exempt).group("exempt"))
         self.assertIsNone(SHIELD_BTN.search(plain).group("exempt"))
+
+
+class FinancePaymentAdminsAreMountedTests(SimpleTestCase):
+    """The four models whose only admin classes lived in a module nobody imported.
+
+    apps/finance/payment_admin.py registered Transaction, RefundRequest,
+    PaymentReconciliation and PaymentAuditLog with bare ``@admin.register(Model)``
+    -- no site -- and nothing imported the module, so the calls never ran and the
+    four had no admin screen anywhere. RefundRequestAdmin.process_selected_refunds,
+    the only path that applies a refund to the ledger rather than just flipping a
+    status field, was unreachable with them.
+
+    Two ways to silently undo that: drop the ``from . import payment_admin`` line in
+    apps/finance/admin.py, or go back to a bare decorator here. The first leaves no
+    other trace at all, which is why this test asserts the live registry rather than
+    the source text.
+    """
+
+    MODELS = ("transaction", "refundrequest", "paymentreconciliation", "paymentauditlog")
+
+    def test_each_one_is_registered_on_the_tenant_site(self):
+        from django.apps import apps as django_apps
+
+        from config.admin import tenant_admin_site
+
+        missing = []
+        for name in self.MODELS:
+            model = django_apps.get_model("finance", name)
+            if model not in tenant_admin_site._registry:
+                missing.append(model._meta.label)
+        self.assertEqual(
+            missing,
+            [],
+            "finance admin(s) not on the tenant site -- did apps/finance/admin.py "
+            "lose its `from . import payment_admin` line? " + ", ".join(missing),
+        )
+
+    def test_none_of_them_landed_on_the_unmounted_default_site(self):
+        from django.apps import apps as django_apps
+
+        stranded = [
+            django_apps.get_model("finance", name)._meta.label
+            for name in self.MODELS
+            if django_apps.get_model("finance", name) in django_admin.site._registry
+        ]
+        self.assertEqual(stranded, [], "back on the site no urlconf mounts")
+
+    def test_the_refund_ledger_action_is_reachable(self):
+        from django.apps import apps as django_apps
+
+        from config.admin import tenant_admin_site
+
+        model_admin = tenant_admin_site._registry[
+            django_apps.get_model("finance", "refundrequest")
+        ]
+        self.assertIn("process_selected_refunds", list(model_admin.actions or []))

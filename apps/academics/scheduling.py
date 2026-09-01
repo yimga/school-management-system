@@ -441,6 +441,38 @@ class SchedulingConstraint(models.Model):
         return f"{self.name} ({self.constraint_type})"
 
 
+UNPLACED_HEADING = "UNPLACED DEMAND"
+
+
+def summarise_unplaced_demands(unplaced: List[Dict]) -> str:
+    """Render the misses as text a human reading the plan will actually see.
+
+    Written onto ``Schedule.notes`` because a DRAFT that quietly dropped part
+    of the timetable is indistinguishable, in every surface that lists plans,
+    from one that placed everything. The heading is a module constant so a
+    test can look for the REPORT rather than for one phrasing of it.
+    """
+    if not unplaced:
+        return ""
+    by_reason: Dict[str, int] = {}
+    for miss in unplaced:
+        reason = str(miss.get("reason") or "unknown")
+        by_reason[reason] = by_reason.get(reason, 0) + 1
+    counts = ", ".join(
+        f"{count} {reason}" for reason, count in sorted(by_reason.items())
+    )
+    lines = [f"{UNPLACED_HEADING}: {len(unplaced)} ({counts})."]
+    for miss in unplaced:
+        lines.append(
+            "  - {classroom} / {subject}: {reason}".format(
+                classroom=miss.get("classroom", "?"),
+                subject=miss.get("subject", "?"),
+                reason=miss.get("reason", "?"),
+            )
+        )
+    return "\n".join(lines)
+
+
 class TimetableGenerator:
     """
     Automated timetable generation using constraint satisfaction
@@ -456,6 +488,10 @@ class TimetableGenerator:
         self.term = term
         self.constraints = []
         self.schedule_entries = []
+        #: Demand this generator could NOT place, one dict per miss. Read it
+        #: after generate_schedule(); it is also summarised onto
+        #: ``Schedule.notes`` so the record outlives the call.
+        self.unplaced: List[Dict] = []
 
     def load_constraints(self):
         """Load active scheduling constraints"""
@@ -704,6 +740,14 @@ class TimetableGenerator:
             teacher = self._resolve_assignment_teacher(sa)
             if teacher is None:
                 # Nobody to teach it — cannot book a class with no teacher.
+                self.unplaced.append(
+                    {
+                        "classroom": str(sa.classroom),
+                        "subject": str(sa.subject),
+                        "teacher": None,
+                        "reason": "no_teacher",
+                    }
+                )
                 continue
             spec = resolve_allocation(
                 sa.classroom_id, sa.subject_id, allocation_index
@@ -716,6 +760,7 @@ class TimetableGenerator:
 
         total_units = max(len(demands) * max(cycle_weeks, 1), 1)
         placed_units = 0
+        placed_blocks = 0
         for cycle_week in range(1, cycle_weeks + 1):
             # Rotation offset — see _block_windows. Zero on week 1, so a
             # one-week timetable is scanned exactly as it was pre-2.3.
@@ -733,17 +778,47 @@ class TimetableGenerator:
                             window,
                             cycle_week,
                         ):
+                            placed_blocks += 1
                             break  # Block placed; on to the next block.
+                    else:
+                        # for/else: no window worked anywhere. Before
+                        # 2026-09-01 this arm did not exist, so a block that
+                        # could not be booked left NO trace -- while
+                        # placed_units advanced anyway, so the progress line
+                        # said "Placed" about a lesson placed nowhere. A plan
+                        # missing a third of its periods looked identical to
+                        # a complete one.
+                        self.unplaced.append(
+                            {
+                                "classroom": str(sa.classroom),
+                                "subject": str(sa.subject),
+                                "teacher": str(teacher),
+                                "block_size": block_size,
+                                "cycle_week": cycle_week,
+                                "reason": "no_free_window",
+                            }
+                        )
                 placed_units += 1
                 if on_progress is not None:
                     try:
                         on_progress(
                             placed_units,
                             total_units,
-                            f"Placed demand {placed_units} of {total_units}",
+                            (
+                                f"Demand {placed_units} of {total_units}"
+                                f" - {placed_blocks} block(s) placed,"
+                                f" {len(self.unplaced)} unplaceable"
+                            ),
                         )
                     except Exception:  # noqa: BLE001 — progress is best-effort
                         pass
+
+        if self.unplaced:
+            summary = summarise_unplaced_demands(self.unplaced)
+            schedule.notes = (
+                f"{summary}\n\n{schedule.notes}" if schedule.notes else summary
+            )
+            schedule.save(update_fields=["notes"])
 
         return schedule
 
