@@ -7,7 +7,10 @@ from pathlib import Path
 from django.test import SimpleTestCase
 from django.urls import reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 ROOT = Path(__file__).resolve().parents[3]
+_USER_DROPDOWN = ROOT / "templates" / "components" / "user_dropdown.html"
 
 
 class Phase2PortalFluidLayoutTests(SimpleTestCase):
@@ -35,8 +38,12 @@ class Phase2PortalNavigationTests(SimpleTestCase):
         html = (ROOT / "templates" / "components" / "user_dropdown.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("data-rmc-nav-logout", html)
+        # accounts:logout is a {% url %} argument: it renders to a path, so the
+        # route NAME is only ever visible in the source.
         self.assertIn("accounts:logout", html)
+        # The nav marker is emitted markup, and a {% comment %} keeps it in the
+        # bytes while putting no logout control on the page.
+        assert_markup(self, _USER_DROPDOWN, "data-rmc-nav-logout")
 
     def test_logout_url_resolves(self):
         url = reverse("accounts:logout")
