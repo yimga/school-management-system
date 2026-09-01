@@ -37,6 +37,26 @@
  *
  * Env: MARKETING_BASE_URL (default http://runmycampus.com:8010)
  *      AXE_SWEEP_OUT      (default artifacts/a11y/marketing-axe-sweep.json)
+ *      AXE_SWEEP_COLOR_SCHEME  light (default) | dark
+ *
+ * The colour scheme is a real dimension, not a nicety, and this sweep
+ * measured LIGHT only until 2026-09-01. What the first dark run found:
+ *
+ *     light   56 pages scanned    0 failing    0 failing colour pairs
+ *     dark    56 pages scanned   56 failing   61 failing colour pairs
+ *
+ * At the time, dark was not something a visitor chose. mkt-theme-bootstrap.js
+ * defaults the marketing surface to light; theme-preference-bootstrap.js then
+ * ran on the same page, defaulted to "system", resolved that against the OS
+ * and overwrote data-theme -- so every first-time visitor with a dark OS got
+ * the failing palette. That default is now pinned to light for this surface,
+ * which is why a dark run has to STORE the preference (see addInitScript
+ * below) and then verify what the page actually rendered. A sweep that kept
+ * relying on the OS alone would now quietly measure light and report "dark:
+ * 0 failing" -- the same defect in a new place.
+ *
+ * The 56/61 above is what a visitor who deliberately picks Dark still gets.
+ * The ratchet baseline is light-only, so a dark run is a --report run today.
  */
 import { chromium } from "playwright";
 import AxeBuilder from "@axe-core/playwright";
@@ -103,6 +123,11 @@ const VIEWPORTS = [
 
 const BLOCKING_IMPACTS = new Set(["serious", "critical"]);
 
+const COLOR_SCHEME =
+  (process.env.AXE_SWEEP_COLOR_SCHEME || "light").toLowerCase() === "dark"
+    ? "dark"
+    : "light";
+
 function pairKey(rule, data) {
   const fg = String(data?.fgColor ?? "").toLowerCase();
   const bg = String(data?.bgColor ?? "").toLowerCase();
@@ -115,6 +140,18 @@ async function main() {
     : process.argv.includes("--report")
       ? "report"
       : "assert";
+
+  // Refuse BEFORE spending four minutes of browser time. The baseline is a
+  // LIGHT-scheme baseline; asserting a dark run against it, or writing one over
+  // it, would silently change what the ratchet means.
+  if (COLOR_SCHEME !== "light" && mode !== "report") {
+    console.error(
+      `REFUSING: var/a11y-marketing-axe-baseline.json is a light-scheme ` +
+        `baseline and this run is ${COLOR_SCHEME}. Use --report for a ` +
+        `non-light sweep.`,
+    );
+    return 2;
+  }
 
   // The marketing surface is host-scoped (config.urls is chosen by Host), so a
   // bare 127.0.0.1 origin resolves a DIFFERENT urlconf and the sweep would scan
@@ -135,7 +172,22 @@ async function main() {
         viewport: { width: vp.width, height: vp.height },
         // Determinism: reveals every [data-mkt-reveal] synchronously.
         reducedMotion: "reduce",
+        colorScheme: COLOR_SCHEME,
       });
+      // The OS preference alone no longer darkens the marketing surface:
+      // it is a light-locked editorial canvas and its bootstrap now
+      // defaults there, so a dark-OS visitor is not silently opted in.
+      // Dark is therefore something a visitor CHOOSES, and the only way
+      // to sweep what they chose is to store the choice.
+      if (COLOR_SCHEME === "dark") {
+        await context.addInitScript(() => {
+          try {
+            localStorage.setItem("rmc-mkt-theme", "dark");
+          } catch (_) {
+            /* private mode: the assertion below will catch it */
+          }
+        });
+      }
       const page = await context.newPage();
       for (const route of PAGES) {
         const url = `${BASE_URL}${route}`;
@@ -146,6 +198,19 @@ async function main() {
         try {
           await page.goto(url, { waitUntil: "load", timeout: 60_000 });
           await page.waitForTimeout(400);
+          // Refuse to report a theme the page did not render. Without
+          // this the sweep would answer about light while its heading
+          // said dark -- a measurement that reports "0 failing" because
+          // its subject was never there.
+          const rendered = await page.evaluate(() =>
+            document.documentElement.getAttribute("data-theme"),
+          );
+          if (rendered !== COLOR_SCHEME) {
+            throw new Error(
+              `theme mismatch: asked for ${COLOR_SCHEME}, page rendered ` +
+                `${rendered} - the sweep would be measuring the wrong palette`,
+            );
+          }
           const scan = await new AxeBuilder({ page }).analyze();
           violations = scan.violations;
           // axe returns color-contrast as INCOMPLETE, not a violation, when it
@@ -235,6 +300,7 @@ async function main() {
 
   const summary = {
     base_url: BASE_URL,
+    color_scheme: COLOR_SCHEME,
     generated_at: new Date().toISOString(),
     pages_scanned: results.length,
     failing_page_count: failingPages.length,
@@ -253,6 +319,7 @@ async function main() {
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, `${JSON.stringify(summary, null, 2)}\n`, "utf8");
   console.log(`\nwrote ${path.relative(ROOT, OUT_PATH)}`);
+  console.log(`colour scheme      : ${COLOR_SCHEME}`);
   console.log(`pages scanned      : ${summary.pages_scanned}`);
   console.log(`failing pages      : ${summary.failing_page_count}`);
   console.log(`failing colour pairs: ${pairList.length}`);
