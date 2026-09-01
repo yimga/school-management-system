@@ -2005,13 +2005,23 @@ def _do_provision_tracked(
             for i, label in enumerate(classroom_seed_names[:3]):
                 name = str(label).strip() or f"Class {i + 1}"
                 code = f"{dept_code}-C{i + 1}"
-                # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
-                if Classroom.objects.filter(code=code).exists():
+                # Scoped to this school. Classroom.code is unique per SCHOOL
+                # (uniq_classroom_school_code, academics migration 0085), not
+                # globally, and `code` embeds school.slug (unique=True), so a
+                # cross-tenant hit on the shared-schema RLS edge is near-
+                # impossible. It is scoped anyway because the CONSEQUENCE of one
+                # is not benign: this probe vetoes, and the `continue` skips the
+                # classroom entirely, leaving classroom_created un-incremented so
+                # the school is provisioned a class short with no event, no log
+                # and no error. Scoping costs nothing; the veto costs a classroom.
+                # The allow-marker is gone because the query is now scoped and
+                # needs no exemption.
+                if Classroom.objects.filter(school=school, code=code).exists():
                     continue
                 Classroom.objects.get_or_create(
+                    school=school,
                     code=code,
                     defaults={
-                        "school": school,
                         "academic_year": ay,
                         "department": department,
                         "name": name,
