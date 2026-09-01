@@ -2,8 +2,13 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 
 ROOT = Path(__file__).resolve().parents[3]
+SCHOOL_CONFIGURATION_CENTER = (
+    ROOT / "templates" / "platform_runtime" / "school_configuration_center.html"
+)
 
 
 class TenantSchoolAppleClassExperienceTests(SimpleTestCase):
@@ -22,6 +27,22 @@ class TenantSchoolAppleClassExperienceTests(SimpleTestCase):
         template = (ROOT / "templates" / "platform_runtime" / "school_configuration_center.html").read_text(encoding="utf-8")
         nav = (ROOT / "apps" / "platform_runtime" / "operational_center_nav.py").read_text(encoding="utf-8")
         bundle = f"{template}\n{nav}"
+        # The sweep below runs over template + nav CONCATENATED, so a token found
+        # there does not say which file carries it, and all of them survive the
+        # template being commented out. Aimed at school_configuration_center.html,
+        # the template this case is bound to: the apple-class tenant scope and the
+        # per-section marker are markup it must emit, and the shared masthead is
+        # an {% include %} it must really pull in. can_access_permission stays a
+        # read -- it is the {% if %} gate itself, which no parse can see.
+        assert_markup(
+            self,
+            SCHOOL_CONFIGURATION_CENTER,
+            "data-apple-class-tenant-school-admin",
+            "data-school-configuration-section",
+        )
+        assert_wires(
+            self, SCHOOL_CONFIGURATION_CENTER, "components/rmc_page_masthead.html"
+        )
         for token in (
             # apple-class experience scoped to the tenant school admin
             "data-apple-class-tenant-school-admin",
