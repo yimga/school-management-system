@@ -9,7 +9,16 @@
       <div class="d-flex flex-wrap gap-2">
         <a class="btn btn-primary" href="{% url 'kb:kb_home' %}">{% trans "Open knowledge base" %}</a>
         <a class="btn btn-outline-secondary" href="{% url 'accounts:user_profile' %}">{% trans "Back to profile" %}</a>
-        <a class="btn btn-outline-secondary" href="{% url 'manager_help_center' %}">{% trans "Help center" %}</a>
+        {% comment %}
+          manager_help_center is mounted ONLY in config.manager_urls, but this body also renders on
+          the "local" host: use_control_plane_shell() returns True for public_host_kind in
+          ("manager", "local"), and a local host gets ROOT_URLCONF=config.urls, where the name does
+          not exist. A bare url tag therefore raised NoReverseMatch and turned
+          /authentication/documentation/ into a 500 on localhost.
+          The "as" form assigns "" instead of raising -- the host-optional-chrome escape hatch.
+        {% endcomment %}
+        {% url 'manager_help_center' as manager_help_center_url %}
+        {% if manager_help_center_url %}<a class="btn btn-outline-secondary" href="{{ manager_help_center_url }}">{% trans "Help center" %}</a>{% endif %}
       </div>
     </div>
   </div>

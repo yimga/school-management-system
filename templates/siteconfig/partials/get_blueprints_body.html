@@ -143,7 +143,16 @@
           <p class="mb-3"><strong>{{ applied_pack.name }}</strong><br><span class="text-muted">{{ applied_pack.slug }} - v{{ applied_pack.version }}</span></p>
           {% if pack_update_available %}
             <p class="mb-3 text-warning"><strong>{% trans "Newer version available." %}</strong> {% trans "Request an update from your tenant support flow." %}</p>
-            <p class="mb-0"><a href="{% url 'portal:support_request' %}" class="btn btn-sm btn-outline-primary">{% trans "Request update" %}</a></p>
+            {% comment %}
+              This body is a control-plane body_template, so render_siteconfig_operator_page
+              also serves it on the MANAGER host, where the "portal" namespace is not mounted
+              at all (config/manager_urls.py). A bare reverse here raised
+              NoReverseMatch: 'portal' is not a registered namespace whenever
+              pack_update_available was true -- a 500 after the page had already rendered.
+              The "as" form yields "" instead of raising.
+            {% endcomment %}
+            {% url 'portal:support_request' as portal_support_request_url %}
+            {% if portal_support_request_url %}<p class="mb-0"><a href="{{ portal_support_request_url }}" class="btn btn-sm btn-outline-primary">{% trans "Request update" %}</a></p>{% endif %}
           {% endif %}
         {% endif %}
 
