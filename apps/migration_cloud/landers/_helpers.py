@@ -161,7 +161,13 @@ def save_scoped(obj, fields) -> None:
             concrete.add(f.name)
             concrete.add(f.attname)
         concrete -= {obj._meta.pk.name, obj._meta.pk.attname}
-    except Exception:  # noqa: BLE001 -- unknown model shape: keep the old behaviour
+    except (AttributeError, TypeError):
+        # The block above only walks ``_meta``: an object with no ``_meta``, a
+        # ``_meta`` with no ``local_concrete_fields``, or a model whose ``pk`` is
+        # None all surface as AttributeError, and a non-iterable
+        # ``local_concrete_fields`` as TypeError. That IS "unknown model shape";
+        # anything else raised here is a bug in this function and must not be paid
+        # for with a silent full save that rewrites ~30 stale columns.
         obj.save()
         return
     if getattr(obj, "pk", None) is None:

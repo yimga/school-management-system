@@ -777,7 +777,7 @@ def _record_apply_outcomes(school_id, keys_by_index, results, *, sync_origin):
                 origin=sync_origin,
                 client_offline_id=coid or "",
             )
-    except Exception:  # noqa: BLE001 - dead-letter bookkeeping must never break a cycle
+    except Exception:  # noqa: BLE001 - dead-letter bookkeeping must never break a cycle; pinned by RecordingCannotBreakACycleTests
         logger.debug("could not record sync apply outcomes", exc_info=True)
 
 
@@ -1168,13 +1168,13 @@ def _same_value(current, incoming) -> bool:
     if hasattr(current, "isoformat"):  # date / datetime / time
         try:
             return current.isoformat() == str(incoming)
-        except Exception:  # noqa: BLE001 - an optimisation must never be the failure
+        except (AttributeError, TypeError, ValueError):  # an optimisation must never be the failure
             return False
     if not isinstance(current, _COMPARABLE_SCALARS):
         return False
     try:
         return str(current) == str(incoming)
-    except Exception:  # noqa: BLE001
+    except (TypeError, ValueError, UnicodeError):  # an optimisation must never be the failure
         return False
 
 

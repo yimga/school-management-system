@@ -81,7 +81,14 @@ from __future__ import annotations
 import logging
 from collections import namedtuple
 
+from django.core.exceptions import ImproperlyConfigured
 from django.http import JsonResponse
+
+# Bound at MODULE scope on purpose. Both are named in ``except`` tuples below, and
+# an ``except`` tuple is evaluated only when something is raised -- so a class
+# imported lazily inside the very ``try`` it guards would be UNBOUND on the failure
+# path and turn a handled error into a NameError.
+from django.urls.exceptions import NoReverseMatch
 
 logger = logging.getLogger(__name__)
 
@@ -247,7 +254,13 @@ def mfa_setup_url() -> str:
         from django.urls import reverse
 
         return reverse("accounts:mfa_setup") + "?legacy=1"
-    except Exception:  # noqa: BLE001 - the remedy must render even mid-teardown
+    except (ImportError, NoReverseMatch, ImproperlyConfigured):
+        # The three ways this can actually fail, and no wider: ``django.urls`` not
+        # importable, the route not registered on the active urlconf
+        # (NoReverseMatch), and settings/ROOT_URLCONF not available yet or any more
+        # (ImproperlyConfigured) -- the mid-teardown case. A NameError or an
+        # AttributeError here would be a typo in this function, and it must not be
+        # able to hide behind a hardcoded fallback that still renders.
         return "/authentication/mfa/setup/?legacy=1"
 
 
@@ -293,10 +306,26 @@ def jwt_bearer_principal(request):
         # reach SimpleJWT's validator.
         return None
     try:
+        from rest_framework.exceptions import APIException
         from rest_framework_simplejwt.authentication import JWTAuthentication
-
+        from rest_framework_simplejwt.exceptions import TokenError
+    except ImportError:
+        # DRF / SimpleJWT absent from this deploy: there is no JWT principal to
+        # resolve. This is a ``try`` of its own because the classes named in the
+        # tuple below come FROM these imports -- guarding both in one block would
+        # leave them unbound exactly when the tuple is evaluated.
+        return None
+    try:
         resolved = JWTAuthentication().authenticate(request)
-    except Exception:  # noqa: BLE001 - an unresolvable bearer must never 500
+    except (APIException, TokenError, UnicodeError):
+        # Every refusal ``JWTAuthentication.authenticate`` raises is an
+        # AuthenticationFailed / InvalidToken -- both APIException subclasses:
+        # malformed header, unparseable or expired token, no matching token class,
+        # deleted or inactive user. TokenError is the contract SimpleJWT's own token
+        # classes are documented to raise. UnicodeError is ``get_header``
+        # re-encoding the Authorization header to latin-1. A NameError or an
+        # AttributeError from a typo in this module now reaches the caller instead
+        # of silently downgrading every bearer request to anonymous.
         return None
     if not resolved:
         return None

@@ -34,6 +34,31 @@ import importlib
 import logging
 from dataclasses import dataclass, field as dc_field
 from typing import Any, Callable, Iterable, Sequence
+from django.core.exceptions import FieldDoesNotExist, FieldError, ValidationError
+from django.db import DatabaseError
+
+from .landers.base import LanderError
+
+#: Failures a source re-read or a per-domain verification can realistically hit:
+#: unreadable or corrupt artifact bytes, a value the source cannot coerce, a
+#: lookup that is not there, a database refusal. Named explicitly rather than
+#: catching ``Exception`` so a NameError or AttributeError from a typo still
+#: crashes loudly instead of being filed as "the source was unreadable" -- this
+#: repo has already lost a whole guardian artifact to a NameError nothing caught.
+#: Bound at MODULE scope: an ``except`` tuple is evaluated only when something is
+#: raised, so a lazily-imported class would NameError at the moment it is needed.
+_SOURCE_READ_ERRORS = (
+    OSError,
+    ValueError,
+    TypeError,
+    LookupError,
+    ArithmeticError,
+    DatabaseError,
+    # The domain exception for exactly this: the artifact's bytes were never
+    # captured at ingest, so there is nothing to re-read. Naming it is the
+    # point -- it is a REPORTED state, not an unexpected failure.
+    LanderError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -164,13 +189,13 @@ def verify_landed_counts(
         try:
             module = importlib.import_module(module_path)
             model = getattr(module, model_attr)
-        except Exception:  # noqa: BLE001 — model unavailable in this deploy
+        except (ImportError, AttributeError):  # model unavailable in this deploy
             continue
         try:
             out[domain] = _run_under_schema(
                 lambda m=model: _school_scoped_count(m, school)
             )
-        except Exception:  # noqa: BLE001 — a bad mapping must never break reconcile
+        except (DatabaseError, FieldError, ValueError, TypeError):  # a bad mapping must never break reconcile
             logger.warning(
                 "migration_cloud.verify: visible-count failed for domain=%s",
                 domain,
@@ -283,7 +308,7 @@ def normalise_for_digest(value: Any) -> str:
                         value, _timezone.get_default_timezone()
                     )
                 value = value.astimezone(_dt.timezone.utc)
-        except Exception:  # noqa: BLE001 -- outside Django: compare as-is
+        except (ValueError, OverflowError, TypeError):  # outside Django: compare as-is
             pass
         return value.isoformat()
     if isinstance(value, _dt.date):
@@ -295,7 +320,7 @@ def normalise_for_digest(value: Any) -> str:
         # value change still moves the digest.
         try:
             return format(value.normalize(), "f")
-        except Exception:  # noqa: BLE001 -- NaN/Inf: fall through to str()
+        except (ValueError, OverflowError, TypeError):  # NaN/Inf: fall through to str()
             return str(value)
     if isinstance(value, int):
         return str(value)
@@ -986,7 +1011,7 @@ def spec_verification_depth(spec: ChecksumSpec) -> str:
         module = importlib.import_module(spec.module_path)
         model = getattr(module, spec.model_attr)
         identity = set(spec.identity_columns(model)) if spec.identity_columns else set()
-    except Exception:  # noqa: BLE001 -- model unavailable: judge on names alone
+    except (ImportError, AttributeError):  # model unavailable: judge on names alone
         identity = set()
     return "value" if (set(spec.fields) - identity) else "presence"
 
@@ -1247,14 +1272,14 @@ def _coerce_like_column(model: Any, model_field_name: str, value: Any) -> Any:
     """
     try:
         field = model._meta.get_field(model_field_name)
-    except Exception:  # noqa: BLE001 -- field absent on this deploy
+    except FieldDoesNotExist:  # field absent on this deploy
         return value
     internal = field.get_internal_type()
     if internal in ("CharField", "TextField", "SlugField", "EmailField"):
         return value
     try:
         return field.to_python(value)
-    except Exception:  # noqa: BLE001 -- fall through to the lander's own coercion
+    except (ValidationError, ValueError, TypeError, ArithmeticError):  # fall through to the lander's own coercion
         pass
     try:
         from .landers._helpers import coerce_date, coerce_decimal, coerce_int
@@ -1265,7 +1290,7 @@ def _coerce_like_column(model: Any, model_field_name: str, value: Any) -> Any:
             return coerce_decimal(value)
         if internal in ("IntegerField", "PositiveIntegerField", "SmallIntegerField", "BigIntegerField"):
             return coerce_int(value)
-    except Exception:  # noqa: BLE001 -- an uncoercible source value IS a divergence
+    except (ValueError, TypeError, ArithmeticError):  # an uncoercible source value IS a divergence
         pass
     return value
 
@@ -1529,7 +1554,7 @@ def _source_rows_by_domain(bundle: Any) -> dict[str, Any]:
             continue
         try:
             rows_by_domain.setdefault(domain, []).extend(_iter_canonical_rows(job))
-        except Exception as exc:  # noqa: BLE001 -- unreadable source is a REPORTED state
+        except _SOURCE_READ_ERRORS as exc:  # unreadable source is a REPORTED state
             errors_by_domain[domain] = f"{type(exc).__name__}: {exc}"
     if errors_by_domain:
         rows_by_domain["__error__"] = errors_by_domain
@@ -1586,7 +1611,7 @@ def verify_bundle_checksums(
             from django.db import connection as _conn
 
             _schema_per_tenant = hasattr(_conn, "set_schema")
-        except Exception:  # noqa: BLE001
+        except ImportError:  # django.db unavailable: treat as single-schema
             _schema_per_tenant = False
         if _schema_per_tenant:
             report.notes.append(
@@ -1616,7 +1641,7 @@ def verify_bundle_checksums(
 
     try:
         rows_by_domain = _source_rows_by_domain(bundle)
-    except Exception as exc:  # noqa: BLE001
+    except _SOURCE_READ_ERRORS as exc:
         logger.warning(
             "migration_cloud.checksum: source re-read failed for bundle=%s",
             getattr(bundle, "pk", None),
@@ -1641,7 +1666,7 @@ def verify_bundle_checksums(
         report.unverifiable_domains = sorted(
             d for d in present if d and d not in _CHECKSUM_SPECS
         )
-    except Exception:  # noqa: BLE001 -- best effort; never breaks the verdict
+    except (AttributeError, TypeError, LookupError):  # best effort; never breaks the verdict
         pass
 
     wanted = set(domains) if domains else None
@@ -1672,7 +1697,7 @@ def verify_bundle_checksums(
                     max_divergences_recorded=max_divergences_recorded,
                 )
             )
-        except Exception as exc:  # noqa: BLE001
+        except _SOURCE_READ_ERRORS as exc:
             logger.warning(
                 "migration_cloud.checksum: domain=%s failed", domain, exc_info=True
             )

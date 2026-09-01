@@ -1120,7 +1120,7 @@ class ValueDomainPlantTests(_TenantFixture):
                 classroom=self.classroom(), specialty=specialty, subject=subject,
             )
             teacher, _ = TeacherProfile.objects.get_or_create(
-                user=self.user("teacher.math"), defaults={"school": self.school}
+                user=self.user("teacher.math"), school=self.school
             )
             # Evaluation.clean() requires the student to sit in the assignment's
             # year, classroom and specialty.

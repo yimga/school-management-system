@@ -883,25 +883,40 @@ def evaluate(declarations: dict[str, Declaration] | None = None) -> CoverageRepo
     # possible answer.
     try:
         from django.conf import settings as _settings
-
-        runtime = getattr(_settings, "TENANT_APPS", None)
-        if runtime is not None:
-            runtime_labels = []
-            for dotted in runtime:
-                lab = _app_label(str(dotted))
-                if lab and lab not in runtime_labels:
-                    runtime_labels.append(lab)
-            if runtime_labels != tenant_app_labels():
-                report.violations.append(
-                    _violation(
-                        "tenant_apps_drift",
-                        "config.settings.TENANT_APPS",
-                        f"source AST says {tenant_app_labels()} but the running settings "
-                        f"say {runtime_labels}; the coverage denominator is unreliable",
-                    )
-                )
-    except Exception:  # noqa: BLE001 - never let a settings quirk break the audit
+        from django.core.exceptions import ImproperlyConfigured
+    except ImportError:
+        # This audit is runnable as a plain AST script with no Django on the
+        # interpreter; then there is no runtime setting to cross-check against.
+        # Its own ``try`` because ImproperlyConfigured below comes FROM this
+        # import and would be unbound if the tuple were merged.
         pass
+    else:
+        try:
+            runtime = getattr(_settings, "TENANT_APPS", None)
+            if runtime is not None:
+                runtime_labels = []
+                for dotted in runtime:
+                    lab = _app_label(str(dotted))
+                    if lab and lab not in runtime_labels:
+                        runtime_labels.append(lab)
+                if runtime_labels != tenant_app_labels():
+                    report.violations.append(
+                        _violation(
+                            "tenant_apps_drift",
+                            "config.settings.TENANT_APPS",
+                            f"source AST says {tenant_app_labels()} but the running settings "
+                            f"say {runtime_labels}; the coverage denominator is unreliable",
+                        )
+                    )
+        except (ImproperlyConfigured, TypeError):
+            # The "settings quirk" this guard was written for, named: no configured
+            # settings module at all (ImproperlyConfigured, raised on first attribute
+            # access), or a TENANT_APPS that is not iterable (TypeError). Everything
+            # else in the block is pure local computation over ``_app_label`` and
+            # ``tenant_app_labels()``, which has already run once above this line
+            # without a guard -- so a failure from it is a real defect in the audit
+            # and must not be swallowed into silence.
+            pass
 
     return report
 

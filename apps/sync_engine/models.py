@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-from django.db import models
+from django.db import DatabaseError, models
 
 logger = logging.getLogger(__name__)
 
@@ -682,7 +682,7 @@ def get_sync_cursor(school, direction):
         return None
     try:
         row = EdgeSyncCursor.objects.filter(school=school, direction=direction).first()
-    except Exception:  # noqa: BLE001 — a cursor read must never break a cycle
+    except DatabaseError:  # noqa: BLE001 -- a cursor read must never break a cycle
         return None
     return row.high_water if row is not None else None
 
@@ -876,7 +876,16 @@ def record_dead_letter(
                     **values,
                 )
         return True
-    except Exception:  # noqa: BLE001 - recording a stuck row must never break a cycle
+    except Exception:  # noqa: BLE001 -- see the contract below
+        # Deliberately unconditional. This is a best-effort bookkeeping write on
+        # the apply path: if ANY exception escapes here it breaks a school's sync
+        # cycle, and pinned by
+        # RecordingCannotBreakACycleTests, which raises a non-database error on
+        # purpose to prove the swallow is not merely a DB-error swallow.
+        # The counter-argument is real and worth stating: a DEFECT in this
+        # function is swallowed too, leaving an empty ledger that reads as "no
+        # rows are stuck" -- the failure that hid 39 rows for 687 cycles. That is
+        # why the log line below exists; it is the only signal such a defect gets.
         logger.debug(
             "could not record a dead letter for %s:%s (%s)",
             entity_type,
@@ -912,7 +921,12 @@ def clear_dead_letters(school_id, entity_type, local_pk, *, at=None):
                 local_pk=key[:64],
                 resolved_at__isnull=True,
             ).update(resolved_at=at or _tz.now())
-    except Exception:  # noqa: BLE001 - clearing must never break a cycle either
+    except (DatabaseError, TypeError, ValueError):
+        # Same surface as record_dead_letter above and for the same reason: one
+        # savepointed UPDATE against one table (DatabaseError) over values Django
+        # must coerce (TypeError/ValueError). A failure to clear leaves a stale
+        # OPEN dead letter, which shows up as a permanently stuck row on the
+        # operator's work queue -- loud, and the safe direction to fail in.
         logger.debug(
             "could not clear dead letters for %s:%s", entity_type, key, exc_info=True
         )
@@ -1010,7 +1024,14 @@ def dead_letter_summary(school=None, *, limit=25, now=None):
             ),
             "truncated": truncated,
         }
-    except Exception:  # noqa: BLE001 - an observability read must never break its caller
+    except (DatabaseError, TypeError, ValueError):
+        # DatabaseError: the unmigrated / unreachable table this function documents
+        # as a zeroed-snapshot case. TypeError and ValueError: ``int(limit)`` on a
+        # caller-supplied limit, and the ``moment - first_seen_at`` subtraction if
+        # one side is naive and the other aware. Every other statement is dict and
+        # list construction over columns this model declares, so a failure there is
+        # a defect in this function -- and it must not be able to hand a caller a
+        # well-shaped zero, which is indistinguishable from a healthy box.
         logger.debug("could not summarise dead letters", exc_info=True)
         return empty
 
@@ -1043,7 +1064,12 @@ def prune_dead_letters(*, older_than_days=None, school=None):
         qs = qs.filter(school=school)
     try:
         return qs.delete()[0]
-    except Exception:  # noqa: BLE001 - a retention sweep must never break its caller
+    except DatabaseError:
+        # A single DELETE against one table. DatabaseError covers the missing table,
+        # the lost connection, and any FK protection (ProtectedError is an
+        # IntegrityError, which is a DatabaseError). The queryset above is already
+        # built without a guard, so a failure to construct it is a real defect and
+        # is deliberately left to propagate.
         logger.debug("could not prune dead letters", exc_info=True)
         return 0
 

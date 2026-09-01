@@ -25,6 +25,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from django.utils import timezone
+from django.db import DatabaseError
 
 from .models import BundleStatus, MigrationArtifact, MigrationBundle
 
@@ -726,7 +727,7 @@ def _safe_verify_checksums(bundle: MigrationBundle):
         from .verification import verify_bundle_checksums
 
         return verify_bundle_checksums(bundle)
-    except Exception:  # noqa: BLE001
+    except (ImportError, OSError, ValueError, TypeError, LookupError, ArithmeticError, DatabaseError):  # a verifier that could not run is REPORTED, never mistaken for clean
         logger.warning("reconcile: checksum (pass 2) verification failed", exc_info=True)
         return None
 

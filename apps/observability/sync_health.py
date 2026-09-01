@@ -32,6 +32,7 @@ import logging
 from typing import Any
 
 from django.conf import settings
+from django.db import DatabaseError
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -163,7 +164,15 @@ def _collect_edge() -> dict[str, Any]:
             "oldest_stuck_age_seconds": summary["oldest_age_seconds"],
             "schools_affected": schools,
         }
-    except Exception as exc:  # noqa: BLE001 — health collection must never crash a caller
+    except (ImportError, DatabaseError, KeyError) as exc:
+        # The three real failures of this rail, and nothing wider. ImportError: the
+        # sync_engine helpers are absent from this deploy. DatabaseError: the
+        # SyncDeadLetter table is not migrated yet (the documented degraded case) or
+        # is unreachable -- it covers Operational/Programming/Interface. KeyError: a
+        # future ``dead_letter_summary`` that drops a key this reader needs. A
+        # NameError or AttributeError here is a bug in THIS collector, and letting
+        # it return a zeroed rail would recreate the exact blind spot this rail was
+        # added to close: a stuck box reporting a healthy zero.
         logger.warning("sync_health.edge_collect_failed err=%s", exc)
         return zero
 

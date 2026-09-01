@@ -172,7 +172,13 @@ class Command(BaseCommand):
             from apps.migration_cloud.schema_binding import resolve_school_schema_name
 
             resolved = (resolve_school_schema_name(school) or "").strip()
-        except Exception as exc:  # noqa: BLE001
+        except ImportError as exc:
+            # ``resolve_school_schema_name`` is TOTAL by construction: each of its
+            # three resolution attempts is individually guarded and it returns ""
+            # rather than raising (see apps/migration_cloud/schema_binding.py). So
+            # the only way this statement fails is the lazy import itself, and a
+            # tuple wider than that would swallow a NameError in the resolver --
+            # the exact defect class that already cost this repo a lander.
             return f"unresolved:{type(exc).__name__}"
         if not stamped and not resolved:
             return "single_schema"

@@ -13,6 +13,7 @@ import logging
 
 from django.http import JsonResponse
 from django.utils.timezone import now as dj_timezone_now
+from django.db import DatabaseError
 
 _logger = logging.getLogger(__name__)
 
@@ -628,7 +629,7 @@ def _stuck_rows_context(school) -> dict:
         from apps.sync_engine.models import dead_letter_summary
 
         summary = dead_letter_summary(school, limit=_STUCK_ROW_LIMIT)
-    except Exception:  # noqa: BLE001 — the work queue must never break the page
+    except (ImportError, DatabaseError, ValueError, TypeError, LookupError):  # the work queue must never break the page
         _logger.debug("stuck-row work-queue context failed", exc_info=True)
         return empty
     return {
@@ -1230,7 +1231,7 @@ def sync_center_status(request):
             "by_reason": stuck["by_reason"],
             "truncated": stuck["truncated"],
         }
-    except Exception:  # noqa: BLE001
+    except (DatabaseError, ValueError, TypeError, LookupError):  # the stuck panel must never break the status endpoint
         pass
 
     return JsonResponse(payload)

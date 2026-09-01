@@ -33,6 +33,11 @@ from __future__ import annotations
 import re
 from typing import Any, Iterator
 
+# Module scope, not lazy: this class is named in ``except`` tuples that guard lazy
+# model imports, and a class imported inside the same ``try`` would be unbound at
+# the moment the tuple is evaluated.
+from django.db import DatabaseError
+
 from ._helpers import (
     derive_external_id,
     detect_and_register_assets,
@@ -596,7 +601,12 @@ def _record_staff_role_disposition(
         from apps.migration_cloud.models import MigrationBundle
 
         bundle = MigrationBundle.objects.filter(pk=bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
-    except Exception:  # noqa: BLE001
+    except (ImportError, DatabaseError, TypeError, ValueError):
+        # Exhaustive for these two statements: the models module may be absent
+        # (ImportError); the bundle table may be missing or unreachable
+        # (DatabaseError, which covers Operational/Programming/Interface); and a
+        # ``bundle_id`` that is not a valid pk makes Django's IntegerField raise
+        # TypeError/ValueError. A typo in this function is NOT in that list.
         return
     if bundle is None:
         return
@@ -620,7 +630,14 @@ def _record_staff_role_disposition(
         summary["staff_role_disposition"] = merged
         bundle.mapping_summary = summary
         bundle.save(update_fields=["mapping_summary"])
-    except Exception:  # noqa: BLE001
+    except (DatabaseError, TypeError, ValueError):
+        # The block does exactly three kinds of thing. ``dict(...)`` over a JSON
+        # column whose stored value is not a mapping raises TypeError/ValueError;
+        # the arithmetic runs only on isinstance-checked ints, so TypeError is its
+        # worst case; the write raises DatabaseError. Losing the disposition is
+        # survivable -- the staff rows already landed -- but losing a NameError
+        # here is not, because this reporting write is the only thing that says a
+        # role-less payroll import minted teachers at scale.
         return
 
 
