@@ -25,8 +25,13 @@ from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 # apps/accounts/tests/<this file>  ->  parents[3] == repository root
 ROOT = Path(__file__).resolve().parents[3]
+
+COMMAND_SURFACE = ROOT / "templates" / "partials" / "tenant" / "setup_command_surface.html"
+STYLE_STRIP = ROOT / "templates" / "partials" / "tenant" / "setup_dashboard_style_strip.html"
 
 
 def _css_rule_body(css: str, selector_with_brace: str) -> str:
@@ -54,11 +59,15 @@ class ChecklistButtonContractTests(SimpleTestCase):
         self.assertIn("inline-flex", block)
 
     def test_partial_renders_checklist_button_with_icon(self) -> None:
-        html = (
-            ROOT / "templates" / "partials" / "tenant" / "setup_command_surface.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn('class="rmc-setup-surface__all"', html)
-        self.assertIn("bi-check2-square", html)  # affordance icon in the button
+        # The test says RENDERS, so it has to ask what the partial emits. Reading
+        # the bytes cannot tell a live button from one parked in {% comment %} --
+        # and this whole class exists to catch a silent revert.
+        assert_markup(
+            self,
+            COMMAND_SURFACE,
+            'class="rmc-setup-surface__all"',
+            "bi-check2-square",  # affordance icon in the button
+        )
 
 
 class Phase8IntentStripRetiredTests(SimpleTestCase):
@@ -97,6 +106,11 @@ class SeasonHintContrastTests(SimpleTestCase):
                 self.assertNotEqual(idx, -1, f"{rel}: season band missing")
                 window = text[idx : idx + 400]
                 self.assertIn("rmc-page-masthead__season-hint", window, rel)
+                # The window is an ORDERING check over the source and only a read
+                # can do it. But "the hint sits on the band" means nothing if the
+                # band is commented out, so also make the engine confirm the
+                # template really emits the hint class.
+                assert_markup(self, ROOT / rel, "rmc-page-masthead__season-hint")
                 # must-fire: the low-contrast muted span must not reappear on the band
                 self.assertNotIn(
                     'class="text-muted"',
@@ -244,14 +258,18 @@ class CockpitDedupeSourceTests(SimpleTestCase):
 
 class AppearanceStripCollapseTests(SimpleTestCase):
     def test_style_strip_collapses_chips_behind_disclosure(self) -> None:
-        text = (
-            ROOT / "templates" / "partials" / "tenant" / "setup_dashboard_style_strip.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("rmc-setup-style-strip__disclosure", text)
-        self.assertIn("<details", text)
-        self.assertIn("<summary", text)
-        # chips are still in the DOM (progressive, no-JS friendly, no data loss)
-        self.assertIn("rmc-setup-style-strip__chip", text)
+        # "collapses behind a disclosure" and "chips are still in the DOM" are
+        # both claims about what the strip PUTS ON THE PAGE, so every needle here
+        # goes through the engine rather than through the file's bytes.
+        assert_markup(
+            self,
+            STYLE_STRIP,
+            "rmc-setup-style-strip__disclosure",
+            "<details",
+            "<summary",
+            # chips are still in the DOM (progressive, no-JS friendly, no data loss)
+            "rmc-setup-style-strip__chip",
+        )
 
     def test_css_defines_the_disclosure(self) -> None:
         css = (ROOT / "static" / "css" / "rmc-setup-surface.css").read_text(encoding="utf-8")
