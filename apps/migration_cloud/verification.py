@@ -671,6 +671,237 @@ def _cafeteria_price(row: dict[str, Any]) -> Any:
     return row.get("price") or row.get("balance")
 
 
+# ---- behavior --------------------------------------------------------------
+
+def _behavior_description(row: dict[str, Any]) -> str:
+    # The lander requires a non-empty description and writes it clipped to 500;
+    # mirror the clip so its own clipping is never misread as a truncation.
+    return _s(row.get("description"))[:500]  # magic-number-allow: mirrors behavior_lander's clip
+
+
+def _behavior_source_identity(row: dict[str, Any]) -> Any:
+    """(student, date, description) -- three values the lander copies verbatim.
+
+    The lander's own upsert key is (student, date, incident_type, description), and
+    ``incident_type`` is an enum remap folding every unmapped token to OTHER. We drop
+    it rather than rebuild it: two incidents differing ONLY by type land as two rows
+    and both then share this identity, so they are reported ``ambiguous_destination``
+    instead of being silently attributed to one row.
+    """
+    external_id = _s(row.get("student_external_id"))
+    date_val = _coerce_date(row.get("date"))
+    description = _behavior_description(row)
+    if not external_id or date_val is None or not description:
+        return ""
+    return [external_id, date_val, description]
+
+
+# ---- structure -------------------------------------------------------------
+# Every one of the five FKs SubjectAssignment is keyed on is a get-or-create on a
+# NAME taken verbatim from the source row, so the row's address IS source data --
+# looking it up by those names re-runs no resolution the lander performed.
+
+def _structure_year(row: dict[str, Any]) -> str:
+    return _s(row.get("academic_year"))
+
+
+def _structure_term(row: dict[str, Any]) -> str:
+    # Term is looked up unclipped but CREATED with name[:20], so the stored name is
+    # the clip; mirror it or a long term label reads as a missing row.
+    return _s(row.get("term"))[:20]  # magic-number-allow: mirrors structure_lander's Term.name clip
+
+
+def _structure_classroom(row: dict[str, Any]) -> str:
+    return _s(row.get("classroom"))
+
+
+def _structure_specialty(row: dict[str, Any]) -> str:
+    return _s(row.get("specialty"))
+
+
+def _structure_subject(row: dict[str, Any]) -> str:
+    return _s(row.get("subject"))
+
+
+def _structure_source_identity(row: dict[str, Any]) -> Any:
+    parts = [
+        _structure_year(row),
+        _structure_term(row),
+        _structure_classroom(row),
+        _structure_specialty(row),
+        _structure_subject(row),
+    ]
+    # The lander quarantines a row missing any of the five, so a row that cannot
+    # name all five never landed and must not be reported as missing.
+    if not all(parts):
+        return ""
+    return parts
+
+
+# ---- hostel ----------------------------------------------------------------
+
+def _hostel_parent_name(row: dict[str, Any]) -> str:
+    # The parent Hostel is provisioned per row BY THIS NAME, so it is source data,
+    # not a lander-side choice; the literal fallback is the lander's own.
+    return _s(row.get("hostel") or row.get("hostel_name") or "Main Hostel")[:128]  # magic-number-allow: mirrors hostel_lander's clip
+
+
+def _hostel_room_name(row: dict[str, Any]) -> str:
+    return _s(row.get("room") or row.get("room_name") or row.get("name"))[:64]  # magic-number-allow: mirrors hostel_lander's clip
+
+
+def _hostel_source_identity(row: dict[str, Any]) -> Any:
+    room = _hostel_room_name(row)
+    if not room:
+        return ""
+    return [_hostel_parent_name(row), room]
+
+
+# ---- athletics -------------------------------------------------------------
+
+def _athletics_sport_code(row: dict[str, Any]) -> str:
+    """The Sport's ADDRESS: slugify(source sport name), exactly as the lander mints it.
+
+    Rebuilding an address out of one unmodified source value is how the row is FOUND;
+    every value compared below is still read independently from its own column.
+    ``Sport.name`` is deliberately not used -- it is written only on first create, so
+    an existing sport keeps its own label while the code still matches.
+    """
+    from django.utils.text import slugify
+
+    return slugify(_s(row.get("sport")))[:40] or "sport"  # magic-number-allow: mirrors athletics_teams_lander's _SLUG_CAP
+
+
+def _athletics_season_name(row: dict[str, Any]) -> str:
+    return _s(row.get("season"))[:120]  # magic-number-allow: mirrors athletics_teams_lander's _NAME_CAP
+
+
+def _athletics_team_name(row: dict[str, Any]) -> str:
+    return _s(row.get("team_name") or row.get("name"))[:120]  # magic-number-allow: mirrors athletics_teams_lander's _NAME_CAP
+
+
+def _athletics_team_level(row: dict[str, Any]) -> str:
+    return _s(row.get("level"))[:48]  # magic-number-allow: mirrors athletics_teams_lander's _LEVEL_CAP
+
+
+def _athletics_teams_source_identity(row: dict[str, Any]) -> Any:
+    season = _athletics_season_name(row)
+    team = _athletics_team_name(row)
+    if not _s(row.get("sport")) or not season or not team:
+        return ""
+    return [_athletics_sport_code(row), season, team]
+
+
+def _athletics_referenced_team(row: dict[str, Any]) -> str:
+    """The team NAME a membership / fixture row points at (the lander's own lookup)."""
+    return _s(row.get("team_name") or row.get("team"))[:120]  # magic-number-allow: mirrors the athletics landers' _TEAM_NAME_CAP
+
+
+def _athletics_memberships_source_identity(row: dict[str, Any]) -> Any:
+    external_id = _s(row.get("student_external_id"))
+    team = _athletics_referenced_team(row)
+    if not external_id or not team:
+        return ""
+    return [external_id, team]
+
+
+def _athletics_membership_position(row: dict[str, Any]) -> str:
+    return _s(row.get("position"))[:48]  # magic-number-allow: mirrors athletics_memberships_lander's _POSITION_CAP
+
+
+def _athletics_membership_joined(row: dict[str, Any]) -> Any:
+    return _coerce_date(row.get("joined_date") or row.get("joined_at"))
+
+
+def _athletics_fixture_datetime(value: Any) -> Any:
+    """The fixtures lander's OWN datetime parser, imported rather than re-written.
+
+    ``scheduled_start`` is part of the identity, so both sides have to reduce the same
+    source text to the same instant; a second parser here would disagree with the
+    lander on any format it handles differently and report a healthy fixture as
+    missing. Using the identical helper is not re-implementing it.
+    """
+    from .landers.athletics_fixtures_lander import _coerce_datetime
+
+    return _coerce_datetime(value)
+
+
+def _athletics_fixture_opponent(row: dict[str, Any]) -> str:
+    return _s(row.get("opponent_name"))[:200]  # magic-number-allow: mirrors athletics_fixtures_lander's _OPPONENT_NAME_CAP
+
+
+def _athletics_fixture_end(row: dict[str, Any]) -> Any:
+    return _athletics_fixture_datetime(row.get("scheduled_end"))
+
+
+def _athletics_fixtures_source_identity(row: dict[str, Any]) -> Any:
+    team = _athletics_referenced_team(row)
+    opponent = _athletics_fixture_opponent(row)
+    start = _athletics_fixture_datetime(row.get("scheduled_start"))
+    if not team or not opponent or start is None:
+        return ""
+    return [team, opponent, start]
+
+
+# ---- assignment joins (transport / hostel) ---------------------------------
+
+def _transport_assignment_route(row: dict[str, Any]) -> str:
+    return _s(row.get("route"))[:128]  # magic-number-allow: mirrors transport_assignment_lander's route clip
+
+
+def _transport_pickup_stop(row: dict[str, Any]) -> str:
+    return _s(row.get("pickup_stop") or row.get("stop"))[:128]  # magic-number-allow: mirrors transport_assignment_lander's clip
+
+
+def _transport_dropoff_stop(row: dict[str, Any]) -> str:
+    return _s(row.get("dropoff_stop"))[:128]  # magic-number-allow: mirrors transport_assignment_lander's clip
+
+
+def _transport_assignments_source_identity(row: dict[str, Any]) -> Any:
+    """(student, route name, effective_from) -- the lander's own unique tuple.
+
+    A row with NO ``effective_from`` never reaches TransportAssignment at all: the
+    lander parks it in a DynamicFieldValue payload for a later promotion run. That
+    condition is visible in the SOURCE, so those rows return no identity and are
+    reported ``unidentified`` rather than hunted for in a table they were never
+    written to.
+    """
+    external_id = _s(row.get("student_external_id"))
+    route = _transport_assignment_route(row)
+    effective_from = _coerce_date(row.get("effective_from"))
+    if not external_id or not route or effective_from is None:
+        return ""
+    return [external_id, route, effective_from]
+
+
+def _hostel_assignment_room(row: dict[str, Any]) -> str:
+    return _s(row.get("room"))[:64]  # magic-number-allow: mirrors hostel_assignment_lander's clip
+
+
+def _hostel_assignment_bed(row: dict[str, Any]) -> str:
+    return _s(row.get("bed_label"))[:32]  # magic-number-allow: mirrors hostel_assignment_lander's clip
+
+
+def _hostel_assignment_checkout(row: dict[str, Any]) -> Any:
+    return _coerce_date(row.get("checkout_date") or row.get("effective_to"))
+
+
+def _hostel_assignments_source_identity(row: dict[str, Any]) -> Any:
+    """(student, hostel name, room name, check-in) -- four verbatim source values.
+
+    A row naming NO hostel is deliberately not identified: the lander then matches a
+    room by NAME ALONE across every hostel, so the landed row's parent cannot be
+    named from the source and a match could not be attributed to this record.
+    """
+    external_id = _s(row.get("student_external_id"))
+    hostel = _s(row.get("hostel"))[:128]  # magic-number-allow: mirrors hostel_assignment_lander's clip
+    room = _hostel_assignment_room(row)
+    checkin = _coerce_date(row.get("checkin_date") or row.get("effective_from"))
+    if not external_id or not hostel or not room or checkin is None:
+        return ""
+    return [external_id, hostel, room, checkin]
+
+
 _CHECKSUM_SPECS: dict[str, ChecksumSpec] = {
     "students": ChecksumSpec(
         domain="students",
@@ -865,8 +1096,165 @@ _CHECKSUM_SPECS: dict[str, ChecksumSpec] = {
             "school": "bound to the bundle's school, not read from the row",
         },
     ),
+    "athletics_teams": ChecksumSpec(
+        domain="athletics_teams",
+        module_path="apps.athletics.models",
+        model_attr="Team",
+        source_identity=_athletics_teams_source_identity,
+        identity_columns=lambda _m: [
+            "season__sport__code",
+            "season__name",
+            "name",
+        ],
+        fields={
+            "name": _athletics_team_name,
+            "level": _athletics_team_level,
+            "roster_cap": "roster_cap",
+        },
+        excluded={
+            "sport": "the Sport is addressed by its MINTED slug code "
+            "(slugify(source sport name)); Sport.name is written only on first "
+            "create, so an existing sport keeps its own label and comparing it "
+            "would cry divergence on a healthy re-import",
+            "season (dates)": "a season the teams file does not carry dates for is "
+            "provisioned with start_date = end_date = TODAY, so neither date is a "
+            "source value; only the season NAME, which is one, carries the identity",
+            "gender": "folded onto boys/girls/mixed with anything unrecognised "
+            "becoming 'mixed', so a landed 'mixed' does not evidence the source",
+            "status": "the same fold onto forming/active/disbanded, with anything "
+            "unrecognised becoming 'forming'",
+            "home_venue": "an OPTIONAL FK resolved by venue name; an unresolved venue "
+            "leaves it NULL and the row still lands (skip-when-unresolved), so a NULL "
+            "is not attributable to the source row",
+            "name": "also the last part of the row's IDENTITY (season, name)",
+            "school": "bound to the bundle's school, not read from the row",
+        },
+    ),
+    "athletics_memberships": ChecksumSpec(
+        domain="athletics_memberships",
+        module_path="apps.athletics.models",
+        model_attr="TeamMembership",
+        source_identity=_athletics_memberships_source_identity,
+        identity_columns=lambda _m: [
+            _student_identity_column("student__"),
+            "team__name",
+        ],
+        fields={
+            "jersey_number": "jersey_number",
+            "position": _athletics_membership_position,
+            "joined_at": _athletics_membership_joined,
+        },
+        excluded={
+            "team/student": "both form the IDENTITY -- the lander resolves the team by "
+            "its NAME (a verbatim source value, school-scoped, read-only) and the "
+            "student by the source external id",
+            "status": "folded onto pending/active/injured/suspended/left, with "
+            "anything unrecognised becoming 'pending'",
+            "left_at": "never written by the lander; the source has no column for it",
+            "school": "bound to the bundle's school, not read from the row",
+            "metadata": "not written from the source row",
+        },
+    ),
+    "athletics_fixtures": ChecksumSpec(
+        domain="athletics_fixtures",
+        module_path="apps.athletics.models",
+        model_attr="Fixture",
+        source_identity=_athletics_fixtures_source_identity,
+        identity_columns=lambda _m: [
+            "team__name",
+            "opponent_name",
+            "scheduled_start",
+        ],
+        fields={
+            "opponent_name": _athletics_fixture_opponent,
+            "scheduled_end": _athletics_fixture_end,
+        },
+        excluded={
+            "team/season": "the team is resolved by its NAME and carries the identity; "
+            "the fixture's season is read off that resolved team, never off the row",
+            "fixture_type": "folded onto home/away/neutral, with anything "
+            "unrecognised becoming 'home'",
+            "status": "folded onto six scheduling states, with anything unrecognised "
+            "becoming 'scheduled'",
+            "venue": "an OPTIONAL FK resolved by name; unresolved leaves it NULL and "
+            "the fixture still lands (skip-when-unresolved)",
+            "home_score/away_score/outcome": "these land on a SEPARATE FixtureResult "
+            "row, and only when BOTH scores are present and parseable -- a source "
+            "carrying one score alone lands no result at all, so an absent result is "
+            "not attributable; outcome is further DERIVED from the two scores and the "
+            "fixture type",
+            "scheduled_start": "the instant that, with the team and opponent, forms "
+            "the row's IDENTITY",
+            "school": "bound to the bundle's school, not read from the row",
+        },
+    ),
+    "transport_assignments": ChecksumSpec(
+        domain="transport_assignments",
+        module_path="apps.schoolops.models",
+        model_attr="TransportAssignment",
+        source_identity=_transport_assignments_source_identity,
+        identity_columns=lambda _m: [
+            _student_identity_column("student__"),
+            "route__name",
+            "effective_from",
+        ],
+        fields={
+            "pickup_stop": _transport_pickup_stop,
+            "dropoff_stop": _transport_dropoff_stop,
+            "notes": "notes",
+            "effective_to": "effective_to",
+        },
+        excluded={
+            "student/route/effective_from": "the lander's own unique tuple, and every "
+            "part of it is a verbatim source value -- the route is resolved by NAME "
+            "(school-scoped, read-only), not by a lander-side get-or-create",
+            "status": "folded onto active/paused/ended, with anything unrecognised "
+            "becoming 'active'",
+            "school": "bound to the bundle's school, not read from the row",
+            "(rows parked in DynamicFieldValue)": "this lander is DUAL-PATH. A row "
+            "with no effective_from, or whose route catalog has not landed yet, is "
+            "written to a DynamicFieldValue payload for a later promotion run instead "
+            "of to TransportAssignment. The no-effective_from case is visible in the "
+            "source and is reported ``unidentified``; the unresolved-route case is "
+            "reported ``missing_in_destination`` -- true of THIS model, but such a row "
+            "may be parked awaiting promotion rather than lost",
+        },
+    ),
+    "hostel_assignments": ChecksumSpec(
+        domain="hostel_assignments",
+        module_path="apps.schoolops.models",
+        model_attr="HostelAssignment",
+        source_identity=_hostel_assignments_source_identity,
+        identity_columns=lambda _m: [
+            _student_identity_column("student__"),
+            "room__hostel__name",
+            "room__name",
+            "effective_from",
+        ],
+        fields={
+            "bed_label": _hostel_assignment_bed,
+            "notes": "notes",
+            "effective_to": _hostel_assignment_checkout,
+        },
+        excluded={
+            "student/room/effective_from": "the lander's own unique tuple; the room is "
+            "found by (hostel name, room name), both verbatim source values, so the "
+            "identity re-runs no lander-side resolution",
+            "status": "folded onto active/checked_out/ended, with anything "
+            "unrecognised becoming 'active'",
+            "school": "bound to the bundle's school, not read from the row",
+            "(rows naming no hostel)": "the lander then matches a room by NAME ALONE "
+            "across every hostel, so the landed row's parent cannot be named from the "
+            "source; such rows are reported ``unidentified``",
+            "(rows parked in DynamicFieldValue)": "DUAL-PATH, as for "
+            "transport_assignments: a row whose room catalog has not landed is written "
+            "to a DynamicFieldValue payload for a later promotion run, and is reported "
+            "``missing_in_destination`` here -- true of THIS model, but such a row may "
+            "be parked awaiting promotion rather than lost",
+        },
+    ),
     # --- PRESENCE-only specs -------------------------------------------------
-    # These four have a stable identity but no payload column the lander copies
+    # These seven have a stable identity but no payload column the lander copies
     # verbatim ALONGSIDE it, so the digest covers the identity alone. That still
     # proves something a row count cannot -- that THIS source record reached the
     # tenant under its own key, and that 100 source rows did not land as 50
@@ -938,6 +1326,89 @@ _CHECKSUM_SPECS: dict[str, ChecksumSpec] = {
             "route row itself carries only its name",
         },
     ),
+    "behavior": ChecksumSpec(
+        domain="behavior",
+        module_path="apps.academics.models",
+        model_attr="Incident",
+        source_identity=_behavior_source_identity,
+        identity_columns=lambda _m: [
+            _student_identity_column("student__"),
+            "date",
+            "description",
+        ],
+        fields={"description": _behavior_description},
+        excluded={
+            "incident_type": "an enum remap (map to TARDINESS/BEHAVIOR/ABSENCE) that "
+            "folds every unmapped token to OTHER, so a landed OTHER does not evidence "
+            "the source token",
+            "severity": "the same shape -- low/med/high are mapped and everything "
+            "else, including a blank, becomes MEDIUM",
+            "action_taken": "has no Incident column; the lander preserves it as a "
+            "DynamicFieldValue extra instead",
+            "teacher/reporter_external_id": "the source reporter is never resolved or "
+            "written -- the column stays whatever the model default gives it",
+            "status/mtss_tier/notify_parent/parent_notified_at": "downstream workflow "
+            "state, never written from the source row",
+            "student/date/description": "the row's IDENTITY. description IS a verbatim "
+            "source value, which is exactly why nothing is left to compare "
+            "independently of it -- hence presence, not value",
+        },
+    ),
+    "hostel": ChecksumSpec(
+        domain="hostel",
+        module_path="apps.schoolops.models",
+        model_attr="HostelRoom",
+        source_identity=_hostel_source_identity,
+        identity_columns=lambda _m: ["hostel__name", "name"],
+        fields={"name": _hostel_room_name},
+        excluded={
+            "capacity": "``coerce_int(...) or 1`` folds a source 0, a blank and an "
+            "unparseable value all to 1, so a landed 1 does not evidence the source",
+            "hostel": "the parent Hostel is provisioned per row BY THE SOURCE'S OWN "
+            "NAME, so that name is the first half of the identity rather than a "
+            "lander-side choice; no other Hostel column is written from the row",
+            "name": "the room name -- the second half of the identity",
+        },
+    ),
+    "structure": ChecksumSpec(
+        domain="structure",
+        module_path="apps.academics.models",
+        model_attr="SubjectAssignment",
+        source_identity=_structure_source_identity,
+        identity_columns=lambda _m: [
+            "academic_year__name",
+            "term__name",
+            "classroom__name",
+            "specialty__name",
+            "subject__name",
+        ],
+        fields={
+            "academic_year__name": _structure_year,
+            "term__name": _structure_term,
+            "classroom__name": _structure_classroom,
+            "specialty__name": _structure_specialty,
+            "subject__name": _structure_subject,
+        },
+        excluded={
+            "coefficient": "create-only -- _get_or_create_assignment sets it only when "
+            "it creates the row, so a re-import that reuses an existing assignment "
+            "legitimately leaves a stale value",
+            "department": "resolved or provisioned, defaulting to the literal "
+            "'General' when the row names none",
+            "code (Department/Classroom/Specialty)": "a fresh target-scoped code is "
+            "MINTED; the source's own code is deliberately never reused because the "
+            "column is globally unique and reusing it would resolve the SOURCE "
+            "school's row",
+            "teachers": "an M2M to a NEWLY provisioned target-scoped User with an "
+            "unusable password -- the source teacher's account is never re-linked, so "
+            "no teacher column is a source value",
+            "year_start/year_end/year_is_active/term_start/term_end/term_position/"
+            "term_label": "create-only on the provisioned AcademicYear/Term (REUSE"
+            "-FIRST: an existing target row is never modified) and each falls back to "
+            "the year's own dates or a hardcoded fallback",
+            "grading_deadline_at": "never written from the source row",
+        },
+    ),
 }
 
 
@@ -945,39 +1416,31 @@ _CHECKSUM_SPECS: dict[str, ChecksumSpec] = {
 #: Named here rather than left as an absence: a domain missing from both lists would
 #: look verified to anyone reading only the specs.
 _CHECKSUM_UNVERIFIABLE: dict[str, str] = {
-    "behavior": "the lander's identity includes incident_type, which is an enum remap "
-    "folding every unmapped token to OTHER, plus a 500-char clip of description; the "
-    "only column a re-import can actually change is severity, itself a remap that "
-    "folds unknown values to MEDIUM. Nothing is left to compare that we did not derive.",
-    "health": "HealthRecord has no verbatim column at all -- record_type is a "
-    "lower-cased 32-char clip and notes is a composite the lander builds from four "
-    "source fields; both are in the upsert key, so verifying it would mean rebuilding "
-    "the lander's string formatting and comparing it to itself.",
-    "communications": "the identity (recipient, subject) is stable but NOT 1:1 with a "
-    "source message -- every message to one recipient sharing a subject collapses onto "
-    "one row, and subject-less messages all collapse together, so a matched row cannot "
-    "be attributed to a specific source record.",
-    "structure": "SubjectAssignment is addressed by five resolved FKs (year, term, "
-    "classroom, specialty, subject), each a get-or-create on a name with its own "
-    "fallbacks; and its one payload column, coefficient, is create-only, so a "
-    "re-import legitimately leaves it stale.",
-    "hostel": "HostelRoom is keyed by its parent Hostel, which the lander provisions "
-    "per row, so the identity depends on a lander-side get-or-create rather than on "
-    "source data.",
-    "athletics_teams": "the upsert key includes a resolved Season FK, and level / "
-    "gender / status are enum remaps, so neither the identity nor any payload column "
-    "is a verbatim source value.",
-    "athletics_memberships": "identity is a pair of resolved FKs (team, student) with "
-    "no verbatim payload column.",
-    "athletics_fixtures": "identity depends on resolved Team / Season / venue FKs and "
-    "the payload is scheduling state the lander computes.",
-    "hostel_assignments": "identity is a pair of resolved FKs (student, room) with no "
-    "verbatim payload column.",
-    "transport_assignments": "identity is a pair of resolved FKs (student, route) with "
-    "no verbatim payload column.",
-    "cafeteria_assignments": "identity is a pair of resolved FKs (student, meal_plan) "
-    "and the payload is lander-computed -- last_topup_at is set to timezone.now() on "
-    "the top-up branch, so it can never equal a source value.",
+    "health": "no verbatim column AND no injective identity. record_type is a "
+    "lower-cased 32-char clip of the source category and notes is a composite the "
+    "lander builds out of four source fields; both are in the upsert key, so "
+    "verifying either would mean rebuilding the lander's own string formatting and "
+    "comparing it to itself. The id-map route does not rescue it: the legacy id is "
+    "(external_id, record_date, category), but the DB key also carries notes, so two "
+    "records sharing a student/date/category with different descriptions land as TWO "
+    "rows under ONE legacy id -- the second pointer overwrites the first and a match "
+    "cannot be attributed to a source record.",
+    "communications": "the destination key (recipient, subject) is not 1:1 with a "
+    "source message -- every message to one recipient sharing a subject collapses "
+    "onto one row, and subject-less messages all collapse together, with the later "
+    "body OVERWRITING the earlier one. Presence is not honest either: each source "
+    "record writes its OWN id-map legacy id (recipient + a hash over subject and "
+    "body) pointing at that same shared row, so a match cannot be attributed and a "
+    "collapsed record is indistinguishable from a landed one.",
+    "cafeteria_assignments": "identity is not injective at the destination. The "
+    "meal_plan FK is NULL both for a deliberate generic credit AND for a named plan "
+    "that is not in the tenant's catalog, so two source rows naming two different "
+    "unlanded plans for one student collapse onto the single (student, NULL) balance "
+    "with last-write-wins -- a match cannot be attributed to a source record, and a "
+    "row naming an unlanded plan is indistinguishable from one that landed. The "
+    "payload is lander-computed on top of that: last_topup_at is set to "
+    "timezone.now() and last_topup_amount to a delta against the prior balance, "
+    "neither of which can ever equal a source value.",
 }
 
 
@@ -1295,6 +1758,23 @@ def _coerce_like_column(model: Any, model_field_name: str, value: Any) -> Any:
     return value
 
 
+def _comparable_here(model_fields: "set[str]", column: str) -> bool:
+    """Is ``column`` readable on THIS deployment's model?
+
+    A spec normally names a local column. A domain whose destination row carries no
+    scalar the source wrote -- the SPLIT scaffold's SubjectAssignment is five FKs and
+    a create-only coefficient -- can instead name a column THROUGH an FK
+    (``subject__name``), which ``QuerySet.values()`` reads in the same single query
+    and returns under that exact key. The first segment still has to exist here, so a
+    deployment whose model lacks the relation drops the field rather than erroring.
+    Comparison stays honest either way: both sides are still hashed under the same
+    name, and the landed value still comes from an independent read of the database.
+    """
+    if "__" in column:
+        return column.split("__", 1)[0] in model_fields
+    return column in model_fields
+
+
 def _source_value(getter: Any, row: dict[str, Any]) -> Any:
     """Read one field's SOURCE value: a canonical field name, or a callable(row).
 
@@ -1402,7 +1882,7 @@ def _checksum_one_domain(
     pairs = sorted(
         (column, getter)
         for column, getter in spec.fields.items()
-        if column in model_fields
+        if _comparable_here(model_fields, column)
     )  # field-ORDERED digest: fixed order, independent of dict construction order
     result.comparable_fields = [c for c, _ in pairs]
     value_columns = [c for c, _ in pairs]
