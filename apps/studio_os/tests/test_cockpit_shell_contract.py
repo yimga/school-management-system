@@ -12,6 +12,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_wires
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SHELL_PATH = REPO_ROOT / "templates" / "studio_os" / "shell.html"
@@ -67,9 +69,7 @@ class CockpitShellContractTests(SimpleTestCase):
         ):
             path = modes_dir / mode_file
             self.assertTrue(path.exists(), f"missing mode template: {path}")
-            text = path.read_text(encoding="utf-8")
-            self.assertIn(
-                "studio_os/shell.html",
-                text,
-                f"{mode_file} must extend studio_os/shell.html",
-            )
+            # "Inherits cleanly" is an {% extends %}, which the parser resolves.
+            # The string survives being commented out; the inheritance does not,
+            # and a mode template that extends nothing renders as a bare fragment.
+            assert_wires(self, path, "studio_os/shell.html")
