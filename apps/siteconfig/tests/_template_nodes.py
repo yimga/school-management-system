@@ -157,6 +157,64 @@ def assert_markup(case, path: str | Path, *needles: str) -> None:
         )
 
 
+def url_names(path: str | Path) -> list[tuple[str, int]]:
+    """Every literal route name this template routes to, with its arg count.
+
+    Returns (name, arg_count) pairs. A ``{% url some_var %}`` contributes
+    nothing -- the name is not knowable without a render, and pretending
+    otherwise would report a name that is really a variable.
+    """
+    from django.template.defaulttags import URLNode
+
+    source = Path(path).read_text(encoding="utf-8")
+    template = engines["django"].from_string(source).template
+    out: list[tuple[str, int]] = []
+    for node in template.nodelist.get_nodes_by_type(URLNode):
+        var = getattr(node.view_name, "var", None)
+        if isinstance(var, str):
+            out.append((str(var), len(node.args) + len(node.kwargs)))
+    return out
+
+
+def assert_urls_reverse(case, path: str | Path) -> None:
+    """Fail unless every argument-free {% url %} in ``path`` reverses.
+
+    A route that was renamed or dropped leaves a template that still parses
+    and still passes every substring assertion ever written about it, and
+    fails only when someone loads the page -- or silently renders href=""
+    if the name came from a context variable instead.
+
+    Reverses against settings.ROOT_URLCONF, which outside a request is the
+    dev superset: a name that resolves here may still be absent on a tenant
+    host. This proves the name EXISTS, not that a given host can reach it.
+
+    Names taking arguments are skipped (there are no values to give them)
+    and the count is asserted non-zero, so a template that routes nowhere
+    cannot pass by having nothing to check.
+    """
+    from django.urls import NoReverseMatch, reverse
+
+    names = url_names(path)
+    case.assertTrue(
+        names,
+        f"{path} contains no literal {{% url %}} at all; either it routes "
+        f"nowhere or its body has been emptied",
+    )
+    checked = 0
+    for name, argc in names:
+        if argc:
+            continue
+        checked += 1
+        try:
+            reverse(name)
+        except NoReverseMatch as exc:  # pragma: no cover - the failure IS the point
+            case.fail(f"{path} routes to {name!r}, which does not reverse: {exc}")
+    case.assertTrue(
+        checked,
+        f"{path} has {len(names)} url tag(s) but every one takes arguments, "
+        f"so nothing was actually reversed",
+    )
+
 def rendered_source(path: str | Path, context: dict | None = None) -> str:
     """Render the template FROM ITS BYTES and return the output.
 
