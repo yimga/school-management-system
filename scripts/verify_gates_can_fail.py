@@ -122,19 +122,53 @@ class Workspace:
         self.keep = keep
         self._created = False
 
+    @staticmethod
+    def _head(path: Path) -> str:
+        """The commit a checkout is actually on, or "" if it cannot be read."""
+        proc = subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+        )
+        return proc.stdout.strip() if proc.returncode == 0 else ""
+
     def __enter__(self) -> "Workspace":
         if self.path.exists() and (self.path / "manage.py").exists():
-            # Reuse: cheaper than a 20s checkout, but only once it is provably
-            # back at HEAD. A leftover mutation from a killed run would
-            # otherwise be read as a real defect by the next gate along.
+            # Reuse is cheaper than a 20s checkout, but only to the commit
+            # THIS repo is on. A bare ``git reset --hard`` resets to the
+            # WORKTREE's own HEAD, and a scratch worktree left behind by a
+            # killed run is still detached at the commit it was made for --
+            # so the next gate measured the PREVIOUS commit and printed a
+            # clean number for a tree that did not contain the change under
+            # test. Measured: a run reported 0 findings against a HEAD it
+            # had never checked out. Reset to an explicit sha, then prove it
+            # took; anything else falls through to a fresh checkout.
+            wanted = self._head(ROOT)
+            if wanted:
+                subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        str(self.path),
+                        "reset",
+                        "--hard",
+                        "--quiet",
+                        wanted,
+                    ],
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "-C", str(self.path), "clean", "-fdq"],
+                    capture_output=True,
+                )
+                if self._head(self.path) == wanted:
+                    return self
+            # Could not read a sha, or the reset did not take. Rebuilding is
+            # slow; measuring the wrong commit is wrong.
             subprocess.run(
-                ["git", "-C", str(self.path), "reset", "--hard", "--quiet"],
+                ["git", "-C", str(ROOT), "worktree", "remove", "--force", str(self.path)],
                 capture_output=True,
             )
-            subprocess.run(
-                ["git", "-C", str(self.path), "clean", "-fdq"], capture_output=True
-            )
-            return self
         if self.path.exists():
             shutil.rmtree(self.path, ignore_errors=True)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -157,7 +191,9 @@ class Workspace:
         return self
 
     def __exit__(self, *exc: object) -> None:
-        if self.keep or not self._created:
+        # A REUSED worktree is torn down too. Leaving it is what let a stale
+        # one survive from run to run in the first place.
+        if self.keep:
             return
         subprocess.run(
             ["git", "-C", str(ROOT), "worktree", "remove", "--force", str(self.path)],
