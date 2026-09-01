@@ -13,6 +13,7 @@ import logging
 
 from django.http import JsonResponse
 from django.utils.timezone import now as dj_timezone_now
+from django.db import DatabaseError
 
 _logger = logging.getLogger(__name__)
 
@@ -52,6 +53,12 @@ _STRIP_HOUR_LABELS = [
 _STATUS_RUN_LIMIT = 12
 _STATUS_RECORD_LIMIT = 25
 _STATUS_WINDOW_HOURS = 24
+
+#: How many STUCK ROWS the work queue names. Deliberately generous next to
+#: ``_WORK_QUEUE_GROUP_LIMIT``: a conflict group is a shape ("2 Attendance"), but a stuck
+#: row is an identity, and "which teacher" is the only question worth asking about it. The
+#: count and the total age are reported whole; only the listing is capped.
+_STUCK_ROW_LIMIT = 25
 
 #: The windows the flow band can ask for. FETCHED ON DEMAND rather than computed on every
 #: poll: the panel re-asks every few seconds and a second aggregate per tick is a real
@@ -475,16 +482,25 @@ def _sync_live_strings() -> dict:
         "unit_h": gettext("h"),
         "unit_d": gettext("d"),
         "unit_ms": gettext("ms"),
-        "not_applied": gettext("Not applied"),
+        # The unit is part of the label. See _sync_flow.html: the figure is a sum over
+        # CYCLES, so 39 rows refused all day reads as thousands unless it says so.
+        "not_applied": gettext("Not applied (attempts)"),
         "explain_schema_behind": gettext(
             "This box is behind on database migrations, so records using newer fields "
             "cannot be applied. Run migrations on the box; sync resumes automatically. "
             "Pending: "
         ),
+        # This number is a SUM OVER CYCLES, and saying so is the whole point of the
+        # wording. The same 39 rows refused on 687 cycles renders here as 26,598, which
+        # reads as 26,598 records and is not: it is 39. The stuck-row list in "Needs you"
+        # is the count of RECORDS, and the sentence sends the reader there rather than
+        # letting them act on a number that means something else.
         "explain_skipped": gettext(
             "Some records could not be applied on this box - most often a record that "
-            "references a parent this box has not received yet. They are named in the "
-            "cycle detail below and are retried automatically."
+            "references a parent this box has not received yet. This figure counts every "
+            "ATTEMPT in the window, so one record refused on many cycles is counted many "
+            "times; the work queue below lists the actual records and how long each has "
+            "been stuck. They are retried automatically."
         ),
         "dir_down": gettext("cloud → box"),
         "dir_up": gettext("box → cloud"),
@@ -583,6 +599,52 @@ def _sync_live_strings() -> dict:
     }
 
 
+def _stuck_rows_context(school) -> dict:
+    """The rows the sync rail keeps refusing, as the work queue renders them.
+
+    WHY A LIST AND NOT A TILE. The flow band already carries a "Not applied" figure, and
+    that figure is ``Sum(EdgeSyncRun.skipped)`` over a window — a sum over CYCLES. When one
+    box refused the same 39 teacher rows on all 687 cycles of a day it read 26,598, which
+    looks like 26,598 records and is 39. Nobody could get from that number to the rows, so
+    nobody did: diagnosing it took a person several days. This is the other half — the
+    records themselves, each with the reason, how many cycles have refused it, and how
+    long it has been stuck.
+
+    Never raises: an unmigrated box must still render its Sync Center, and a zeroed,
+    well-shaped block is the honest degraded answer (see
+    :func:`apps.sync_engine.models.dead_letter_summary`, which owns the same contract).
+    """
+    empty = {
+        "stuck_rows": [],
+        "stuck_row_count": 0,
+        "stuck_row_attempts": 0,
+        "stuck_oldest_age_seconds": None,
+        "stuck_oldest_at": None,
+        "stuck_rows_truncated": False,
+        "stuck_by_reason": [],
+    }
+    if school is None:
+        return empty
+    try:
+        from apps.sync_engine.models import dead_letter_summary
+
+        summary = dead_letter_summary(school, limit=_STUCK_ROW_LIMIT)
+    except (ImportError, DatabaseError, ValueError, TypeError, LookupError):  # the work queue must never break the page
+        _logger.debug("stuck-row work-queue context failed", exc_info=True)
+        return empty
+    return {
+        "stuck_rows": summary["rows"],
+        "stuck_row_count": summary["count"],
+        # Carried BESIDE the count, never instead of it: "39 records / 26,598 refusals" is
+        # the one rendering in which neither number can be mistaken for the other.
+        "stuck_row_attempts": summary["attempts_total"],
+        "stuck_oldest_age_seconds": summary["oldest_age_seconds"],
+        "stuck_oldest_at": summary["oldest_first_seen_at"],
+        "stuck_rows_truncated": summary["truncated"],
+        "stuck_by_reason": summary["by_reason"],
+    }
+
+
 def _edge_sync_panel_context(school, *, include_coverage=False):
     """Shared Sync Center panel context for both render paths.
 
@@ -616,6 +678,8 @@ def _edge_sync_panel_context(school, *, include_coverage=False):
         # a lazy proxy would raise, and hardcoding English in the .js would put the whole
         # panel outside the translation system.
         "sync_live_strings": _sync_live_strings(),
+        # Stuck ROWS, distinct from the flow band's per-cycle "Not applied" sum.
+        **_stuck_rows_context(school),
     }
     try:
         from apps.sync_engine.models import EdgeSyncDirective, EdgeSyncRun
@@ -1149,6 +1213,25 @@ def sync_center_status(request):
             school=school, status=SyncConflict.Status.PENDING
         ).count()
     except Exception:  # noqa: BLE001
+        pass
+
+    # The stuck ROWS behind `totals.skipped`. Shipped on the poll as well as on the page
+    # so an operator watching the panel sees a stall appear without a reload — and so the
+    # count of RECORDS sits in the same payload as the sum of ATTEMPTS, where the two can
+    # never be read as the same quantity.
+    try:
+        from apps.sync_engine.models import dead_letter_summary
+
+        stuck = dead_letter_summary(school, limit=_STUCK_ROW_LIMIT, now=now)
+        payload["stuck"] = {
+            "rows": stuck["rows"],
+            "count": stuck["count"],
+            "attempts_total": stuck["attempts_total"],
+            "oldest_age_seconds": stuck["oldest_age_seconds"],
+            "by_reason": stuck["by_reason"],
+            "truncated": stuck["truncated"],
+        }
+    except (DatabaseError, ValueError, TypeError, LookupError):  # the stuck panel must never break the status endpoint
         pass
 
     return JsonResponse(payload)

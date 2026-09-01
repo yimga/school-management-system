@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-from django.db import models
+from django.db import DatabaseError, models
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +140,115 @@ class SyncTombstone(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
         return f"deleted {self.entity_type}:{self.local_pk}@{self.deleted_at}"
+
+
+class SyncDeadLetter(models.Model):
+    """One ROW the rail keeps refusing - which row, why, since when, how many times.
+
+    THE HOLE THIS CLOSES. A refused row was counted and then thrown away. The apply path
+    reported a status per row, the receiver added the refusals to ``EdgeSyncRun.skipped``,
+    and that was the end of it: no per-row record, no attempt counter, no first-seen age -
+    and because a skip is not a conflict, no ``SyncConflict`` either, so the row was not
+    even in the one store an operator screen reads.
+
+    What that cost, on a real box: 39 teacher rows were refused on ALL 687 cycles of a
+    single day. The only trace was a per-cycle SUM reading 26,598. That number is not
+    26,598 records; it is 39 records re-refused 687 times, and nothing anywhere could tell
+    those two readings apart - not the Sync Center tile, not a monitor, not a human. No
+    alarm fired, because the only number a monitor could see (``skipped``) grows on a
+    healthy busy box too. Diagnosing it took a person several days.
+
+    WHY A TABLE RATHER THAN A BIGGER COUNTER. Every question worth asking about a stall is
+    per-row and none of them is answerable from a sum:
+
+      * WHICH rows - so the operator can look at the 39 and see they are all teachers;
+      * WHY - the refusal reason the apply path already computed and then discarded;
+      * SINCE WHEN - the only signal that separates "a parent arrives next cycle" (normal,
+        self-healing, happens constantly) from "this has been wedged since Tuesday". A
+        depth threshold cannot make that distinction: a permanently stuck backlog sits at a
+        constant depth forever, which is exactly the shape that went unnoticed here.
+
+    THE MODEL IS :class:`SyncFileTransfer`. That table already had ``attempts`` and parks a
+    doomed transfer as FAILED after ``_MAX_ATTEMPTS``; the ROW rail had nothing. This is
+    the row rail's half of the same idea, with one deliberate difference: a stuck row is
+    never parked. The rail re-offers it every cycle by construction, and most stalls really
+    are transient - the absent parent arrives on a later pull and the row applies. Parking
+    would convert a self-healing stall into a permanent one. What is bounded instead is the
+    RECORD: exactly one row per ``(school, entity_type, local_pk, reason)`` no matter how
+    many cycles it survives, so this table is sized by DISTINCT stuck rows, never by
+    cycles. That is the whole difference between 39 and 26,598.
+
+    CLEARED, NOT DELETED. When the same row finally applies, ``resolved_at`` is stamped and
+    every reader (Sync Center, the health collector, the incident evaluator) drops it -
+    a dead letter that outlives its own resolution is an operator chasing a ghost. The
+    record survives for forensics, and a row that stalls AGAIN after applying reopens with
+    its clock RESTARTED: the new stall is a new fact, and an age alarm must not fire on a
+    stall that was fixed last month. :func:`prune_dead_letters` trims resolved rows.
+
+    ``local_pk`` holds whatever identity THIS side can key on: the primary key for a
+    cloned/pk-preserving row (the update and delete rails), and the ``client_offline_id``
+    anchor for an offline-CREATED row, whose box-local pk is meaningless on the far side -
+    the same split :class:`SyncTombstone` makes. ``client_offline_id`` is carried alongside
+    so a reader can tell the two apart.
+
+    TENANCY mirrors :class:`SyncApplyLedger` and :class:`SyncTombstone` - one SHARED/
+    public-schema table discriminated by the ``school`` FK. On the single-tenant edge box
+    there is only ever one school's rows here anyway.
+    """
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="sync_dead_letters"
+    )
+    entity_type = models.CharField(max_length=64)
+    # str(pk), or the client_offline_id anchor for an offline-created row - see the class
+    # docstring. A char column for the same reason SyncApplyLedger.local_pk is one.
+    local_pk = models.CharField(max_length=64)
+    # Set only when local_pk holds an offline anchor rather than a primary key, so a reader
+    # can tell an insert-rail stall from an update-rail one.
+    client_offline_id = models.CharField(max_length=64, blank=True, default="")
+    # The apply path's own refusal code: "missing_reference", "insert_held_for_entity",
+    # "deleted_upstream", "apply_failed", ... Part of the identity because the SAME row
+    # can be stuck for two different reasons at once (an update refused for an absent
+    # parent while its delete is refused as protected), and collapsing those would lose
+    # the one field that says what to do about it.
+    reason = models.CharField(max_length=64)
+    # The human-readable remainder of the refusal (which parent, which field, which error).
+    # Truncated: this is triage, not a payload store.
+    detail = models.CharField(max_length=500, blank=True, default="")  # magic-number-allow: column width, same 500 SyncFileTransfer.relative_path uses
+    # "cloud-pull" (came down) | "edge-push" (went up). Which SIDE refused is the first
+    # thing that narrows a stall, and a count cannot carry it.
+    origin = models.CharField(max_length=32, blank=True, default="")
+    # How many cycles have now refused this row. Mirrors SyncFileTransfer.attempts.
+    attempts = models.IntegerField(default=1)
+    # When this stall STARTED. The alarm threshold is on the age of the oldest of these,
+    # never on how many there are - see apps.observability.sync_health.
+    first_seen_at = models.DateTimeField(db_index=True)
+    last_seen_at = models.DateTimeField()
+    # Stamped when the row finally applied. NULL is the open set; every reader filters on
+    # it, so clearing is one write and no reader has to remember to exclude anything.
+    resolved_at = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    class Meta:
+        app_label = "sync_engine"
+        ordering = ["first_seen_at"]
+        verbose_name = "Sync dead letter"
+        verbose_name_plural = "Sync dead letters"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "entity_type", "local_pk", "reason"],
+                name="uq_syncdeadletter_row",
+            )
+        ]
+        indexes = [
+            # The open-set queries every reader runs: "what is stuck for this school" and
+            # "how old is the oldest".
+            models.Index(fields=["school", "resolved_at", "first_seen_at"]),
+            models.Index(fields=["resolved_at", "first_seen_at"]),
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        state = "resolved" if self.resolved_at else f"stuck x{self.attempts}"
+        return f"{self.entity_type}:{self.local_pk} {self.reason} ({state})"
 
 
 class EdgeSyncRun(models.Model):
@@ -573,7 +682,7 @@ def get_sync_cursor(school, direction):
         return None
     try:
         row = EdgeSyncCursor.objects.filter(school=school, direction=direction).first()
-    except Exception:  # noqa: BLE001 — a cursor read must never break a cycle
+    except DatabaseError:  # noqa: BLE001 -- a cursor read must never break a cycle
         return None
     return row.high_water if row is not None else None
 
@@ -691,6 +800,280 @@ def sync_echo_updated_at_map(school, entity_type) -> dict:
     )
 
 
+def record_dead_letter(
+    school_id,
+    entity_type,
+    local_pk,
+    reason,
+    *,
+    detail="",
+    origin="",
+    client_offline_id="",
+    seen_at=None,
+):
+    """Open or re-stamp the dead letter for ONE refused row. Never raises.
+
+    Idempotent per ``(school, entity_type, local_pk, reason)``: the first refusal creates
+    the record, every later one bumps ``attempts`` and ``last_seen_at`` and leaves
+    ``first_seen_at`` alone. That is the property that turns "26,598 not applied" back
+    into "39 rows, oldest stuck 14 hours".
+
+    A record that was CLEARED and is now refused again is REOPENED with its clock
+    restarted (``first_seen_at`` = now, ``attempts`` = 1). The old age belongs to a stall
+    that ended; carrying it forward would let an age-based incident fire on a problem that
+    was fixed weeks ago.
+
+    NEVER RAISES, and never poisons an enclosing transaction: the writes run inside their
+    own savepoint, so a failure here rolls back only itself. Same contract, and the same
+    reason, as :func:`apps.sync_engine.tombstones.record_tombstone` and
+    :func:`get_sync_cursor` - observability must not be able to break a sync cycle. It is
+    also the normal state during the migration that creates this table.
+
+    ``school_id`` (not a School instance) so callers on the hot apply path need not load
+    the School. Returns ``True`` when something was written.
+    """
+    from django.db import transaction
+    from django.db.models import F
+    from django.utils import timezone as _tz
+
+    if not school_id or not entity_type or not reason:
+        return False
+    key = "" if local_pk is None else str(local_pk)
+    if not key:
+        # Nothing to key on (a malformed row that carried neither a pk nor an anchor). The
+        # bundle-level counters still see it; there is no per-ROW fact to record.
+        return False
+    now = seen_at or _tz.now()
+    values = {
+        "detail": (str(detail) if detail else "")[:500],
+        "origin": (origin or "")[:32],
+        "client_offline_id": (client_offline_id or "")[:64],
+    }
+    try:
+        with transaction.atomic():
+            row_qs = SyncDeadLetter.objects.filter(
+                school_id=school_id,
+                entity_type=str(entity_type)[:64],
+                local_pk=key[:64],
+                reason=str(reason)[:64],
+            )
+            # Reopen first, so the increment below starts from a zeroed counter.
+            row_qs.filter(resolved_at__isnull=False).update(
+                resolved_at=None, first_seen_at=now, attempts=0
+            )
+            updated = row_qs.update(
+                last_seen_at=now, attempts=F("attempts") + 1, **values
+            )
+            if not updated:
+                SyncDeadLetter.objects.create(
+                    school_id=school_id,
+                    entity_type=str(entity_type)[:64],
+                    local_pk=key[:64],
+                    reason=str(reason)[:64],
+                    attempts=1,
+                    first_seen_at=now,
+                    last_seen_at=now,
+                    **values,
+                )
+        return True
+    except Exception:  # noqa: BLE001 -- see the contract below
+        # Deliberately unconditional. This is a best-effort bookkeeping write on
+        # the apply path: if ANY exception escapes here it breaks a school's sync
+        # cycle, and pinned by
+        # RecordingCannotBreakACycleTests, which raises a non-database error on
+        # purpose to prove the swallow is not merely a DB-error swallow.
+        # The counter-argument is real and worth stating: a DEFECT in this
+        # function is swallowed too, leaving an empty ledger that reads as "no
+        # rows are stuck" -- the failure that hid 39 rows for 687 cycles. That is
+        # why the log line below exists; it is the only signal such a defect gets.
+        logger.debug(
+            "could not record a dead letter for %s:%s (%s)",
+            entity_type,
+            key,
+            reason,
+            exc_info=True,
+        )
+        return False
+
+
+def clear_dead_letters(school_id, entity_type, local_pk, *, at=None):
+    """Close every open dead letter for ONE row - it applied. Never raises.
+
+    Called from the apply path on a 200/201 for the same key the refusal was recorded
+    under. ALL reasons for the row are cleared, not just the one that happened to be
+    reported last: the row landed, so nothing about it is stuck any more.
+
+    Soft, not a delete - see :class:`SyncDeadLetter`. Returns how many were closed.
+    """
+    from django.db import transaction
+    from django.utils import timezone as _tz
+
+    if not school_id or not entity_type:
+        return 0
+    key = "" if local_pk is None else str(local_pk)
+    if not key:
+        return 0
+    try:
+        with transaction.atomic():
+            return SyncDeadLetter.objects.filter(
+                school_id=school_id,
+                entity_type=str(entity_type)[:64],
+                local_pk=key[:64],
+                resolved_at__isnull=True,
+            ).update(resolved_at=at or _tz.now())
+    except (DatabaseError, TypeError, ValueError):
+        # Same surface as record_dead_letter above and for the same reason: one
+        # savepointed UPDATE against one table (DatabaseError) over values Django
+        # must coerce (TypeError/ValueError). A failure to clear leaves a stale
+        # OPEN dead letter, which shows up as a permanently stuck row on the
+        # operator's work queue -- loud, and the safe direction to fail in.
+        logger.debug(
+            "could not clear dead letters for %s:%s", entity_type, key, exc_info=True
+        )
+        return 0
+
+
+def open_dead_letters(school=None):
+    """The STUCK set - dead letters that have not been cleared, oldest first.
+
+    ``school=None`` is the operator rollup across every tenant (the health collector);
+    passing a school is the Sync Center's per-tenant view.
+    """
+    qs = SyncDeadLetter.objects.filter(  # tenant-isolation-allow: rollup-is-intentionally-all-schools-when-no-school-given
+        resolved_at__isnull=True
+    )
+    if school is not None:
+        qs = qs.filter(school=school)
+    return qs.order_by("first_seen_at")
+
+
+def dead_letter_summary(school=None, *, limit=25, now=None):
+    """One snapshot of the stuck set: how many ROWS, how old the oldest, and which ones.
+
+    THE COUNT IS DISTINCT ROWS, not attempts. Every other number the platform had for this
+    was a per-cycle sum, and a sum is what made a 39-row stall read as 26,598 - so this
+    returns both, side by side, and names them apart.
+
+    ``oldest_age_seconds`` is the field the incident evaluator thresholds on. Depth alone
+    tolerates a permanent backlog forever; age is what makes a stall that never drains
+    eventually shout.
+
+    Never raises: an unmigrated deployment (or one whose sync tables are not there yet)
+    gets a zeroed, well-shaped snapshot rather than a 500 on an observability surface.
+    """
+    from django.db.models import Sum
+    from django.utils import timezone as _tz
+
+    moment = now or _tz.now()
+    empty = {
+        "count": 0,
+        "attempts_total": 0,
+        "oldest_first_seen_at": None,
+        "oldest_age_seconds": None,
+        "rows": [],
+        "by_reason": [],
+        "truncated": False,
+    }
+    try:
+        qs = open_dead_letters(school)
+        rows = list(qs[: max(1, int(limit)) + 1])
+        count = qs.count()
+        truncated = len(rows) > limit
+        rows = rows[:limit]
+        oldest = rows[0].first_seen_at if rows else None
+        by_reason: dict = {}
+        for row in rows:
+            by_reason[row.reason] = by_reason.get(row.reason, 0) + 1
+        return {
+            "count": count,
+            # Aggregated over the WHOLE open set, never over the page: a truncated page
+            # would under-report the very number this pair exists to contrast. Kept
+            # ALONGSIDE the count on purpose - "39 rows / 26,598 refusals" is the one
+            # rendering in which neither number can be mistaken for the other.
+            "attempts_total": qs.aggregate(total=Sum("attempts"))["total"] or 0,
+            "oldest_first_seen_at": oldest,
+            "oldest_age_seconds": (
+                max(0, int((moment - oldest).total_seconds())) if oldest else None
+            ),
+            "rows": [
+                {
+                    "entity_type": r.entity_type,
+                    "local_pk": r.local_pk,
+                    "client_offline_id": r.client_offline_id or "",
+                    "reason": r.reason,
+                    "detail": r.detail or "",
+                    "origin": r.origin or "",
+                    "attempts": r.attempts or 0,
+                    # DATETIMES, not ISO strings. Django's ``JsonResponse`` encodes them
+                    # to ISO 8601 itself, so the JSON surface is identical - and a
+                    # template can then run ``|timesince`` on them, which a string
+                    # silently renders as empty.
+                    "first_seen_at": r.first_seen_at,
+                    "last_seen_at": r.last_seen_at,
+                    "age_seconds": (
+                        max(0, int((moment - r.first_seen_at).total_seconds()))
+                        if r.first_seen_at
+                        else None
+                    ),
+                }
+                for r in rows
+            ],
+            "by_reason": sorted(
+                ({"reason": k, "count": v} for k, v in by_reason.items()),
+                key=lambda item: (-item["count"], item["reason"]),
+            ),
+            "truncated": truncated,
+        }
+    except (DatabaseError, TypeError, ValueError):
+        # DatabaseError: the unmigrated / unreachable table this function documents
+        # as a zeroed-snapshot case. TypeError and ValueError: ``int(limit)`` on a
+        # caller-supplied limit, and the ``moment - first_seen_at`` subtraction if
+        # one side is naive and the other aware. Every other statement is dict and
+        # list construction over columns this model declares, so a failure there is
+        # a defect in this function -- and it must not be able to hand a caller a
+        # well-shaped zero, which is indistinguishable from a healthy box.
+        logger.debug("could not summarise dead letters", exc_info=True)
+        return empty
+
+
+def prune_dead_letters(*, older_than_days=None, school=None):
+    """Delete RESOLVED dead letters older than the retention window.
+
+    Only resolved ones: an open dead letter describes a row that is stuck RIGHT NOW and
+    deleting it would hide exactly the fact this table exists to keep. Bounded growth is
+    already the design (one record per distinct row, not per cycle); this is the trim for
+    the forensic tail. Returns how many were removed.
+    """
+    from datetime import timedelta
+
+    from django.conf import settings
+    from django.utils import timezone as _tz
+
+    if older_than_days is None:
+        try:
+            older_than_days = int(
+                getattr(settings, "RMC_SYNC_DEAD_LETTER_RETENTION_DAYS", 90)
+            )
+        except (TypeError, ValueError):
+            older_than_days = 90
+    cutoff = _tz.now() - timedelta(days=max(1, int(older_than_days)))
+    qs = SyncDeadLetter.objects.filter(  # tenant-isolation-allow: retention-sweep-is-intentionally-all-schools-when-no-school-given
+        resolved_at__isnull=False, resolved_at__lt=cutoff
+    )
+    if school is not None:
+        qs = qs.filter(school=school)
+    try:
+        return qs.delete()[0]
+    except DatabaseError:
+        # A single DELETE against one table. DatabaseError covers the missing table,
+        # the lost connection, and any FK protection (ProtectedError is an
+        # IntegrityError, which is a DatabaseError). The queryset above is already
+        # built without a guard, so a failure to construct it is a real defect and
+        # is deliberately left to propagate.
+        logger.debug("could not prune dead letters", exc_info=True)
+        return 0
+
+
 # Tenant-owned schedule rules. Defined in their own module for readability, re-exported
 # here because Django discovers models through ``<app>.models`` and the edge rail resolves
 # entities with ``get_model("sync_engine", "SyncSchedule")``.
@@ -764,6 +1147,12 @@ __all__ = [
     "parse_times",
     "format_times",
     "SyncTombstone",
+    "SyncDeadLetter",
+    "record_dead_letter",
+    "clear_dead_letters",
+    "open_dead_letters",
+    "dead_letter_summary",
+    "prune_dead_letters",
     "SyncBundleReceipt",
     "SyncFileTransfer",
     "cursor_overlap_seconds",

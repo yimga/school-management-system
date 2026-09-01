@@ -15,6 +15,7 @@ from apps.schools.host_routing import public_host_kind
 from apps.schools.tenant_url import build_manager_absolute_url
 from apps.siteconfig.config_service import get_effective_site_settings
 
+from apps.accounts import api_mfa
 from apps.accounts.effective_access import module_access
 from .utils import get_user_role
 
@@ -720,7 +721,15 @@ class RequireMFAMiddleware:
         "/ready",
         "/status/",
         "/metrics/",
-        "/api/",
+        # NOTE: "/api/" is deliberately ABSENT here. It used to sit in this
+        # tuple with no comment while every neighbour carried one, and it made
+        # this whole wall an HTML formality: measured 2026-08-31, an
+        # MFA-required school owner with no TOTP device was 302'd off
+        # /dashboard/ and /finance/ and served 200 OK with tenant data at
+        # /api/auth/profile/ and /api/entities/students/. The API surface is
+        # now gated below via apps.accounts.api_mfa, which answers the same
+        # policy question and renders it as a machine-readable 403 rather
+        # than a redirect an API client cannot follow.
         "/ws/wal/",  # WAL HTTP stub returns 401/426 — never MFA HTML redirect
         "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
         "/authentication/backend/api/operational-health",  # Dashboard health widgets (JSON + SSE)
@@ -748,10 +757,31 @@ class RequireMFAMiddleware:
             (p or "").rstrip("/") or "/" for p in self.BYPASS_PATHS
         }
 
+    def _is_bypass_prefix(self, path: str) -> bool:
+        """Prefix match that also honours a prefix's own bare directory.
+
+        ``path`` reaches here de-slashed, so a prefix written WITH a trailing
+        slash never matched the directory it names: "/ws/wal/" normalises to
+        "/ws/wal", and "/ws/wal".startswith("/ws/wal/") is False. The WAL HTTP
+        stub -- whose entry here exists precisely so it answers 401/426 instead
+        of an MFA HTML redirect -- was being redirected anyway (measured
+        2026-08-31: GET /ws/wal/ -> 302 /authentication/mfa/setup/), and so were
+        the bare /health/, /healthz/, /status/ and /metrics/ probes. Additive:
+        every prefix that matched before still matches, including the
+        partial-segment ones like "/siteconfig/api/tour-".
+        """
+        for prefix in self.BYPASS_PREFIXES:
+            if path.startswith(prefix):
+                return True
+            trimmed = prefix.rstrip("/")
+            if trimmed and path == trimmed:
+                return True
+        return False
+
     def __call__(self, request):
         path = (request.path or "").rstrip("/") or "/"
         if (
-            any(path.startswith(p) for p in self.BYPASS_PREFIXES)
+            self._is_bypass_prefix(path)
             or path in self._bypass_paths_normalized
         ):
             return self.get_response(request)
@@ -783,76 +813,65 @@ class RequireMFAMiddleware:
             return self.get_response(request)
 
         user = getattr(request, "user", None)
+
+        # --- JSON API surface -------------------------------------------------
+        # This branch replaces the blanket "/api/" bypass removed above. It asks
+        # the SAME question the HTML wall below asks, and answers it with a
+        # machine-readable 403 instead of a 302 to an enrolment page an API
+        # client cannot act on. It runs BEFORE DRF authentication, so a request
+        # carrying only an edge-box / device / third-party bearer credential is
+        # still anonymous here and passes straight through -- see
+        # apps/accounts/api_mfa.py for why that is the property the edge sync
+        # rails depend on, and for the (short) exemption list.
+        if api_mfa.api_gate_applies(path):
+            if not (user and user.is_authenticated):
+                # A SimpleJWT access token is a username+password sign-in wearing
+                # a bearer header (/api/auth/token/), so it has to be resolved
+                # here or the fix is only half a fix. Nothing else is resolved.
+                user = api_mfa.jwt_bearer_principal(request)
+            if not (user and user.is_authenticated):
+                return self.get_response(request)
+            try:
+                # config-resolver-allow: MFA enforcement tests patch this module symbol and drive this exact call path (Mock site namespace)
+                site = get_effective_site_settings(request=request)
+                verdict = api_mfa.evaluate_mfa_enrollment(request, user, site)
+            except (
+                ImportError,
+                AttributeError,
+                TypeError,
+                ValueError,
+                DatabaseError,
+            ):
+                logger.warning(
+                    "MFA API gate: enrolment could not be evaluated for "
+                    "user_id=%s on path=%r; allowing the request through",
+                    getattr(user, "pk", None),
+                    path,
+                    extra={"path": path},
+                )
+                return self.get_response(request)
+            if verdict.decision.action == "enforce" and not (
+                api_mfa.deferral_downgrades_enforcement(request, user)
+            ):
+                return api_mfa.mfa_enrollment_required_response(request)
+            return self.get_response(request)
+
         if not user or not user.is_authenticated:
             return self.get_response(request)
 
         try:
-            from django_otp.plugins.otp_totp.models import TOTPDevice
-
             # config-resolver-allow: MFA enforcement tests patch this module symbol and drive this exact call path (Mock site namespace)
             site = get_effective_site_settings(request=request)
-            require_all_staff = getattr(site, "require_mfa_all_staff", False)
-            required_roles = getattr(site, "require_mfa_roles", None) or []
+            # One policy, two renderings. The verdict -- required roles from the
+            # operator/tenant/baseline cascade, whether a confirmed TOTP device or
+            # a passkey exists, and the strict/grace/optional posture -- lives in
+            # apps.accounts.api_mfa so the HTML wall here and the JSON gate above
+            # can never drift apart.
+            verdict = api_mfa.evaluate_mfa_enrollment(request, user, site)
+            must_have_mfa = verdict.must_have_mfa
+            has_device = verdict.has_device
+            decision = verdict.decision
 
-            # Augment tenant-configured roles with the platform baseline so
-            # privileged roles (finance, super_admin, auditor, …) ALWAYS need
-            # MFA even on tenants that forgot to configure it. See
-            # apps/accounts/mfa_defaults.py.
-            from apps.accounts.mfa_defaults import (
-                effective_required_roles,
-                principal_requires_strict_mfa,
-                resolve_mfa_enforcement,
-                resolve_operator_mfa,
-            )
-
-            # Operator + tenant, with floor: the operator's per-tenant policy is
-            # OR-ed into "all staff" and unioned into the required roles above the
-            # tenant's own settings; a tenant can only tighten, never weaken it,
-            # and neither can drop below the baseline floor.
-            operator_policy = resolve_operator_mfa(
-                getattr(request, "school", None), request=request
-            )
-            role = get_user_role(user, getattr(request, "school", None))
-            must_have_mfa = False
-            if (require_all_staff or operator_policy.require_all_staff) and user.is_staff:
-                must_have_mfa = True
-            else:
-                required_normalized = effective_required_roles(
-                    required_roles, operator_required=operator_policy.required_roles
-                )
-                if role and str(role).strip().upper() in required_normalized:
-                    must_have_mfa = True
-
-            # Only a confirmed TOTP device or a passkey counts as configured MFA.
-            # NOT django_otp's user_has_device(confirmed=True): that also counts a
-            # StaticDevice (backup codes), and a backup-codes-only user can't
-            # complete mfa_verify (it needs TOTP/passkey), so counting it would
-            # wall them in a verify<->setup bounce.
-            has_device = TOTPDevice.objects.filter(user=user, confirmed=True).exists()
-            # WebAuthn/Passkey also counts as MFA (25.5, 29.1)
-            if not has_device:
-                from apps.accounts.models import UserPasskey
-
-                has_device = UserPasskey.objects.filter(user=user).exists()
-
-            # Enforcement posture is tenant-configurable (strict / grace /
-            # optional) via the runtime-defaults cascade; the platform default
-            # is strict (= the original hard wall). grace/optional let a
-            # required user through with a persistent nudge instead of a
-            # first-click wall — the Salesforce/Shopify rollout pattern.
-            decision = resolve_mfa_enforcement(
-                must_have_mfa=must_have_mfa,
-                has_device=has_device,
-                mode=(
-                    "strict"
-                    if principal_requires_strict_mfa(
-                        user, getattr(request, "school", None)
-                    )
-                    else getattr(site, "mfa_enforcement_mode", None)
-                ),
-                grace_period_days=getattr(site, "mfa_grace_period_days", None),
-                user=user,
-            )
             if decision.action == "enforce":
                 # A self-/admin-granted deferral ("skip MFA for N days") downgrades
                 # the hard wall to a pass-through nudge — but ONLY for principals who
@@ -860,11 +879,7 @@ class RequireMFAMiddleware:
                 # is already forced to strict above (principal_requires_strict_mfa
                 # pins mode="strict"), so re-checking it here keeps the deferral from
                 # ever letting an owner skip enrollment.
-                from apps.accounts.mfa_deferral import mfa_setup_deferral_active
-
-                if mfa_setup_deferral_active(user) and not principal_requires_strict_mfa(
-                    user, getattr(request, "school", None)
-                ):
+                if api_mfa.deferral_downgrades_enforcement(request, user):
                     request.rmc_mfa_nudge = {
                         "mode": "deferred",
                         "action": "nudge",

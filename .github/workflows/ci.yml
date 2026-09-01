@@ -66,6 +66,9 @@ jobs:
       - name: RLS relation-scoped coverage (child tables reach school via a parent)
         run: python scripts/scan_rls_relation_scoped_coverage.py --compare
 
+      - name: Edge-rail coverage (every tenant model declares HELD or NOT_YET)
+        run: python scripts/audit_rail_coverage.py --compare
+
       - name: RLS NULL-school arm (a platform-scope row must not be invisible)
         run: python scripts/scan_rls_null_school_arm.py --compare
       - name: Scan tenant-admin scope for SHARED models with no school column

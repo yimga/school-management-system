@@ -104,12 +104,20 @@ class SectionsLander(Lander):
                 academic_year = self._resolve_academic_year(
                     AcademicYear, ctx.school, (row.get("academic_year") or "").strip(), result
                 )
+                # The department CODE must be minted from the department this row
+                # actually names. Minting every code from the literal "General" gave
+                # a "Science" department a GENERAL-derived code, and because the code
+                # column is unique the constant hash fallback was exhausted by the
+                # 2nd distinct department name, so the 3rd collided and quarantined.
+                department_name = (row.get("department") or "General").strip() or "General"
                 department, _ = get_or_create_named(
                     model=Department,
                     school=ctx.school,
-                    name=(row.get("department") or "General").strip() or "General",
+                    name=department_name,
                     create_kwargs=lambda: {
-                        "code": mint_scoped_code(prefix="DPT", name="General", school=ctx.school, model=Department)
+                        "code": mint_scoped_code(
+                            prefix="DPT", name=department_name, school=ctx.school, model=Department
+                        )
                     },
                     result=result,
                 )

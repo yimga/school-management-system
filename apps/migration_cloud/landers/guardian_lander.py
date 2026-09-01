@@ -43,7 +43,7 @@ import hashlib
 from typing import Any, Iterator
 
 from .base import Lander, LanderContext, LanderError, LanderResult, register
-from ._helpers import record_row_error
+from ._helpers import record_row_error, student_name_from_row
 from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 

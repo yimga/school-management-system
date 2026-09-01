@@ -342,6 +342,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # routes, cloud-pinned paths) fails SILENTLY when cut, because nothing is broken —
     # the code is simply never reached. Same class as scan_unregistered_middleware.
     ("scripts/verify_ota_pipeline_wiring.py", "architectural-boundaries.yml"),
+    # Added 2026-08-31. Needs the live Django app registry (it resolves the rail
+    # registry out of apps.api.sync_services), so it rides ci.yml::django-tests
+    # rather than the deps-free boundary workflow.
+    ("scripts/audit_rail_coverage.py", "ci.yml"),
 )
 
 

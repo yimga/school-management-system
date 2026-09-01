@@ -15,14 +15,45 @@ collision. It owns the *rules and the algebra* of that convergence: which entity
 merges by which strategy, the typed wire format ops travel in, the merge functions
 themselves, and the signed bundle format for offline transport.
 
-The defining decision is stated in `crdt.py` and enforced everywhere: **conflict
+The defining decision is stated in `crdt.py`: **on the CRDT rail, conflict
 resolution is by logical clock, never by wall clock.** Wall-clock last-write-wins
-was explicitly rejected — two devices with skewed clocks would silently destroy
+was explicitly rejected there — two devices with skewed clocks would silently destroy
 each other's data. Instead, ordering is by Lamport clock with a replica-id
 tiebreak (`crdt.py`) or a Hybrid Logical Clock with an actor-id tiebreak
 (`crdt_wire_protocol.py`), so merges are deterministic and causal. The compat
 alias `ResolutionStrategy.LAST_WRITE_WINS` still exists for old callers, but it
 now points at `CAUSAL_LWW` — the name lies, the behavior does not.
+
+**That claim is about the CRDT rail, and the CRDT rail is four entities.** This is
+the correction the sentence above needs, because for a long time it said "enforced
+everywhere" and it is not. `validate_crdt_kind()` authorizes exactly `student_note`,
+`lesson_plan`, `lesson_plan_tags` and `telemetry_counter`; every other entity has an
+empty `allowed_crdt_kinds` and is refused at the door.
+
+**The rail that carries the school's data — students, enrolment, attendance, marks,
+invoices — is the signed delta rail, and it resolves by WALL CLOCK.**
+`apps.api.sync_services._conflict_decision` compares `client_updated_at < server_dt`
+and keeps the newer timestamp. Three things bound that, and they are the reason it is
+a defensible design rather than the thing `crdt.py` rejected:
+
+* **Protected and authoritative domains never reach the comparison.** Money, grades and
+  identity are `protected` in the policy registry: a `cloud-pull` applies, and anything
+  travelling the other way becomes a `SyncConflict` for a human. `ONLINE_REQUIRED`
+  domains are rejected on the sync path outright. Skewed clocks cannot touch these.
+* **A row that cannot prove it is newer does not win.** A missing or unparseable
+  `client_updated_at` against a timestamped server row is a conflict, not an overwrite.
+* **The cursor's own tolerance is stated and finite.** `get_sync_cursor_for_request`
+  re-asks from `RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS` (120s) behind the stored
+  high-water, which closes the commit-after-read race and the tie-at-a-boundary case for
+  any transaction shorter than that window — and no longer.
+
+What is left after those bounds is real and should not be written away: for an
+unprotected LWW entity, a box whose clock is FAST can overwrite a genuinely newer cloud
+row and the apply path will record it as an ordinary success. That is a wall-clock race,
+on the rail that carries most of the data, and the honest mitigation is operational
+rather than algebraic — which is why the pull leg now measures the box/cloud offset from
+the response `Date` header on every cycle (`clock_offset.py`) and says so on the run
+when the drift has grown past the overlap the cursors depend on.
 
 The second decision is that **the CRDT primitives are pure Python with no Django
 import**, so byte-identical code runs in a service worker, a Tauri shell, and the
@@ -55,6 +86,8 @@ isn't one, and adding one would move the tenant boundary — think hard first.
 | Module | `conflict_resolver` | `resolve_one()` — policy-governed strategy dispatch for queued replay |
 | Module | `event_envelope` | Canonical offline envelope, capped at `MAX_ENVELOPE_BYTES = 1024`. Queued sync, **not** CRDT |
 | Module | `delta_bundle` | HMAC-signed NDJSON bundles for LAN / data-mule transport (`application/x-rmc-sync-bundle+ndjson`) |
+| Module | `compression` | Gzip on the sync wire, per-endpoint. Read its docstring before reaching for `GZipMiddleware` |
+| Module | `clock_offset` | Box-vs-cloud wall-clock drift, measured from the pull response's `Date`. Records and warns; never corrects |
 | Module | `tenant_manifest_compiler` | Deterministic offline manifest (schema version 2): route allowlist, data policies, PWA cache hints |
 | Module | `services` | Pending-change reads and visible sync state over `OfflineSyncQueue` |
 | Module | `views_crdt` | `CRDTOpsApplyView` — the live rail. Mounted by `apps.api` (see below), not by this app |
@@ -73,10 +106,22 @@ narrow, on purpose.
 
 ## Before you change this
 
-- **Never reintroduce wall-clock ordering.** This is the app's founding rejection.
-  `conflict_resolver.py` keeps the comment on the compat alias: it "now means causal
-  logical-clock ordering, never a raw wall-clock race." If a merge needs a
-  tiebreak, use the logical clock and the replica/actor id.
+- **Never reintroduce wall-clock ordering ON THE CRDT RAIL.** This is the app's
+  founding rejection. `conflict_resolver.py` keeps the comment on the compat alias:
+  it "now means causal logical-clock ordering, never a raw wall-clock race." If a
+  CRDT merge needs a tiebreak, use the logical clock and the replica/actor id. Do not
+  read this bullet as a statement about the delta rail — that one already orders by
+  `updated_at` (`sync_services._conflict_decision`) and always has. Moving IT to a
+  logical clock is not a refactor: it would need a monotonic sequence column written in
+  the same transaction as the business row, on every synced table.
+- **A pull page boundary may never split rows that share one `updated_at`.**
+  `page_delta_rows` (`edge_outbox.py`) cuts only BETWEEN groups, so a page can come
+  back smaller than the requested limit — and, when one timestamp group is bigger than
+  the whole limit, larger. Both are deliberate. `get_sync_cursor_for_request` closes the
+  tie-at-a-boundary hole for a whole CYCLE with a 120-second overlap; paging inside a
+  cycle would open it far wider than that overlap can close, because a first sync pages
+  across years of history in one cycle and its cursor ends months past the split, not
+  120 seconds past it. Do not "optimise" the cut to `rows[:limit]`.
 - **`crdt.py` is not the live rail; `crdt_wire_protocol.py` is.** They are parallel
   implementations, and `verify_crdt_convergence` calls the legacy one "the parallel
   legacy toy" in its own docstring. `CRDTOpsApplyView` calls the *wire protocol*

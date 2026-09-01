@@ -32,6 +32,7 @@ from ._helpers import (
     record_row_error,
     resolve_student,
     row_savepoint,
+    save_scoped,
     student_lookup_field,
     student_name_from_row,
     unresolved_student_reason,
@@ -213,8 +214,13 @@ class EnrollmentLander(Lander):
                         setattr(student, k, v)
                     # Per-row savepoint: enrollment lands in the same forced-atomic
                     # finance transaction, so a bad row must roll back only itself.
+                    #
+                    # save_scoped, not a bare update_fields: placing a pupil sets the
+                    # third of academic_year/specialty/classroom, which makes the model
+                    # mint an admission_number and rebuild search_index INSIDE save() --
+                    # neither of which is in updates, so both were computed and dropped.
                     with row_savepoint():
-                        student.save(update_fields=list(updates.keys()))
+                        save_scoped(student, list(updates.keys()))
                 persist_dfv_extras(
                     ctx=ctx, entity_type="student", entity_id=student.pk,
                     extras=extras, result=result,

@@ -147,6 +147,138 @@ PY' 2>/dev/null | tr -d '\r')"
   warn "whether the bundle still opens cannot be checked from here, by design. Verify it where the passphrase is: openssl pkcs12 -in <bundle> -nokeys -passin env:P | openssl x509 -noout -fingerprint -sha256"
 fi
 
+sec "C2. the records this school cannot regenerate  [RESTORE-DRILL GATE]"
+# Section C exists because ONE artefact on this box cannot be regenerated. That was
+# true and it was also incomplete: the CA had an encrypted backup, a passphrase kept
+# apart from it, a gate that fails on a missing backup, a gate that fails when the
+# backup does not match the live CA, a gate that proves the encryption is real, and a
+# gate that fails when there is no verified read-back on record -- while the fee
+# ledger, the marks, the attendance and the discipline record had nothing at all. A
+# dead SSD strands every device that trusted the CA; it also loses the school's year,
+# and only one of those two was being defended. This section is the same discipline
+# applied to the other one.
+#
+# READ-ONLY, like the rest of this file. It asks the backup container what it has
+# RECORDED, exactly as section C asks the trust anchor for its recorded export -- it
+# never takes a backup and never restores one. An audit that ran a restore to find out
+# whether restores work would have destroyed the thing it was measuring.
+BSTATE=/tmp/rmc-box-backup-state.json
+BPROOF=/tmp/rmc-box-backup-proof.txt
+bsvc="$("${COMPOSE[@]}" ps --format '{{.Service}}:{{.State}}' 2>/dev/null | grep '^backup:' | cut -d: -f2)"
+if [ "$bsvc" != "running" ]; then
+  bad "the backup service is [${bsvc:-absent}] -- NOTHING is copying the school database"
+  warn "start it with: docker compose -f $HERE/docker-compose.yml up -d backup"
+else
+  ok "the backup service is running"
+  "${COMPOSE[@]}" exec -T backup bash /usr/local/bin/box-backup.sh status 2>/dev/null | tr -d '\r' > "$BSTATE"
+  "${COMPOSE[@]}" exec -T backup bash /usr/local/bin/box-backup.sh proof  2>/dev/null | tr -d '\r' > "$BPROOF"
+  bget()  { sed -n 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$BSTATE" | head -1; }
+  bnum()  { n="$(sed -n 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$BSTATE" | head -1)"; printf '%s' "${n:-0}"; }
+  pget()  { sed -n "s/^$1=//p" "$BPROOF" | head -1; }
+
+  if [ ! -s "$BSTATE" ] || ! grep -q '"schema"' "$BSTATE"; then
+    bad "NO BACKUP RECORD on this box -- it has never taken a backup of the school database"
+  else
+    lastf="$(bget last_file)";     lastst="$(bget last_status)"
+    laste="$(bget last_error)";    lastat="$(bget last_success_at)"
+    verat="$(bget verified_at)";   verf="$(bget verified_file)"
+    verfull="$(bget verified_full_read)"; vertoc="$(bnum verified_toc_entries)"
+    lastep="$(bnum last_success_epoch)"
+    keptn="$(bnum kept_files)";    keptb="$(bnum kept_bytes)"
+    freeb="$(bnum free_bytes)";    lastb="$(bnum last_bytes)"
+    mediast="$(bget media_status)"; drillst="$(bget drill_status)"
+    drillep="$(bnum drill_epoch)"; obst="$(bget offbox_status)"
+    obind="$(bget offbox_independent)"
+    now="$(date -u +%s)"
+    age=$(( now - lastep ))
+    echo "     newest dump      ${lastf:-<none>}  ($lastb bytes)"
+    echo "     last verified    ${verf:-<none>}  at ${verat:-<never>}"
+    echo "     kept             $keptn artefact(s), $keptb bytes;  $freeb bytes free"
+
+    # THE GATE. Everything else in this section is reporting; these three are the
+    # difference between a backup and a file nobody has ever opened.
+    if [ -z "$verat" ]; then
+      bad "no verified read-back on record -- this box cannot show its backup was ever read back"
+    elif [ -n "$lastf" ] && [ "$verf" != "$lastf" ]; then
+      bad "the verified read-back is for $verf, not the newest dump $lastf -- the newest one has never been opened"
+    elif [ "$verfull" != "true" ]; then
+      bad "the dump was listed but never read END TO END -- a truncated archive lists perfectly and restores nothing"
+    else
+      ok "the newest dump was read back in full ($vertoc archive entries) -- it is a backup, not a file"
+    fi
+
+    # Freshness. A verified read-back of a dump from three weeks ago is a verified
+    # read-back of three weeks ago, and the term has moved on since.
+    if [ "$lastep" = "0" ]; then
+      bad "no successful backup has EVER completed on this box"
+    elif [ "$age" -gt 172800 ]; then
+      bad "the last successful backup was $(( age / 3600 ))h ago -- more than two days of work at this school has no copy"
+    elif [ "$age" -gt 93600 ]; then
+      warn "the last successful backup was $(( age / 3600 ))h ago (expected daily)"
+    else
+      ok "last successful backup $(( age / 3600 ))h ago ($lastat)"
+    fi
+
+    case "$lastst" in
+      ok)      ok "the last run completed" ;;
+      skipped) warn "the last run was SKIPPED and said why: $laste" ;;
+      *)       bad "the last run status is '$lastst': $laste" ;;
+    esac
+
+    # Is the encryption real? Asked of the FILE ON DISK, right now, not of a flag
+    # somebody wrote down. Section C asks the CA bundle the same question the same way.
+    case "$(pget WRONGPASS_OPENS)" in
+      no)  ok "a wrong passphrase does not open the dump (the encryption is real)" ;;
+      yes) bad "the dump OPENS with a wrong passphrase -- it is not actually encrypted" ;;
+      *)   warn "could not test the dump against a wrong passphrase from here" ;;
+    esac
+
+    # The same warning section C gives about the CA bundle, for the same reason: a key
+    # stored beside the thing it protects has bought nobody anything.
+    if [ "$(pget KEY_ON_BOX)" = "yes" ]; then
+      warn "the backup passphrase is ON this box. Take a copy elsewhere -- without it every
+       dump here is unreadable, and it cannot be regenerated from the database:
+         docker compose -f $HERE/docker-compose.yml exec backup bash /usr/local/bin/box-backup.sh export-key"
+    fi
+
+    # The off-box copy. Everything above protects against a bad migration, a wrong
+    # delete and a lost pgdata volume. NONE of it protects against the disk dying,
+    # because all of it is on that disk.
+    case "$obind" in
+      true)  ok "the off-box copy is on a DIFFERENT filesystem -- it survives this disk ($obst)" ;;
+      false) warn "the off-box copy is on the SAME filesystem as the box itself: a dead disk takes
+       both. Point RMC_BOX_BACKUP_OFFBOX_DIR at a mounted USB disk or a NAS share." ;;
+      *)     warn "no off-box target configured -- every copy of the school database is on one disk" ;;
+    esac
+
+    # The full drill: did Postgres itself accept the dump, not merely the archive
+    # reader. Space-gated by design on cheap hardware, so a skip is a WARN and the
+    # message carries the numbers rather than a shrug.
+    if [ "$drillep" = "0" ]; then
+      warn "no full restore drill on record yet (status: ${drillst:-never}) -- the read-back proves the
+       archive is intact; only a drill proves Postgres accepts it. It runs on its own
+       cadence when there is room, or on demand:
+         docker compose -f $HERE/docker-compose.yml exec backup bash /usr/local/bin/box-backup.sh drill"
+    elif [ $(( now - drillep )) -gt 5184000 ]; then
+      warn "the last full restore drill was $(( (now - drillep) / 86400 )) days ago"
+    else
+      ok "a full restore drill passed $(( (now - drillep) / 86400 )) day(s) ago -- Postgres accepted the dump"
+    fi
+
+    case "$mediast" in
+      ok)      ok "the media tree is archived too ($(bnum media_bytes) bytes)" ;;
+      never|"") warn "the media tree has never been archived -- uploaded documents have no copy" ;;
+      *)       warn "media: $mediast" ;;
+    esac
+
+    # Disk headroom, said out loud. The backup skips itself rather than filling the
+    # disk, so a box that is quietly short of room reports as skipped forever.
+    if [ "$freeb" -lt 1073741824 ]; then
+      bad "only $freeb bytes free on the backup volume -- the next run will skip itself"
+    fi
+  fi
+fi
+
 sec "D. TLS, end to end, from this box"
 "${COMPOSE[@]}" exec -T web python manage.py edge_tls --check-terminator edge-tls:443 2>&1 \
   | grep -viE "^(WARNING|INFO|DEBUG) " | tail -3 | sed 's/^/     /'
@@ -243,6 +375,7 @@ printf '  audit: %d OK, %d WARN, %d FAIL\n' "$PASS" "$WARN" "$FAIL"
 if [ "$FAIL" -gt 0 ]; then
   printf '  VERDICT: do NOT rebuild until the FAILs above are understood.\n'
 else
-  printf '  VERDICT: safe to rebuild. The CA is backed up and verified restorable.\n'
+  printf '  VERDICT: safe to rebuild. The CA and the school database are both backed up\n'
+  printf '           and verified restorable.\n'
 fi
 printf '===============================================================\n'

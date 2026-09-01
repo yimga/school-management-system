@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n rmc_labels %}
 {% comment %}
 BAND 5 — needs you.
 
@@ -15,7 +15,7 @@ Every row carries the page that RESOLVES it. "3 conflicts waiting" with no link 
 exact dead end scan_actionless_attention_surfaces exists to refuse.
 {% endcomment %}
 
-{% if pairing_requests or sync_stats_pending %}
+{% if pairing_requests or sync_stats_pending or stuck_row_count %}
 <section class="rmc-sc-band" data-attention="1" id="sync-needs-you"
          data-rmc-section-anchor="1" aria-label="{% trans 'Needs your attention' %}">
   <div class="rmc-sc-band__head">
@@ -81,6 +81,58 @@ exact dead end scan_actionless_attention_surfaces exists to refuse.
           {% if conflicts_url %}
             <a class="btn btn-sm btn-primary" href="{{ conflicts_url }}">{% trans "Review conflicts" %}</a>
           {% endif %}
+        </div>
+      </li>
+    {% endif %}
+
+    {% if stuck_row_count %}
+      {% comment %}
+      STUCK ROWS, not a sum. The flow band above already shows "Not applied", and that
+      number is Sum(EdgeSyncRun.skipped) over a window -- a sum over CYCLES. One box
+      refused the same 39 teacher rows on all 687 cycles of a day and the tile read
+      26,598: it looks like 26,598 records and it is 39. Nobody could get from that
+      number back to the rows, so nobody did -- diagnosing it took a person several days.
+
+      This is the other half: the records themselves, each with its reason, how many
+      cycles have now refused it, and how long it has been stuck. The two numbers are
+      rendered side by side and named apart on purpose, because that is the only
+      rendering in which neither can be mistaken for the other.
+      {% endcomment %}
+      <li class="rmc-sc-queue__item" data-rmc-sc-stuck="1">
+        <div class="rmc-sc-queue__text">
+          <div class="rmc-sc-queue__title">
+            {% blocktrans count n=stuck_row_count %}{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be applied{% endblocktrans %}
+          </div>
+          <div class="rmc-sc-queue__meta">
+            {% blocktrans with attempts=stuck_row_attempts %}refused {{ attempts }} times in total{% endblocktrans %}
+            {% if stuck_oldest_at %} · {% blocktrans with since=stuck_oldest_at|timesince %}oldest stuck for {{ since }}{% endblocktrans %}{% endif %}
+          </div>
+          {# Bootstrap's list-unstyled rather than a new rmc-* class: the rows are #}
+          {# ordinary queue meta lines and rmc-sc-queue__meta already styles them. #}
+          <ul class="list-unstyled">
+            {% for row in stuck_rows %}
+            <li class="rmc-sc-queue__meta">
+              <span class="rmc-sc-queue__code">{{ row.entity_type|humanize_token }} #{{ row.local_pk }}</span>
+              · {{ row.reason|humanize_token }}
+              · {% blocktrans count n=row.attempts %}{{ n }} attempt{% plural %}{{ n }} attempts{% endblocktrans %}
+              {% if row.first_seen_at %} · {% blocktrans with since=row.first_seen_at|timesince %}stuck for {{ since }}{% endblocktrans %}{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% if stuck_rows_truncated %}
+          <div class="rmc-sc-queue__meta">{% trans "Only the oldest are listed; the count above is the whole set." %}</div>
+          {% endif %}
+          <div class="rmc-sc-queue__meta">
+            {% trans "These are retried on every cycle. A record that stays here needs the thing it is waiting for — usually a parent record, or an entity the rail may not create at all." %}
+          </div>
+        </div>
+        <div class="rmc-sc-queue__actions">
+          {% comment %}
+          Carries the control that acts on it. There is no per-row button because there is
+          no per-row fix: the rail retries by itself, and the manual remedy is a full
+          resync, which lives in the verdict band at the top of this page.
+          {% endcomment %}
+          <a class="btn btn-sm btn-outline-secondary" href="#sync-verdict">{% trans "Sync controls" %}</a>
         </div>
       </li>
     {% endif %}

@@ -31,7 +31,20 @@ from django.utils import timezone
 
 
 class EdgeFleetState(models.Model):
-    """The last thing this school's box said about itself."""
+    """The last thing this school's box said about itself.
+
+    ONE BOX PER SCHOOL, and this field is one of the three places that is structural
+    rather than configured. The others are ``EdgeSyncCursor``'s ``(school, direction)``
+    key and -- the one that actually costs data -- ``SyncApplyLedger``'s
+    ``(school, entity_type, local_pk)`` key, which drives echo-suppression in
+    ``build_edge_delta_rows`` and is device-blind: a row box A pushes is recorded as
+    already applied, so box B is dropped from its own pull as an "echo" of a write it
+    has never seen. The pairing flow therefore REFUSES a second binding rather than
+    letting it half-work (``pairing_service.adoption_conflict``). If that limitation is
+    ever lifted, this is a ``ForeignKey`` with a unique ``(school, device_id)``, and
+    every reader of the ``school.edge_fleet_state`` reverse accessor changes with it.
+    See ``docs/EDGE_ONE_BOX_PER_SCHOOL_2026_08_31.md``.
+    """
 
     school = models.OneToOneField(
         "schools.School",
