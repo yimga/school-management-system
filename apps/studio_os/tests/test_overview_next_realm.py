@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 
@@ -80,16 +80,12 @@ class OverviewNextRealmStaticContractTests(SimpleTestCase):
             f"expected 8 mission-signal tiles, got {count}",
         )
 
-    def test_signal_strip_uses_unknown_state_for_missing_vars(self) -> None:
-        # data-state="unknown" appears at least 5 times (one per metric tile
-        # that can be unknown: pending-launches, draft-experiences,
-        # active-automations, readiness, blockers).
-        self.assertIn('data-state="unknown"', self.signal_strip_text)
-
-    def test_signal_strip_gates_operator_indicator_explicit(self) -> None:
-        # Host-kind tile is the explicit operator vs tenant indicator.
-        self.assertIn("public_host_kind", self.signal_strip_text)
-        self.assertIn('data-rmc-overview-tile="host-kind"', self.signal_strip_text)
+    # test_signal_strip_uses_unknown_state_for_missing_vars and
+    # test_signal_strip_gates_operator_indicator_explicit used to live here as
+    # substring checks on this partial's SOURCE. Both stayed green when the
+    # markup they name was moved inside {% comment %} -- the bytes still
+    # contained the needle, and nothing rendered. They are now
+    # OverviewSignalStripRendersTests below, which reads the OUTPUT.
 
     def test_signal_strip_uses_trans_tags_for_all_copy(self) -> None:
         # No raw english that isn't wrapped in {% trans %} or {% blocktrans %}
@@ -165,9 +161,8 @@ class OverviewNextRealmStaticContractTests(SimpleTestCase):
 
     # ----- Co-pilot rail patches -----
 
-    def test_copilot_rail_has_host_kind_badge(self) -> None:
-        self.assertIn("rmc-copilot-rail__mode-badge", self.copilot_rail_text)
-        self.assertIn('data-rmc-host-kind=', self.copilot_rail_text)
+    # test_copilot_rail_has_host_kind_badge moved to
+    # OverviewCopilotRailRendersTests below, for the same reason.
 
     def test_copilot_rail_has_preview_microlist(self) -> None:
         # Preview-as microlist surfaces studio_role_preview_entries.
@@ -368,3 +363,84 @@ class OverviewNextRealmRenderTests(TestCase):
         request.public_host_kind = "tenant"
         body = self._render_signal_strip(request=request)
         self.assertIn('data-rmc-host-kind="tenant"', body)
+
+
+class _FakeRequest:
+    """Only what the strip reads. A real request would drag in middleware."""
+
+    def __init__(self, public_host_kind: str = "") -> None:
+        self.public_host_kind = public_host_kind
+
+
+class OverviewSignalStripRendersTests(SimpleTestCase):
+    """Render the strip and read the OUTPUT.
+
+    A substring check on this partial's source cannot tell a tile that renders
+    from one that has been moved inside {% comment %}: the bytes are identical
+    and the page is not. Proven by mutation on 2026-08-31 -- the three tests
+    these replace all stayed GREEN with every tile commented out.
+
+    The same lesson is written up at length in
+    apps/setup_studio/tests/test_wizard_step_error_surface.py::_render.
+    """
+
+    TEMPLATE = "studio_os/partials/cockpit_signal_strip.html"
+
+    def _render(self, **context) -> str:
+        return render_to_string(self.TEMPLATE, context)
+
+    def test_all_eight_tiles_reach_the_page(self) -> None:
+        html = self._render()
+        self.assertEqual(html.count("data-rmc-overview-tile="), 8, html[:400])
+
+    def test_missing_signals_render_the_honest_unknown_state(self) -> None:
+        """No overview_signals at all -> every metric tile says so."""
+        html = self._render()
+        self.assertGreaterEqual(html.count('data-state="unknown"'), 5)
+        self.assertIn("\u2014", html)  # the em-dash placeholder, not a zero
+
+    def test_a_supplied_signal_replaces_the_unknown_state(self) -> None:
+        """The mirror image: real data must NOT render as unknown."""
+        html = self._render(
+            overview_signals={
+                "pending_launches": 3,
+                "draft_experiences": 1,
+                "active_automations": 7,
+                "output_readiness_pct": 42,
+                "open_blockers": 2,
+            }
+        )
+        self.assertNotIn('data-state="unknown"', html)
+        self.assertIn("42%", html)
+
+    def test_host_kind_tile_says_operator_on_the_manager_host(self) -> None:
+        html = self._render(request=_FakeRequest("manager"))
+        self.assertIn('data-rmc-overview-tile="host-kind"', html)
+        self.assertIn('data-rmc-host-kind="manager"', html)
+        self.assertIn("Operator", html)
+
+    def test_host_kind_tile_says_tenant_everywhere_else(self) -> None:
+        html = self._render(request=_FakeRequest("tenant"))
+        self.assertIn('data-rmc-host-kind="tenant"', html)
+        self.assertNotIn("Cross-tenant control plane.", html)
+
+    def test_the_stylesheet_is_linked_once_in_the_output(self) -> None:
+        self.assertEqual(self._render().count("studio-overview-cockpit.css"), 1)
+
+
+class OverviewCopilotRailRendersTests(SimpleTestCase):
+    """Same treatment for the co-pilot rail's host-kind badge."""
+
+    TEMPLATE = "studio_os/partials/cockpit_copilot_rail.html"
+
+    def _render(self, **context) -> str:
+        return render_to_string(self.TEMPLATE, context)
+
+    def test_mode_badge_reaches_the_page_with_the_host_kind_on_it(self) -> None:
+        html = self._render(request=_FakeRequest("manager"))
+        self.assertIn("rmc-copilot-rail__mode-badge", html)
+        self.assertIn('data-rmc-host-kind="manager"', html)
+
+    def test_the_badge_reports_the_tenant_host_too(self) -> None:
+        html = self._render(request=_FakeRequest("tenant"))
+        self.assertIn('data-rmc-host-kind="tenant"', html)
