@@ -1,10 +1,10 @@
 {
-  "finding_count": 203,
+  "finding_count": 195,
   "measured": {
     "population": 385,
     "measured": 255,
-    "vacuous": 203,
-    "sound": 52,
+    "vacuous": 195,
+    "sound": 60,
     "unmeasurable": 130
   },
   "vacuous": [
@@ -457,46 +457,6 @@
       "id": "apps.portal.tests.test_roll_call_draft_wiring.RollCallDraftTemplateTests.test_teacher_roll_call_template_has_draft_key_expression",
       "file": "apps/portal/tests/test_roll_call_draft_wiring.py",
       "template": "templates/portal/roll_call_teacher.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_copilot_rail_uses_tenant_portal_endpoints",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/cockpit/_ai_copilot_rail.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_mission_strip_is_tenant_school_only",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/tenant/tp_mission_strip.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_portal_base_defaults_canvas_scroll_for_v3_shell",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_portal_base_loads_tenant_cp_parity_css",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_portal_sidebar_wires_v8_when_tenant_shell",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/portal_sidebar.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_shell_layout_wrap_compact_for_v3",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/shell_portal_layout_wrap_open.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_tenant_copilot_horizontal_collapse_contract",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/cockpit/_ai_copilot_rail.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_v8_groups_partial_uses_collapsible_details",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/portal_sidebar_v8_groups.html"
     },
     {
       "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_hero_wires_tenant_experience_command_strip",
