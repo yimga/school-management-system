@@ -4,7 +4,10 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 REPO = Path(__file__).resolve().parents[3]
+METADATA_CATALOG = REPO / "templates/schools/super_metadata_catalog.html"
 
 
 class ScrollCompressionCatalogPaginationTests(SimpleTestCase):
@@ -74,5 +77,12 @@ class ScrollCompressionCatalogPaginationTests(SimpleTestCase):
         meta_tpl = (REPO / "templates/schools/super_metadata_catalog.html").read_text(
             encoding="utf-8"
         )
+        # field_preview is the CONTEXT VARIABLE the template loops over and the
+        # slice check is an ABSENCE -- both template code / byte questions, so
+        # both stay reads. This is a catalog PAGINATION contract, so what the
+        # parser can settle is that the catalog page still is a catalog and still
+        # pulls in the pager that replaced the truncating slice.
+        assert_markup(self, METADATA_CATALOG, 'data-page-archetype="catalog"')
+        assert_wires(self, METADATA_CATALOG, "components/pagination.html")
         self.assertNotIn('|slice:":10"', meta_tpl)
         self.assertIn("field_preview", meta_tpl)

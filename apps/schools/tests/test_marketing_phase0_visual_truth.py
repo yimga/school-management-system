@@ -43,6 +43,8 @@ import django
 from django.test import Client, SimpleTestCase, override_settings
 from django.urls import reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MARKETING_CSS = REPO_ROOT / "static" / "marketing" / "css" / "marketing-landing-v2.css"
@@ -125,7 +127,12 @@ class PricingCopyRegressionTest(SimpleTestCase):
 
     def test_home_pricing_avoids_exact_pound_figures(self) -> None:
         text = LANDING_TEMPLATE.read_text(encoding="utf-8")
+        # The pound-teaser check is a REGEX SWEEP over the whole source and needs
+        # the text, so the read stays. The qualified price element is markup: a
+        # "From"-prefixed figure that only exists in the file qualifies nothing,
+        # so the engine answers that half.
         assert_no_exact_plan_pound_teasers(self, text)
+        assert_markup(self, LANDING_TEMPLATE, "mkt-edt-plan__price-figure")
         self.assertIn("mkt-edt-plan__price-figure", text)
 
 

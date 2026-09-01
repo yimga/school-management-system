@@ -2,14 +2,27 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 ROOT = Path(__file__).resolve().parents[3]
+MARKETING_LANDING = ROOT / "templates" / "schools" / "marketing_landing.html"
 
 
 class WorldClassMarketingExperienceTests(SimpleTestCase):
     def test_homepage_has_product_visual_story_and_primary_cta(self):
         text = (ROOT / "templates" / "schools" / "marketing_landing.html").read_text(encoding="utf-8")
         self.assertIn("Run every campus from one offline-ready education operating system.", text)
+        # The story and the visual map are markup the homepage has to put on the
+        # page. The headline, the seven block labels and the two route names are
+        # {% trans %} / {% url %} arguments -- template code a parse cannot see,
+        # on a page that does not render standalone -- so those stay reads.
+        assert_markup(
+            self,
+            MARKETING_LANDING,
+            "data-world-class-marketing-story",
+            "data-world-class-product-visual-map",
+        )
         self.assertIn("data-world-class-marketing-story", text)
         self.assertIn("data-world-class-product-visual-map", text)
         for block in ("School Command Center", "Teacher Workspace", "Family Home", "Offline Sync", "Payment Readiness", "Blueprint Marketplace", "Trust / Audit"):
