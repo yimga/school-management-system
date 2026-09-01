@@ -769,6 +769,27 @@ MUTATIONS["ci-shell-command-integrity"] = Mutation(
     ),
 )
 
+MUTATIONS["tenant-queryset-safety"] = Mutation(
+    kind="create",
+    path=f"apps/schools/{_PROOF}_unscoped_queryset.py",
+    defect=(
+        "a read of a tenant-owned model with no school bound to it - on the "
+        "shared-schema edge that returns every school's invoices, and the page "
+        "renders them without an error anywhere"
+    ),
+    # Invoice carries a school FK, so it is in the scanner's tenant-model set,
+    # and `status=` is a plain non-scoping kwarg. Deliberately NOT pk= or
+    # `__school`: those are the shapes the scanner was taught to forgive, so a
+    # plant using one would leave this gate looking dead when it is working.
+    content=(
+        b"from apps.finance.models import Invoice" + chr(10).encode()
+        + chr(10).encode()
+        + chr(10).encode()
+        + b"def every_tenants_open_invoices():" + chr(10).encode()
+        + b"    return list(Invoice.objects.filter(status=\"OPEN\"))" + chr(10).encode()
+    ),
+)
+
 MUTATIONS["edge-rail-coverage"] = Mutation(
     kind="create",
     path="apps/student360/migrations/0002_gateproof_undeclared_tenant_model.py",

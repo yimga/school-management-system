@@ -338,6 +338,7 @@ def _apply_module_access(request: AccessRequest, decision: str, reason: str, act
     # narrowing it here would revoke access this school never issued.
     already_platform_wide = (
         requester.feature_permissions.filter(pk=perm.pk).exists()
+        # tenant-isolation-allow: asks whether the requester holds this code with NO scope row at all; a school filter here would make a platform-wide grant look school-scoped (both tenancy modes, reviewed 2026-09-01)
         and not FeaturePermissionScope.objects.filter(
             user=requester, permission=perm
         ).exists()

@@ -80,7 +80,9 @@ def edge_fleet_console(request, **kwargs):
     operator_hash = str(manifest.get("manifest_hash") or "")
     now = timezone.now()
 
+    # tenant-isolation-allow: operator fleet console: every box across every tenant is the subject of this page, read once here to avoid 2N+3 queries (control-plane, reviewed 2026-09-01)
     states = {s.school_id: s for s in EdgeFleetState.objects.all()}
+    # tenant-isolation-allow: operator fleet console: the rollout policy map is fleet-wide for the same reason as the state map above (control-plane, reviewed 2026-09-01)
     policies = {p.school_id: p for p in EdgeRolloutPolicy.objects.all()}
     # Read once, not once per school. Both of these are fleet-wide facts; looking them up
     # inside the loop turned one page into 2N+3 queries, and the policy half of it was

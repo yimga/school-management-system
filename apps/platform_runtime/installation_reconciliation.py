@@ -144,6 +144,7 @@ def audit_installation_layers(school) -> dict[str, Any]:
         parent = latest_blueprints.get(blueprint_key)
         if parent is None:
             continue
+        # tenant-isolation-allow: bounded to one parent BlueprintInstallation, which carries a non-null school (both tenancy modes, reviewed 2026-09-01)
         orphan_packs = PackInstallation.objects.filter(
             blueprint_installation=parent,
             status=PackInstallation.Status.APPLIED,
@@ -271,6 +272,7 @@ def _repair_orphan_child_packs(school, *, blueprint_installation_id: int) -> int
     from apps.platform_runtime.models import PackInstallation
 
     repaired = 0
+    # tenant-isolation-allow: bounded to one parent BlueprintInstallation by id, which carries a non-null school (both tenancy modes, reviewed 2026-09-01)
     for pack_installation in PackInstallation.objects.filter(
         blueprint_installation_id=blueprint_installation_id,
         status=PackInstallation.Status.APPLIED,

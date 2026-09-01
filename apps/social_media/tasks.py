@@ -66,6 +66,7 @@ def _reap_abandoned_processing_rows(now) -> int:
     """
     stale_unstamped = now - timedelta(seconds=OUTBOX_LEASE_SECONDS)
     return (
+        # tenant-isolation-allow: outbox reaper: resets rows a dead worker left stamped 'processing' for every tenant; it repairs state and returns no tenant data (reviewed 2026-09-01)
         SocialPostOutbox.objects.filter(status="processing")
         .filter(
             Q(next_attempt_at__lte=now)

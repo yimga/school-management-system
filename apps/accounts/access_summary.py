@@ -250,6 +250,7 @@ def _matching_groups(user: Any, school: Any, held_codes: set[str]) -> list[dict[
         from apps.schools.models import SchoolMembership
 
         school_ids = list(
+            # tenant-isolation-allow: reads the acting user's own memberships to BUILD the school_id__in scope applied just below; bounding this by school would be circular (both tenancy modes, reviewed 2026-09-01)
             SchoolMembership.objects.filter(user_id=getattr(user, "pk", None))
             .values_list("school_id", flat=True)
         )

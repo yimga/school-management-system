@@ -309,6 +309,15 @@ GATES: list[tuple[str, list[str]]] = [
     # burndown is still ahead of its committed dates, which the count-based
     # gates cannot see.
     ("tenant-scoping-burndown", ["verify_tenant_scoping_burndown.py"]),
+    # An unscoped Model.objects query on a tenant-owned model. This existed but
+    # was never wired, because it read ONE call expression and so cried at four
+    # shapes that cannot cross a tenant (pk lookups, relation scopes, next-line
+    # narrowing, wrapper scoping) -- 36 findings against a zero baseline. A gate
+    # nobody can keep green gets abandoned, and an abandoned gate and a bypassed
+    # gate leave the same hole. Taught those four shapes (see the precision suite
+    # in apps/schools/tests/), the 18 survivors were read and marked, and it now
+    # exits 0 -- so it can hold the line instead of being ignored.
+    ("tenant-queryset-safety", ["scan_tenant_queryset_safety.py", "--compare"]),
     # Pins transaction.atomic on four named money mutators. Deliberately NARROW
     # -- it is a hand-maintained list, not coverage of apps/finance/, and its own
     # docstring says so at length. Wired because four enforced invariants beat

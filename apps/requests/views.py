@@ -337,6 +337,7 @@ def bulk_decide(request: HttpRequest):
     if school is None:
         # Fall back to the acting user's own membership rather than to "everything".
         membership = (
+            # tenant-isolation-allow: the request carries no school, so this falls back to the acting user's own membership rather than to everything (both tenancy modes, reviewed 2026-09-01)
             SchoolMembership.objects.filter(user=request.user)
             .select_related("school")
             .order_by("-is_primary")
