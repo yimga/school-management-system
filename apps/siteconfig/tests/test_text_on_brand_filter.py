@@ -15,6 +15,7 @@ from django.template.loader import get_template
 from django.test import SimpleTestCase
 
 from apps.siteconfig.templatetags.control_console import text_on_brand
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 
 class TextOnBrandFilterTests(SimpleTestCase):
@@ -30,11 +31,19 @@ class TextOnBrandFilterTests(SimpleTestCase):
 
     def test_portal_shell_emits_adaptive_text_on_brand(self):
         # the tenant shell must render --text-on-brand through the filter, not a
-        # static #fff — this is the exact hole the audit caught.
+        # static #fff -- this is the exact hole the audit caught.
         root = pathlib.Path(__file__).resolve().parents[3]
-        src = (root / "templates" / "portal_base.html").read_text(encoding="utf-8")
+        portal_base = root / "templates" / "portal_base.html"
+        src = portal_base.read_text(encoding="utf-8")
+        # Both of these straddle a {{ }} expression, so each is split across a
+        # TextNode and a VariableNode and no parse can see either whole: they stay
+        # source reads, and they are what pins the FILTER rather than a literal.
         self.assertIn("--text-on-brand: {{ theme.primary_color", src)
         self.assertIn("|text_on_brand }};", src)
+        # The custom property itself is emitted text, and "emits" is the claim in
+        # this test's own name -- a {% comment %} keeps both strings above in the
+        # bytes and puts no --text-on-brand on the page.
+        assert_markup(self, portal_base, "--text-on-brand")
 
     def test_portal_shell_compiles_with_filter(self):
         get_template("portal_base.html")  # must not raise (filter is loaded)
