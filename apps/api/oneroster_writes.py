@@ -368,12 +368,28 @@ def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any]
             ).first()
             created = obj is None
             if obj is None:
-                storage_code = course_code
-                if Classroom.objects.filter(code=course_code).exists():
-                    storage_code = f"{school.slug}-{course_code}"[:30]
+                # Store the code the roster system actually sent.
+                #
+                # ``Classroom.code`` is unique per ``(school, code)`` -- constraint
+                # ``uniq_classroom_school_code``, academics migration 0085, which
+                # mirrors 0076 for ``Department.code``. The column is NOT unique
+                # platform-wide, so another tenant already holding this code is not
+                # a collision the database would reject.
+                #
+                # This used to probe every tenant's rows and, on a hit, store
+                # ``<slug>-<code>`` instead. That made an external integration's own
+                # course code depend on an UNRELATED tenant's data: the same PUT
+                # stored a different value depending on who else was on the
+                # platform, the lookup directly above (keyed on the UNPREFIXED code,
+                # which is this function's documented identity contract) then missed
+                # its own row, and PUT reported the submitted code while a later GET
+                # reported the rewritten one.
+                #
+                # The lookup above has already proved ``(school, course_code)`` is
+                # free, so no further freshness probe is needed here.
                 obj, created = Classroom.objects.get_or_create(
                     school=school,
-                    code=storage_code,
+                    code=course_code,
                     defaults=defaults,
                 )
         else:

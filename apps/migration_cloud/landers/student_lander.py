@@ -432,7 +432,8 @@ def _resolve_or_create_classroom(school, label: str, student):
     """Reuse-or-create a school-scoped ``Classroom`` named after the roster's
     class/form label. Its two required PROTECT FKs are supplied: the school's
     academic year (default 2025/2026, created only if none exists) and the
-    student's specialty department (else General). The globally-unique code is
+    student's specialty department (else General). ``Classroom.code`` is unique
+    per (school, code) (``uniq_classroom_school_code``); the school-scoped code is
     minted UUID-safe via ``mint_scoped_code``. Returns the classroom or ``None``
     when a required FK cannot be resolved."""
     from apps.academics.models import Classroom
