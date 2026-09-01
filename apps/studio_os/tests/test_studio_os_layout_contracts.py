@@ -17,6 +17,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CSS_DIR = REPO_ROOT / "static" / "css"
@@ -175,11 +177,16 @@ class WorkspaceMainPreservesMinWidthZeroTests(SimpleTestCase):
     def test_workspace_layout_main_carries_min_w_0(self) -> None:
         path = TEMPLATES_STUDIO_OS / "components" / "workspace_layout.html"
         self.assertTrue(path.exists())
-        src = path.read_text(encoding="utf-8")
-        self.assertIn(
-            "min-w-0",
-            src,
-            "workspace_layout.html __main must declare min-w-0 — without it, "
-            "flex children cannot shrink and any wide content (token names, "
-            "long workflow labels, vendor codes) pushes horizontal scroll.",
+        # Reading the source for "min-w-0" cannot tell a rendered __main from one
+        # inside {% comment %}, and it cannot tell whether the class is on __main
+        # at all. Asserting the whole emitted class attribute settles both: it is
+        # the __main element, and it really reaches the page.
+        # Without min-w-0 flex children cannot shrink, and any wide content
+        # (token names, long workflow labels, vendor codes) pushes horizontal
+        # scroll -- so the class has to be on __main, not merely in the file.
+        assert_markup(
+            self,
+            path,
+            'class="rmc-studio-workspace__main flex-grow-1 min-w-0"',
+            'data-rmc-studio-workspace-main="1"',
         )
