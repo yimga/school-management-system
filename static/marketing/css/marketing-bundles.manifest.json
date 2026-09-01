@@ -1,9 +1,9 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-09-01T03:04:33Z",
+  "generated_utc": "2026-09-01T04:13:28Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 22050,
+    "bytes": 22249,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
@@ -22,8 +22,8 @@
       },
       {
         "path": "static/marketing/css/marketing-accessibility-hardening.css",
-        "sha256": "bdd67b8124c9e27ca9a3cb815f4ea298daa5f05da6a1a852196423c08cf58981",
-        "bytes": 15115
+        "sha256": "c3014a68dd84a95cfe3be921e4c142046d76fd67e3698444db78d472d6d9203c",
+        "bytes": 15985
       },
       {
         "path": "static/marketing/css/marketing-fonts.css",

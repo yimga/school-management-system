@@ -78,6 +78,10 @@ const PAGES = [
   "/communicate/",
   "/grow/",
   "/platform/",
+  // Added after Lighthouse scored this page 96 with a color-contrast node no
+  // axe spec was scanning: it is in neither spec's list, so the sweep could
+  // not have seen it either.
+  "/education-operating-system/",
   "/platform/integrations/",
   "/platform/admissions/",
   "/platform/fees-payments/",

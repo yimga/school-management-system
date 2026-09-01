@@ -53,11 +53,25 @@ body.marketing-surface a.mkt-surface-anchor {
   text-decoration: none;
 }
 
-body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):hover,
-body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):focus-visible,
+body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-surface-anchor):hover,
+body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-surface-anchor):focus-visible,
 body.marketing-surface .link-primary:hover,
 body.marketing-surface .link-primary:focus-visible {
   color: #042f78; /* off-token-allow: hex-literal-decorative */
+}
+
+/* Bootstrap's .link-secondary resolves to #6c757d, which measures 4.02:1 on
+   the editorial soft cream #F2EDE4 -- under AA -- and only just over it on the
+   other marketing grounds (4.39 on #FAF7F2, 4.51 on #FFFAF0), so it fails
+   wherever a section uses the soft tint. Found by Lighthouse on
+   /education-operating-system/, a page neither axe spec was scanning; the axe
+   sweep now covers it too. One step darker in the same Bootstrap grey ramp
+   gives 5.66 / 6.18 / 6.60 / 6.35. !important is required, not decorative:
+   Bootstrap ships `.link-secondary { color: ... !important }`, so nothing
+   without it can win however specific. */
+body.marketing-surface .link-secondary,
+body.marketing-surface a.link-secondary {
+  color: #565e64 !important; /* off-token-allow: hex-literal-decorative */
 }
 
 /* On the home lane the editorial CTAs all render on the indigo accent
