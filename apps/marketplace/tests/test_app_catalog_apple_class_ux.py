@@ -2,6 +2,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -15,6 +17,12 @@ class AppCatalogAppleClassUXTests(SimpleTestCase):
         for path in paths:
             text = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
+                # The catalog scope is markup and the dependency graph is an
+                # {% include %} -- both answerable by the engine, and a comment
+                # satisfies neither. The lowercase "scope"/"sandbox" sweeps and
+                # the assertNotIn below are byte questions and stay reads.
+                assert_markup(self, path, "data-apple-class-app-catalog")
+                assert_wires(self, path, "components/apple_class_dependency_graph.html")
                 self.assertIn("data-apple-class-app-catalog", text)
                 self.assertIn("apple_class_dependency_graph.html", text)
                 self.assertIn("scope", text.lower())
