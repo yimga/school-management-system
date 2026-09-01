@@ -146,13 +146,25 @@ log()       { printf '[backup] %s %s\n' "$(now_iso)" "$*"; }
 # which is the exact failure this whole service is built to make impossible.
 jstr() { printf '%s' "$*" | tr -d '"\\' | tr '\n\r\t' '   ' | cut -c1-400; }
 
+# printf, not print. `print` formats a number through OFMT, which is "%.6g" -- so on
+# mawk (the awk Debian and Ubuntu ship, and therefore the one this container has) any
+# figure needing more than six significant digits comes back as "8.80274e+11".
+#
+# MEASURED on the Gilead box 2026-09-01: 819GB free produced exactly that string,
+# `[ "$free" -lt "$need" ]` died with "integer expression expected", and because a
+# failed test merely returns non-zero the guard evaluated FALSE and the run carried on.
+# The one check standing between this service and filling a school's disk was inert on
+# any box with more than about a gigabyte free -- which is every box. gawk prints the
+# integer, so no development machine could see it; only the container could.
 free_bytes() {
-  df -Pk "${1:-$BACKUP_DIR}" 2>/dev/null | awk 'NR == 2 { print $4 * 1024 }'
+  df -Pk "${1:-$BACKUP_DIR}" 2>/dev/null | awk 'NR == 2 { printf "%.0f\n", $4 * 1024 }'
 }
 
 file_bytes() { stat -c %s "$1" 2>/dev/null || printf '0'; }
 
-dir_bytes() { du -sk "$1" 2>/dev/null | awk '{ print $1 * 1024 }'; }
+# Same OFMT trap as free_bytes above: a media tree of any real size prints in
+# scientific notation under mawk, and every comparison against it then fails open.
+dir_bytes() { du -sk "$1" 2>/dev/null | awk '{ printf "%.0f\n", $1 * 1024 }'; }
 
 # Every dump on disk, NEWEST FIRST. The stamp is fixed width and the prefix constant,
 # so a reverse lexical sort is a reverse chronological sort, and it does not depend on
@@ -601,8 +613,18 @@ run_backup() {
   nice -n 19 pg_dump --format=custom --compress=6 \
        --lock-wait-timeout="$LOCK_WAIT_MS" 2>"$WORK_DIR/dump.err" \
     | encrypt_to "$tmp"
-  rc_dump="${PIPESTATUS[0]}"
-  rc_enc="${PIPESTATUS[1]}"
+  # PIPESTATUS is rebuilt by EVERY command -- including the assignment on the line
+  # before it. Reading [1] on a second line therefore indexed an array that already
+  # held a single element, and under `set -u` that is a fatal "unbound variable".
+  #
+  # MEASURED on the Gilead box 2026-09-01: the script died between the pipeline and
+  # the check of its exit codes, so no dump was written and `verify` reported "no dump
+  # on this box" -- a backup service that backed nothing up, having just told the
+  # operator to store the passphrase it had generated. Copy the array in ONE command,
+  # and default non-zero so a short array fails CLOSED instead of reading as success.
+  local -a pipe_rc=("${PIPESTATUS[@]}")
+  rc_dump="${pipe_rc[0]:-1}"
+  rc_enc="${pipe_rc[1]:-1}"
   if [ "$rc_dump" != "0" ] || [ "$rc_enc" != "0" ] || [ ! -s "$tmp" ]; then
     rm -f "$tmp" 2>/dev/null
     S_LAST_STATUS="failed"
@@ -709,8 +731,10 @@ run_media() {
   # compressed, so gzip would buy a rounding error and cost the CPU of a mini-PC for
   # an hour. Encrypted, because it leaves the box exactly like the database does.
   nice -n 19 tar -C "$MEDIA_SRC" -cf - . 2>"$WORK_DIR/media.err" | encrypt_to "$tmp"
-  rc_tar="${PIPESTATUS[0]}"
-  rc_enc="${PIPESTATUS[1]}"
+  # Same PIPESTATUS trap as the database dump above; see the note there.
+  local -a pipe_rc=("${PIPESTATUS[@]}")
+  rc_tar="${pipe_rc[0]:-1}"
+  rc_enc="${pipe_rc[1]:-1}"
   if [ "$rc_tar" != "0" ] || [ "$rc_enc" != "0" ] || [ ! -s "$tmp" ]; then
     rm -f "$tmp" 2>/dev/null
     S_MEDIA_STATUS="failed: tar exited $rc_tar, openssl exited $rc_enc"
