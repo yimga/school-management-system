@@ -7,6 +7,7 @@ from django.test import RequestFactory, SimpleTestCase
 from apps.schools.signup_views import _signup_localization_json
 from apps.siteconfig.country_localization_service import resolve_country_pack
 from apps.siteconfig.views_country_localization import country_localization_pack
+from apps.siteconfig.tests._template_nodes import assert_wires
 
 
 class SignupCountryLocalizationBootTests(SimpleTestCase):
@@ -36,9 +37,15 @@ class SignupCountryLocalizationBootTests(SimpleTestCase):
         self.assertEqual(payload["migration"]["country_code"], "CN")
 
     def test_base_template_wires_public_signup_platform_surface(self):
-        base_html = (self.base_path / "templates" / "base.html").read_text(encoding="utf-8")
+        base_template = self.base_path / "templates" / "base.html"
+        base_html = base_template.read_text(encoding="utf-8")
+        # The resolver_match guard is an {% if %} condition -- template code, so
+        # only the source read can see it.
         self.assertIn("request.resolver_match.url_name == 'signup_school'", base_html)
-        self.assertIn("partials/rmc_platform_surface_page_data.html", base_html)
+        # "Wires" is a wiring claim, and a parse settles it: a {% comment %} keeps
+        # the partial's name in base.html's bytes and builds no IncludeNode, which
+        # is precisely a signup page that boots no platform surface.
+        assert_wires(self, base_template, "rmc_platform_surface_page_data.html")
 
     @property
     def base_path(self):

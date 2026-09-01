@@ -12,6 +12,9 @@ from apps.schools.security_packet_country_annex import (
     country_code_for_jurisdiction,
     jurisdiction_choices,
 )
+from apps.siteconfig.tests._template_nodes import assert_wires
+
+_BASE_MARKETING = Path("templates/marketing/base_marketing.html")
 
 
 class SecurityPacketCountryAnnexTests(SimpleTestCase):
@@ -47,9 +50,15 @@ class MarketingLocalContextTemplateTests(SimpleTestCase):
 
     def test_base_marketing_uses_template_safe_is_resolved_key(self):
         text = Path("templates/marketing/base_marketing.html").read_text(encoding="utf-8")
+        # Both of these are the {% if %} CONDITION itself -- template code, which
+        # no parse and no render of the file can see -- so both stay source reads.
         self.assertIn("marketing_local.is_resolved", text)
         self.assertNotIn("marketing_local._resolved", text)
-        # Compile the production {% if %} — Django rejects underscore-prefixed attrs.
+        # What the reads cannot tell is whether that {% if %} still guards
+        # anything. It guards exactly one thing, the local-first band include, and
+        # an {% include %} is what a parse CAN see.
+        assert_wires(self, _BASE_MARKETING, "_local_first_band.html")
+        # Compile the production {% if %}: Django rejects underscore-prefixed attrs.
         rendered = Template(
             "{% if marketing_local.country_code and marketing_local.is_resolved %}ok{% endif %}"
         ).render(
