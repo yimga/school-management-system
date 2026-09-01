@@ -76,11 +76,26 @@ def main() -> int:
         if needle not in _read(rel):
             errors.append(f"{label}: expected `{needle}` in {rel}")
 
-    map_path = REPO / "templates/schools/_v2/_decoration_world_map.svg.html"
-    if map_path.is_file():
+    map_rel = "templates/schools/_v2/_decoration_world_map.svg.html"
+    map_path = REPO / map_rel
+    # Fail closed. This was a bare ``if map_path.is_file():`` with no else,
+    # so a rename or a move deleted both checks below in silence --
+    # measured: with the file moved aside this gate still printed OK. The
+    # two of them hold an accessibility fix (b2499d8ac: the map's labels
+    # were #1F2937 on a cinematic dark ground, illegible), and a check that
+    # disappears along with its subject holds nothing.
+    if not map_path.is_file():
+        errors.append(f"missing world map SVG: {map_rel}")
+    else:
         map_text = map_path.read_text(encoding="utf-8")
-        if "mkt-world-map" not in map_text:
-            errors.append("world map SVG missing mkt-world-map class")
+        # The exact attribute, not a substring. ``"mkt-world-map" in text``
+        # is still true after a rename to mkt-world-map-v2, at which point
+        # the .mkt-world-map rules in marketing-impact.css select nothing --
+        # measured, the gate passed on exactly that mutation. The bare class
+        # appears once in the file; the BEM children carry their own
+        # suffixes and are not what the root rules key off.
+        if 'class="mkt-world-map"' not in map_text:
+            errors.append("world map SVG missing the mkt-world-map root class")
         if "currentColor" not in map_text:
             errors.append("world map SVG labels must use currentColor for theme contrast")
 
@@ -93,6 +108,14 @@ def main() -> int:
             for path in root.rglob("*.html"):
                 if re.search(pattern, path.read_text(encoding="utf-8", errors="replace")):
                     errors.append(f"forbidden pattern ({label}) in {path.relative_to(REPO)}")
+        else:
+            # A root that is neither file nor directory used to fall out of
+            # this loop unchecked. Today that is masked -- REQUIRED_SNIPPETS
+            # names files inside templates/marketing, so deleting it fails
+            # above -- but the hole is in this loop, not in that coincidence.
+            errors.append(
+                f"missing root for forbidden-pattern check ({label}): {root_rel}"
+            )
 
     if errors:
         print("verify_marketing_impact_layer: FAIL", file=sys.stderr)
