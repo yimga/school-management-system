@@ -5,6 +5,7 @@ Ensures all key marketing routes resolve and return 200 on canonical host; landi
 
 import json
 import os
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 from unittest.mock import patch
@@ -18,7 +19,7 @@ from django.test import (
     TransactionTestCase,
     override_settings,
 )
-from django.core.management import call_command
+from django.core.management import call_command, get_commands
 from django.urls import reverse
 
 from apps.schools.marketing_ai import get_marketing_ai_asset_url
@@ -406,11 +407,36 @@ class MarketingPageExtrasTests(MarketingPublicRouteTransactionCase):
                 self.assertContains(resp, "data-mkt-archetype")
 
     def test_platform_student_portal_still_renders_detail_page(self):
+        """The detail page renders with the visual that is ITS OWN.
+
+        This asserted ``mkt-v3-dashboard-frame`` until now and had been red
+        for it. The frame was removed from this page on purpose in
+        b2499d8ac, whose message gives the reason: ``_dashboard_frame`` was
+        being fed a generic artifact that did not match the page it sat on.
+        Here it was ``_artifact_parent_phone_compact`` -- a PARENT's phone
+        under a STUDENT portal heading. Grading, workflows and offline-first
+        lost the same mismatched frame in that commit; only this assertion
+        was left behind, so it has failed ever since while the page was
+        correct. 18 of the 21 type_platform_*.html pages carry no dashboard
+        frame at all, so its presence was never the detail-page contract.
+
+        Re-pointed at the purpose-built student SVG that replaced it. The
+        negative pins the defect rather than the removal: a dashboard frame
+        may legitimately come back, but not one showing a parent's phone.
+        """
         resp = self.client.get("/platform/student-portal/", HTTP_HOST=self.host)
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "data-mkt-archetype")
         self.assertContains(resp, "mkt-page-platform-student-portal")
-        self.assertContains(resp, "mkt-v3-dashboard-frame")
+        self.assertContains(resp, "data-mkt-platform-visual")
+        # No ".svg": a hashed static URL carries a digest before the
+        # extension, and this must hold under either storage backend.
+        self.assertContains(resp, "platform-student-self-service")
+        self.assertNotContains(
+            resp,
+            "parent-phone-compact-title",
+            msg_prefix="the student portal is showing a parent's phone again",
+        )
 
 
 class MarketingJsonLoaderTests(SimpleTestCase):
@@ -836,7 +862,31 @@ class DeveloperHubPublicUrlconfTests(MarketingPublicRouteTransactionCase):
             resp = Client().get("/developer-portal/sandbox/", HTTP_HOST="runmycampus.com")
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "developer-app-sandbox-frame")
-        self.assertContains(resp, "ensure_demo_environment")
+        # This asserted ``ensure_demo_environment`` and had been red for it.
+        # 734de5226 changed the slab to ``ensure_developer_sandbox_tenant`` --
+        # a purpose-built command that provisions the sandbox tenant, and
+        # added an 'Open sandbox tenant' link beside it -- without updating
+        # the test. The page was right; the assertion was stale.
+        #
+        # Asserting the new NAME would only move the staleness one rename
+        # along. The page hands a developer a line to paste, so the contract
+        # is that the line RUNS: every manage.py command printed here is
+        # read back off the rendered page and looked up in the real command
+        # registry. Now a rename fails whichever side moves first.
+        printed = re.findall(r"manage\.py ([a-z_][a-z0-9_]+)", resp.content.decode())
+        self.assertTrue(
+            printed, "the sandbox page no longer shows a command to run"
+        )
+        registry = get_commands()
+        for name in sorted(set(printed)):
+            with self.subTest(command=name):
+                self.assertIn(
+                    name,
+                    registry,
+                    f"/developer-portal/sandbox/ tells a developer to run "
+                    f"manage.py {name}, which is not a management command",
+                )
+        self.assertIn("ensure_developer_sandbox_tenant", printed)
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
