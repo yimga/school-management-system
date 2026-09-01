@@ -40,6 +40,13 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-08-31. The marketing axe ratchet reports zero for two very
+    # different reasons -- the surface is clean, or the sweep is not looking at
+    # it -- and in CI those are indistinguishable. This coverage gate asserts
+    # the sweep's page list still covers every path the two marketing specs
+    # cover, that its baseline exists and is well-formed, and that a workflow
+    # actually invokes it.
+    ("scripts/verify_marketing_axe_ratchet_coverage.py", "architectural-boundaries.yml"),
     # Added 2026-08-22: a repeated key in a dict literal is silently collapsed by
     # Python -- last value wins, the earlier entry simply is not there. The
     # workflow registry declared parent-portal-pay-all twice and the surviving copy

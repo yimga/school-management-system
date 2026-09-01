@@ -257,6 +257,16 @@ GATES: list[tuple[str, list[str]]] = [
     # scan_rls_table_coverage had exactly that shape. This is the general form,
     # so the next scanner written that way is caught by structure.
     ("ratchet-baselines-present", ["verify_ratchet_baselines_present.py"]),
+    # The always-on half of the marketing axe ratchet. The ratchet itself needs
+    # a browser and ~3.5 min for 54 page-views, so it is a workflow
+    # (marketing-axe-ratchet.yml) and deliberately NOT run here -- nobody should
+    # wait that long on every push. This gate is stdlib-only and sub-second, and
+    # it guards the one thing the sweep cannot check about itself: that it still
+    # scans every marketing page. It was written because the sweep, built
+    # against one spec's 15-path list, reported the surface CLEAN while
+    # /platform/analytics/ and /platform/security/ were failing color-contrast
+    # at 1.08:1 -- pages the OTHER spec covered and this one did not.
+    ("marketing-axe-ratchet-coverage", ["verify_marketing_axe_ratchet_coverage.py"]),
     # An audit log that can be edited is not an audit log. The first version of
     # this guard matched the LAST TWO names of the attribute chain, so it only
     # saw a bare `AuditLog.objects.update()` -- a form that is not valid Django

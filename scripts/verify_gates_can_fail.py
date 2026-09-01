@@ -731,6 +731,21 @@ MUTATIONS["gates-can-fail-coverage"] = Mutation(
     ),
 )
 
+MUTATIONS["marketing-axe-ratchet-coverage"] = Mutation(
+    kind="patch",
+    path="scripts/run_marketing_axe_sweep.mjs",
+    defect=(
+        "a page quietly dropped from the axe sweep's PAGES list - the sweep "
+        "then reports the marketing surface CLEAN for the same reason a broken "
+        "detector does, and in CI the two are indistinguishable. This is not "
+        "hypothetical: the sweep was built against one spec's 15-path list and "
+        "reported zero while /platform/analytics/ and /platform/security/ were "
+        "failing color-contrast at 1.08:1 on both viewports"
+    ),
+    anchor=b'"/platform/security/",',
+    replacement=b"// gateproof: page removed from the sweep",
+)
+
 MUTATIONS["ci-shell-command-integrity"] = Mutation(
     kind="create",
     path=f"scripts/{_PROOF}_truncated.sh",

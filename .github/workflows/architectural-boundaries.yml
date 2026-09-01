@@ -432,6 +432,18 @@ jobs:
             python scripts/verify_ratchet_baselines_present.py
           }
 
+          # The marketing axe ratchet reports zero for two different reasons --
+          # the surface is clean, or the sweep is not looking at it -- and in CI
+          # they are indistinguishable. The sweep was built against one spec's
+          # 15-path list and reported the marketing surface CLEAN while
+          # /platform/analytics/ and /platform/security/ were failing
+          # color-contrast at 1.08:1 on both viewports. Stdlib-only and
+          # sub-second; the browser sweep itself lives in
+          # marketing-axe-ratchet.yml because it costs ~3.5 min.
+          u_marketing_axe_ratchet_coverage() {
+            python scripts/verify_marketing_axe_ratchet_coverage.py
+          }
+
           # The previous matcher only saw a bare AuditLog.objects.update(),
           # which is not valid Django, so this gate could only print PASS.
           u_audit_log_append_only() {
@@ -1112,6 +1124,7 @@ jobs:
           run_unit u_platform_pillar_gates "Platform pillars: middleware order, tenant cache, list search"
           run_unit u_theme_visibility_platform "Theme visibility: shell wiring + main-content utility baseline"
           run_unit u_ratchet_baselines_present "Detector integrity: every --compare gate has a committed baseline"
+          run_unit u_marketing_axe_ratchet_coverage "Detector integrity: the marketing axe sweep still scans every marketing page"
           run_unit u_audit_log_append_only "Detector integrity: AuditLog is append-only outside a declared allowlist"
           run_unit u_sms_template_length "SMS bodies fit one carrier segment (reads the template catalog)"
           run_unit u_undefined_color_token_fallback "CSS: no colour declaration collapses on an undeclared token"

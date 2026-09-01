@@ -1,0 +1,122 @@
+name: Marketing axe ratchet
+
+# Enforcing browser sweep of the whole public marketing surface with axe-core.
+#
+# What it ratchets, and what it deliberately does not:
+#   * failing PAGE COUNT — stable, and the number a reader actually cares about
+#   * the set of failing (rule, foreground, background) COLOUR PAIRS — a
+#     property of the stylesheet, not of when axe sampled
+#   * NOT the raw violation node total. Two runs of the same tree previously
+#     returned 476 and 293 nodes because the reveal animations
+#     ([data-mkt-reveal] -> .is-revealed) change what axe sees. Ratcheting a
+#     number that moves on its own produces a gate people learn to ignore.
+#
+# Cost: ~3.5 min of browser time for 54 page-views, plus dependency install and
+# the Django boot — roughly a 10-12 min job. That is why it is a workflow and
+# NOT part of scripts/pre_push_boundary_check.py: nobody should wait that long
+# on every push. The cheap always-on half is
+# scripts/verify_marketing_axe_ratchet_coverage.py, which is stdlib-only, runs
+# in well under a second, and guards the one thing this job cannot check about
+# itself — that it is still scanning every marketing page.
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    paths:
+      - "templates/marketing/**"
+      - "templates/schools/marketing_*.html"
+      - "templates/components/rmc_brand_mark.html"
+      - "static/marketing/**"
+      - "static/css/**"
+      - "apps/schools/marketing_views.py"
+      - "apps/schools/marketing_personality.py"
+      - "scripts/run_marketing_axe_sweep.mjs"
+      - "scripts/run_marketing_axe_ratchet.sh"
+      - "var/a11y-marketing-axe-baseline.json"
+      - ".github/workflows/marketing-axe-ratchet.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  axe-ratchet:
+    name: axe ratchet (27 paths x 2 viewports)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SECRET_KEY: "ci-marketing-axe-ratchet-not-production-64chars_____________"
+      ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
+      VISUAL_QA_PORT: "8010"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          npm ci
+
+      - name: Coverage guard (does the sweep still scan every marketing page?)
+        run: python scripts/verify_marketing_axe_ratchet_coverage.py
+
+      - name: Install Playwright Chromium
+        run: node node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Migrate
+        run: python manage.py migrate --noinput
+
+      - name: Map runmycampus.com to 127.0.0.1
+        # The marketing surface is host-scoped, so a bare 127.0.0.1 origin
+        # resolves a DIFFERENT urlconf and the sweep would scan the wrong pages.
+        run: sudo bash -c "echo '127.0.0.1 runmycampus.com' >> /etc/hosts"
+
+      - name: Axe ratchet
+        # No `|| true`, no continue-on-error, and no pipe into tail — a pipeline
+        # reports the PIPE's exit code and a failing sweep would announce
+        # success.
+        run: bash scripts/run_marketing_axe_ratchet.sh
+
+      - name: Measured contrast regression spec
+        # The direct-measurement companion. axe returns color-contrast as
+        # INCOMPLETE (not a violation) wherever a background image or gradient
+        # stops it resolving the backdrop — 2302 such nodes on this surface — so
+        # a clean sweep is necessary but not sufficient.
+        env:
+          MARKETING_BASE_URL: http://runmycampus.com:8010
+        run: |
+          nohup env SECURE_SSL_REDIRECT=0 DEBUG=1 \
+            python manage.py runserver 127.0.0.1:8010 --noreload \
+            > artifacts/a11y/runserver-spec.log 2>&1 &
+          for i in $(seq 1 45); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: runmycampus.com' http://127.0.0.1:8010/ || true)
+            [ "$code" = "200" ] && break
+            sleep 2
+          done
+          node node_modules/playwright/cli.js test \
+            tests/e2e/marketing-contrast-tokens.spec.js \
+            --project=marketing-chromium --reporter=line
+
+      - name: Upload sweep report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: marketing-axe-sweep
+          path: |
+            artifacts/a11y
+            test-results
+          if-no-files-found: ignore
+          retention-days: 1 # Strict storage hygiene — never default 90d
