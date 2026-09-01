@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import datetime
+import uuid
+from decimal import Decimal
 from typing import Any
 
 from django.db.models import Q
@@ -48,6 +51,29 @@ def unwrap_value(value_json: Any) -> Any:
 
 
 def wrap_value(value: Any) -> dict[str, Any]:
+    """Wrap a value for the ``value_json`` JSONField.
+
+    Values arrive from callers typed by the field's ``data_type``, and two of
+    the five declared types are NOT JSON-serializable: ``date`` yields a
+    ``datetime.date`` from the form's DateField, and ``number`` yields a
+    ``Decimal`` on any direct service call. Handing either to the JSONField
+    raises ``TypeError: Object of type date is not JSON serializable`` at
+    INSERT time -- so declaring a runtime custom field of type ``date`` and
+    saving a value to it was a 500, on a data type the model's own choices
+    advertise and the form layer builds a real DateField for.
+
+    JSON has no date or decimal type, so the durable representations are
+    ISO-8601 and float. ISO-8601 round-trips back into a ``DateField``
+    initial unchanged, and renders as the date on a detail page.
+    """
+    if isinstance(value, datetime.datetime):
+        return {"v": value.isoformat()}
+    if isinstance(value, (datetime.date, datetime.time)):
+        return {"v": value.isoformat()}
+    if isinstance(value, Decimal):
+        return {"v": float(value)}
+    if isinstance(value, uuid.UUID):
+        return {"v": str(value)}
     return {"v": value}
 
 

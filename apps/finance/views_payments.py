@@ -1151,6 +1151,36 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     # legitimate signed callback on an invoice with any reversed history was
     # rejected 400 "exceeds remaining balance 0" — and past the dead-letter
     # threshold the endpoint started acking 200 and dropping the money.
+    # Idempotency outranks amount validation. A redelivery of an event that
+    # already SETTLED this invoice has nothing left to allocate, so the
+    # validate_against_invoice call below computes remaining == 0 and answers
+    # HTTP 400 "exceeds remaining balance 0" -- a permanent 4xx that every PSP
+    # reads as "keep retrying", forever, for an event we already processed
+    # correctly. The dedup claim that WOULD have acked it 200 sits further
+    # down and is never reached on that path. So probe the bucket read-only
+    # here, before any amount arithmetic: when a terminal log already owns it
+    # this delivery is a replay, and the only correct answer is the duplicate
+    # ack. A first delivery owns no terminal row and is unaffected; the
+    # in-flight (PROCESSING) race is still resolved by claim_webhook_processing.
+    if dedup_reference:
+        from apps.finance.webhook_ingress import duplicate_webhook_response
+        from apps.finance.webhooks.idempotency import find_processed_duplicate
+
+        if find_processed_duplicate(provider_code, dedup_reference) is not None:
+            _create_webhook_log(
+                reference_id=reference_id,
+                signature_valid=True,
+                status=WebhookLog.Status.DUPLICATE,
+                response_status=200,
+                invoice=invoice,
+            )
+            logger.info(
+                "Duplicate webhook from %s: %s (already terminal; not re-validated)",
+                provider_slug,
+                dedup_reference,
+            )
+            return duplicate_webhook_response()
+
     invoice_paid = invoice.total_amount - invoice.computed_balance
     is_valid, error_msg = PaymentValidator.validate_against_invoice(
         Decimal(str(amount)),

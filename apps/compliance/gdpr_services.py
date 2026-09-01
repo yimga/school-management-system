@@ -373,6 +373,15 @@ def _student_core_payload(student) -> dict[str, Any]:
         "id": student.pk,
         "first_name": student.first_name,
         "last_name": student.last_name,
+        # parent_phone and place_of_birth are Personal Data by this module's
+        # OWN classification -- gdpr_scrub_student blanks both under Art.17.
+        # Omitting them from the Art.15/Art.20 export was an internal
+        # contradiction: the platform asserted "this is your personal data,
+        # we will erase it" while the subject access response said it did not
+        # exist. Both now travel the same DLP redaction path as every other
+        # field in this payload.
+        "parent_phone": student.parent_phone,
+        "place_of_birth": student.place_of_birth,
         "student_code": student.student_code,
         "admission_number": student.admission_number,
         "gender": student.gender,
