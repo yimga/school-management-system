@@ -717,6 +717,29 @@ MUTATIONS["gates-can-fail-coverage"] = Mutation(
     ),
 )
 
+MUTATIONS["ci-shell-command-integrity"] = Mutation(
+    kind="create",
+    path=f"scripts/{_PROOF}_truncated.sh",
+    defect=(
+        "a backslash continuation followed by a blank line - the shell joins the "
+        "backslash with the EMPTY line, so the command ends there and every "
+        "remaining argument is parsed as its own command"
+    ),
+    # Trips both arms at once: the truncation, and the bare `manage.py test`
+    # the truncation leaves behind.
+    #
+    # ONE backslash byte, written as `\\` in a bytes literal. Two would be an
+    # ESCAPED backslash to the shell -- a literal character, not a line
+    # continuation -- so the planted file would carry no defect and the harness
+    # would report this gate DEAD when it is working perfectly.
+    content=(
+        b"#!/bin/sh" + chr(10).encode()
+        + b"python manage.py test \\" + chr(10).encode()
+        + chr(10).encode()
+        + b"    apps.schools.tests.test_gateproof" + chr(10).encode()
+    ),
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",

@@ -292,6 +292,18 @@ GATES: list[tuple[str, list[str]]] = [
     # zero, and nothing invoked it before.
     ("finance-payment-atomicity", ["verify_finance_payment_atomicity.py"]),
 
+    # A CI command that cannot run what it names (2026-08-31). Two shapes,
+    # both invisible in review, both able to show a pipeline that executed
+    # nothing: a backslash continuation followed by a BLANK line (the shell
+    # joins the backslash with the empty line, so the command ends there),
+    # and a bare `manage.py test` (no discovery root -> ImportError at
+    # discovery, before any test runs). The first had silently disabled the
+    # Postgres proof for 24 test modules in django-tests-postgres.yml --
+    # booking, inventory, substitute matching, discipline routing, report-card
+    # e2e, DR restore, CRDT live-rail convergence, residency border-lock and
+    # five N+1 query-count suites. Wired on measurement: 780 ms.
+    ("ci-shell-command-integrity", ["scan_ci_shell_command_integrity.py"]),
+
     # --- the meta-gate above the meta-gate (2026-08-28) ----------------------
     # verify_ci_gate_wiring proves a gate is INVOKED. Nothing proved a gate,
     # once invoked, DOES anything -- and three gates in this very list were

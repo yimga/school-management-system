@@ -8,10 +8,22 @@ name: Django tests
 
 on:
   push:
-    branches: [main]
+    # `improvements` added 2026-08-31. ci.yml named that branch and carried
+    # the only suite run for it -- a run that crashed at discovery and so
+    # never executed a test. Naming it here makes the coverage real.
+    branches: [main, improvements]
   pull_request:
-    branches: [main]
+    branches: [main, improvements]
   workflow_dispatch: {}
+
+# Added 2026-08-31. Without a concurrency group a superseded run bills in
+# full, and this repo takes hundreds of commits a week. Cancelling an
+# obsolete run removes no enforcement -- the tip of the branch still runs
+# every job. Same group/cancel pair peers already use in
+# django-tests-postgres.yml and tenants-rls.yml.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   django-tests:

@@ -17,7 +17,11 @@ Write-Host "[run_tests_pre_commit] Django check" -ForegroundColor Cyan
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "[run_tests_pre_commit] Full test suite (parallel 4)..." -ForegroundColor Cyan
-& $python manage.py test --verbosity=1 --parallel 4
+# Scoped to the Django roots. A bare `manage.py test` discovers from '.',
+# reaches emis/tests -- a bare `tests` package under a non-app root -- and
+# raises ImportError at DISCOVERY, so the script failed without running a
+# single test. Same label set as .github/workflows/django-tests.yml.
+& $python manage.py test apps config services payment.tests emis.tests --verbosity=1 --parallel 4
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "[run_tests_pre_commit] PASSED" -ForegroundColor Green

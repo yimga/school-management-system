@@ -21,6 +21,7 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/scan_ci_shell_command_integrity.py"
       - "scripts/scan_admin_registered_on_unmounted_site.py"
       - "scripts/lint_broad_except.py"
       - "scripts/allowlists/broad_except_allowlist.json"
@@ -200,6 +201,15 @@ defaults:
   run:
     working-directory: .
 
+# Added 2026-08-31. Without a concurrency group a superseded run bills in
+# full, and this repo takes hundreds of commits a week. Cancelling an
+# obsolete run removes no enforcement -- the tip of the branch still runs
+# every job. Same group/cancel pair peers already use in
+# django-tests-postgres.yml and tenants-rls.yml.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # These two jobs were 108 separate jobs until 2026-08-23. Actions bills per
   # JOB rounded up to the minute, so 108 scanners taking 1-6s each cost >=108
@@ -320,8 +330,22 @@ jobs:
           u_duplicate_dict_keys() {
             python scripts/scan_duplicate_dict_keys.py --strict
             python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
+          }
+
+          # Split out of u_duplicate_dict_keys on 2026-08-31. It is an
+          # unrelated gate, and a unit body runs under `set -e`: a dict-key
+          # failure meant this scan never ran, and a failure it did report
+          # was announced under the dict-key label. One former job, one unit.
+          u_admin_unmounted_site() {
             python scripts/scan_admin_registered_on_unmounted_site.py --compare
             python -m unittest scripts.tests.test_scan_admin_registered_on_unmounted_site -v
+          }
+
+          # A shell line continuation followed by a BLANK line truncates the
+          # command; a bare `manage.py test` dies at Django discovery. Either
+          # way the step reports on work it never did.
+          u_ci_shell_command_integrity() {
+            python scripts/scan_ci_shell_command_integrity.py
           }
 
           u_operator_landing_header_order() {
@@ -831,6 +855,8 @@ jobs:
           run_unit u_orchestrator_prompt_pack "Orchestrator agent prompt pack completeness"
           run_unit u_broad_except_baseline "No new broad except in high-risk paths"
           run_unit u_control_plane_registry_drift "Every control-plane page is registered or exempt"
+          run_unit u_admin_unmounted_site "Every registered admin is mounted on a reachable site"
+          run_unit u_ci_shell_command_integrity "Every CI command can run what it names"
 
           if [ -n "$failed" ]; then
             echo ""

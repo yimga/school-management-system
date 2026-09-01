@@ -7,9 +7,22 @@ on:
   pull_request:
     branches: [main, improvements]
 
+# Added 2026-08-31. Without a concurrency group a superseded run bills in
+# full, and this repo takes hundreds of commits a week. Cancelling an
+# obsolete run removes no enforcement -- the tip of the branch still runs
+# every job. Same group/cancel pair peers already use in
+# django-tests-postgres.yml and tenants-rls.yml.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   django-tests:
     runs-on: ubuntu-latest
+    # Was unbounded, so a hung step billed until GitHub's 6-hour default.
+    # This job is a gate runner (the suite lives in django-tests.yml); its
+    # scanners are minutes, not hours.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -123,8 +136,22 @@ jobs:
         # Catalog ids reverse on tenant + manager urlconfs; static wiring is
         # also gated in architectural-boundaries.yml.
         run: python scripts/verify_nav_engine_coverage.py
-      - name: Run Django tests
-        run: python manage.py test --noinput -v 0
+      # The `Run Django tests` step was REMOVED on 2026-08-31. It ran
+      # `python manage.py test --noinput -v 0` -- a BARE label set, which
+      # sends Django's unittest loader discovering from '.'. That reaches
+      # emis/tests (a bare `tests` package under a non-app root) and raises
+      # ImportError at DISCOVERY, before a single test runs. Proven at
+      # 366609085 by building the suite both ways: bare crashes with
+      # "'tests' module incorrectly imported from .../emis/tests"; the
+      # scoped labels collect 21,327 tests. Broken since emis/tests landed
+      # on 2026-05-29 -- so this step's last useful run was in May.
+      #
+      # The suite itself is NOT lost: django-tests.yml runs the working,
+      # scoped form on the same push/PR triggers, and this change adds the
+      # `improvements` branch there, which only ci.yml used to name. That
+      # branch gets a real suite run for the first time. Restoring a second
+      # full run here would duplicate a 110-minute job on every push, which
+      # is the cost problem this repo already has.
 
   # The a11y-lighthouse job was REMOVED on 2026-08-22. All three of its steps
   # carried continue-on-error, and none of them could have reported a failure
