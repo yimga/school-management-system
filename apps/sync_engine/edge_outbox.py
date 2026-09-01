@@ -170,7 +170,7 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
     an advanced cursor.)
     """
     from apps.api.sync_services import _get_entity_config  # SOT: (model, allowed fields)
-    from apps.sync_engine.models import _MISSING, sync_echo_updated_at_map
+    from apps.sync_engine.models import _MISSING, sync_apply_provenance_map
 
     # Building a delta bundle is always an EDGE sync operation (box push / operator
     # serving a pull), so it uses the full two-way registry.
@@ -190,11 +190,18 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
         qs = model._default_manager.filter(school=school)  # school= is the tenant-isolation kwarg
         if since is not None:
             qs = qs.filter(updated_at__gt=since)
-        # Echo-suppression: a row whose current updated_at still equals what SYNC last
-        # wrote (recorded in the ledger) is a pure echo of an inbound apply — skip it so
-        # a pulled/pushed row never ping-pongs back. A later LOCAL edit moves updated_at
-        # off the recorded value, so genuine changes still ship. See SyncApplyLedger.
-        echo = sync_echo_updated_at_map(school, entity_type)
+        # BOTH provenance stamps, one query. They answer different questions and are not
+        # interchangeable — see SyncApplyLedger:
+        #
+        #   applied_updated_at (echo)  — OUR stamp after the last sync write here. A row
+        #       whose current updated_at still equals it is a pure echo of an inbound
+        #       apply; skip it so a pulled/pushed row never ping-pongs back. A later LOCAL
+        #       edit moves updated_at off the recorded value, so genuine changes ship.
+        #   peer_updated_at (causality) — THEIR stamp on the version we took. Shipped
+        #       below as this row's `base_updated_at` so the receiver can ask "did I move
+        #       on since the version this edit descends from" instead of comparing its
+        #       clock against an appliance's.
+        provenance = sync_apply_provenance_map(school, entity_type)
         n = 0
         for instance in qs.order_by("updated_at").iterator():
             updated_at = getattr(instance, "updated_at", None)
@@ -205,21 +212,40 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
             # A later GENUINE edit still ships: it gets a strictly greater updated_at.
             if updated_at and (high_water is None or updated_at > high_water):
                 high_water = updated_at
-            applied = echo.get(str(instance.pk), _MISSING)
+            applied, peer_updated_at = provenance.get(str(instance.pk), (_MISSING, None))
             if applied is not _MISSING and applied == updated_at:
                 continue  # unchanged since sync wrote it → echo
             changes = {f: getattr(instance, f) for f in sorted(allowed) if hasattr(instance, f)}
-            rows.append(
-                {
-                    "entity_type": entity_type,
-                    "id": instance.pk,
-                    # Non-empty only for records created offline on this box; the operator
-                    # upserts those by (school, client_offline_id) instead of by pk.
-                    "client_offline_id": getattr(instance, "client_offline_id", "") or "",
-                    "changes": changes,
-                    "updated_at": updated_at.isoformat() if updated_at else None,
-                }
-            )
+            row = {
+                "entity_type": entity_type,
+                "id": instance.pk,
+                # Non-empty only for records created offline on this box; the operator
+                # upserts those by (school, client_offline_id) instead of by pk.
+                "client_offline_id": getattr(instance, "client_offline_id", "") or "",
+                "changes": changes,
+                "updated_at": updated_at.isoformat() if updated_at else None,
+            }
+            # CAUSALITY TOKEN. The version of the RECEIVER's row that this edit descends
+            # from, which is precisely the stamp their copy carried when we last applied
+            # it. With it the receiver's `_conflict_decision` stops racing two wall clocks
+            # — one of which belongs to an appliance with no time source and is
+            # systematically ahead — and asks the question that actually defines a
+            # concurrent write.
+            #
+            # ABSENT MEANS ABSENT. The key is OMITTED, never sent as null, when this side
+            # has never applied the receiver's version of this row (a locally created row,
+            # a row from the provisioning clone, or any row written before this column
+            # existed). A receiver on an older build ignores the key it does not read; a
+            # receiver on a new build sees no key, parses None, and grades by the old
+            # wall-clock rules. The mixed fleet degrades to exactly today's behaviour in
+            # both directions, and neither side has to know the other's version.
+            #
+            # It is emitted ONLY from a stamp recorded on an APPLY, so it can never claim
+            # descent from an edit this side refused — which would be the silent overwrite
+            # the whole change exists to stop.
+            if peer_updated_at is not None:
+                row["base_updated_at"] = peer_updated_at.isoformat()
+            rows.append(row)
             # Sort key kept alongside as a real datetime, then stripped below. Sorting the
             # ISO STRING would only be chronological while every row shares one UTC offset,
             # and a mis-ordered page boundary is a mis-placed cursor — i.e. skipped rows.
@@ -234,6 +260,12 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
     # cursor position. Emitting them here rather than through a channel of their own is
     # what makes deletion inherit - for free - the paging, signing, cursor, directive and
     # replay machinery the row rail already has. See apps.sync_engine.tombstones.
+    #
+    # Tombstones carry NO `base_updated_at`, deliberately. The delete path grades with
+    # `_conflict_decision(entity_type, sync_origin, deleted_at, None)` — a null server_dt,
+    # so the causal branch (which needs both a base and a server version) can never fire
+    # and a token there would be a claim nothing reads. Delete dominance is settled
+    # against the tombstone's own timestamp instead; see `apply_deletes`.
     from apps.sync_engine.tombstones import DELETE_OP, iter_tombstone_rows
 
     tomb_rows, tomb_high_water = iter_tombstone_rows(school, since=since, entities=entities)
