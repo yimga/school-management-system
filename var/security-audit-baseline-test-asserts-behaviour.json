@@ -1,6 +1,18 @@
 {
-  "finding_count": 143,
+  "finding_count": 188,
+  "measured": {
+    "population": 385,
+    "measured": 255,
+    "vacuous": 188,
+    "sound": 67,
+    "unmeasurable": 130
+  },
   "vacuous": [
+    {
+      "id": "apps.accounts.tests.test_cockpit_ui_contract_2026_08_02.AppearanceStripCollapseTests.test_style_strip_collapses_chips_behind_disclosure",
+      "file": "apps/accounts/tests/test_cockpit_ui_contract_2026_08_02.py",
+      "template": "templates/partials/tenant/setup_dashboard_style_strip.html"
+    },
     {
       "id": "apps.accounts.tests.test_cockpit_ui_contract_2026_08_02.ChecklistButtonContractTests.test_partial_renders_checklist_button_with_icon",
       "file": "apps/accounts/tests/test_cockpit_ui_contract_2026_08_02.py",
@@ -10,6 +22,11 @@
       "id": "apps.accounts.tests.test_cockpit_ui_contract_2026_08_02.SeasonHintContrastTests.test_season_hint_drops_text_muted",
       "file": "apps/accounts/tests/test_cockpit_ui_contract_2026_08_02.py",
       "template": "templates/accounts/backend_dashboard.html"
+    },
+    {
+      "id": "apps.accounts.tests.test_cross_host_admin_reverse.CertificationTemplateGuardsEmptyUrlsTests.test_admin_buttons_are_wrapped_in_existence_checks",
+      "file": "apps/accounts/tests/test_cross_host_admin_reverse.py",
+      "template": "templates/accounts/certification_home.html"
     },
     {
       "id": "apps.accounts.tests.test_login_front_door_12_contract.LoginFrontDoorTwelveContractTests.test_offline_enrollment_and_unlock_are_both_wired",
@@ -27,9 +44,19 @@
       "template": "templates/auth/login.html"
     },
     {
+      "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_every_operator_and_tenant_login_boundary_declares_local_first_policy",
+      "file": "apps/accounts/tests/test_login_immersive_context.py",
+      "template": "templates/auth/admin_login.html"
+    },
+    {
       "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_login_template_includes_canvas_partial",
       "file": "apps/accounts/tests/test_login_immersive_context.py",
       "template": "templates/auth/login.html"
+    },
+    {
+      "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_upgrade_modal_placeholder_exists",
+      "file": "apps/accounts/tests/test_login_immersive_context.py",
+      "template": "templates/components/upgrade_modal_placeholder.html"
     },
     {
       "id": "apps.accounts.tests.test_quiet_header_approval_contract.QuietHeaderApprovalContractTests.test_finance_primary_and_help_panel_contract",
@@ -47,9 +74,19 @@
       "template": "templates/components/rmc_operator_workspace_dropdown.html"
     },
     {
+      "id": "apps.accounts.tests.test_setup_command_surface.SetupCommandSurfaceContractTests.test_dashboard_wires_partial_and_stylesheet",
+      "file": "apps/accounts/tests/test_setup_command_surface.py",
+      "template": "templates/accounts/backend_dashboard.html"
+    },
+    {
       "id": "apps.accounts.tests.test_staff_workflow_portal_2026_08_05.StaffWorkflowRoutingTests.test_nav_has_staff_workflow_pill",
       "file": "apps/accounts/tests/test_staff_workflow_portal_2026_08_05.py",
       "template": "templates/partials/tenant_primary_nav.html"
+    },
+    {
+      "id": "apps.accounts.tests.test_tenant_admin_header_chrome.TenantAdminBootstrapAsymmetryTests.test_tenant_admin_header_includes_the_utilities_dropdown",
+      "file": "apps/accounts/tests/test_tenant_admin_header_chrome.py",
+      "template": "templates/components/admin_nav_bridge.html"
     },
     {
       "id": "apps.accounts.tests.test_tenant_admin_header_chrome.UtilitiesMenuOwnsItsGeometryTests.test_template_relies_on_the_show_class_contract",
@@ -67,6 +104,16 @@
       "template": "templates/partials/tenant/setup_command_surface.html"
     },
     {
+      "id": "apps.accounts.tests.test_workflow_center_link_visibility.EmptyStepRendersAnExplanationTests.test_step_link_loop_has_an_empty_branch",
+      "file": "apps/accounts/tests/test_workflow_center_link_visibility.py",
+      "template": "templates/accounts/partials/workflow_center_main.html"
+    },
+    {
+      "id": "apps.apicenter.tests.test_developer_ecosystem_readiness.DeveloperEcosystemReadinessTests.test_developer_templates_cover_onboarding_webhooks_review_and_sandbox",
+      "file": "apps/apicenter/tests/test_developer_ecosystem_readiness.py",
+      "template": "templates/apicenter/api_portal_docs.html"
+    },
+    {
       "id": "apps.billing.tests.test_holding_rollup_operator.HoldingRollupOperatorWiringTests.test_billing_dashboard_links_rollups",
       "file": "apps/billing/tests/test_holding_rollup_operator.py",
       "template": "templates/schools/billing_dashboard.html"
@@ -77,6 +124,11 @@
       "template": "templates/schools/holding_currency_rollup_dashboard.html"
     },
     {
+      "id": "apps.billing.tests.test_package_billing_world_class_ux.PackageBillingWorldClassUXTests.test_pricing_packages_show_billing_impact_preview",
+      "file": "apps/billing/tests/test_package_billing_world_class_ux.py",
+      "template": "templates/marketing/pricing_packages.html"
+    },
+    {
       "id": "apps.evals.tests.test_plickers_card_sweep_wiring.PlickersCardSweepWiringTests.test_marks_entry_loads_proposal_only_camera_runtime",
       "file": "apps/evals/tests/test_plickers_card_sweep_wiring.py",
       "template": "templates/teacher/marks_entry.html"
@@ -85,6 +137,16 @@
       "id": "apps.feedback.tests.test_helpful_vote_telemetry_wiring.HelpfulVoteTelemetryWiringTests.test_component_posts_to_contextual_feedback",
       "file": "apps/feedback/tests/test_helpful_vote_telemetry_wiring.py",
       "template": "templates/components/was_this_helpful.html"
+    },
+    {
+      "id": "apps.marketplace.tests.test_app_catalog_apple_class_ux.AppCatalogAppleClassUXTests.test_platform_and_tenant_catalogs_show_permission_scope_visuals",
+      "file": "apps/marketplace/tests/test_app_catalog_apple_class_ux.py",
+      "template": "templates/marketplace/app_catalog.html"
+    },
+    {
+      "id": "apps.marketplace.tests.test_marketplace_partner_readiness.MarketplacePartnerReadinessTests.test_marketplace_governance_explains_review_revenue_share_and_kill_switches",
+      "file": "apps/marketplace/tests/test_marketplace_partner_readiness.py",
+      "template": "templates/marketplace/governance_console.html"
     },
     {
       "id": "apps.marketplace.tests.test_tenant_app_catalog_approval.TenantAppCatalogApprovalSourceTests.test_approved_catalog_structure_replaces_legacy_proof_hero",
@@ -167,6 +229,31 @@
       "template": "templates/components/ai_guided_assistant_card.html"
     },
     {
+      "id": "apps.platform_runtime.tests.test_apple_class_component_contracts.AppleClassComponentContractTests.test_direct_manipulation_and_accessibility_contracts",
+      "file": "apps/platform_runtime/tests/test_apple_class_component_contracts.py",
+      "template": "templates/components/apple_class_data_quality_meter.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_configuration_apple_class_experience.ConfigurationAppleClassExperienceTests.test_configuration_console_has_grouped_depth_model",
+      "file": "apps/platform_runtime/tests/test_configuration_apple_class_experience.py",
+      "template": "templates/platform_runtime/configuration_center.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_configuration_center_world_class_experience.ConfigurationCenterWorldClassExperienceTests.test_configuration_center_groups_modules_with_readiness_and_actions",
+      "file": "apps/platform_runtime/tests/test_configuration_center_world_class_experience.py",
+      "template": "templates/platform_runtime/configuration_center.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_governed_installation_apple_class_ux.GovernedInstallationAppleClassTests.test_governed_surfaces_show_visual_flow_and_dependencies",
+      "file": "apps/platform_runtime/tests/test_governed_installation_apple_class_ux.py",
+      "template": "templates/platform_runtime/change_requests.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_governed_installation_ux_flow.GovernedInstallationUXFlowTests.test_tenant_install_surfaces_do_not_expose_platform_only_route",
+      "file": "apps/platform_runtime/tests/test_governed_installation_ux_flow.py",
+      "template": "templates/platform_runtime/tenant_blueprint_setup.html"
+    },
+    {
       "id": "apps.platform_runtime.tests.test_guided_action_surface_contract.GuidedActionSurfaceContractTests.test_api_center_instruction_is_not_rendered_as_plain_text",
       "file": "apps/platform_runtime/tests/test_guided_action_surface_contract.py",
       "template": "templates/apicenter/partials/dashboard_body.html"
@@ -192,6 +279,21 @@
       "template": "templates/components/rmc_setup_wizard_viewport.html"
     },
     {
+      "id": "apps.platform_runtime.tests.test_magic_ux_measurement_and_literals.MagicUxTemplateLiteralMarkersTests.test_installation_health_strict_hero",
+      "file": "apps/platform_runtime/tests/test_magic_ux_measurement_and_literals.py",
+      "template": "templates/marketplace/installation_health.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_magic_ux_measurement_and_literals.MagicUxTemplateLiteralMarkersTests.test_studio_os_shell_strict_toolbar",
+      "file": "apps/platform_runtime/tests/test_magic_ux_measurement_and_literals.py",
+      "template": "templates/studio_os/shell.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_magic_ux_measurement_and_literals.MagicUxTemplateLiteralMarkersTests.test_tenant_installed_apps_links_catalog",
+      "file": "apps/platform_runtime/tests/test_magic_ux_measurement_and_literals.py",
+      "template": "templates/marketplace/tenant_installed_apps.html"
+    },
+    {
       "id": "apps.platform_runtime.tests.test_max_parity_wave_consistency.MaxParityWaveConsistencyTests.test_money_twins_still_locked",
       "file": "apps/platform_runtime/tests/test_max_parity_wave_consistency.py",
       "template": "templates/finance/dashboard.html"
@@ -204,7 +306,17 @@
     {
       "id": "apps.platform_runtime.tests.test_max_parity_wave_consistency.MaxParityWaveConsistencyTests.test_shared_templates_lock_sparkline_and_role_tabs",
       "file": "apps/platform_runtime/tests/test_max_parity_wave_consistency.py",
-      "template": "templates/accounts/backend_dashboard.html"
+      "template": "templates/components/rmc_mission_role_tabs.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_migration_apple_class_ux.MigrationAppleClassUXTests.test_migration_center_has_data_quality_visual",
+      "file": "apps/platform_runtime/tests/test_migration_apple_class_ux.py",
+      "template": "templates/schools/super_migration_cloud.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_migration_center_ux.MigrationCenterUXTests.test_migration_cloud_has_visual_flow_quality_quarantine_and_rollback",
+      "file": "apps/platform_runtime/tests/test_migration_center_ux.py",
+      "template": "templates/schools/super_migration_cloud.html"
     },
     {
       "id": "apps.platform_runtime.tests.test_offline_migration_cloud_upload.MigrationCloudOfflineWiringMarkers.test_upload_template_and_js_tokens",
@@ -232,14 +344,49 @@
       "template": "templates/base.html"
     },
     {
+      "id": "apps.platform_runtime.tests.test_premium_visual_system_polish.PremiumVisualSystemPolishTests.test_payment_external_honesty_language_remains_available",
+      "file": "apps/platform_runtime/tests/test_premium_visual_system_polish.py",
+      "template": "templates/finance/payment_readiness_dashboard.html"
+    },
+    {
       "id": "apps.platform_runtime.tests.test_surface_spacing_contract.SurfaceSpacingContractTests.test_spacing_contract_css_loaded_on_shells",
       "file": "apps/platform_runtime/tests/test_surface_spacing_contract.py",
-      "template": "templates/control_plane_base.html"
+      "template": "templates/admin/base_site.html"
     },
     {
       "id": "apps.platform_runtime.tests.test_tenant_branding_hydration.SevenLayerCascadeDocumentationTests.test_theme_meta_references_runtime_defaults_fields",
       "file": "apps/platform_runtime/tests/test_tenant_branding_hydration.py",
       "template": "templates/partials/rmc_theme_meta.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_tenant_school_apple_class_experience.TenantSchoolAppleClassExperienceTests.test_tenant_school_admin_has_next_action_and_drawer",
+      "file": "apps/platform_runtime/tests/test_tenant_school_apple_class_experience.py",
+      "template": "templates/platform_runtime/school_configuration_center.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_audited_operator_tables_wrap_long_values_instead_of_clipping",
+      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
+      "template": "templates/super/ai_line_intent_coverage.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_audited_operator_workbenches_have_one_shared_steering_owner",
+      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
+      "template": "templates/schools/super_provision_queue.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_school_settings_has_title_primary_action_tenant_safety_and_mobile_marker",
+      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
+      "template": "templates/platform_runtime/school_configuration_center.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_tenant_pack_setup_uses_the_approved_full_canvas_contract",
+      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
+      "template": "templates/platform_runtime/tenant_pack_setup.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_tenant_setup_surfaces_show_external_blockers_honestly",
+      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
+      "template": "templates/platform_runtime/tenant_blueprint_setup.html"
     },
     {
       "id": "apps.platform_runtime.tests.test_ux_factory_cta_cleanup.CtaCleanupTemplateAuditTests.test_audited_operational_templates_no_dummy_ctas",
@@ -254,7 +401,27 @@
     {
       "id": "apps.platform_runtime.tests.test_workflow_10x_waves_validation.Workflow10xWaveShellTests.test_tenant_experience_includes_workflow_trust_strip",
       "file": "apps/platform_runtime/tests/test_workflow_10x_waves_validation.py",
-      "template": "templates/backend_base.html"
+      "template": "templates/partials/rmc_tools_tray_context_stack.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_world_class_component_contracts.WorldClassComponentContractTests.test_focus_aria_and_mobile_css_basics",
+      "file": "apps/platform_runtime/tests/test_world_class_component_contracts.py",
+      "template": "templates/components/world_class_guided_stepper.html"
+    },
+    {
+      "id": "apps.platform_runtime.tests.test_world_class_component_contracts.WorldClassComponentContractTests.test_primary_action_slots_and_empty_state_have_actions",
+      "file": "apps/platform_runtime/tests/test_world_class_component_contracts.py",
+      "template": "templates/components/rmc_empty_state.html"
+    },
+    {
+      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_ask_with_ai_is_integrated_into_copilot_rail",
+      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
+      "template": "templates/partials/cockpit/_ai_copilot_rail.html"
+    },
+    {
+      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_inline_assistant_is_suppressed_when_copilot_rail_enabled",
+      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
+      "template": "templates/partials/help_module_inline_assistant.html"
     },
     {
       "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_portal_shell_no_longer_mounts_bottom_ai_panel",
@@ -262,79 +429,34 @@
       "template": "templates/portal_base.html"
     },
     {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_copilot_rail_uses_tenant_portal_endpoints",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
+      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_template_resolves_host_correct_endpoints",
+      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
       "template": "templates/partials/cockpit/_ai_copilot_rail.html"
     },
     {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_mission_strip_is_tenant_school_only",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/tenant/tp_mission_strip.html"
+      "id": "apps.portal.tests.test_parent_finance_pay_all.ParentFinancePayAllContractTests.test_confirm_template_regional_guidance",
+      "file": "apps/portal/tests/test_parent_finance_pay_all.py",
+      "template": "templates/parent/finance_pay_all_confirm.html"
     },
     {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_portal_base_defaults_canvas_scroll_for_v3_shell",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/portal_base.html"
+      "id": "apps.portal.tests.test_parent_finance_pay_all.ParentFinancePayAllContractTests.test_finance_template_pay_all_hero",
+      "file": "apps/portal/tests/test_parent_finance_pay_all.py",
+      "template": "templates/parent/finance.html"
     },
     {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_portal_base_loads_tenant_cp_parity_css",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/portal_base.html"
+      "id": "apps.portal.tests.test_parent_guardian_switcher.ParentSettingsSecurityContractTests.test_settings_security_url_and_template",
+      "file": "apps/portal/tests/test_parent_guardian_switcher.py",
+      "template": "templates/parent/settings_security.html"
     },
     {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_portal_sidebar_wires_v8_when_tenant_shell",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/portal_sidebar.html"
+      "id": "apps.portal.tests.test_roll_call_draft_wiring.RollCallDraftTemplateTests.test_student_roll_call_template_has_draft_key_expression",
+      "file": "apps/portal/tests/test_roll_call_draft_wiring.py",
+      "template": "templates/portal/roll_call_student.html"
     },
     {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_shell_layout_wrap_compact_for_v3",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/shell_portal_layout_wrap_open.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_tenant_copilot_horizontal_collapse_contract",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/cockpit/_ai_copilot_rail.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_cp_parity_shell.TenantSidebarV8GroupsTests.test_v8_groups_partial_uses_collapsible_details",
-      "file": "apps/portal/tests/test_tenant_cp_parity_shell.py",
-      "template": "templates/partials/portal_sidebar_v8_groups.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_hero_wires_tenant_experience_command_strip",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/partials/tenant/experience_command_strip.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_portal_base_wires_tp_mission_strip",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_portal_base_wires_v3_role_home_contract",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_profile_page_wires_tenant_experience_command_strip",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/accounts/profile.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_teacher_dashboard_renders_v3_home_partial",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/teacher/dashboard.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_tp_v3_includes_page_explain_strip",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.portal.tests.test_tenant_role_home_parity.TenantRoleHomeTemplateTests.test_tp_v3_suppresses_global_next_action_strip",
-      "file": "apps/portal/tests/test_tenant_role_home_parity.py",
-      "template": "templates/components/next_action_strip.html"
+      "id": "apps.portal.tests.test_roll_call_draft_wiring.RollCallDraftTemplateTests.test_teacher_roll_call_template_has_draft_key_expression",
+      "file": "apps/portal/tests/test_roll_call_draft_wiring.py",
+      "template": "templates/portal/roll_call_teacher.html"
     },
     {
       "id": "apps.portal.tests.test_tenant_workflow_portal.TenantWorkflowPortalTests.test_sidebar_never_branches_on_the_raw_role_column",
@@ -352,6 +474,11 @@
       "template": "templates/portal_base.html"
     },
     {
+      "id": "apps.schools.tests.test_dashboard_topology_integrity.DashboardTopologyViewportMarkerTests.test_user_dropdown_viewport_safe_and_logout",
+      "file": "apps/schools/tests/test_dashboard_topology_integrity.py",
+      "template": "templates/components/user_dropdown.html"
+    },
+    {
       "id": "apps.schools.tests.test_horizontal_nav_rail.HorizontalNavRailTemplateContractTests.test_all_major_shells_load_stylesheet",
       "file": "apps/schools/tests/test_horizontal_nav_rail.py",
       "template": "templates/admin/base_site.html"
@@ -365,6 +492,26 @@
       "id": "apps.schools.tests.test_horizontal_nav_rail.HorizontalNavRailTemplateContractTests.test_workspace_strip_spine_items_marked",
       "file": "apps/schools/tests/test_horizontal_nav_rail.py",
       "template": "templates/components/rmc_operator_surface_strip.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_analytics.MarketingAnalyticsTests.test_header_nav_links_carry_menu_analytics_attributes",
+      "file": "apps/schools/tests/test_marketing_analytics.py",
+      "template": "templates/marketing/marketing_header.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_analytics.MarketingAnalyticsTests.test_marketing_analytics_script_wired_in_shell",
+      "file": "apps/schools/tests/test_marketing_analytics.py",
+      "template": "templates/marketing/base_marketing.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_analytics.MarketingAnalyticsTests.test_pricing_ctas_track_plan_interest_without_pii",
+      "file": "apps/schools/tests/test_marketing_analytics.py",
+      "template": "templates/marketing/pages/type_pricing.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_glocal_compliance.MarketingGlocalComplianceTests.test_homepage_includes_four_personality_sections",
+      "file": "apps/schools/tests/test_marketing_glocal_compliance.py",
+      "template": "templates/schools/marketing_landing_v2.html"
     },
     {
       "id": "apps.schools.tests.test_marketing_intent_viewport.MarketingIntentViewportTests.test_base_marketing_geo_lang_dir",
@@ -387,9 +534,24 @@
       "template": "templates/marketing/homepage.html"
     },
     {
+      "id": "apps.schools.tests.test_marketing_page_management.MarketingAnalyticsContractTests.test_cta_menu_and_form_tracking_hooks_are_present",
+      "file": "apps/schools/tests/test_marketing_page_management.py",
+      "template": "templates/marketing/marketing_footer.html"
+    },
+    {
       "id": "apps.schools.tests.test_marketing_page_management.MarketingAnalyticsContractTests.test_marketing_shell_wires_analytics_config_and_local_script",
       "file": "apps/schools/tests/test_marketing_page_management.py",
-      "template": "templates/marketing/partials/marketing_analytics.html"
+      "template": "templates/marketing/base_marketing.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_page_management.MarketingPageManagementContractTests.test_demo_and_contact_forms_route_buyer_intent",
+      "file": "apps/schools/tests/test_marketing_page_management.py",
+      "template": "templates/marketing/components/_marketing_contact_form.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_page_management.MarketingPageManagementContractTests.test_solutions_hub_is_a_buyer_world_map",
+      "file": "apps/schools/tests/test_marketing_page_management.py",
+      "template": "templates/marketing/pages/solutions_overview.html"
     },
     {
       "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_academics_template_viewport",
@@ -404,12 +566,12 @@
     {
       "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_edge_mesh_trinity",
       "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/edge_mesh.html"
+      "template": "templates/marketing/partials/sections/_viewport_trinity.html"
     },
     {
       "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_enterprise_ledger_constellation",
       "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/enterprise_ledger.html"
+      "template": "templates/marketing/partials/sections/_enterprise_constellation.html"
     },
     {
       "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_homepage_one_record_scroll",
@@ -422,9 +584,19 @@
       "template": "templates/marketing/partials/sections/_zero_ui_lab.html"
     },
     {
+      "id": "apps.schools.tests.test_marketing_phase0_visual_truth.PricingCopyRegressionTest.test_home_pricing_avoids_exact_pound_figures",
+      "file": "apps/schools/tests/test_marketing_phase0_visual_truth.py",
+      "template": "templates/schools/marketing_landing_v2.html"
+    },
+    {
+      "id": "apps.schools.tests.test_marketing_phase1_foundation.MarketingPhase1HomeWiringTest.test_base_marketing_loads_v3_assets",
+      "file": "apps/schools/tests/test_marketing_phase1_foundation.py",
+      "template": "templates/marketing/base_marketing.html"
+    },
+    {
       "id": "apps.schools.tests.test_marketing_phase1_foundation.MarketingPhase1HomeWiringTest.test_home_includes_day_role_story_shell",
       "file": "apps/schools/tests/test_marketing_phase1_foundation.py",
-      "template": "templates/marketing/components/_bell_clock_sticky.html"
+      "template": "templates/schools/marketing_landing_v2.html"
     },
     {
       "id": "apps.schools.tests.test_marketing_v3_phases.MarketingHomeNineSectionsTest.test_home_has_nine_primary_sections",
@@ -487,9 +659,39 @@
       "template": "templates/setup_studio/operator_wizard.html"
     },
     {
+      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_index_injects_css_into_a_real_portal_block",
+      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
+      "template": "templates/setup_studio/tenant_wizard_index.html"
+    },
+    {
+      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_operator_index_also_adopts_the_bespoke_grammar",
+      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
+      "template": "templates/setup_studio/operator_wizard_index.html"
+    },
+    {
+      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_step_run_template_also_uses_the_real_css_block",
+      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
+      "template": "templates/setup_studio/tenant_wizard.html"
+    },
+    {
+      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_tenant_index_uses_lifecycle_stages_and_status_cards",
+      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
+      "template": "templates/setup_studio/tenant_wizard_index.html"
+    },
+    {
+      "id": "apps.setup_studio.tests.test_wizard_index_polish.CompletionBannerHumanizationTests.test_template_humanizes_just_completed_key",
+      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
+      "template": "templates/setup_studio/tenant_wizard_index.html"
+    },
+    {
       "id": "apps.setup_studio.tests.test_wizard_offline_intake_wiring.WizardOfflineIntakeWiringTests.test_tenant_wizard_loads_encrypted_indexeddb_draft_runtime",
       "file": "apps/setup_studio/tests/test_wizard_offline_intake_wiring.py",
       "template": "templates/setup_studio/tenant_wizard.html"
+    },
+    {
+      "id": "apps.setup_studio.tests.test_wizard_step_assist.WizardStepAssistWiringTests.test_help_rail_exposes_assist_hook_and_reuses_endpoint",
+      "file": "apps/setup_studio/tests/test_wizard_step_assist.py",
+      "template": "templates/setup_studio/partials/wizard_help_rail.html"
     },
     {
       "id": "apps.siteconfig.tests.test_activation_checklist_drawer_2026_08_02.SetupSurfaceWiresDrawerTests.test_checklist_cta_is_still_a_real_button_with_href_fallback",
@@ -514,7 +716,7 @@
     {
       "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_control_plane_uses_civic_operator_footer",
       "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/control_plane_skeleton.html"
+      "template": "templates/partials/rmc_operator_footer_civic.html"
     },
     {
       "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_manager_admin_workbench_delegates_footer_to_control_plane",
@@ -544,7 +746,7 @@
     {
       "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_manager_admin_workbench_delegates_footer_to_control_plane",
       "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/admin/base.html"
+      "template": "templates/partials/rmc_operator_footer_civic.html"
     },
     {
       "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_permission_matrix_denied_banner",
@@ -599,62 +801,7 @@
     {
       "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_studio_experience_real_canvas_contract_is_terminal",
       "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/studio_os/partials/studio_experience_mode_body.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_chrome_wires_collapsable_platform_wide",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/partials/rmc_platform_chrome_scripts.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_cockpit_configure_fieldset_accordion",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/super/cockpit_configure.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_feature_control_audit_paginated_view",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/partials/feature_control_audit_body.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_feature_control_task_pagination_markers",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/feature_control_panel_content.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_marketing_voice_fieldset_accordion",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/super/marketing_voice_configure.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_migration_and_support_fold_residuals",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/migration_cloud/customer/intake_start.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_portal_and_cp_shell_fold_nav",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/control_plane_base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_portal_base_wires_fold_standards",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/partials/rmc_platform_chrome_scripts.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_studio_experience_uses_fold_stages",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/studio_os/modes/experience.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_tenant_app_catalog_fold_nav",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/marketplace/tenant_app_catalog.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_theme_personality_fieldset_accordion",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/super/theme_personality_configure.html"
+      "template": "templates/studio_os/partials/workspace/experience_inpage_canvas.html"
     },
     {
       "id": "apps.siteconfig.tests.test_sidebar_empty_label_defense_2026_08_03.V8SidebarTemplateLabelGuardSealTests.test_item_render_guard_requires_label",
@@ -697,6 +844,11 @@
       "template": "templates/portal_base.html"
     },
     {
+      "id": "apps.siteconfig.tests.test_theme_studio.ThemeStudioTemplateMarkerTests.test_theme_colors_page_template_declares_boolean_presence_markers",
+      "file": "apps/siteconfig/tests/test_theme_studio.py",
+      "template": "templates/siteconfig/partials/theme_colors_page_body.html"
+    },
+    {
       "id": "apps.siteconfig.tests.test_user_account_center.UserAccountCenterContractTests.test_account_center_preserves_security_and_both_logout_paths",
       "file": "apps/siteconfig/tests/test_user_account_center.py",
       "template": "templates/components/user_account_center_menu.html"
@@ -712,10 +864,90 @@
       "template": "templates/components/admin_nav_bridge.html"
     },
     {
+      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_agent3_partials_exist_and_load_i18n",
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "template": "templates/studio_os/partials/workspace/automation_canvas.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_dependency_graph_uses_scroll_wrapper",
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "template": "templates/studio_os/partials/automation_dependency_graph_body.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_environment_banner_surfaces_scope_label",
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "template": "templates/studio_os/partials/automation_environment_banner.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_long_workflow_names_have_wrap_signal",
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "template": "templates/studio_os/partials/automation_dependency_graph_body.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_mode_template_loads_cockpit_css",
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "template": "templates/studio_os/modes/automation.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_simulation_pane_has_honest_empty_state",
+      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
+      "template": "templates/studio_os/partials/automation_simulation_preview_pane.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_cockpit_shell_contract.CockpitShellContractTests.test_mode_template_inherits_cleanly",
+      "file": "apps/studio_os/tests/test_cockpit_shell_contract.py",
+      "template": "templates/studio_os/modes/automation.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_studio_header_command_pill.StudioHeaderCompactionTests.test_both_shells_include_the_command_pill",
+      "file": "apps/studio_os/tests/test_studio_header_command_pill.py",
+      "template": "templates/studio_os/shell.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_studio_header_command_pill.StudioHeaderCompactionTests.test_manager_only_home_preserved",
+      "file": "apps/studio_os/tests/test_studio_header_command_pill.py",
+      "template": "templates/studio_os/shell.html"
+    },
+    {
+      "id": "apps.studio_os.tests.test_studio_os_layout_contracts.WorkspaceMainPreservesMinWidthZeroTests.test_workspace_layout_main_carries_min_w_0",
+      "file": "apps/studio_os/tests/test_studio_os_layout_contracts.py",
+      "template": "templates/studio_os/components/workspace_layout.html"
+    },
+    {
+      "id": "apps.sync_engine.tests.test_lesson_plan_crdt_client_wiring.LessonPlanCRDTBrowserClientWiringTests.test_lesson_notes_template_wires_enhance_script",
+      "file": "apps/sync_engine/tests/test_lesson_plan_crdt_client_wiring.py",
+      "template": "templates/teacher/lesson_notes.html"
+    },
+    {
+      "id": "apps.sync_engine.tests.test_student_note_crdt_client_wiring.StudentNoteCRDTBrowserClientWiringTests.test_counselor_caseload_template_wires_enhance_script",
+      "file": "apps/sync_engine/tests/test_student_note_crdt_client_wiring.py",
+      "template": "templates/staff/counselor_caseload.html"
+    },
+    {
       "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1DeadHrefRepairTests.test_group_detail_leave_uses_button_not_dead_href",
       "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
       "template": "templates/communication/group_detail.html"
+    },
+    {
+      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1LayoutShellContractTests.test_navigation_inner_drops_min_h_screen_trap",
+      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
+      "template": "templates/unfold/helpers/navigation.html"
+    },
+    {
+      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1NavigationContractTests.test_account_links_include_logout",
+      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
+      "template": "templates/unfold/helpers/account_links.html"
+    },
+    {
+      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1NavigationContractTests.test_navigation_user_menu_opens_above_card",
+      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
+      "template": "templates/unfold/helpers/navigation_user.html"
+    },
+    {
+      "id": "apps.tenancy.tests.test_phase2_portal_shell_contract.Phase2PortalNavigationTests.test_user_dropdown_logout_marker",
+      "file": "apps/tenancy/tests/test_phase2_portal_shell_contract.py",
+      "template": "templates/components/user_dropdown.html"
     }
   ],
-  "rule": "Tests measured VACUOUS: they still pass when the template they name is made to render nothing while every string they assert stays in its bytes. RATCHET DOWN ONLY. Fix a test (assert on rendered output) and REMOVE its entry; the gate fails on a baselined entry that has become SOUND, so the list cannot rot. Never add an entry to silence a finding -- a new vacuous test in a changed file is a finding, not a baseline candidate. Measured by scripts/verify_test_asserts_behaviour.py."
+  "rule": "Tests measured VACUOUS: they still pass when the template they name is made to render nothing while every string they assert stays in its bytes. RATCHET DOWN ONLY. Fix a test (assert on rendered output) and REMOVE its entry; the gate fails on a baselined entry that has become SOUND, so the list cannot rot. Never add an entry to silence a finding -- a new vacuous test in a changed file is a finding, not a baseline candidate. finding_count may only fall EXCEPT when \"measured\" grows: a harness that can see more cases legitimately finds more, and that rise must be justified in the commit that makes it. Measured by scripts/verify_test_asserts_behaviour.py."
 }

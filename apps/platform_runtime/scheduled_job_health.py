@@ -66,7 +66,12 @@ def evaluate_staleness(jobs, *, now=None, grace_factor=None) -> list[JobHealth]:
         job_name           (str)
         interval_seconds   (int)
         last_success_epoch (float | None)   last successful run, epoch seconds
-        watched_for_seconds(float | None)   how long a heartbeat row has existed
+        watched_for_seconds(float | None)   how long we have been in a position to
+                                            NOTICE this job: the age of its own
+                                            heartbeat row, or -- for a job that has
+                                            never run and so has no row -- the age of
+                                            the oldest row we hold. None means we
+                                            have observed nothing at all yet.
     Returns one ``JobHealth`` per job.
     """
     if now is None:
@@ -97,8 +102,10 @@ def evaluate_staleness(jobs, *, now=None, grace_factor=None) -> list[JobHealth]:
             continue
 
         # Never succeeded (no last_success). Only stale once we have been WATCHING
-        # (the heartbeat row has existed) longer than the threshold — so a fresh
-        # deploy with an empty table does NOT immediately false-alarm.
+        # longer than the threshold — so a fresh deploy with an empty table does
+        # NOT immediately false-alarm. A job with no heartbeat row of its OWN still
+        # gets a value here, because "never ran once" is precisely the failure this
+        # monitor exists to catch; run_health_monitor supplies it.
         watched = j.get("watched_for_seconds")
         is_stale = watched is not None and watched > threshold
         findings.append(
@@ -249,11 +256,41 @@ def run_health_monitor(*, grace_factor=None) -> list[JobHealth]:
         # tenant-isolation-allow: platform-level scheduler heartbeat, not tenant-scoped
         heartbeats = {h.job_name: h for h in ScheduledJobHeartbeat.objects.all()}
 
+        # HOW LONG HAVE WE BEEN ABLE TO NOTICE? A heartbeat row is written when a job
+        # RUNS, so a job that has never run once has no row at all -- and
+        # ``watched_for_seconds`` was therefore None for exactly the jobs most worth
+        # alerting on. ``evaluate_staleness`` reads None as "not watched long enough to
+        # judge" and returns healthy, so a never-triggered job stayed invisible FOREVER,
+        # while the same rule correctly caught a job that ran and then stopped.
+        #
+        # MEASURED on the live cloud, 2026-09-01: 34 jobs registered, 8 heartbeat rows,
+        # all 8 auto-eligible. The 26 cron-only jobs -- outbound SMS/push drain, event
+        # outbox, webhook deliveries, payment reminders, billing lifecycle, DR snapshots
+        # -- had never run once, because nothing invokes the full-registry path on that
+        # deployment. This monitor ran on the hour, every hour, and logged "health OK".
+        #
+        # The oldest heartbeat is the earliest moment we can prove this install was
+        # recording runs at all, so it is the honest answer to "how long have we been in
+        # a position to notice this job's absence?" -- which is the question the
+        # never-succeeded arm of the rule is really asking. Using it keeps the guard
+        # that arm exists for: a genuinely fresh deploy has no heartbeats yet, so this
+        # stays None and nothing false-alarms.
+        observing_since = None
+        created_stamps = [
+            h.created_at.timestamp()
+            for h in heartbeats.values()
+            if h.created_at is not None
+        ]
+        if created_stamps:
+            observing_since = now - min(created_stamps)
+
         jobs = []
         for name, row in registry.items():
             hb = heartbeats.get(name)
             last_success_epoch = None
-            watched_for = None
+            # A registered job with no row of its own has been absent for the whole
+            # time we have been observing -- NOT for an unknown duration.
+            watched_for = observing_since
             if hb is not None:
                 if hb.last_success_at is not None:
                     last_success_epoch = hb.last_success_at.timestamp()

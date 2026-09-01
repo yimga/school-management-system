@@ -268,6 +268,34 @@ def candidates(root: Path, include_db_backed: bool = False) -> list[dict]:
 # ---------------------------------------------------------------------------
 # The measurement. Runs INSIDE the isolated worktree (--in-worktree).
 # ---------------------------------------------------------------------------
+_BASENAME_INDEX: dict[str, list[Path]] | None = None
+
+
+def _basename_index(root: Path) -> dict[str, list[Path]]:
+    """Every .html under a template root, grouped by bare filename.
+
+    Built once. Tests name a template both ways and the fixed prefixes in
+    _resolve_template only reach one of them.
+    """
+    global _BASENAME_INDEX
+    if _BASENAME_INDEX is None:
+        idx: dict[str, list[Path]] = {}
+        bases = [root / "templates"]
+        bases += [
+            a / "templates"
+            for a in (root / "apps").iterdir()
+            if (a / "templates").is_dir()
+        ]
+        for base in bases:
+            if not base.is_dir():
+                continue
+            for path in base.rglob("*.html"):
+                if path.is_file():
+                    idx.setdefault(path.name, []).append(path)
+        _BASENAME_INDEX = idx
+    return _BASENAME_INDEX
+
+
 def _resolve_template(root: Path, name: str) -> Path | None:
     """Resolve a template literal the way the TESTS write it, not just Django.
 
@@ -290,6 +318,26 @@ def _resolve_template(root: Path, name: str) -> Path | None:
                 return candidate
         except OSError:
             continue
+
+    # Last resort: an UNAMBIGUOUS basename match under any template root.
+    # Tests name a template by its bare filename ("login.html") while the
+    # file lives in a subdirectory ("templates/auth/login.html"), and none
+    # of the three fixed prefixes above can reach it. Measured 2026-09-01:
+    # 548 of the 1187 .html literals named by candidate tests did not
+    # resolve and 252 methods had nothing resolve at all, every one of
+    # which was then reported "reads none of its .html literals". An
+    # unmeasurable case is excluded from the rate, so a resolver that
+    # cannot see makes this gate look BETTER than it is -- the same
+    # mistake, in this same function, that the docstring above records
+    # fixing once already.
+    #
+    # Unambiguous only. login.html matches BOTH templates/admin/login.html
+    # and templates/auth/login.html; picking one would empty the wrong file
+    # and turn an honest "I cannot tell" into a confident wrong verdict.
+    if "/" not in name and "*" not in name:
+        matches = _basename_index(root).get(name, [])
+        if len(matches) == 1:
+            return matches[0]
     return None
 
 
@@ -346,6 +394,28 @@ def measure(root: Path, cases: list[dict]) -> dict:
         except Exception:  # noqa: BLE001 - cache clearing is best effort
             pass
 
+    def resolves(test_id: str, module: str) -> bool:
+        """Does this id still name a real attribute?
+
+        unittest's loader SYNTHESISES a _FailedTest for a name it cannot
+        find, so loadTestsFromName succeeds, the run errors, and passes()
+        returns False -- exactly what a genuinely failing test returns.
+        Measured: deleting a baselined test method reported 'present but
+        RED'. Deletion is the cheapest way to make a down-only ratchet
+        fall, so it is the one state that must not be mislabelled.
+        """
+        fresh(module)
+        try:
+            obj = importlib.import_module(module)
+        except Exception:  # noqa: BLE001 - an unimportable module is gone
+            return False
+        rest = test_id[len(module) + 1:] if test_id.startswith(module + ".") else test_id
+        for part in rest.split("."):
+            obj = getattr(obj, part, None)
+            if obj is None:
+                return False
+        return True
+
     def passes(test_id: str, module: str) -> bool | None:
         """True/False, or None when the id will not load at all."""
         fresh(module)
@@ -376,6 +446,26 @@ def measure(root: Path, cases: list[dict]) -> dict:
     verdicts: list[dict] = []
     for case in cases:
         test_id, module = case["id"], case["module"]
+        if case.get("missing"):
+            # A baselined id that is no longer in the candidate
+            # population. Two very different things land here and the
+            # gate used to call them both 'renamed or deleted': the test
+            # was REWRITTEN so it no longer reads a template as text
+            # (the entire goal -- retire the entry), or it was DELETED,
+            # which is the cheapest possible way to make a down-only
+            # ratchet fall and must never read as progress.
+            if not resolves(test_id, module):
+                verdict, why = "GONE", "no longer exists"
+            else:
+                state = passes(test_id, module)
+                verdict = "RETIRED" if state is True else "RED"
+                why = (
+                    "present and green; no longer reads a template as text"
+                    if state is True
+                    else "present but RED"
+                )
+            verdicts.append({**case, "verdict": verdict, "why": why})
+            continue
         if passes(test_id, module) is not True:
             verdicts.append({**case, "verdict": "UNUSABLE", "why": "red or unloadable unmutated"})
             continue
@@ -441,9 +531,22 @@ def load_baseline(path: Path) -> dict | None:
         return None
 
 
-def write_baseline(path: Path, vacuous: list[dict]) -> None:
+def write_baseline(
+    path: Path, vacuous: list[dict], measured: dict | None = None
+) -> None:
+    """Write the ratchet, and the DENOMINATOR that makes it readable.
+
+    finding_count alone is a numerator. A run that measures fewer cases
+    writes a smaller number and reads as progress, which is precisely what
+    happened here: _resolve_template could not find a template named by its
+    bare filename, 89 cases fell into the unmeasurable bucket, that bucket
+    is excluded from the rate, and this file recorded the flattering half.
+    Storing measured/sound/unmeasurable next to it means the next reader can
+    tell a fixed test from a blinded harness.
+    """
     payload = {
         "finding_count": len(vacuous),
+        "measured": measured or {},
         "vacuous": [
             {"id": v["id"], "file": v["file"], "template": v.get("template", "")}
             for v in sorted(vacuous, key=lambda v: v["id"])
@@ -454,7 +557,10 @@ def write_baseline(path: Path, vacuous: list[dict]) -> None:
             "RATCHET DOWN ONLY. Fix a test (assert on rendered output) and REMOVE its "
             "entry; the gate fails on a baselined entry that has become SOUND, so the "
             "list cannot rot. Never add an entry to silence a finding -- a new vacuous "
-            "test in a changed file is a finding, not a baseline candidate. Measured by "
+            "test in a changed file is a finding, not a baseline candidate. "
+            "finding_count may only fall EXCEPT when \"measured\" grows: a "
+            "harness that can see more cases legitimately finds more, and that "
+            "rise must be justified in the commit that makes it. Measured by "
             "scripts/verify_test_asserts_behaviour.py."
         ),
     }
@@ -620,9 +726,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.in_worktree:
         cases = _select(ROOT, args, baseline)
-        measurable = [c for c in cases if not c.get("missing")]
-        result = measure(ROOT, measurable)
-        result["missing"] = [c["id"] for c in cases if c.get("missing")]
+        # Absent entries go IN, so measure() can ask whether each one is
+        # still present. Filtering them out here is what made a deletion
+        # and a rewrite indistinguishable.
+        result = measure(ROOT, cases)
+        result["missing"] = [
+            v["id"]
+            for v in result["verdicts"]
+            if v["verdict"] in {"RETIRED", "RED", "GONE"}
+        ]
         print(json.dumps(result))
         return 0
 
@@ -725,7 +837,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"    {count:4d}  {name}")
 
     if args.update_baseline:
-        write_baseline(BASELINE_PATH, vacuous)
+        write_baseline(
+            BASELINE_PATH,
+            vacuous,
+            {
+                "population": population,
+                "measured": measured,
+                "vacuous": len(vacuous),
+                "sound": len(sound),
+                "unmeasurable": len(unmeasurable),
+            },
+        )
         print(f"baseline written -> {BASELINE_PATH.relative_to(ROOT)} ({len(vacuous)} entries)")
         return 0
 
@@ -755,8 +877,26 @@ def main(argv: list[str] | None = None) -> int:
 
     known = {e["id"] for e in baseline.get("vacuous", [])}
     findings: list[str] = []
+    absent = {v["id"]: v for v in verdicts if v["verdict"] in {"RETIRED", "RED", "GONE"}}
     for test_id in missing:
-        findings.append(f"baselined test no longer resolves (renamed or deleted): {test_id}")
+        state = absent.get(test_id, {})
+        verdict = state.get("verdict", "GONE")
+        if verdict == "RETIRED":
+            findings.append(
+                "baselined test was rewritten out of the candidate population "
+                f"(still present and green) -- remove its entry: {test_id}"
+            )
+        elif verdict == "RED":
+            findings.append(
+                f"baselined test is present but RED, so it proves nothing "
+                f"either way: {test_id}"
+            )
+        else:
+            findings.append(
+                "baselined test is GONE -- the module imports but the name is "
+                f"not there, or the module itself will not import. A DELETED "
+                f"test is not a fixed test: {test_id}"
+            )
     for v in sound:
         if v["id"] in known:
             findings.append(f"baselined test is now SOUND -- remove it from the baseline: {v['id']}")

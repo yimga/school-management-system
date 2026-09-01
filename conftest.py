@@ -131,6 +131,55 @@ def _using_inmemory_test_settings() -> bool:
     return test_name == ":memory:" or name == ":memory:"
 
 
+def _install_test_environment(session) -> None:
+    """Mirror the OTHER half of DiscoverRunner.
+
+    ``setup_databases()`` gives a test a database. ``setup_test_environment()``
+    is what gives it the test ENVIRONMENT, and they are separate calls:
+
+      * the locmem email backend, which is the only thing that fills
+        ``mail.outbox`` -- with the console backend it stays [] forever;
+      * the instrumented template renderer, which is the only thing that
+        populates ``response.context`` -- without it the attribute is None;
+      * ``DEBUG = False``, so views take the branch production takes.
+
+    This file called only the first for as long as it has existed. Measured on
+    2026-09-01 with a probe, before the fix:
+
+        EMAIL_BACKEND=...console.EmailBackend | DEBUG=True
+        outbox_len_after_send=0 | response_context_is_none=True
+
+    So under pytest every ``len(mail.outbox)`` assertion measured a list
+    nothing could fill, and every ``response.context[...]`` lookup ran against
+    None. 19 test modules assert on the outbox and 14 on the context. Under
+    ``manage.py test`` the same assertions work, because DiscoverRunner makes
+    both calls -- which is exactly why the gap survived: the runner CI uses for
+    most suites was never the runner that could see it.
+
+    Not called when pytest-django is active: it installs the same environment
+    from its own ``django_test_environment`` fixture, and a second call raises
+    RuntimeError rather than being ignored.
+    """
+    from django.test.utils import setup_test_environment
+
+    # debug=False EXPLICITLY. The default is not False, it is
+    # settings.DEBUG -- so a bare setup_test_environment() leaves DEBUG at
+    # whatever the settings module chose and the suite runs views down the
+    # development branch. DiscoverRunner passes debug=self.debug_mode, which
+    # is False; passing it here is what makes the two runners agree.
+    setup_test_environment(debug=False)
+    session._django_test_environment = True
+
+
+def _restore_test_environment(session) -> None:
+    if not getattr(session, "_django_test_environment", False):
+        return
+    from django.test.utils import teardown_test_environment
+
+    teardown_test_environment()
+    session._django_test_environment = False
+
+
 def pytest_configure() -> None:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     import django
@@ -167,6 +216,9 @@ def pytest_sessionstart(session) -> None:
 
     if not apps.ready:
         return
+
+    # Before setup_databases, as DiscoverRunner does it.
+    _install_test_environment(session)
 
     if _using_inmemory_test_settings():
         # In-memory SQLite: no journal probe, no retry. Just create.
@@ -217,6 +269,7 @@ def pytest_sessionstart(session) -> None:
 
 
 def pytest_sessionfinish(session, exitstatus) -> None:
+    _restore_test_environment(session)
     cfg = getattr(session, "_django_db_old_config", None)
     if cfg is None:
         return
