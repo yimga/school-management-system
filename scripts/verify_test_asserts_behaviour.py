@@ -394,6 +394,28 @@ def measure(root: Path, cases: list[dict]) -> dict:
         except Exception:  # noqa: BLE001 - cache clearing is best effort
             pass
 
+    def resolves(test_id: str, module: str) -> bool:
+        """Does this id still name a real attribute?
+
+        unittest's loader SYNTHESISES a _FailedTest for a name it cannot
+        find, so loadTestsFromName succeeds, the run errors, and passes()
+        returns False -- exactly what a genuinely failing test returns.
+        Measured: deleting a baselined test method reported 'present but
+        RED'. Deletion is the cheapest way to make a down-only ratchet
+        fall, so it is the one state that must not be mislabelled.
+        """
+        fresh(module)
+        try:
+            obj = importlib.import_module(module)
+        except Exception:  # noqa: BLE001 - an unimportable module is gone
+            return False
+        rest = test_id[len(module) + 1:] if test_id.startswith(module + ".") else test_id
+        for part in rest.split("."):
+            obj = getattr(obj, part, None)
+            if obj is None:
+                return False
+        return True
+
     def passes(test_id: str, module: str) -> bool | None:
         """True/False, or None when the id will not load at all."""
         fresh(module)
@@ -424,6 +446,26 @@ def measure(root: Path, cases: list[dict]) -> dict:
     verdicts: list[dict] = []
     for case in cases:
         test_id, module = case["id"], case["module"]
+        if case.get("missing"):
+            # A baselined id that is no longer in the candidate
+            # population. Two very different things land here and the
+            # gate used to call them both 'renamed or deleted': the test
+            # was REWRITTEN so it no longer reads a template as text
+            # (the entire goal -- retire the entry), or it was DELETED,
+            # which is the cheapest possible way to make a down-only
+            # ratchet fall and must never read as progress.
+            if not resolves(test_id, module):
+                verdict, why = "GONE", "no longer exists"
+            else:
+                state = passes(test_id, module)
+                verdict = "RETIRED" if state is True else "RED"
+                why = (
+                    "present and green; no longer reads a template as text"
+                    if state is True
+                    else "present but RED"
+                )
+            verdicts.append({**case, "verdict": verdict, "why": why})
+            continue
         if passes(test_id, module) is not True:
             verdicts.append({**case, "verdict": "UNUSABLE", "why": "red or unloadable unmutated"})
             continue
@@ -684,9 +726,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.in_worktree:
         cases = _select(ROOT, args, baseline)
-        measurable = [c for c in cases if not c.get("missing")]
-        result = measure(ROOT, measurable)
-        result["missing"] = [c["id"] for c in cases if c.get("missing")]
+        # Absent entries go IN, so measure() can ask whether each one is
+        # still present. Filtering them out here is what made a deletion
+        # and a rewrite indistinguishable.
+        result = measure(ROOT, cases)
+        result["missing"] = [
+            v["id"]
+            for v in result["verdicts"]
+            if v["verdict"] in {"RETIRED", "RED", "GONE"}
+        ]
         print(json.dumps(result))
         return 0
 
@@ -829,8 +877,26 @@ def main(argv: list[str] | None = None) -> int:
 
     known = {e["id"] for e in baseline.get("vacuous", [])}
     findings: list[str] = []
+    absent = {v["id"]: v for v in verdicts if v["verdict"] in {"RETIRED", "RED", "GONE"}}
     for test_id in missing:
-        findings.append(f"baselined test no longer resolves (renamed or deleted): {test_id}")
+        state = absent.get(test_id, {})
+        verdict = state.get("verdict", "GONE")
+        if verdict == "RETIRED":
+            findings.append(
+                "baselined test was rewritten out of the candidate population "
+                f"(still present and green) -- remove its entry: {test_id}"
+            )
+        elif verdict == "RED":
+            findings.append(
+                f"baselined test is present but RED, so it proves nothing "
+                f"either way: {test_id}"
+            )
+        else:
+            findings.append(
+                "baselined test is GONE -- the module imports but the name is "
+                f"not there, or the module itself will not import. A DELETED "
+                f"test is not a fixed test: {test_id}"
+            )
     for v in sound:
         if v["id"] in known:
             findings.append(f"baselined test is now SOUND -- remove it from the baseline: {v['id']}")

@@ -1,10 +1,10 @@
 {
-  "finding_count": 214,
+  "finding_count": 203,
   "measured": {
-    "population": 394,
-    "measured": 264,
-    "vacuous": 214,
-    "sound": 50,
+    "population": 385,
+    "measured": 255,
+    "vacuous": 203,
+    "sound": 52,
     "unmeasurable": 130
   },
   "vacuous": [
@@ -877,61 +877,6 @@
       "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_studio_experience_real_canvas_contract_is_terminal",
       "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
       "template": "templates/studio_os/partials/workspace/experience_inpage_canvas.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_chrome_wires_collapsable_platform_wide",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/partials/rmc_platform_chrome_scripts.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_cockpit_configure_fieldset_accordion",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/super/cockpit_configure.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_feature_control_audit_paginated_view",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/partials/feature_control_audit_body.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_feature_control_task_pagination_markers",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/feature_control_panel_content.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_marketing_voice_fieldset_accordion",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/super/marketing_voice_configure.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_migration_and_support_fold_residuals",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/migration_cloud/customer/intake_start.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_portal_and_cp_shell_fold_nav",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/control_plane_base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_portal_base_wires_fold_standards",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/partials/rmc_platform_chrome_scripts.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_studio_experience_uses_fold_stages",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/studio_os/modes/experience.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_tenant_app_catalog_fold_nav",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/marketplace/tenant_app_catalog.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_page_fold_standards.PageFoldStandardsTests.test_theme_personality_fieldset_accordion",
-      "file": "apps/siteconfig/tests/test_page_fold_standards.py",
-      "template": "templates/siteconfig/super/theme_personality_configure.html"
     },
     {
       "id": "apps.siteconfig.tests.test_sidebar_empty_label_defense_2026_08_03.V8SidebarTemplateLabelGuardSealTests.test_item_render_guard_requires_label",
