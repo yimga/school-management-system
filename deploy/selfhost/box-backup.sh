@@ -442,7 +442,25 @@ verify_dump() {
     VERIFY_ERROR="the table of contents holds only ${VERIFY_TOC:-0} entries (expected at least $MIN_TOC_ENTRIES) -- this is not a full school database"
     rm -f "$plain"; return 1
   fi
-  if ! printf '%s\n' "$toc" | grep -q "$EXPECT_TABLE"; then
+  # A HERESTRING, NOT A PIPE, AND THAT IS THE WHOLE FIX. `grep -q` exits the instant
+  # it matches and closes its input; the `printf` feeding it still had ~680KB of table
+  # of contents to write, so it died of SIGPIPE (141) -- and `set -o pipefail` at the
+  # top of this file promotes that to the PIPELINE's status. So `! pipeline` was true
+  # exactly when the table WAS found, and this check reported a good dump as "not of
+  # this application".
+  #
+  # MEASURED on the Gilead box 2026-09-01: a 65,491,424-byte dump whose decrypted
+  # archive lists 9,733 entries and names django_migrations FIVE times was rejected by
+  # this line, on every attempt. The service could not report a successful backup of a
+  # real database, ever -- while `grep -c` two lines above returned 9733 quite happily,
+  # because -c reads to EOF and never closes the pipe early.
+  #
+  # It hides from tests: a fixture table of contents under the 64KB pipe buffer lets
+  # printf finish before grep exits, so no SIGPIPE, so the check behaves. Only a real
+  # school database is big enough to trip it. A herestring has no writer process to
+  # kill, so the hazard cannot arise. (`set +o pipefail` is used for the same reason
+  # at the passphrase `head -c` above -- the trap was known, just not applied here.)
+  if ! grep -q "$EXPECT_TABLE" <<< "$toc"; then
     VERIFY_ERROR="the table of contents does not mention $EXPECT_TABLE -- this dump is not of this application"
     rm -f "$plain"; return 1
   fi
@@ -487,7 +505,12 @@ prune() {
   for name in $(db_files); do
     # -F, because this decides what gets DELETED. Without it the `.` in a filename is
     # a regex wildcard and a name can match a neighbour it is not.
-    if printf '%s\n' "$survivors" | grep -qxF "$name"; then
+    # Herestring, not a pipe: see the note in verify_dump. Here the sense is not
+    # negated, so a SIGPIPE reads as "not a survivor" and DELETES a dump that should
+    # have been kept. Position-dependent, which is worse than deterministic: measured
+    # 2026-09-01, an early match in a 20,000-line list reported NOT FOUND while a late
+    # match in the same list reported found.
+    if grep -qxF "$name" <<< "$survivors"; then
       bytes="$(file_bytes "$BACKUP_DIR/$name")"
       total=$((total + bytes))
       count=$((count + 1))
@@ -554,7 +577,10 @@ offbox_copy() {
     local keep name
     keep="$(ls -1 "$OFFBOX_DIR" 2>/dev/null | grep "^$DB_PREFIX" | grep '\.dump\.enc$' | sort -r | retention_keep)"
     for name in $(ls -1 "$OFFBOX_DIR" 2>/dev/null | grep "^$DB_PREFIX" | grep '\.dump\.enc$'); do
-      printf '%s\n' "$keep" | grep -qxF "$name" || rm -f "$OFFBOX_DIR/$name" 2>/dev/null
+      # Herestring, not a pipe: same inversion as above, and here it deletes the
+      # operator's OFF-BOX copy -- the one carried away precisely so a mistake on this
+      # machine cannot reach it.
+      grep -qxF "$name" <<< "$keep" || rm -f "$OFFBOX_DIR/$name" 2>/dev/null
     done
   else
     rm -f "$OFFBOX_DIR/$S_LAST_FILE.part" 2>/dev/null
