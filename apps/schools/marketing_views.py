@@ -2620,7 +2620,28 @@ def marketing_page(request, page_slug: str):
     )
     if loaded:
         page_copy = deepcopy(loaded[0])
-        page_extras = deepcopy(loaded[1])
+        # MERGE, do not replace. The JSON content file carries COPY --
+        # label, headline, segments. Extras (diagrams, data-viz, FAQs, SLA
+        # figures, trust strips, layout flags) live in
+        # MARKETING_PAGE_EXTRAS, and _load_marketing_page_from_file returns
+        # ``data.get("extras")`` or {} -- which is {} for most files,
+        # because most of them never had an extras key. Taking that
+        # wholesale discarded the Python extras entirely.
+        #
+        # Measured 2026-09-01: 23 slugs carry a MARKETING_PAGE_EXTRAS entry
+        # and all 23 have a JSON file; 10 of those files declare no extras,
+        # so those 10 pages rendered with none. /trust-center/ lost its SLA
+        # figure, encryption copy, architecture summary, integration trust
+        # categories, status URL and support summary; /uptime/ lost the
+        # uptime target and status URL; /why-switch/ lost its FAQs, and with
+        # them the FAQ JSON-LD below, which is gated on page_extras['faqs'].
+        # The trust surface is the one a buyer checks.
+        #
+        # It also made the trust-center/uptime branch further down
+        # (``page_extras.get("sla_uptime")``) unreachable for exactly the two
+        # slugs it names.
+        page_extras = deepcopy(MARKETING_PAGE_EXTRAS.get(normalized_slug, {}))
+        page_extras.update(deepcopy(loaded[1]))
     else:
         page = MARKETING_PAGE_DEFINITIONS.get(normalized_slug)
         if not page:

@@ -857,6 +857,7 @@ UNPROVEN: dict[str, str] = {
     "finance-payment-atomicity": "a hand-maintained list of four named mutators; its own docstring says it is not coverage of apps/finance",
     "unscoped-shared-tenant-admin": "needs a SHARED model registered on the tenant admin, which requires the admin registry to be loaded",
     "url-kwarg-contract": "needs a view AND an include(..., kwargs) pointing at it; the defect only exists once both sides are wired",
+    "test-asserts-behaviour": "this harness plants UNCOMMITTED files; the gate measures a git worktree created at HEAD, so a planted test is not in it. Proved by hand instead on 2026-09-01 with a committed vacuous test: the gate reported NEW vacuous test in a changed file and exited 1 -- see the commit that wired it",
 }
 
 

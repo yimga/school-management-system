@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import re
 from decimal import Decimal
 
 from django.test import SimpleTestCase, TestCase
@@ -680,6 +681,23 @@ class _PlantCycleMixin(TestCase):
         self.assertIn("0 divergent", out)
         # The spec must actually be comparing something, or the green above is empty.
         self.assertNotIn("(none)", out, f"[{domain}] no comparable field resolved:\n{out}")
+        # ...and it must be comparing ALL of it. Exit 0 only needs SOME record to
+        # match, so a spec whose rows mostly bucketed ``unidentified`` /
+        # ``unresolved-identity`` would look just as green -- and the plant below
+        # would then be proving the digest over a subset of the file.
+        tally = re.search(
+            rf"^  {re.escape(domain)} \[{depth}\]: (\d+) source = (\d+) matched",
+            out,
+            re.M,
+        )
+        self.assertIsNotNone(tally, f"[{domain}] no tally line to read:\n{out}")
+        self.assertEqual(
+            tally.group(1),
+            tally.group(2),
+            f"[{domain}] the clean run matched only {tally.group(2)} of "
+            f"{tally.group(1)} source records, so the green above is over a "
+            f"SUBSET of the artifact:\n{out}",
+        )
 
         undo = plant()
         code, out = self._cmd(bundle)
@@ -769,6 +787,49 @@ class _TenantFixture(_PlantCycleMixin):
                 "academic_year": self.academic_year(),
                 "department": self.department(),
             },
+        )
+        return obj
+
+    def athletics_team(self, name="Senior Boys 1st XI", *, level="senior", cap=23):
+        """Sport -> Season -> Team, the scaffold the athletics landers provision."""
+        from apps.athletics.models import Season, Sport, Team
+
+        sport, _ = Sport.objects.get_or_create(
+            school=self.school, code="football", defaults={"name": "Football"}
+        )
+        season, _ = Season.objects.get_or_create(
+            school=self.school,
+            sport=sport,
+            name="2025-2026 Fall",
+            defaults={
+                "start_date": dt.date(2025, 9, 1),
+                "end_date": dt.date(2026, 1, 31),
+            },
+        )
+        team, _ = Team.objects.get_or_create(
+            school=self.school,
+            season=season,
+            name=name,
+            defaults={"sport": sport, "level": level, "roster_cap": cap},
+        )
+        return team
+
+    def hostel_room(self, hostel="Cedar House", room="C-203", capacity=4):
+        from apps.schoolops.models import Hostel, HostelRoom
+
+        parent, _ = Hostel.objects.get_or_create(school=self.school, name=hostel)
+        obj, _ = HostelRoom.objects.get_or_create(
+            hostel=parent, name=room, defaults={"capacity": capacity}
+        )
+        return obj
+
+    def specialty(self, name="General"):
+        from apps.academics.models import Specialty
+
+        obj, _ = Specialty.objects.get_or_create(
+            school=self.school,
+            name=name,
+            defaults={"department": self.department(), "code": f"SPC-{name[:8]}"},
         )
         return obj
 
@@ -1166,6 +1227,237 @@ class ValueDomainPlantTests(_TenantFixture):
             expect_tokens=["PS-2001:Term 1:MATH", "seq1_score", "14.5"],
         )
 
+    def test_athletics_teams_catches_a_rewritten_level(self):
+        from apps.athletics.models import Team
+
+        csv = (
+            b"Sport,Season,Team,Level,Cap\r\n"
+            b"Football,2025-2026 Fall,Senior Boys 1st XI,senior,23\r\n"
+            b"Football,2025-2026 Fall,Junior Girls,junior,18\r\n"
+        )
+        mappings = [
+            {"source_column": "Sport", "canonical_field": "sport"},
+            {"source_column": "Season", "canonical_field": "season"},
+            {"source_column": "Team", "canonical_field": "team_name"},
+            {"source_column": "Level", "canonical_field": "level"},
+            {"source_column": "Cap", "canonical_field": "roster_cap"},
+        ]
+
+        def land():
+            self.athletics_team("Senior Boys 1st XI", level="senior", cap=23)
+            self.athletics_team("Junior Girls", level="junior", cap=18)
+
+        def plant():
+            team = Team.objects.get(school=self.school, name="Senior Boys 1st XI")
+            original = team.level
+            team.level = "varsity"  # a level the source never asserted
+            team.save(update_fields=["level"])
+
+            def undo():
+                team.level = original
+                team.save(update_fields=["level"])
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="athletics_teams", csv_bytes=csv, mappings=mappings, land=land,
+            plant=plant, depth="value",
+            expect_tokens=["Senior Boys 1st XI", "level", "senior", "varsity"],
+        )
+
+    def test_athletics_memberships_catches_a_wrong_position(self):
+        from apps.athletics.models import TeamMembership
+
+        csv = (
+            b"StudentID,Team,Jersey,Position,Joined\r\n"
+            b"PS-2001,Senior Boys 1st XI,9,Striker,2025-09-01\r\n"
+        )
+        mappings = [
+            {"source_column": "StudentID", "canonical_field": "student_external_id"},
+            {"source_column": "Team", "canonical_field": "team_name"},
+            {"source_column": "Jersey", "canonical_field": "jersey_number"},
+            {"source_column": "Position", "canonical_field": "position"},
+            {"source_column": "Joined", "canonical_field": "joined_date"},
+        ]
+
+        def land():
+            TeamMembership.objects.create(
+                school=self.school,
+                team=self.athletics_team(),
+                student=self.student(),
+                jersey_number=9,
+                position="Striker",
+                joined_at=dt.date(2025, 9, 1),
+            )
+
+        def plant():
+            row = TeamMembership.objects.get(school=self.school, student=self.student())
+            original = row.position
+            row.position = "Sweeper"
+            row.save(update_fields=["position"])
+
+            def undo():
+                row.position = original
+                row.save(update_fields=["position"])
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="athletics_memberships", csv_bytes=csv, mappings=mappings,
+            land=land, plant=plant, depth="value",
+            expect_tokens=["PS-2001", "position", "Striker", "Sweeper"],
+        )
+
+    def test_athletics_fixtures_catches_a_moved_kickoff_window(self):
+        from apps.athletics.models import Fixture
+
+        csv = (
+            b"Team,Opponent,Start,End\r\n"
+            b"Senior Boys 1st XI,St Marys College,2026-04-10T15:00:00,"
+            b"2026-04-10T17:00:00\r\n"
+        )
+        mappings = [
+            {"source_column": "Team", "canonical_field": "team_name"},
+            {"source_column": "Opponent", "canonical_field": "opponent_name"},
+            {"source_column": "Start", "canonical_field": "scheduled_start"},
+            {"source_column": "End", "canonical_field": "scheduled_end"},
+        ]
+
+        def aware(hour):
+            return timezone.make_aware(
+                dt.datetime(2026, 4, 10, hour, 0, 0), timezone.get_default_timezone()
+            )
+
+        def land():
+            team = self.athletics_team()
+            Fixture.objects.create(
+                school=self.school,
+                team=team,
+                season=team.season,
+                opponent_name="St Marys College",
+                scheduled_start=aware(15),
+                scheduled_end=aware(17),
+            )
+
+        def plant():
+            fx = Fixture.objects.get(
+                school=self.school, opponent_name="St Marys College"
+            )
+            original = fx.scheduled_end
+            fx.scheduled_end = aware(18)  # an hour the source never asserted
+            fx.save(update_fields=["scheduled_end"])
+
+            def undo():
+                fx.scheduled_end = original
+                fx.save(update_fields=["scheduled_end"])
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="athletics_fixtures", csv_bytes=csv, mappings=mappings, land=land,
+            plant=plant, depth="value",
+            expect_tokens=["St Marys College", "scheduled_end"],
+        )
+
+    def test_transport_assignments_catches_a_rewritten_pickup_stop(self):
+        from apps.schoolops.models import Route, TransportAssignment
+
+        csv = (
+            b"StudentID,Route,Stop,Dropoff,From,To,Notes\r\n"
+            b"PS-2001,Route 7,Maple and 3rd,Elm and 5th,2025-09-01,2026-06-30,AM only"
+            b"\r\n"
+        )
+        mappings = [
+            {"source_column": "StudentID", "canonical_field": "student_external_id"},
+            {"source_column": "Route", "canonical_field": "route"},
+            {"source_column": "Stop", "canonical_field": "pickup_stop"},
+            {"source_column": "Dropoff", "canonical_field": "dropoff_stop"},
+            {"source_column": "From", "canonical_field": "effective_from"},
+            {"source_column": "To", "canonical_field": "effective_to"},
+            {"source_column": "Notes", "canonical_field": "notes"},
+        ]
+
+        def land():
+            route = Route.objects.create(school=self.school, name="Route 7")
+            TransportAssignment.objects.create(
+                school=self.school,
+                student=self.student(),
+                route=route,
+                pickup_stop="Maple and 3rd",
+                dropoff_stop="Elm and 5th",
+                effective_from=dt.date(2025, 9, 1),
+                effective_to=dt.date(2026, 6, 30),
+                notes="AM only",
+            )
+
+        def plant():
+            row = TransportAssignment.objects.get(
+                school=self.school, student=self.student()
+            )
+            original = row.pickup_stop
+            row.pickup_stop = "Maple and 4th"  # the child waits on the wrong corner
+            row.save(update_fields=["pickup_stop"])
+
+            def undo():
+                row.pickup_stop = original
+                row.save(update_fields=["pickup_stop"])
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="transport_assignments", csv_bytes=csv, mappings=mappings,
+            land=land, plant=plant, depth="value",
+            expect_tokens=["Route 7", "pickup_stop", "Maple and 3rd", "Maple and 4th"],
+        )
+
+    def test_hostel_assignments_catches_a_wrong_bed_label(self):
+        from apps.schoolops.models import HostelAssignment
+
+        csv = (
+            b"StudentID,Hostel,Room,Checkin,Checkout,Bed,Notes\r\n"
+            b"PS-2001,Cedar House,C-203,2025-09-01,2026-06-30,Bed 1,Ground floor\r\n"
+        )
+        mappings = [
+            {"source_column": "StudentID", "canonical_field": "student_external_id"},
+            {"source_column": "Hostel", "canonical_field": "hostel"},
+            {"source_column": "Room", "canonical_field": "room"},
+            {"source_column": "Checkin", "canonical_field": "checkin_date"},
+            {"source_column": "Checkout", "canonical_field": "checkout_date"},
+            {"source_column": "Bed", "canonical_field": "bed_label"},
+            {"source_column": "Notes", "canonical_field": "notes"},
+        ]
+
+        def land():
+            HostelAssignment.objects.create(
+                school=self.school,
+                student=self.student(),
+                room=self.hostel_room(),
+                bed_label="Bed 1",
+                effective_from=dt.date(2025, 9, 1),
+                effective_to=dt.date(2026, 6, 30),
+                notes="Ground floor",
+            )
+
+        def plant():
+            row = HostelAssignment.objects.get(
+                school=self.school, student=self.student()
+            )
+            original = row.bed_label
+            row.bed_label = "Bed 9"
+            row.save(update_fields=["bed_label"])
+
+            def undo():
+                row.bed_label = original
+                row.save(update_fields=["bed_label"])
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="hostel_assignments", csv_bytes=csv, mappings=mappings, land=land,
+            plant=plant, depth="value",
+            expect_tokens=["C-203", "bed_label", "Bed 1", "Bed 9"],
+        )
+
 
 class PresenceDomainPlantTests(_TenantFixture):
     """Domains with no verbatim payload column: plant a MISSING RECORD.
@@ -1285,6 +1577,193 @@ class PresenceDomainPlantTests(_TenantFixture):
             domain="transport", csv_bytes=csv, mappings=mappings, land=land,
             plant=plant, depth="presence",
             expect_tokens=["MISSING", "Mvan Express"],
+        )
+
+    def test_behavior_catches_an_incident_that_never_landed(self):
+        from apps.academics.models import Incident
+
+        # Two incidents on ONE day for ONE student -- the collision the lander
+        # explicitly fixed. They stay distinct here because the verbatim
+        # description is part of the identity.
+        csv = (
+            b"StudentID,Date,Type,Description\r\n"
+            b"PS-2001,2026-02-03,tardy,Late to assembly\r\n"
+            b"PS-2001,2026-02-03,fight,Pushed a classmate in the corridor\r\n"
+        )
+        mappings = [
+            {"source_column": "StudentID", "canonical_field": "student_external_id"},
+            {"source_column": "Date", "canonical_field": "date"},
+            {"source_column": "Type", "canonical_field": "type"},
+            {"source_column": "Description", "canonical_field": "description"},
+        ]
+
+        def land():
+            for kind, text in (
+                ("TARDINESS", "Late to assembly"),
+                ("BEHAVIOR", "Pushed a classmate in the corridor"),
+            ):
+                Incident.objects.create(
+                    school=self.school,
+                    student=self.student(),
+                    date=dt.date(2026, 2, 3),
+                    incident_type=kind,
+                    severity="MEDIUM",
+                    description=text,
+                )
+
+        def plant():
+            obj = Incident.objects.get(
+                school=self.school, description="Pushed a classmate in the corridor"
+            )
+            pk, kind = obj.pk, obj.incident_type
+            obj.delete()
+
+            def undo():
+                Incident.objects.create(
+                    pk=pk,
+                    school=self.school,
+                    student=self.student(),
+                    date=dt.date(2026, 2, 3),
+                    incident_type=kind,
+                    severity="MEDIUM",
+                    description="Pushed a classmate in the corridor",
+                )
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="behavior", csv_bytes=csv, mappings=mappings, land=land,
+            plant=plant, depth="presence",
+            expect_tokens=["MISSING", "Pushed a classmate in the corridor"],
+        )
+
+    def test_hostel_catches_a_room_that_landed_under_another_key(self):
+        from apps.schoolops.models import HostelRoom
+
+        csv = (
+            b"Hostel,Room,Capacity\r\n"
+            b"Cedar House,C-203,4\r\n"
+            b"Cedar House,C-204,4\r\n"
+        )
+        mappings = [
+            {"source_column": "Hostel", "canonical_field": "hostel"},
+            {"source_column": "Room", "canonical_field": "room"},
+            {"source_column": "Capacity", "canonical_field": "capacity"},
+        ]
+
+        def land():
+            self.hostel_room(room="C-203")
+            self.hostel_room(room="C-204")
+
+        def plant():
+            obj = HostelRoom.objects.get(hostel__school=self.school, name="C-204")
+            obj.name = "C-999"  # landed under an identity the source never asserted
+            obj.save(update_fields=["name"])
+
+            def undo():
+                obj.name = "C-204"
+                obj.save(update_fields=["name"])
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="hostel", csv_bytes=csv, mappings=mappings, land=land,
+            plant=plant, depth="presence",
+            expect_tokens=["MISSING", "Cedar House", "C-204"],
+        )
+
+    def test_structure_catches_a_scaffold_slot_that_never_landed(self):
+        from apps.academics.models import (
+            AcademicYear,
+            Classroom,
+            Subject,
+            SubjectAssignment,
+            Term,
+        )
+
+        csv = (
+            b"Year,Term,Classroom,Specialty,Subject,Coefficient\r\n"
+            b"2025/2026,FIRST,Form 4A,General,Mathematics,1\r\n"
+            b"2025/2026,FIRST,Form 4A,General,Biology,1\r\n"
+        )
+        mappings = [
+            {"source_column": "Year", "canonical_field": "academic_year"},
+            {"source_column": "Term", "canonical_field": "term"},
+            {"source_column": "Classroom", "canonical_field": "classroom"},
+            {"source_column": "Specialty", "canonical_field": "specialty"},
+            {"source_column": "Subject", "canonical_field": "subject"},
+            {"source_column": "Coefficient", "canonical_field": "coefficient"},
+        ]
+
+        def scaffold():
+            year, _ = AcademicYear.objects.get_or_create(
+                school=self.school,
+                name="2025/2026",
+                defaults={
+                    "start_date": dt.date(2025, 9, 1),
+                    "end_date": dt.date(2026, 7, 31),
+                },
+            )
+            term, _ = Term.objects.get_or_create(
+                school=self.school,
+                academic_year=year,
+                name="FIRST",
+                defaults={
+                    "start_date": dt.date(2025, 9, 1),
+                    "end_date": dt.date(2025, 12, 15),
+                },
+            )
+            room, _ = Classroom.objects.get_or_create(
+                school=self.school,
+                name="Form 4A",
+                defaults={
+                    "code": "CLS-F4A-STRUCT",
+                    "academic_year": year,
+                    "department": self.department(),
+                },
+            )
+            return year, term, room
+
+        def land():
+            year, term, room = scaffold()
+            for subject_name in ("Mathematics", "Biology"):
+                subject, _ = Subject.objects.get_or_create(
+                    school=self.school, name=subject_name
+                )
+                SubjectAssignment.objects.create(
+                    school=self.school,
+                    academic_year=year,
+                    term=term,
+                    classroom=room,
+                    specialty=self.specialty(),
+                    subject=subject,
+                    coefficient=1,
+                )
+
+        def plant():
+            obj = SubjectAssignment.objects.get(
+                school=self.school, subject__name="Biology"
+            )
+            keep = {
+                "pk": obj.pk,
+                "academic_year": obj.academic_year,
+                "term": obj.term,
+                "classroom": obj.classroom,
+                "specialty": obj.specialty,
+                "subject": obj.subject,
+                "coefficient": obj.coefficient,
+            }
+            obj.delete()
+
+            def undo():
+                SubjectAssignment.objects.create(school=self.school, **keep)
+
+            return undo
+
+        self.assert_plant_bites(
+            domain="structure", csv_bytes=csv, mappings=mappings, land=land,
+            plant=plant, depth="presence",
+            expect_tokens=["MISSING", "Biology", "Form 4A"],
         )
 
 

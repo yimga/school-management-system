@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 # "no ledger entry for this row" when suppressing echoes.
 _MISSING = object()
 
+# Sentinel for ``record_sync_apply(peer_updated_at=...)`` so "the caller said nothing"
+# leaves an existing peer stamp ALONE, while an explicit ``None`` clears it. A caller
+# that applied a peer row carrying no usable stamp must be able to say so: keeping a
+# stale value would ship a base version this row does not actually descend from.
+_UNSET = object()
+
 
 class SyncApplyLedger(models.Model):
     """Provenance marker for echo-suppression in bidirectional edge<->cloud sync.
@@ -36,6 +42,37 @@ class SyncApplyLedger(models.Model):
     no longer matches the ledger and DOES propagate. Provenance, not a clock compare —
     so it is immune to box/cloud clock skew.
 
+    TWO STAMPS, TWO QUESTIONS — do not merge them. ``applied_updated_at`` is OUR row's
+    stamp after the write; it answers "is this row unchanged since sync wrote it", which
+    is echo suppression and nothing else. ``peer_updated_at`` is THEIR stamp on the
+    version we took; it answers "which version of the peer's row does our row descend
+    from", which is causality. The second is what :func:`build_edge_delta_rows` ships as
+    a delta row's ``base_updated_at`` so the far side can decide CAUSALLY instead of
+    racing two wall clocks (see ``apps.api.sync_services._conflict_decision``).
+
+    WHY A SEPARATE COLUMN AND NOT ``applied_updated_at``. Deriving causality from the
+    applied stamp was considered and is WRONG in a way that is worse than the bug it
+    would close. This ledger records sync-APPLIES and never sync-PUSHES, so
+    ``server_dt > applied_updated_at`` cannot tell "the peer never saw this row" from
+    "the peer pulled it and edited on top of it". Worse, a CONFLICT is by definition not
+    applied, so the applied stamp never catches up — and neither does resolving the
+    conflict, because ``conflict_actions.resolve_sync_conflict_row`` writes the row with
+    a bare ``save()`` and never touches this table. One legitimate edit would then
+    conflict on every cycle, for ever, with no operator action able to stop it.
+
+    ``peer_updated_at`` has no such fixed point, and the reason is worth stating because
+    it is the whole design: it advances whenever this side APPLIES the peer's version,
+    and the apply path's unchanged-value short circuit counts as an apply. So the moment
+    the two sides hold the same content — which is what resolving a conflict in either
+    direction produces — the next pull records the peer's current stamp, the next push
+    carries it as its base, and the row applies. Convergence is reached by agreeing on
+    the DATA, not by anyone remembering to write a ledger row.
+
+    It advances ONLY on an apply, never on a refusal, and that asymmetry is load-bearing
+    too: recording a version we REFUSED would let the next push claim descent from an
+    edit we never incorporated, which is precisely the silent overwrite this exists to
+    prevent.
+
     TENANCY. A SHARED/public-schema table discriminated by the ``school`` FK, exactly
     like ``siteconfig.SyncConflict`` — one physical table, rows scoped per tenant. On
     the single-tenant edge box there is only ever one school's rows here anyway.
@@ -51,6 +88,12 @@ class SyncApplyLedger(models.Model):
     # The row's updated_at immediately after the sync write. Nullable because a synced
     # model need not have an updated_at (then echo-suppression simply never fires for it).
     applied_updated_at = models.DateTimeField(null=True, blank=True)
+    # The PEER's updated_at on the version we just took — the causality token, shipped
+    # back to them as a delta row's ``base_updated_at``. NULLABLE and null on every row
+    # written before this column existed, which is exactly the mixed-fleet contract: a
+    # row with no peer stamp emits no base, and the far side grades it by the old rules.
+    # Never set on a refusal; see the class docstring for why that asymmetry matters.
+    peer_updated_at = models.DateTimeField(null=True, blank=True)
     # "cloud-pull" | "edge-push" — which direction wrote this. Observability only; the
     # suppression logic does not depend on it.
     origin = models.CharField(max_length=32, default="", blank=True)
@@ -769,19 +812,33 @@ def reset_sync_cursors(school, *, direction=""):
     return qs.update(high_water=None)
 
 
-def record_sync_apply(school_id, entity_type, pk, applied_updated_at, origin=""):
+def record_sync_apply(
+    school_id, entity_type, pk, applied_updated_at, origin="", *, peer_updated_at=_UNSET
+):
     """Upsert the provenance marker for a row just written by the sync apply path.
 
     ``school_id`` (not a School instance) so callers on the hot apply path need not
     load the School. No-op-safe to call once per applied row.
+
+    ``applied_updated_at`` is OUR stamp after the write (echo suppression).
+    ``peer_updated_at`` is THEIRS on the version we took (causality) — omit it and any
+    existing value is left untouched, pass ``None`` and it is cleared. The two are never
+    interchangeable; see :class:`SyncApplyLedger`.
+
+    ONLY EVER CALLED ON AN APPLY. Every call site is inside a success branch of the apply
+    path, and that is what makes the peer stamp mean "descends from" rather than "was
+    offered". Calling it from a refusal branch would reintroduce the silent overwrite.
     """
     if not school_id or pk is None:
         return
+    defaults = {"applied_updated_at": applied_updated_at, "origin": (origin or "")[:32]}
+    if peer_updated_at is not _UNSET:
+        defaults["peer_updated_at"] = peer_updated_at
     SyncApplyLedger.objects.update_or_create(
         school_id=school_id,
         entity_type=entity_type,
         local_pk=str(pk),
-        defaults={"applied_updated_at": applied_updated_at, "origin": (origin or "")[:32]},
+        defaults=defaults,
     )
 
 
@@ -798,6 +855,30 @@ def sync_echo_updated_at_map(school, entity_type) -> dict:
             "local_pk", "applied_updated_at"
         )
     )
+
+
+def sync_apply_provenance_map(school, entity_type) -> dict:
+    """``{local_pk(str): (applied_updated_at, peer_updated_at)}`` for one school+entity.
+
+    BOTH stamps in ONE query, because the delta producer needs both for every scanned row
+    and a second per-entity query would double the ledger reads on the hot outbox scan for
+    an answer the first query already had in hand.
+
+    A row absent from this map has neither stamp. A row present with a ``peer_updated_at``
+    of ``None`` was applied before the column existed, or was applied from a peer row that
+    carried no usable timestamp — both mean "cannot prove descent", and both must emit no
+    base version rather than a guessed one.
+
+    ``sync_echo_updated_at_map`` is kept beside this deliberately: it is the narrower
+    question and the one an echo-suppression reader should ask. Merging them would make
+    every future caller unpack a tuple it does not want.
+    """
+    return {
+        row[0]: (row[1], row[2])
+        for row in SyncApplyLedger.objects.filter(
+            school=school, entity_type=entity_type
+        ).values_list("local_pk", "applied_updated_at", "peer_updated_at")
+    }
 
 
 def record_dead_letter(
@@ -1167,5 +1248,7 @@ __all__ = [
     "reset_sync_cursors",
     "record_sync_apply",
     "sync_echo_updated_at_map",
+    "sync_apply_provenance_map",
     "_MISSING",
+    "_UNSET",
 ]

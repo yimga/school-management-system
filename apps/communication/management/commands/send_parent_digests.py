@@ -219,13 +219,101 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        from apps.communication.models import NotificationPreference
-        from apps.people.models import StudentGuardian
+        """Run the digest once PER TENANT SCHEMA, not once on whatever schema we land in.
+
+        Every table this command reads -- StudentGuardian, NotificationPreference,
+        Message, Invoice, Evaluation, Attendance -- belongs to a TENANT_APP, so under
+        ``USE_DJANGO_TENANTS`` it exists only inside a tenant schema. A management
+        command has no request, so django-tenants never binds one and the connection
+        sits on ``public``. ``periodic.run_job`` calls this with no schema context
+        either -- the same hole ``advance_running_batches`` documents in
+        ``apps/people/school_batch_service.py`` after it silently stopped advancing
+        every batch, every tick.
+
+        The failure is worse HERE than there, in one specific way: this command sends
+        mail. Reading the wrong schema does not merely do nothing -- it decides who is
+        a guardian, and it can only be wrong quietly, because a digest with no facts is
+        skipped by design and a run that found nobody prints a clean summary of zeros.
+
+        ``tenant_sweep_schema_names`` returns ``[None]`` when tenants are off, so a
+        sovereign box (RLS, one schema) enters no context and behaves exactly as
+        before. ``limit`` stays the budget for the WHOLE run, shared across schemas --
+        it is a safety cap on work done, and multiplying it by the tenant count would
+        quietly turn a 2000-row cap into 2000-per-tenant.
+        """
+        from contextlib import nullcontext
+
+        from apps.people.transfer_service import tenant_sweep_schema_names
 
         run_cadence = options["cadence"]
         apply = bool(options.get("apply"))
         limit = int(options.get("limit") or 2000)
         school_id = options.get("school")
+
+        try:
+            from django_tenants.utils import schema_context
+        except ImportError:  # single-schema deployment; the sweep is a no-op
+            schema_context = None
+
+        totals = {
+            "scanned": 0,
+            "cadence_skipped": 0,
+            "no_email": 0,
+            "eligible": 0,
+            "sent": 0,
+            "empty_skipped": 0,
+            "errored": 0,
+        }
+        schemas = schemas_failed = 0
+        budget = limit
+
+        for schema_name in tenant_sweep_schema_names():
+            if budget <= 0:
+                break
+            try:
+                # BUILDING the context is inside the try, not just entering it. A factory that
+                # raises would otherwise escape the guard entirely -- which my own test caught,
+                # and which for redrive would have broken the NEVER-raises contract outright.
+                ctx = (
+                    schema_context(schema_name)
+                    if (schema_name and schema_context is not None)
+                    else nullcontext()
+                )
+                with ctx:
+                    result = self._run_for_schema(
+                        run_cadence=run_cadence,
+                        apply=apply,
+                        budget=budget,
+                        school_id=school_id,
+                    )
+            except Exception:  # noqa: BLE001 -- one bad tenant must not starve the rest
+                schemas_failed += 1
+                logger.exception(
+                    "send_parent_digests: schema=%s failed", schema_name or "(current)"
+                )
+                continue
+            schemas += 1
+            budget -= int(result.get("scanned") or 0)
+            for key in totals:
+                totals[key] += int(result.get(key) or 0)
+
+        # schemas / schemas_failed are printed even at zero. A tenant that raised is the
+        # only thing separating "nobody was eligible" from "we never looked", and those
+        # two read identically in a summary of zeros.
+        self.stdout.write(
+            "parent_digests "
+            f"cadence={run_cadence} mode={'apply' if apply else 'dry-run'} "
+            f"schemas={schemas} schemas_failed={schemas_failed} "
+            f"scanned={totals['scanned']} cadence_skipped={totals['cadence_skipped']} "
+            f"no_email={totals['no_email']} eligible_guardians={totals['eligible']} "
+            f"sent={totals['sent']} empty_skipped={totals['empty_skipped']} "
+            f"errored={totals['errored']}"
+        )
+
+    def _run_for_schema(self, *, run_cadence, apply, budget, school_id):
+        """One digest pass on the CURRENT connection. Caller owns the schema."""
+        from apps.communication.models import NotificationPreference
+        from apps.people.models import StudentGuardian
 
         now = timezone.now()
         cutoff = now - timezone.timedelta(days=_CADENCE_DAYS[run_cadence])
@@ -238,7 +326,7 @@ class Command(BaseCommand):
         if school_id is not None:
             # tenant-isolation-allow: operator-supplied-school-scope-filter
             links = links.filter(student__school_id=school_id)
-        links = links.order_by("guardian_user_id", "id")[:limit]
+        links = links.order_by("guardian_user_id", "id")[:budget]
 
         # Preload preferences for the guardians we touch (avoid N+1 + repeated
         # DoesNotExist). One row per user (OneToOne).
@@ -330,13 +418,15 @@ class Command(BaseCommand):
                 # Honest tally: facade reported failure → not "sent".
                 errored += 1
 
-        self.stdout.write(
-            "parent_digests "
-            f"cadence={run_cadence} mode={'apply' if apply else 'dry-run'} "
-            f"scanned={scanned} cadence_skipped={cadence_skipped} "
-            f"no_email={no_email} eligible_guardians={len(digests)} "
-            f"sent={sent} empty_skipped={empty_skipped} errored={errored}"
-        )
+        return {
+            "scanned": scanned,
+            "cadence_skipped": cadence_skipped,
+            "no_email": no_email,
+            "eligible": len(digests),
+            "sent": sent,
+            "empty_skipped": empty_skipped,
+            "errored": errored,
+        }
 
     # -- fact gathering --------------------------------------------------
 

@@ -112,6 +112,12 @@ class AthleticsTeamsLander(Lander):
             gender = gender_raw if gender_raw in _VALID_GENDERS else "mixed"
             status_raw = (row.get("status") or "").strip().lower()
             status = status_raw if status_raw in _VALID_STATUSES else "forming"
+            # Deliberately NOT ``or DEFAULT_ROSTER_CAP``: a missing /
+            # unparseable cap stays ``None`` here and is dropped by
+            # ``filter_to_model_fields`` below, so the create takes the
+            # column's own default and an update leaves the operator's value
+            # alone. ``or``-ing a default in would ALSO swallow an explicit
+            # 0 (a squad closed to new members), which the source did mean.
             roster_cap = coerce_int(row.get("roster_cap"))
             venue_name = (row.get("home_venue") or "").strip()
 
@@ -188,6 +194,10 @@ class AthleticsTeamsLander(Lander):
             }
             if "school" in team_fields and ctx.school is not None:
                 defaults["school"] = ctx.school
+            # Load-bearing beyond dropping unknown columns: it also drops the
+            # ``None``/blank VALUES above, which is what keeps a null
+            # ``roster_cap`` out of a NOT NULL column (and a null
+            # ``home_venue`` from clearing a venue somebody set in-app).
             defaults = filter_to_model_fields(defaults, Team)
 
             lookup_kwargs: dict[str, Any] = {

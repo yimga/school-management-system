@@ -964,7 +964,15 @@ class Command(BaseCommand):
             Payslip,
         )
 
-        dept = Department.objects.filter(code="GEN").first()
+        # Scoped to this run's school. ``Department.code`` is unique per
+        # (school, code) -- ``uniq_department_school_code``, academics migration
+        # 0076 -- so an unscoped lookup resolved an ARBITRARY tenant's "GEN"
+        # department and hung this school's payroll rows off it. ``self.school``
+        # is None for a global seed, which matches the row ``_ensure_department``
+        # created in that mode.
+        dept = Department.objects.filter(
+            school=self.school, code="GEN"
+        ).first()
         scale, _ = PayScale.objects.get_or_create(
             code="T1",
             defaults={

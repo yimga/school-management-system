@@ -1536,8 +1536,13 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
 
     # What SYNC last wrote, per row. Used below to stop this side mistaking its OWN
     # previous apply for a local edit. Loaded once for the bundle.
+    #
+    # BOTH DIRECTIONS, not just the pull. It was pull-only because its only reader was,
+    # and the causal guard added below needs it on the PUSH leg - which is the leg the
+    # audit is about. Widening the LOAD widens nothing else: `_grade_against` still tests
+    # `sync_origin == "cloud-pull"` explicitly, so the pull-only rule stays pull-only.
     _sync_applied: dict = {}
-    if sync_origin == "cloud-pull" and _bundle_pks:
+    if sync_origin and _bundle_pks:
         try:
             from apps.sync_engine.models import SyncApplyLedger
 
@@ -1644,10 +1649,17 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 created_at_value = getattr(created_obj, "updated_at", None)
                 # Provenance, exactly as on the update path: without it the box would push
                 # the row it just received straight back up on the next cycle.
+                #
+                # `peer_updated_at` is the CAUSALITY half and is a different fact: this row
+                # was created FROM the peer's version stamped `client_updated_at`, so that
+                # is the version our copy descends from and the base our next push must
+                # carry. A created row is the cleanest case there is - our content is
+                # theirs, byte for byte.
                 from apps.sync_engine.models import record_sync_apply
 
                 record_sync_apply(
-                    school_id, entity_type, created_obj.pk, created_at_value, sync_origin
+                    school_id, entity_type, created_obj.pk, created_at_value, sync_origin,
+                    peer_updated_at=client_updated_at,
                 )
                 success_count += 1
                 _emit({
@@ -1711,9 +1723,21 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 if sync_origin:
                     from apps.sync_engine.models import record_sync_apply
 
+                    # THE LOOP BREAKER, and the reason a conflict on this rail converges
+                    # instead of repeating for ever. Nothing was written, so the ECHO
+                    # stamp is unchanged - but every allowed field already equals the
+                    # peer's, which is a stronger statement than an apply: our row IS
+                    # their version `client_updated_at`. Recording it here is what lets a
+                    # resolved conflict settle. Resolution (`conflict_actions`) writes the
+                    # winning value with a bare `save()` and never touches the ledger, so
+                    # if the peer stamp only advanced on a real write, the next pull of
+                    # the now-agreed row would land here, record nothing, and the next
+                    # push would still carry the pre-conflict base - conflicting again,
+                    # every cycle, with no operator action able to stop it.
                     record_sync_apply(
                         school_id, entity_type, instance.pk,
                         getattr(instance, "updated_at", None), sync_origin,
+                        peer_updated_at=client_updated_at,
                     )
                 success_count += 1
                 _emit({
@@ -1743,16 +1767,59 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             # CAUSALITY, when the sender supplies it. `base_updated_at` names the
             # version of THIS side's row the incoming edit descends from, which lets the
             # decision below be causal rather than a race between two machines' clocks.
-            # No box emits it yet (the delta producer has nowhere to read the peer's
-            # version from -- SyncApplyLedger records the LOCAL stamp, for echo
-            # suppression), so today this is None and every rule is unchanged; a box that
-            # starts sending it is honoured the moment it does.
+            #
+            # `build_edge_delta_rows` now emits it, from the sender's own
+            # `SyncApplyLedger.peer_updated_at` - the stamp OUR row carried when the
+            # sender last applied it. MIXED FLEET: a box built before that column, or a
+            # row the sender has never received from us, sends no key at all;
+            # `_parse_client_updated_at(None)` is None, the causal branch is skipped, and
+            # the wall-clock rules below decide exactly as they did before. A missing key
+            # can never raise - `.get` on a dict, and a parser whose first line is a
+            # falsiness check.
+            _base_updated_at = _parse_client_updated_at(item.get("base_updated_at"))
+            # OUR OWN ECHO IS NOT A CONCURRENT EDIT, and without this the causal rail
+            # jams shut after its FIRST successful apply. Watch it happen: this side
+            # applies the peer's row, `auto_now` moves our stamp to a value the peer has
+            # never seen, and the reverse delta correctly suppresses that row as an echo -
+            # so the peer is never told the new stamp and its `peer_updated_at` stays at
+            # the version before ours. Its next edit therefore arrives with a base that is
+            # legitimately older than our current row, `server_dt > base` is true, and a
+            # row with no concurrent edit anywhere near it conflicts. Every cycle. For
+            # ever. That is the never-converging failure the ledger-derived design was
+            # rejected for, rebuilt from the other end.
+            #
+            # The evidence that separates the two cases is already in the ledger and is
+            # exact: if our row's current stamp is still what OUR OWN sync apply wrote,
+            # we have not moved since - the movement WAS the peer's edit coming back at
+            # us, not an independent write - so there is nothing here to adjudicate and
+            # the base is effectively our own version. If a human or a local process has
+            # touched the row since, the stamps differ, this does not fire, and the
+            # causal test runs exactly as it should.
+            #
+            # SINGLE PEER, which is what makes "sync wrote it" mean "they wrote it". One
+            # box per school is structural in this engine, not configured: EdgeFleetState
+            # .school is a OneToOneField, EdgeSyncCursor is unique on (school, direction)
+            # with no device column, and this very ledger is unique on (school,
+            # entity_type, local_pk) with no device dimension either - the pairing flow
+            # refuses a second box for exactly that reason (see
+            # sync_engine/tests/test_one_box_per_school_2026_08_31.py). If a device
+            # dimension is ever added to the ledger, this guard must gain one too, or a
+            # second box's write would be read as the first box's echo.
+            #
+            # It is also the same judgement `_grade_against` makes twenty lines up, for
+            # the same reason, on the other leg.
+            if (
+                _base_updated_at is not None
+                and server_dt is not None
+                and _sync_applied.get((entity_type, str(pk)), _UNSET) == server_dt
+            ):
+                _base_updated_at = server_dt
             decision = _conflict_decision(
                 entity_type,
                 sync_origin,
                 client_updated_at,
                 _grade_against,
-                base_updated_at=_parse_client_updated_at(item.get("base_updated_at")),
+                base_updated_at=_base_updated_at,
             )
             if decision == "reject":
                 # Domain may only change through a live online transaction (policy
@@ -1932,11 +1999,17 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                     instance.save(update_fields=update_fields)
                     new_updated_at = getattr(instance, "updated_at", None)
                     if sync_origin:
-                        # Provenance marker so the reverse delta won't echo this apply.
+                        # Provenance marker so the reverse delta won't echo this apply,
+                        # plus the causality token: we took the peer's version stamped
+                        # `client_updated_at`, so our row now descends from it and our
+                        # next push says so. Inside the same savepoint as the save for the
+                        # same reason the echo stamp is - a row written without its
+                        # provenance is a row that lies about where it came from.
                         from apps.sync_engine.models import record_sync_apply
 
                         record_sync_apply(
-                            school_id, entity_type, instance.pk, new_updated_at, sync_origin
+                            school_id, entity_type, instance.pk, new_updated_at, sync_origin,
+                            peer_updated_at=client_updated_at,
                         )
             except (
                 IntegrityError, DataError, ValidationError,
@@ -2280,11 +2353,14 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
         else:
             updated += 1
         if sync_origin:
-            # Provenance marker so the reverse delta won't echo this sync-applied insert.
+            # Provenance marker so the reverse delta won't echo this sync-applied insert,
+            # and the causality token beside it. `_incoming_at` is the peer's stamp on the
+            # row we just materialised, parsed once above for delete dominance.
             from apps.sync_engine.models import record_sync_apply
 
             record_sync_apply(
-                school_id, entity_type, obj.pk, getattr(obj, "updated_at", None), sync_origin
+                school_id, entity_type, obj.pk, getattr(obj, "updated_at", None), sync_origin,
+                peer_updated_at=_incoming_at,
             )
         data = {"id": obj.pk, "created": was_created}
         if dropped_fks:

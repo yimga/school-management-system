@@ -1318,9 +1318,10 @@ def upsert_with_conflict_detection(
 # --- Structure provisioning helpers (shared with structure_lander) ----------
 # The SPLIT scaffold lander (``structure_lander``) pioneered these; factored
 # here so the ``sections``/``staff``/``academics`` landers provision required
-# FK parents the SAME safe way (reuse-by-(school,name), mint a target-scoped
-# GLOBALLY-unique code, never reuse the source's code — which on single-schema
-# would collide with / resolve ANOTHER school's row).
+# FK parents the SAME safe way (reuse-by-(school,name), mint a code scoped to the
+# TARGET school, never reuse the source's — which carries the source system's
+# namespace into the target's catalog and, anywhere a ``code`` lookup is not
+# school-scoped, resolves ANOTHER school's row).
 
 
 def _slug_upper(value: str, width: int = 8) -> str:
@@ -1333,10 +1334,10 @@ def _scope_token(school) -> str:
     ``School.pk`` is a 36-char UUID on this platform, so a bare ``{prefix}{pk}``
     already exceeds the 30-char ``code`` column — the ``[:30]`` truncation then
     drops the NAME entirely and every minted code collapses to one value, so the
-    2nd..Nth provisioned Department/Specialty/Classroom all collide on the
-    ``unique=True`` code and quarantine (0 land past the first). Hash a long id
-    down to 6 hex chars; keep a short integer pk verbatim so existing
-    integer-pk deployments' codes are unchanged.
+    2nd..Nth provisioned Department/Specialty/Classroom -- all in the SAME school
+    -- collide on the per-``(school, code)`` unique code and quarantine (0 land
+    past the first). Hash a long id down to 6 hex chars; keep a short integer pk
+    verbatim so existing integer-pk deployments' codes are unchanged.
     """
     sid = str(getattr(school, "pk", "") or "0")
     if len(sid) > 8:  # magic-number-allow: short-integer-pk-threshold (UUIDs are 36)
@@ -1351,19 +1352,34 @@ def _scope_token(school) -> str:
 
 
 def mint_scoped_code(*, prefix: str, name: str, school, model, code_field: str = "code") -> str:
-    """A fresh, GLOBALLY-unique code for a provisioned structure row.
+    """A fresh code for a provisioned structure row, scoped to the target school.
 
-    ``Department``/``Specialty``/``Classroom.code`` are ``unique=True`` platform-
-    wide, so the source's code MUST NOT be reused (it would collide or, worse,
-    resolve the SOURCE school's row). Deterministic per (school, name) for stable
+    ``Department.code`` (``uniq_department_school_code``, academics migration
+    0076) and ``Specialty.code``/``Classroom.code``
+    (``uniq_specialty_school_code``/``uniq_classroom_school_code``, migration
+    0085) are unique per ``(school, code)`` — NOT platform-wide. The source's
+    code is still not reused: it carries the source system's namespace into the
+    target's catalog, and anywhere a ``code`` lookup is not school-scoped it
+    resolves the SOURCE school's row. Deterministic per (school, name) for stable
     re-runs, with a hash fallback if the short form ever collides. The school
     token is length-bounded (:func:`_scope_token`) so the NAME always survives
     the 30-char cap even when ``School.pk`` is a UUID.
+
+    The freshness probe below is deliberately left unscoped, and that is safe
+    rather than an oversight. ``candidate`` always embeds THIS school's own
+    :func:`_scope_token`, so a row belonging to another school can only match it
+    by a 6-hex SHA-1 collision on the school pk — a hit therefore all but always
+    means this school already holds the candidate, which is exactly the question
+    being asked. And the probe has no veto: both branches return a string, so an
+    unscoped (strictly wider) probe can only ever append a hash suffix, never
+    block a create. Scoping it would be equally correct and is the safer default
+    for new code; it is left alone here because changing it would change minted
+    codes on re-run for no behavioural gain.
     """
     sid = _scope_token(school)
     base = _slug_upper(name)
     candidate = f"{prefix}{sid}-{base}"[:30]  # magic-number-allow: code column max_length=30
-    if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: code is a GLOBALLY-unique column; global existence check is intentional
+    if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: freshness-probe-for-a-candidate-that-already-embeds-this-schools-scope-token; a cross-school hit needs a sha1 collision on the school pk, and a hit can only append a suffix, never block a create
         return candidate
     digest = hashlib.sha256(f"{sid}:{prefix}:{name}".encode("utf-8")).hexdigest()[:6]
     return f"{prefix}{sid}-{base[:4]}-{digest}"[:30]  # magic-number-allow: code column max_length=30

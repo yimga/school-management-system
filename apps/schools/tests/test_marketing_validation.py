@@ -454,6 +454,31 @@ class MarketingRegionalJsonIntegrationTests(MarketingPublicRouteTransactionCase)
         self.assertContains(resp, "GDPR")
 
 
+#: Marketing route names that exist on the DEV urlconf (config.urls) and are
+#: not mounted on the public marketing host. iter_marketing_smoke_targets()
+#: reverses against get_resolver(), which outside a request is
+#: settings.ROOT_URLCONF -- the dev superset -- while the GET below resolves
+#: config.public_urls. So these come back 404 for a HOST reason, not a dead
+#: route, and reporting them as ordinary failures buried two real content
+#: regressions in the same module.
+#:
+#: Each entry carries its reason and is pinned in BOTH directions: the test
+#: asserts these 404 on the marketing host, so a route that later becomes
+#: public fails here until its entry is removed. A THIRD divergence fails
+#: outright rather than being absorbed.
+_DEV_ONLY_MARKETING_ROUTES = {
+    "marketing_threshold_era_preview": (
+        "deprecated stakeholder preview -- its own view docstring says use "
+        "/storefront/ instead, and it is served noindex, nofollow"
+    ),
+    "marketing_compare_replacement": (
+        "/compare/replacement/ carries page_slug compare-replacement, which has "
+        "no COMPARE_PAGE_DEFINITIONS entry (power-school, blackbaud and "
+        "infinite-campus are the three that do)"
+    ),
+}
+
+
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
 class MarketingFullUrlInventoryTests(MarketingPublicRouteTransactionCase):
     """GET every marketing_* route after CMS seed (aligns with validate_marketing_urls --full --seed-cms)."""
@@ -490,10 +515,30 @@ class MarketingFullUrlInventoryTests(MarketingPublicRouteTransactionCase):
         for target in iter_marketing_smoke_targets():
             with self.subTest(name=target.name, path=target.path):
                 resp = self._get(target.path)
+                reason = _DEV_ONLY_MARKETING_ROUTES.get(target.name)
+                if reason is not None:
+                    self.assertEqual(
+                        resp.status_code,
+                        404,
+                        f"{target.name} is now served on the marketing host; "
+                        f"remove it from _DEV_ONLY_MARKETING_ROUTES ({reason})",
+                    )
+                    continue
                 self.assertTrue(
                     target.accepts(resp.status_code),
                     f"{target.name} GET {target.path} -> {resp.status_code}, "
                     f"expected one of {sorted(target.ok_statuses)}",
+                )
+
+    def test_every_dev_only_route_is_still_in_the_inventory(self):
+        """Otherwise a renamed route leaves a dead entry nobody notices."""
+        names = {t.name for t in iter_marketing_smoke_targets()}
+        for name in _DEV_ONLY_MARKETING_ROUTES:
+            with self.subTest(name=name):
+                self.assertIn(
+                    name,
+                    names,
+                    f"{name} no longer reverses at all -- delete its entry",
                 )
 
     def test_all_adjacent_marketing_surface_urls_return_200(self):

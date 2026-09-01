@@ -100,7 +100,13 @@ USAGE
     python scripts/verify_test_asserts_behaviour.py --compare --scope-changed
     python scripts/verify_test_asserts_behaviour.py --sample 40 --seed 20260831
     python scripts/verify_test_asserts_behaviour.py --list
-    python scripts/verify_test_asserts_behaviour.py --update-baseline
+    python scripts/verify_test_asserts_behaviour.py --all --update-baseline
+
+--update-baseline needs a scope (--all, --sample or --scope-changed). It used
+to accept none, which selected nothing, measured nothing and wrote a baseline
+of zero -- after which --compare passed forever with the whole population
+unmeasured. A harness that reports a clean 0 without measuring is the defect
+this one exists to find, so it now refuses instead.
 
 Exit 0 when every baselined test is still vacuous and nothing new is found in
 the enforced scope. Exit 1 on a fixed-but-still-baselined entry, a baseline entry
@@ -497,6 +503,9 @@ def _select(root: Path, args: argparse.Namespace, baseline: dict | None) -> list
     pool = candidates(root)
     by_id = {c["id"]: c for c in pool}
 
+    if getattr(args, "measure_all", False):
+        return pool
+
     if args.sample:
         # Discovery. Seeded so a run is reproducible and a reviewer can re-derive
         # the same draw; stratified by app so one large app cannot own the sample.
@@ -515,7 +524,18 @@ def _select(root: Path, args: argparse.Namespace, baseline: dict | None) -> list
 
     selected: list[dict] = []
     seen: set[str] = set()
+    # --scope-changed bounds the run to the files this push touched, and it
+    # has to bound the BASELINED set as well. A baselined test in a file
+    # nobody edited cannot have changed, and re-measuring all of them would
+    # put a quarter of an hour on every push -- which is how a gate ends up
+    # switched off. The unbounded --compare (no --scope-changed) is what
+    # re-checks the whole baseline.
+    changed_scope = (
+        changed_test_files(root, args.base_ref) if args.scope_changed else None
+    )
     for entry in (baseline or {}).get("vacuous", []):
+        if changed_scope is not None and entry["file"] not in changed_scope:
+            continue
         case = by_id.get(entry["id"])
         if case is None:
             # Keep it, so it is reported as DRIFT rather than silently dropped.
@@ -532,10 +552,9 @@ def _select(root: Path, args: argparse.Namespace, baseline: dict | None) -> list
             selected.append(case)
         seen.add(entry["id"])
 
-    if args.scope_changed:
-        changed = changed_test_files(root, args.base_ref)
+    if changed_scope is not None:
         for case in pool:
-            if case["file"] in changed and case["id"] not in seen:
+            if case["file"] in changed_scope and case["id"] not in seen:
                 selected.append(case)
     return selected
 
@@ -552,6 +571,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--base-ref", default="origin/main")
     parser.add_argument(
+        "--all",
+        action="store_true",
+        dest="measure_all",
+        help="Measure the WHOLE candidate population (what --update-baseline needs).",
+    )
+    parser.add_argument(
         "--sample", type=int, default=0, help="Discovery over N cases (report-only)."
     )
     parser.add_argument("--seed", type=int, default=20260831)
@@ -564,6 +589,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     baseline = load_baseline(BASELINE_PATH)
+
+    if args.update_baseline and not (
+        getattr(args, "measure_all", False) or args.sample or args.scope_changed
+    ):
+        print(
+            "FAIL: --update-baseline needs a scope. Without one nothing is "
+            "selected, nothing is measured, and the baseline is written as 0 -- "
+            "after which --compare passes forever over an unmeasured "
+            "population. Use --all (or --sample N / --scope-changed).",
+            file=sys.stderr,
+        )
+        return 1
 
     if args.list:
         pool = candidates(ROOT)
@@ -589,8 +626,21 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result))
         return 0
 
+    # Building a worktree costs ~3 minutes. The selection is a static scan,
+    # so decide FIRST whether there is anything to measure; a push that
+    # touches no test file has nothing in scope and does not need one.
+    if args.scope_changed and not _select(ROOT, args, baseline):
+        print(
+            "OK: no test file in this push is in scope, so nothing was "
+            "measured -- and nothing is claimed. The unbounded --compare "
+            "re-checks the whole baseline."
+        )
+        return 0
+
     # Outer: measure in isolation, then judge.
     passthrough: list[str] = []
+    if getattr(args, "measure_all", False):
+        passthrough += ["--all"]
     if args.sample:
         passthrough += ["--sample", str(args.sample), "--seed", str(args.seed)]
     if args.scope_changed:
@@ -636,8 +686,43 @@ def main(argv: list[str] | None = None) -> int:
         f"measured {measured} case(s): {len(vacuous)} VACUOUS, {len(sound)} SOUND, "
         f"{len(unmeasurable)} unmeasurable"
     )
+
+    # An empty SELECTION is believable in one case only: --scope-changed on a
+    # push that touched no test file. Anywhere else it means the selection,
+    # the worktree or the loader broke, and reporting it as "nothing vacuous"
+    # would be this harness committing the error it looks for -- which is
+    # exactly what --update-baseline did before 2026-09-01, writing a
+    # baseline of 0 over a population of 394.
+    selected_count = len(verdicts) + len(missing)
+    population = len(candidates(ROOT))
+    if selected_count == 0 and population and not args.scope_changed:
+        print(
+            f"FAIL: selected 0 of {population} candidate(s) in an unbounded "
+            "mode. A harness that measures nothing reports a clean zero, "
+            "which is the finding it exists to catch.",
+            file=sys.stderr,
+        )
+        return 1
     for v in sorted(vacuous, key=lambda v: v["id"]):
         print(f"  VACUOUS  {v['id']}  <- {v.get('template', '?')}")
+
+    # An unmeasurable case is not a clean one, and a bare count of them is
+    # not a report. The two reasons are different findings: UNUSABLE means
+    # the test is red or will not load BEFORE any mutation; UNMEASURABLE
+    # means it names a template it never actually reads, so emptying that
+    # template cannot change its result either way.
+    if unmeasurable:
+        from collections import Counter
+
+        reasons = Counter(v.get("why", "?") for v in unmeasurable)
+        print()
+        print(f"unmeasurable, by reason ({len(unmeasurable)} total):")
+        for why, count in reasons.most_common():
+            print(f"  {count:4d}  {why}")
+        by_file = Counter(v["file"] for v in unmeasurable)
+        print("  worst files:")
+        for name, count in by_file.most_common(10):
+            print(f"    {count:4d}  {name}")
 
     if args.update_baseline:
         write_baseline(BASELINE_PATH, vacuous)
@@ -695,10 +780,23 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    print(
-        f"\nOK: all {len(known)} baselined test(s) still measure vacuous, and no new "
-        "vacuous test in scope. The number goes down by fixing them."
-    )
+    # Say what was actually re-measured. Claiming all of them still measure
+    # vacuous after a --scope-changed run that measured none of them would be
+    # a message asserting something it did not check.
+    rechecked = len([v for v in vacuous + sound if v["id"] in known])
+    print()
+    if args.scope_changed:
+        print(
+            f"OK: {rechecked} of {len(known)} baselined test(s) were in scope "
+            "and still measure vacuous; no new vacuous test in a changed file. "
+            "The rest sit in files this push did not touch -- the unbounded "
+            "--compare is what re-checks those."
+        )
+    else:
+        print(
+            f"OK: all {len(known)} baselined test(s) still measure vacuous, and "
+            "no new vacuous test in scope. The number goes down by fixing them."
+        )
     return 0
 
 

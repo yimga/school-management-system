@@ -1059,7 +1059,78 @@ def _maybe_enqueue_dead_letter(
 
 
 def redrive_dead_letters(limit: int = 50) -> dict:
-    """Re-attempt parked dead-letter sends. Returns a summary dict.
+    """Re-attempt parked sends in EVERY tenant schema, merging the summaries.
+
+    ``EmailDeadLetter`` lives in ``apps.schoolops``, a TENANT_APP, so under
+    ``USE_DJANGO_TENANTS`` its table is per-schema -- while both callers arrive with
+    no schema bound: the periodic job (``periodic.run_job`` holds no tenant context)
+    and ``manage.py redrive_email_dead_letters`` (a command has no request for
+    django-tenants to bind from). The queue was therefore read on ``public``.
+
+    That was invisible rather than loud, because this function's contract is that it
+    NEVER raises: the schema error was caught, and the caller received a tidy summary
+    of zeros that is byte-identical to "the queue is empty". Parked mail can sit
+    unsent indefinitely behind a healthy-looking log line.
+
+    ``tenant_sweep_schema_names`` yields ``[None]`` when tenants are off, so the
+    sovereign box path (``drain_edge_outbox``) enters no context and is unchanged --
+    which matters, because the box is the deployment where this queue does the most
+    work: it is what holds mail while the box is offline.
+
+    ``limit`` is the budget for the WHOLE call, spent across schemas rather than
+    granted to each, so a tenant count can never multiply the caller's cap.
+    ``schemas`` / ``schemas_failed`` are reported for the same reason the digest
+    command reports them: a zero that was never looked for must not read like a zero
+    that was.
+    """
+    from contextlib import nullcontext
+
+    from apps.people.transfer_service import tenant_sweep_schema_names
+
+    try:
+        from django_tenants.utils import schema_context
+    except ImportError:  # single-schema deployment; the sweep is a no-op
+        schema_context = None
+
+    merged = {
+        "scanned": 0, "redriven": 0, "still_pending": 0,
+        "exhausted": 0, "abandoned": 0, "enabled": _dlq_enabled(),
+        "blocked_no_backend": 0, "schemas": 0, "schemas_failed": 0,
+    }
+    budget = int(limit or 0)
+    for schema_name in tenant_sweep_schema_names():
+        if budget <= 0:
+            break
+        try:
+            # BUILDING the context is inside the try, not just entering it. A factory that
+            # raises would otherwise escape the guard entirely -- which my own test caught,
+            # and which for redrive would have broken the NEVER-raises contract outright.
+            ctx = (
+                schema_context(schema_name)
+                if (schema_name and schema_context is not None)
+                else nullcontext()
+            )
+            with ctx:
+                part = _redrive_on_current_schema(budget)
+        except Exception:  # noqa: BLE001 -- the NEVER-raises contract is the whole point
+            merged["schemas_failed"] += 1
+            logger.warning(
+                "schoolops.email_delivery.redrive_schema_failed schema=%s",
+                schema_name or "(current)",
+            )
+            continue
+        merged["schemas"] += 1
+        budget -= int(part.get("scanned") or 0)
+        for key in (
+            "scanned", "redriven", "still_pending",
+            "exhausted", "abandoned", "blocked_no_backend",
+        ):
+            merged[key] += int(part.get(key) or 0)
+    return merged
+
+
+def _redrive_on_current_schema(limit: int = 50) -> dict:
+    """One redrive pass on the CURRENT connection. Caller owns the schema.
 
     Worked by ``python manage.py redrive_email_dead_letters``. Each pending row
     is decrypted, re-sent with a FRESH idempotency key (so it never dedupes back

@@ -326,7 +326,10 @@ class StaffLander(Lander):
 
                 # Optional Department FK (SET_NULL) — reuse an existing one by
                 # (school, name); mint a target-scoped code on create so we never
-                # reuse the source's globally-unique department code.
+                # reuse the source's department code. ``Department.code`` is
+                # unique per (school, code) (``uniq_department_school_code``),
+                # so reusing it would not raise — it would silently import the
+                # source system's namespace into this tenant's catalog.
                 department = None
                 dept_name = _staff_field_from_row(row, "department")
                 if dept_name and "department" in model_fields:

@@ -66677,3 +66677,14 @@ msgstr ""
 
 msgid "This skip is evaluated on the cloud (this host)."
 msgstr ""
+
+msgid ""
+"The cloud could not check whether this school already has a box, so pairing "
+"was refused rather than risk binding a second one. This is safe to retry."
+msgstr ""
+
+msgid ""
+"This school already has a paired box, and only ONE box per school is "
+"supported. Release the existing one first — revoke its device under Devices "
+"in the operator console — then pair this box."
+msgstr ""

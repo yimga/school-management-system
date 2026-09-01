@@ -47,7 +47,24 @@
         raw = localStorage.getItem(KEY);
       }
     } catch (_) { /* private mode */ }
-    return VALID[raw] ? raw : "system";
+    if (VALID[raw]) { return raw; }
+    /* No preference stored anywhere. The marketing surface is a
+       light-locked editorial canvas -- base_marketing.html hardcodes
+       data-theme="light" on <html> and mkt-theme-bootstrap.js defaults to
+       "light" -- so falling through to "system" here re-themed every
+       visitor whose OS is dark, moments after the marketing bootstrap had
+       just set light. The guard above only kept theme-preference-bootstrap
+       from clobbering a STORED marketing preference; the DEFAULT was
+       clobbered anyway, which is the case that applies to a first-time
+       visitor. Measured 2026-09-01: a dark-OS axe sweep of the marketing
+       surface failed color-contrast on every page; the same sweep in light
+       passes on all of them. An explicit dark preference still wins -- it
+       is returned above.
+     */
+    if (document.documentElement.getAttribute("data-surface") === "marketing") {
+      return "light";
+    }
+    return "system";
   }
 
   function resolve(pref) {

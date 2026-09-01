@@ -122,7 +122,17 @@ def activate_experience_template(
         template_key, platform_operator=platform_operator
     )
     pack = get_pack(template_key, pack_type="experience_template")
-    assert pack is not None  # validated above
+    if pack is None:
+        # NOT an ``assert``. ``build_experience_runtime_payload`` above does raise on a
+        # missing pack, but this is a SECOND, independent registry scan
+        # (``get_pack`` walks ``_all_packs()`` afresh each call), and ``pack.version``
+        # is dereferenced two lines down — so a None here is a real AttributeError
+        # from inside a package activation, not an impossible state. Under ``python -O``
+        # the assert was stripped entirely, which is the worst of both: no protection in
+        # exactly the deployment mode that runs in production.
+        raise ExperienceRuntimeError(
+            f"Experience template {template_key!r} is not registered in both catalogs."
+        )
     installed = _find_installed_package(
         school=school,
         template_key=template_key,
