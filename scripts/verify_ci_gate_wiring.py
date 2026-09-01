@@ -119,6 +119,18 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # the body had rendered. verify_url_name_integrity was green throughout, because the
     # name reverses -- just not on that host.
     ("scripts/audit_shell_url_namespace_contract.py", "ci.yml"),
+    # Its sibling, and the half audit_shell_url_namespace_contract cannot reach:
+    # that gate walks six DECLARED shells through LITERAL {% include %} edges, so a
+    # control-plane body arriving via {% include operator_cp_body_template %} -- a
+    # VARIABLE include -- is invisible to it, and its SHELL_HOSTS deliberately omits
+    # config.urls. Both holes were live on 2026-08-31:
+    # accounts/partials/operator_documentation_body.html reversed the manager-only
+    # name `manager_help_center` with no namespace at all, and
+    # use_control_plane_shell() serves that body on a `local` host too, so
+    # /authentication/documentation/ was a 500 on every dev machine. Wired into
+    # architectural-boundaries.yml the same day: its only previous home was
+    # ci.yml, which has started no job since 2026-08-15.
+    ("scripts/verify_cross_host_template_reverse.py", "architectural-boundaries.yml"),
     # Added 2026-08-21: `ink` and `midnight` both paired a navy ground with the WARM
     # surface ramp belonging to `steel`, so every form control on those themes rendered
     # brown inside a navy shell. Every contrast gate was green throughout -- the defect

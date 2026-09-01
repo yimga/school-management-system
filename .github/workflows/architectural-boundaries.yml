@@ -192,6 +192,10 @@ on:
       - "static/css/dark-mode-safety-net.css"
       - "static/js/theme-preference-bootstrap.js"
       - "apps/**/urls*.py"
+      - "config/*urls*.py"
+      - "scripts/verify_cross_host_template_reverse.py"
+      - "var/security-audit-baseline-cross-host-template-reverse.json"
+      - "templates/**/*.html"
       - ".github/workflows/architectural-boundaries.yml"
       - ".github/workflows/*.yml"
       - "scripts/verify_github_artifact_retention.py"
@@ -1111,6 +1115,21 @@ jobs:
             python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
           }
 
+          # Its only home was ci.yml::django-tests, and Actions has started no job
+          # on this repository since 2026-08-15, so today it is enforced by nobody.
+          # It costs 107.8s measured, which is why it is NOT in
+          # scripts/pre_push_boundary_check.py -- two minutes on every peer's push
+          # is a decision nobody made. Two minutes HERE is affordable: this
+          # workflow costs 2 jobs, fires on every push to main, and touches no
+          # developer's push time. Its own unit, not appended to a neighbour: a
+          # unit body runs under `set -e`, so a bundled gate can silently never
+          # run and a failure it does report is announced under someone else's
+          # label.
+          u_cross_host_template_reverse() {
+            python scripts/verify_cross_host_template_reverse.py --compare
+          }
+
+          run_unit u_cross_host_template_reverse "A template rendered on N hosts reverses no name absent from any of them"
           run_unit u_world_engine_i18n_ci "World Engine: i18n catalog freshness + compile"
           run_unit u_global_footprint_glocal_offline "Global Footprint + glocal + offline integration"
           run_unit u_global_governance_plan_completion "Global governance program closure (Phase 5 strict gate)"
