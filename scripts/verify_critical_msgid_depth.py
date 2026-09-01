@@ -50,7 +50,35 @@ CRITICAL_MSGIDS = (
 #
 # A locale listed here must be one settings.LANGUAGES actually serves; otherwise
 # this gate proves nothing about what a user sees.
-LOCALES = ("fr", "es", "pt_BR")
+# Widened 2026-08-31 from (fr, es, pt_BR) to every locale that ships an
+# AI-drafted first-touch pack. Those three were the only ones the gate asked
+# about, and the other twelve had 0 of 19 filled -- so the pack this gate calls
+# load-bearing was English for a German, Italian, Russian, Japanese, Chinese,
+# Hindi, Turkish, Arabic, Persian, Hebrew or Urdu user, and the gate said PASS.
+#
+# ha / pid / sw / yo are deliberately ABSENT and must stay absent until a human
+# translator delivers: scan_locale_coverage._STUB_HUMANONLY_REASON forbids AI
+# drafts for them in writing ("a wrong term users accept as canonical is worse
+# than an English fallback, and some of these languages have no settled software
+# orthography"). Adding them here would either force that policy to be broken or
+# leave the gate permanently red.
+LOCALES = (
+    "fr",
+    "es",
+    "pt_BR",
+    "de",
+    "it",
+    "ru",
+    "ja",
+    "zh_Hans",
+    "zh_Hant",
+    "hi",
+    "tr",
+    "ar",
+    "fa",
+    "he",
+    "ur",
+)
 
 
 def _unescape_po(s: str) -> str:

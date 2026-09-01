@@ -67808,3 +67808,68 @@ msgid ""
 "{{ file }}: {{ held }} held, {{ recorded }} stored, {{ dropped }} not "
 "reviewable"
 msgstr ""
+
+msgid "Not applied (attempts)"
+msgstr ""
+
+msgid "Only the oldest are listed; the count above is the whole set."
+msgstr ""
+
+msgid ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and re-verify MFA) at next sign-in."
+msgstr ""
+
+msgid ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and set up MFA) at next sign-in."
+msgstr ""
+
+msgid ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. This figure counts every "
+"ATTEMPT in the window, so one record refused on many cycles is counted many "
+"times; the work queue below lists the actual records and how long each has "
+"been stuck. They are retried automatically."
+msgstr ""
+
+msgid "Sync controls"
+msgstr ""
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — shown once, hand it over securely."
+msgstr ""
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — shown once, share it securely."
+msgstr ""
+
+msgid ""
+"The temporary password for %(user)s was issued but can no longer be "
+"displayed — it is shown once and is stored nowhere, not even in the logs. "
+"Their old password no longer works, so reset the password again to issue one"
+" you can hand over."
+msgstr ""
+
+msgid ""
+"These are retried on every cycle. A record that stays here needs the thing "
+"it is waiting for — usually a parent record, or an entity the rail may not "
+"create at all."
+msgstr ""
+
+msgid "oldest stuck for {{ since }}"
+msgstr ""
+
+msgid "refused {{ attempts }} times in total"
+msgstr ""
+
+msgid "stuck for {{ since }}"
+msgstr ""
+
+msgid "{{ n }} attempt{% plural %}{{ n }} attempts"
+msgstr ""
+
+msgid ""
+"{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be "
+"applied"
+msgstr ""

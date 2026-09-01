@@ -2745,7 +2745,7 @@ msgid "Balances visible to families through the parent portal"
 msgstr "Bakiyeler veli portalı aracılığıyla ailelerin görebileceği şekilde"
 
 msgid "Band"
-msgstr ""
+msgstr "Not aralığı"
 
 msgid "Bands"
 msgstr ""
@@ -55749,7 +55749,7 @@ msgid "%(n)s shown"
 msgstr ""
 
 msgid "A resource with that name already exists."
-msgstr ""
+msgstr "Bu ada sahip bir kaynak zaten var."
 
 msgid "Active clubs"
 msgstr ""
@@ -55799,16 +55799,16 @@ msgid ""
 msgstr ""
 
 msgid "Bookable resource added."
-msgstr ""
+msgstr "Rezerve edilebilir kaynak eklendi."
 
 msgid "Booking cancelled."
-msgstr ""
+msgstr "Rezervasyon iptal edildi."
 
 msgid "Booking confirmed."
-msgstr ""
+msgstr "Rezervasyon onaylandı."
 
 msgid "Booking not found."
-msgstr ""
+msgstr "Rezervasyon bulunamadı."
 
 msgid "Brief note"
 msgstr ""
@@ -55847,7 +55847,7 @@ msgid "Contact type"
 msgstr ""
 
 msgid "Could not log contact."
-msgstr ""
+msgstr "Görüşme kaydedilemedi."
 
 msgid "Counts and filters appear when a list is loaded."
 msgstr ""
@@ -55921,7 +55921,7 @@ msgid "Hostel room (optional)"
 msgstr ""
 
 msgid "Intervention contact logged."
-msgstr ""
+msgstr "Müdahale görüşmesi kaydedildi."
 
 msgid "Issued items"
 msgstr ""
@@ -55960,7 +55960,7 @@ msgid "MFA policy set by the operator; the tenant can only tighten it."
 msgstr ""
 
 msgid "MTSS tier updated to %(tier)s (%(count)s open incident(s))."
-msgstr ""
+msgstr "MTSS kademesi %(tier)s olarak güncellendi (%(count)s açık olay)."
 
 msgid "Meeting"
 msgstr ""
@@ -56005,7 +56005,7 @@ msgid "No members yet"
 msgstr ""
 
 msgid "No open incidents to update for this student."
-msgstr ""
+msgstr "Bu öğrenci için güncellenecek açık olay yok."
 
 msgid "No outstanding issued items for your children."
 msgstr ""
@@ -56065,7 +56065,7 @@ msgid "Page-aware index — section and model counts from this host."
 msgstr ""
 
 msgid "Placement removed from the draft."
-msgstr ""
+msgstr "Yerleştirme taslaktan kaldırıldı."
 
 msgid "Platform backoffice catalog"
 msgstr ""
@@ -56085,7 +56085,7 @@ msgid "Records list"
 msgstr ""
 
 msgid "Registration recorded."
-msgstr ""
+msgstr "Kayıt alındı."
 
 msgid "Related outcomes"
 msgstr ""
@@ -56115,10 +56115,10 @@ msgid "Reserve"
 msgstr ""
 
 msgid "Resource and start/end times are required."
-msgstr ""
+msgstr "Kaynak ve başlangıç/bitiş saatleri zorunludur."
 
 msgid "Resource name is required."
-msgstr ""
+msgstr "Kaynak adı zorunludur."
 
 msgid "Role (optional)"
 msgstr ""
@@ -56148,16 +56148,16 @@ msgid "School not found."
 msgstr ""
 
 msgid "Select a hostel room from this school."
-msgstr ""
+msgstr "Bu okuldaki bir yurt odası seçin."
 
 msgid "Select a valid student."
-msgstr ""
+msgstr "Geçerli bir öğrenci seçin."
 
 msgid "Set MTSS tier"
 msgstr ""
 
 msgid "Sold out"
-msgstr ""
+msgstr "Tükendi"
 
 msgid "Staff user ID"
 msgstr ""
@@ -56169,7 +56169,7 @@ msgid "Student ID (optional)"
 msgstr ""
 
 msgid "Student not found in this school."
-msgstr ""
+msgstr "Bu okulda öğrenci bulunamadı."
 
 msgid "Subject kind"
 msgstr ""
@@ -56199,7 +56199,7 @@ msgid "That placement is already cancelled."
 msgstr ""
 
 msgid "That time slot conflicts with an existing booking."
-msgstr ""
+msgstr "Bu zaman aralığı mevcut bir rezervasyonla çakışıyor."
 
 msgid ""
 "The platform floor (finance / admin / auditor roles) always requires MFA and"
@@ -66528,4 +66528,69 @@ msgstr ""
 msgid ""
 "{{ file }}: {{ held }} held, {{ recorded }} stored, {{ dropped }} not "
 "reviewable"
+msgstr ""
+
+msgid "Not applied (attempts)"
+msgstr ""
+
+msgid "Only the oldest are listed; the count above is the whole set."
+msgstr ""
+
+msgid ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and re-verify MFA) at next sign-in."
+msgstr ""
+
+msgid ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and set up MFA) at next sign-in."
+msgstr ""
+
+msgid ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. This figure counts every "
+"ATTEMPT in the window, so one record refused on many cycles is counted many "
+"times; the work queue below lists the actual records and how long each has "
+"been stuck. They are retried automatically."
+msgstr ""
+
+msgid "Sync controls"
+msgstr ""
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — shown once, hand it over securely."
+msgstr ""
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — shown once, share it securely."
+msgstr ""
+
+msgid ""
+"The temporary password for %(user)s was issued but can no longer be "
+"displayed — it is shown once and is stored nowhere, not even in the logs. "
+"Their old password no longer works, so reset the password again to issue one"
+" you can hand over."
+msgstr ""
+
+msgid ""
+"These are retried on every cycle. A record that stays here needs the thing "
+"it is waiting for — usually a parent record, or an entity the rail may not "
+"create at all."
+msgstr ""
+
+msgid "oldest stuck for {{ since }}"
+msgstr ""
+
+msgid "refused {{ attempts }} times in total"
+msgstr ""
+
+msgid "stuck for {{ since }}"
+msgstr ""
+
+msgid "{{ n }} attempt{% plural %}{{ n }} attempts"
+msgstr ""
+
+msgid ""
+"{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be "
+"applied"
 msgstr ""
