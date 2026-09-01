@@ -8,12 +8,17 @@ from pathlib import Path
 from django.test import SimpleTestCase
 from django.urls import reverse
 
-from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+from apps.siteconfig.tests._template_nodes import (
+    assert_does_not_emit,
+    assert_markup,
+    assert_wires,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 
 NAVIGATION = ROOT / "templates" / "unfold" / "helpers" / "navigation.html"
 NAVIGATION_USER = ROOT / "templates" / "unfold" / "helpers" / "navigation_user.html"
+ADMIN_BASE = ROOT / "templates" / "admin" / "base.html"
 ACCOUNT_LINKS = ROOT / "templates" / "unfold" / "helpers" / "account_links.html"
 GROUP_DETAIL = ROOT / "templates" / "communication" / "group_detail.html"
 
@@ -25,11 +30,30 @@ class Phase1LayoutShellContractTests(SimpleTestCase):
         self.assertIn("html:has(.rmc-app-shell--fluid)", css)
         self.assertIn("overflow-y: auto", css)
 
-    def test_tenant_admin_base_uses_fluid_layout(self):
-        html = (ROOT / "templates" / "admin" / "base.html").read_text(encoding="utf-8")
-        self.assertIn("rmc-app-shell--fluid", html)
-        self.assertIn('data-rmc-layout="fluid"', html)
-        self.assertNotIn("bg-white dark:bg-base-900", html)
+    def test_tenant_admin_base_is_the_two_col_grid_and_never_fluid(self):
+        # RENAMED, because the contract reversed and the old name asserted the
+        # opposite of what admin/base.html now documents in its own comment:
+        #   "Tenant admin uses the same 2-col grid + canvas scroll as manager --
+        #    never rmc-app-shell--fluid (that stacks sidebar over canvas and
+        #    locks scroll)."
+        #
+        # The old assertIn("rmc-app-shell--fluid") PASSED -- on that comment.
+        # The string is in the file exactly once and the page never emits it,
+        # so a source read could not tell a class from a prohibition on it.
+        # It went red only on data-rmc-layout="fluid", which is simply gone.
+        assert_markup(
+            self,
+            ADMIN_BASE,
+            "rmc-app-shell",
+            "admin-cp-unified-page",
+            'data-rmc-shell-root="django-admin"',
+        )
+        assert_does_not_emit(
+            self,
+            ADMIN_BASE,
+            "rmc-app-shell--fluid",
+            "bg-white dark:bg-base-900",
+        )
 
     def test_nav_sidebar_drops_max_h_screen_trap(self):
         html = (ROOT / "templates" / "admin" / "nav_sidebar.html").read_text(encoding="utf-8")
@@ -111,12 +135,21 @@ class Phase1DeadHrefRepairTests(SimpleTestCase):
 
 class Phase1ChromaticContractTests(SimpleTestCase):
     def test_admin_user_dropdown_uses_semantic_surfaces(self):
-        html = (ROOT / "templates" / "unfold" / "helpers" / "navigation_user.html").read_text(
-            encoding="utf-8"
+        # Went red when the dropdown moved off the raw Tailwind pair
+        # (bg-base-50 / dark:bg-base-900) onto the project's own
+        # rmc-theme-surface, which is the same intent expressed once instead
+        # of twice. The claim -- semantic surface tokens, never a hardcoded
+        # white -- is unchanged; only the tokens moved.
+        assert_markup(
+            self,
+            NAVIGATION_USER,
+            "rmc-theme-surface",
+            "border-base-200",
+            "dark:border-base-800",
         )
-        self.assertIn("bg-base-50", html)
-        self.assertIn("dark:bg-base-900", html)
-        self.assertNotIn("bg-white border", html)
+        assert_does_not_emit(
+            self, NAVIGATION_USER, "bg-white"
+        )
 
     def test_admin_sidebar_user_menu_css_tokens(self):
         css = (ROOT / "static" / "css" / "admin-sidebar-backend-inspired.css").read_text(

@@ -294,6 +294,29 @@ def assert_does_not_branch_on(case, path: str | Path, *expressions: str) -> None
             f"{path} still branches on {unwanted!r}",
         )
 
+def assert_does_not_emit(case, path: str | Path, *needles: str) -> None:
+    """Fail if ``path`` actually EMITS any of ``needles``.
+
+    The mirror of assert_markup, and the difference from a plain
+    assertNotIn over the file is the whole point: a class named in a
+    {# comment #} that forbids it is not the class being used. Measured:
+    templates/admin/base.html contains the string rmc-app-shell--fluid
+    exactly once, inside a comment reading "never rmc-app-shell--fluid",
+    and a source-level assertIn for it PASSED for months.
+
+    Weaker than a source read in one direction and stronger in the other:
+    it cannot see a class a tag builds at render time, and it does not
+    fire on prose. Use it when the claim is about the PAGE, not the file.
+    """
+    text = literal_text(path)
+    for needle in needles:
+        case.assertNotIn(
+            needle,
+            text,
+            f"{path} still emits {needle!r} as literal markup",
+        )
+
+
 def rendered_source(path: str | Path, context: dict | None = None) -> str:
     """Render the template FROM ITS BYTES and return the output.
 
