@@ -14,6 +14,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.siteconfig.tests._template_nodes import (
+    assert_loads_static,
+    assert_wires,
+)
 from apps.schools.dashboard_rbac import (
     classify_dashboard_tier,
     evaluate_dashboard_topology_access,
@@ -135,7 +139,22 @@ class DashboardTopologyViewportMarkerTests(SimpleTestCase):
         skeleton = (ROOT / "templates" / "control_plane_skeleton.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("dashboard-topology-shell.css", skeleton)
+        # The sheet moved into the shared chrome partial; asking the skeleton
+        # for its own <link> went red while the shell still loaded it. Prove
+        # the two halves that actually deliver it.
+        assert_wires(
+            self,
+            ROOT / "templates" / "control_plane_skeleton.html",
+            "rmc_platform_chrome_styles.html",
+        )
+        assert_loads_static(
+            self,
+            ROOT
+            / "templates"
+            / "partials"
+            / "rmc_platform_chrome_styles.html",
+            "dashboard-topology-shell.css",
+        )
         self.assertTrue(
             "overflow-y-auto" in skeleton
             or "data-rmc-shell-main" in skeleton

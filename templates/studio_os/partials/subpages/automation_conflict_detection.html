@@ -34,7 +34,7 @@
       <div class="table-responsive">
         <table class="table table-sm align-middle">
           <thead><tr>
-            <th>{% trans "Workflow" %}</th><th>{% trans "Status" %}</th><th>{% trans "Issues" %}</th>
+            <th scope="col">{% trans "Workflow" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Issues" %}</th>
           </tr></thead>
           <tbody>
             {% for it in conflict_report.issues %}

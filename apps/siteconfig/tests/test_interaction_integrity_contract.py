@@ -1,10 +1,22 @@
 """Mechanical contracts for platform-wide interaction integrity."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    rendered_source,
+)
+
 ROOT = Path(__file__).resolve().parents[3]
+
+USER_DROPDOWN = ROOT / "templates/components/user_dropdown.html"
+PERMISSION_MATRIX = ROOT / "templates/siteconfig/permission_matrix_simulator.html"
+PORTAL_SIDEBAR = ROOT / "templates/partials/portal_sidebar.html"
+TOOLS_HELP_PANEL = ROOT / "templates/partials/rmc_tools_help_panel.html"
+OPERATOR_FOOTER_CIVIC = ROOT / "templates/partials/rmc_operator_footer_civic.html"
 
 
 class InteractionIntegrityContractTests(SimpleTestCase):
@@ -23,15 +35,16 @@ class InteractionIntegrityContractTests(SimpleTestCase):
 
     def test_user_dropdown_logout_present(self):
         text = (ROOT / "templates/components/user_dropdown.html").read_text(encoding="utf-8")
+        # accounts:logout is a {% url %} argument: it renders to a path, so the
+        # route NAME is only ever visible in the source. Same for the negative.
         self.assertIn("accounts:logout", text)
-        self.assertIn("dropdown-menu-end", text)
         self.assertNotIn('href="#"', text)
+        # The menu class is markup, so ask the engine whether it is EMITTED --
+        # a needle sitting inside {% comment %} is not on the page.
+        assert_markup(self, USER_DROPDOWN, "dropdown-menu-end")
 
     def test_permission_matrix_denied_banner(self):
-        text = (ROOT / "templates/siteconfig/permission_matrix_simulator.html").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("rmc-perm-sim-denied", text)
+        assert_markup(self, PERMISSION_MATRIX, "rmc-perm-sim-denied")
         js = (ROOT / "static/js/rmc-permission-matrix-simulator.js").read_text(encoding="utf-8")
         self.assertIn("showDenied", js)
 
@@ -84,10 +97,30 @@ class InteractionIntegrityContractTests(SimpleTestCase):
         )
         self.assertIn('trans "Ask Copilot"', help_panel)
         self.assertIn('trans "Contact support"', help_panel)
+        # Those two reads cannot tell a live panel from one wrapped in
+        # {% comment %}: the bytes are the same either way. The panel is behind
+        # an is_authenticated guard, so render it FROM ITS BYTES with a signed-in
+        # request and read the labels off the output instead.
+        signed_in = SimpleNamespace(user=SimpleNamespace(is_authenticated=True))
+        panel_html = rendered_source(TOOLS_HELP_PANEL, {"request": signed_in})
+        self.assertIn("Ask Copilot", panel_html)
+        self.assertIn("Contact support", panel_html)
+        assert_markup(
+            self,
+            TOOLS_HELP_PANEL,
+            "data-rmc-tools-help-copilot",
+            "data-rmc-tools-help-support",
+        )
 
     def test_tenant_sidebar_points_to_help_center_not_kb_only(self):
         text = (ROOT / "templates/partials/portal_sidebar.html").read_text(encoding="utf-8")
+        # The route name exists only as a {% url %} argument, so it stays a read.
         self.assertIn("feedback:help_center", text)
+        # The sidebar footer that carries that link has to be EMITTED, not merely
+        # spelled somewhere in the file.
+        assert_markup(
+            self, PORTAL_SIDEBAR, "portal-sidebar-footer", "bi-question-circle"
+        )
 
     def test_manager_admin_workbench_delegates_footer_to_control_plane(self):
         # v15/parity contract: the /admin/ model workbench delegates the civic
@@ -96,12 +129,14 @@ class InteractionIntegrityContractTests(SimpleTestCase):
         # marker; the workbench adopts the manager control-plane header, not the
         # viewport-pinned civic footer.
         admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
-        civic = (ROOT / "templates/partials/rmc_operator_footer_civic.html").read_text(
-            encoding="utf-8"
-        )
         self.assertNotIn("rmc_operator_footer_civic.html", admin_base)
-        self.assertIn('data-rmc-footer-surface="operator-civic"', civic)
+        # is_manager_host is an {% if %} condition -- template code, which no parse
+        # and no render can see, so that one stays a source read.
         self.assertIn("is_manager_host", admin_base)
+        # The surface marker is markup: ask whether the partial EMITS it.
+        assert_markup(
+            self, OPERATOR_FOOTER_CIVIC, 'data-rmc-footer-surface="operator-civic"'
+        )
 
     def test_tenant_handler503_matches_root(self):
         from config.tenant_urls import handler503 as tenant_handler503
@@ -132,5 +167,17 @@ class InteractionIntegrityContractTests(SimpleTestCase):
             "templates/schools/partials/school_finder_bento.html",
         ):
             text = (ROOT / rel).read_text(encoding="utf-8")
+            # marketing_public_href is a custom TAG and find_school a {% url %}
+            # argument: both are template code, invisible to a parse, so both
+            # assertions stay reads.
             self.assertIn("marketing_public_href", text, rel)
             self.assertNotIn("{% url 'find_school' %}", text, rel)
+            # What a read cannot tell is whether the surface still renders at
+            # all. Every one of these four carries the platform critical-read
+            # sentinel, and a {% comment %} emits neither.
+            assert_markup(
+                self,
+                ROOT / rel,
+                "rmc-empty-state-sentinel",
+                'data-page-critical-read="1"',
+            )

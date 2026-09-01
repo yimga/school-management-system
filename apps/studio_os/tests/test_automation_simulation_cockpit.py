@@ -20,6 +20,13 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Permission
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_renders,
+    assert_wires,
+    literal_text,
+    rendered_source,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -27,6 +34,9 @@ MODE_PATH = REPO_ROOT / "templates" / "studio_os" / "modes" / "automation.html"
 PARTIALS_DIR = REPO_ROOT / "templates" / "studio_os" / "partials"
 WORKSPACE_DIR = PARTIALS_DIR / "workspace"
 CSS_PATH = REPO_ROOT / "static" / "css" / "studio-automation-cockpit.css"
+DEPS_BODY = PARTIALS_DIR / "automation_dependency_graph_body.html"
+ENV_BANNER = PARTIALS_DIR / "automation_environment_banner.html"
+SIM_PANE = PARTIALS_DIR / "automation_simulation_preview_pane.html"
 
 AGENT3_OWNED_PARTIALS = [
     PARTIALS_DIR / "automation_mode_canvas.html",
@@ -52,10 +62,20 @@ class AutomationCockpitStaticContractTests(SimpleTestCase):
 
     def test_mode_template_loads_cockpit_css(self) -> None:
         text = MODE_PATH.read_text(encoding="utf-8")
+        # The stylesheet name is a {% static %} ARGUMENT: neither a parse nor a
+        # standalone render of this file can see it, so the source read stays.
         self.assertIn(
             "studio-automation-cockpit.css",
             text,
             "modes/automation.html must link studio-automation-cockpit.css",
+        )
+        # It must still be a live mode template: extending the studio shell and
+        # pulling in the cockpit canvas is something the ENGINE can confirm.
+        assert_wires(
+            self,
+            MODE_PATH,
+            "studio_os/shell.html",
+            "studio_os/partials/automation_mode_canvas.html",
         )
 
     def test_cockpit_css_file_exists(self) -> None:
@@ -87,6 +107,14 @@ class AutomationCockpitStaticContractTests(SimpleTestCase):
                     text,
                     f"{p.name} must load i18n for translatable copy",
                 )
+                # A {% load %} in a file that emits nothing is not a partial.
+                # literal_text() asks the engine, so a body moved inside a
+                # {% comment %} fails here although the bytes are unchanged.
+                self.assertIn(
+                    "<",
+                    literal_text(p),
+                    f"{p.name} must emit markup, not just load i18n",
+                )
 
     def test_partials_have_no_dummy_hashes(self) -> None:
         """Forbid placeholder href="#" in Agent 3-owned partials."""
@@ -106,14 +134,7 @@ class AutomationCockpitStaticContractTests(SimpleTestCase):
 
     def test_dependency_graph_uses_scroll_wrapper(self) -> None:
         """Dependency graph wraps in horizontally-scrollable container."""
-        text = (PARTIALS_DIR / "automation_dependency_graph_body.html").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn(
-            "rmc-automation-graph-scroll",
-            text,
-            "dependency graph body must use .rmc-automation-graph-scroll for overflow safety",
-        )
+        assert_markup(self, DEPS_BODY, "rmc-automation-graph-scroll")
 
     def test_dependency_graph_never_uses_overflow_hidden(self) -> None:
         """v3.27.1 lesson: never combine sticky + overflow:hidden."""
@@ -133,10 +154,7 @@ class AutomationCockpitStaticContractTests(SimpleTestCase):
     def test_long_workflow_names_have_wrap_signal(self) -> None:
         """Long names must wrap or truncate. text-break / word-break / text-truncate accepted."""
         # The dependency graph body uses text-break and code break-all.
-        deps = (PARTIALS_DIR / "automation_dependency_graph_body.html").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("text-break", deps)
+        assert_markup(self, DEPS_BODY, "text-break")
         # The rail uses word-break via .rmc-automation-rail__label CSS;
         # template-side we check the rail link carries the .rmc-automation-rail__link
         # class which is styled with word-break in the CSS.
@@ -156,18 +174,32 @@ class AutomationCockpitStaticContractTests(SimpleTestCase):
             encoding="utf-8"
         )
         # Empty-state branch present (no automation_simulation_preview).
+        # An {% else %} is template CODE -- no parse and no render can see it,
+        # so this one has to stay a source read.
         self.assertIn("{% else %}", text)
-        # Defensive copy mentions no recorded simulation.
-        self.assertIn("No simulation", text)
+        # The honest copy is different: the pane must actually RENDER it when
+        # there is no simulation in context.
+        assert_renders(self, SIM_PANE, "No simulation has been recorded")
 
     def test_environment_banner_surfaces_scope_label(self) -> None:
         """Banner distinguishes operator (manager host) vs tenant scope."""
         text = (PARTIALS_DIR / "automation_environment_banner.html").read_text(
             encoding="utf-8"
         )
+        # The host test itself is template CODE; only a source read sees it.
         self.assertIn("request.public_host_kind", text)
-        self.assertIn("Platform automations", text)
-        self.assertIn("School automations", text)
+        # The two scope labels are {% trans %}/{% blocktrans %} output, so ask
+        # for them by RENDERING the banner once per host kind. That is the
+        # behaviour the test names, and a commented-out banner renders neither.
+        operator = rendered_source(
+            ENV_BANNER, {"request": {"public_host_kind": "manager"}}
+        )
+        tenant = rendered_source(
+            ENV_BANNER, {"request": {"public_host_kind": "tenant"}}
+        )
+        self.assertIn("Platform automations", operator)
+        self.assertIn("School automations", tenant)
+        assert_renders(self, ENV_BANNER, "Scope")
 
     def test_no_inline_hex_colors_in_agent3_partials(self) -> None:
         """Inline style hex colors are forbidden per CLAUDE.md scan_inline_style_off_token."""

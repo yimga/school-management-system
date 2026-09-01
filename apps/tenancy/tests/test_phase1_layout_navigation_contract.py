@@ -8,7 +8,14 @@ from pathlib import Path
 from django.test import SimpleTestCase
 from django.urls import reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 ROOT = Path(__file__).resolve().parents[3]
+
+NAVIGATION = ROOT / "templates" / "unfold" / "helpers" / "navigation.html"
+NAVIGATION_USER = ROOT / "templates" / "unfold" / "helpers" / "navigation_user.html"
+ACCOUNT_LINKS = ROOT / "templates" / "unfold" / "helpers" / "account_links.html"
+GROUP_DETAIL = ROOT / "templates" / "communication" / "group_detail.html"
 
 
 class Phase1LayoutShellContractTests(SimpleTestCase):
@@ -29,29 +36,37 @@ class Phase1LayoutShellContractTests(SimpleTestCase):
         self.assertNotIn("max-h-screen", html)
 
     def test_navigation_inner_drops_min_h_screen_trap(self):
-        html = (ROOT / "templates" / "unfold" / "helpers" / "navigation.html").read_text(
-            encoding="utf-8"
-        )
+        html = NAVIGATION.read_text(encoding="utf-8")
+        # An absence is only meaningful over bytes, so the assertNotIn stays as a
+        # read. The replacement class has to be on the ELEMENT, though, and a
+        # class parked inside {% comment %} scrolls nothing -- ask the engine.
         self.assertNotIn("min-h-screen", html)
         self.assertIn("min-h-0", html)
+        assert_markup(self, NAVIGATION, "min-h-0")
 
 
 class Phase1NavigationContractTests(SimpleTestCase):
     def test_account_links_include_logout(self):
-        html = (ROOT / "templates" / "unfold" / "helpers" / "account_links.html").read_text(
-            encoding="utf-8"
-        )
+        html = ACCOUNT_LINKS.read_text(encoding="utf-8")
+        # "accounts:logout" is a {% url %} argument -- template code, which no
+        # parse and no render can see, so that one stays a source read. The hook
+        # the nav JS binds to is markup, and markup is the engine's question.
         self.assertIn("accounts:logout", html)
         self.assertIn("data-rmc-nav-logout", html)
+        assert_markup(self, ACCOUNT_LINKS, "data-rmc-nav-logout")
 
     def test_navigation_user_menu_opens_above_card(self):
-        html = (ROOT / "templates" / "unfold" / "helpers" / "navigation_user.html").read_text(
-            encoding="utf-8"
+        # Three utility classes and an include: every one of them is something
+        # the template must actually DO, and reading the bytes could not tell a
+        # live class from one sitting in a comment. So none of it is a read now.
+        assert_markup(
+            self,
+            NAVIGATION_USER,
+            "bottom-full",
+            "overflow-visible",
+            "z-[60]",
         )
-        self.assertIn("bottom-full", html)
-        self.assertIn("overflow-visible", html)
-        self.assertIn("z-[60]", html)
-        self.assertIn("account_links.html", html)
+        assert_wires(self, NAVIGATION_USER, "unfold/helpers/account_links.html")
 
     def test_logout_url_resolves(self):
         url = reverse("accounts:logout")
@@ -66,11 +81,20 @@ class Phase1DeadHrefRepairTests(SimpleTestCase):
         self.assertNotIn('href="#"', html)
 
     def test_group_detail_leave_uses_button_not_dead_href(self):
-        html = (ROOT / "templates" / "communication" / "group_detail.html").read_text(
-            encoding="utf-8"
-        )
+        html = GROUP_DETAIL.read_text(encoding="utf-8")
+        # The absence of href="#" is a byte question and stays one. What replaced
+        # it is not: a real <button> carrying the leave URL, plus the confirm
+        # modal it targets. Both asked of the engine, so a commented-out repair
+        # cannot pass for a repair.
         self.assertNotIn('href="#"', html)
         self.assertIn('data-confirm-href', html)
+        assert_markup(
+            self,
+            GROUP_DETAIL,
+            "data-confirm-href",
+            'data-bs-target="#leaveGroupConfirm"',
+        )
+        assert_wires(self, GROUP_DETAIL, "components/confirm_modal.html")
 
     def test_product_templates_href_hash_count_at_most_allowlisted(self):
         """Phase 1 target: no unmarked href=\"#\" in schools/communication templates."""
