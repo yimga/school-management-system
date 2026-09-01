@@ -327,6 +327,14 @@ GATES: list[tuple[str, list[str]]] = [
     # five N+1 query-count suites. Wired on measurement: 780 ms.
     ("ci-shell-command-integrity", ["scan_ci_shell_command_integrity.py"]),
 
+    # A test that still passes once the behaviour it names is deleted
+    # (2026-09-01). Measured across the whole population: 143 of the 175
+    # measurable candidates are vacuous. --scope-changed bounds this to the
+    # test files the push touches, which is what keeps it near a second on
+    # a push that touches none; the unbounded --compare re-checks the whole
+    # baseline and belongs in a workflow, not here.
+    ("test-asserts-behaviour", ["verify_test_asserts_behaviour.py", "--compare", "--scope-changed"]),
+
     # A sovereign box replicates 15 of 326 tenant models. Most of that absence was
     # never a decision -- eleven tenant apps had zero entities on the rail and zero
     # written rationale -- so a model could be added and simply never cross the

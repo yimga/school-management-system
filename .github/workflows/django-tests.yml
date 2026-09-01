@@ -73,6 +73,17 @@ jobs:
           # dotted form misses nothing.)
           python manage.py test apps config services payment.tests emis.tests --settings=config.settings --noinput
 
+      # The pre-push runner only measures the test files a push touched.
+      # This is the unbounded pass: every baselined vacuous test re-measured,
+      # so one that got fixed has to leave the baseline and the number can
+      # only fall. It needs Django, which is why it is here and not in the
+      # deps-free boundary job.
+      - name: Tests that would not notice their subject being deleted
+        env:
+          SECRET_KEY: "ci-django-tests-not-for-production-use-64chars___________________________"
+          DJANGO_TEST_DB_FILE: ".django_test_dbs/ci_vacuity.sqlite3"
+        run: python scripts/verify_test_asserts_behaviour.py --compare
+
   npm-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
