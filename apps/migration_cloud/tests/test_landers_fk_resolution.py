@@ -5,7 +5,8 @@ landers previously quarantined 100% of their rows against required FKs
 (Evaluation.term/subject_assignment/teacher, StudentGuardian.guardian_user,
 TranscriptVaultItem.passport/issuing_school). These tests lock the resolution
 contracts edge by edge — happy path, each precise quarantine reason, the
-guardian identity ladder (ref → email → provision), and passport convergence.
+guardian identity ladder (ref → email → phone → unclaimed-provision),
+and passport convergence.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from apps.academics.models import (
     SubjectAssignment,
     Term,
 )
+from apps.accounts.email_delivery_policy import is_deliverable_email
 from apps.evals.models import Evaluation
 from apps.migration_cloud.landers.base import LanderContext
 from apps.migration_cloud.landers.grades_lander import GradesLander
@@ -179,13 +181,56 @@ class GradesLanderFKResolutionTests(_GraphFixtureMixin, TestCase):
         self.assertEqual(result.quarantined, 1)
         self.assertIn("no academic year matching", result.errors[0])
 
-    def test_assignment_without_teacher_quarantines(self):
+    def test_assignment_without_teacher_falls_back_to_a_school_teacher(self):
+        """A teacherless SubjectAssignment must not cost the school the grade.
+
+        ``Evaluation.teacher`` is a required PROTECT FK, and most foreign-SIS
+        exports carry no teacher column at all, so seeded assignments routinely
+        have an empty ``teachers`` M2M. Quarantining there threw away the whole
+        academic history the school is paying to migrate (bundle #84, Mama Novi
+        import). The lander now falls back to a teacher OF THE IMPORTING
+        SCHOOL and lands the grade for an admin to reassign: student, subject,
+        term and score are all still exactly what was imported, and only the
+        attribution FK is filler.
+
+        The fallback must also stay INSIDE the importing tenant. This test
+        arms that: a RIVAL school gets a teacher at a LOWER pk than ours, so
+        an unscoped ``order_by("pk").first()`` would reach across the tenant
+        line and attribute this school's grade to a stranger.
+        """
+        rival_school = School.objects.create(
+            name="Rival", slug="rival-g1", subdomain="rival-g1"
+        )
+        rival_user = User.objects.create_user(
+            username="rival_teacher_g1", password="pass123"
+        )
+        # Re-mint OUR teacher after the rival's so ours no longer wins a
+        # naive global pk ordering.
+        our_user = self.fx["teacher_user"]
+        self.fx["teacher"].delete()
+        rival_teacher = TeacherProfile.objects.create(
+            user=rival_user, school=rival_school
+        )
+        our_teacher = TeacherProfile.objects.create(
+            user=our_user, school=self.fx["school"]
+        )
+        self.assertLess(rival_teacher.pk, our_teacher.pk)  # trap armed
         self.fx["assignment"].teachers.clear()
         result = GradesLander().land(
             canonical_rows=iter([self._row()]), ctx=self._ctx(self.fx["school"])
         )
-        self.assertEqual(result.quarantined, 1)
-        self.assertIn("no teacher", result.errors[0])
+        self.assertEqual(result.quarantined, 0, result.errors)
+        self.assertEqual(result.created, 1)
+        ev = Evaluation.objects.get(student=self.fx["student"])
+        self.assertEqual(ev.teacher.school_id, self.fx["school"].pk)
+        self.assertEqual(ev.teacher_id, our_teacher.pk)
+        self.assertNotEqual(ev.teacher_id, rival_teacher.pk)
+        # The gap is not papered over by mutating the assignment itself, so
+        # an admin can still see that it carries no teacher.
+        self.assertEqual(self.fx["assignment"].teachers.count(), 0)
+        # The imported grade itself is faithful.
+        self.assertEqual(ev.seq1_score, Decimal("14.50"))
+        self.assertEqual(ev.seq2_score, Decimal("15.00"))
 
     def test_aggregate_score_lands_with_provenance_remark(self):
         row = self._row()
@@ -260,13 +305,52 @@ class GuardianLanderRelinkTests(_GraphFixtureMixin, TestCase):
         if hasattr(user, "role"):
             self.assertEqual(user.role, User.Role.PARENT)
 
-    def test_no_identity_quarantines_precisely(self):
+    def test_no_email_provisions_an_unclaimed_parent_rather_than_losing_the_row(self):
+        """A NAMED guardian with no ref and no email lands UNCLAIMED, not lost.
+
+        Quarantining a parent whose only identity is a name left the Guardians
+        directory empty for exactly the phone-primary, email-rare rosters this
+        platform serves. The lander now mints a reserved, UNDELIVERABLE
+        ``@unclaimed.invalid`` address so the student—guardian link can exist,
+        while the account itself stays un-loginable (unusable password) and
+        un-mailable. This is NOT a row silently declared done: an account on
+        an undeliverable address is counted by ``people_activation`` under
+        ``parent_handover``, so an admin must still hand credentials over in
+        person before that parent can ever sign in.
+        """
         result = GuardianLander().land(
-            canonical_rows=iter([self._row()]),  # no ref, no email
+            canonical_rows=iter([self._row()]),  # no ref, no email, no phone
+            ctx=self._ctx(self.fx["school"]),
+        )
+        self.assertEqual(result.quarantined, 0, result.errors)
+        self.assertEqual(result.created, 1)
+        link = StudentGuardian.objects.get(student=self.fx["student"])
+        self.assertEqual(link.relationship, "MOTHER")
+        user = link.guardian_user
+        self.assertTrue(user.email.endswith("@unclaimed.invalid"), user.email)
+        # The point of the synthetic address: it can never be mailed, so no
+        # invite / password-reset can ever leak to it.
+        self.assertFalse(is_deliverable_email(user.email))
+        self.assertFalse(user.has_usable_password())
+        if hasattr(user, "role"):
+            self.assertEqual(user.role, User.Role.PARENT)
+
+    def test_no_identity_at_all_still_quarantines_precisely(self):
+        """The quarantine rung got NARROWER, it did not go away.
+
+        With an unresolvable ref, no email, no phone AND no name there is
+        nothing to provision an account from, so the row must still be held
+        for a human, with a reason that names what is missing.
+        """
+        row = self._row(guardian_user_ref="no-such-platform-username")
+        row.pop("first_name")
+        row.pop("last_name")
+        result = GuardianLander().land(
+            canonical_rows=iter([row]),
             ctx=self._ctx(self.fx["school"]),
         )
         self.assertEqual(result.quarantined, 1)
-        self.assertIn("no email", result.errors[0])
+        self.assertIn("no email or name", result.errors[0])
         self.assertFalse(StudentGuardian.objects.exists())
 
     def test_rerun_updates_same_link(self):
