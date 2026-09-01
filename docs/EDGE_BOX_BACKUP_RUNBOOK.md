@@ -276,6 +276,13 @@ recreated by the compose file from `POSTGRES_USER` / `POSTGRES_PASSWORD` in that
 
 ## Related
 
+- Engine step `box_backup_verified` in `apps/lifecycle/edge_onboarding.py` — go-dark
+  cannot pass without this record (or a ≥12-character skip). Operator console:
+  `/super/edge-onboarding/`. A site with no USB/NAS can waive the off-box copy on
+  that same step (separate form) once a verified on-box dump exists; that does not
+  invent a dump.
+- [`docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md`](EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md) —
+  narrative SOP; the engine wins if they disagree.
 - [`docs/DR_BACKUP_RESTORE_RUNBOOK.md`](DR_BACKUP_RESTORE_RUNBOOK.md) — the cloud/
   multi-tenant side, and the independent-store tiers this box's off-box target maps on to.
 - [`docs/EDGE_TLS_RUNBOOK.md`](EDGE_TLS_RUNBOOK.md) — the CA backup whose discipline

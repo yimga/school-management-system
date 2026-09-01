@@ -30,6 +30,11 @@ from typing import Any, Callable, Optional
 
 from django.conf import settings
 
+from apps.lifecycle.onboarding_waivers import (
+    WAIVABLE_ASPECTS,
+    WAIVE_BY_KEY,
+    aspects_shown_on_step,
+)
 from apps.schools.rls_context import rls_bypass
 
 # A validate()/self_heal() callable takes the school and returns (ok/healed, detail).
@@ -51,6 +56,7 @@ EVIDENCE_COMPOSITE = "composite"
 
 ONBOARDING_SETTINGS_KEY = "rmc_edge_onboarding"
 MC_SKIP_REASON_MIN_LEN = 12
+BACKUP_SKIP_REASON_KEY = "box_backup_skip_reason"
 
 
 @dataclass(frozen=True)
@@ -199,26 +205,77 @@ def migration_cloud_skip_reason(school) -> str:
     return str(_onboarding_state(school).get("migration_cloud_skip_reason") or "").strip()
 
 
-def set_migration_cloud_skip_reason(school, reason: str) -> "tuple[bool, str]":
-    """Persist an operator skip (≥12 chars) on the source tenant. Never auto-applies MC."""
+def _set_onboarding_skip_reason(school, key: str, reason: str, *, what: str) -> "tuple[bool, str]":
+    """Persist an operator skip (≥12 chars) on the source tenant. Never auto-runs the step."""
     text = str(reason or "").strip()
     if len(text) < MC_SKIP_REASON_MIN_LEN:
         return False, (
             f"Skip reason must be at least {MC_SKIP_REASON_MIN_LEN} characters "
-            "(explain why Migration Cloud does not apply)."
+            f"(explain why {what} does not apply)."
         )
     try:
         from apps.schools.models import School
 
         blob = dict(getattr(school, "settings", None) or {})
         overlay = dict(blob.get(ONBOARDING_SETTINGS_KEY) or {})
-        overlay["migration_cloud_skip_reason"] = text[:500]
+        overlay[key] = text[:500]
         blob[ONBOARDING_SETTINGS_KEY] = overlay
         School.objects.filter(pk=school.pk).update(settings=blob)
         school.settings = blob
-        return True, "Migration Cloud skip recorded."
+        return True, f"{what} skip recorded."
     except Exception as exc:  # noqa: BLE001
         return False, f"could not record skip: {exc}"
+
+
+def set_migration_cloud_skip_reason(school, reason: str) -> "tuple[bool, str]":
+    """Persist an operator skip (≥12 chars) on the source tenant. Never auto-applies MC."""
+    return _set_onboarding_skip_reason(
+        school, "migration_cloud_skip_reason", reason, what="Migration Cloud"
+    )
+
+
+def box_backup_skip_reason(school) -> str:
+    return str(_onboarding_state(school).get(BACKUP_SKIP_REASON_KEY) or "").strip()
+
+
+def set_box_backup_skip_reason(school, reason: str) -> "tuple[bool, str]":
+    """Persist an operator skip (≥12 chars). Never takes or restores a dump."""
+    return _set_onboarding_skip_reason(
+        school, BACKUP_SKIP_REASON_KEY, reason, what="Box backup"
+    )
+
+
+def aspect_skip_reason(school, aspect_key: str) -> str:
+    spec = WAIVE_BY_KEY.get(aspect_key)
+    if spec is None:
+        return ""
+    return str(_onboarding_state(school).get(spec.settings_key) or "").strip()
+
+
+def aspect_is_waived(school, aspect_key: str) -> bool:
+    return len(aspect_skip_reason(school, aspect_key)) >= MC_SKIP_REASON_MIN_LEN
+
+
+def _waive_if_recorded(school, aspect_key: str) -> "tuple[bool, str] | None":
+    """Return a passing verdict when the operator waived this aspect, else None."""
+    spec = WAIVE_BY_KEY.get(aspect_key)
+    if spec is None:
+        return None
+    skip = aspect_skip_reason(school, aspect_key)
+    if len(skip) < MC_SKIP_REASON_MIN_LEN:
+        return None
+    return True, (
+        f"{spec.label} waived by operator ({len(skip)}-char reason)."
+    )
+
+
+def set_aspect_skip_reason(school, aspect_key: str, reason: str) -> "tuple[bool, str]":
+    spec = WAIVE_BY_KEY.get(aspect_key)
+    if spec is None:
+        return False, f"Unknown waivable aspect: {aspect_key!r}."
+    return _set_onboarding_skip_reason(
+        school, spec.settings_key, reason, what=spec.label
+    )
 
 
 def _school_has_entitlements(school) -> bool:
@@ -296,11 +353,9 @@ def _validate_migrate_staff(school) -> "tuple[bool, str]":
         if total:
             return True, f"{total} teacher profile(s) present, every one with a login."
         return (
-            False,
-            "No teacher profiles -- import the staff bundle (import_tenant_staff) "
-            "BEFORE import_tenant_identities and import_tenant_bundle. It is the only "
-            "pk-preserving path for staff; run it out of order and the operational "
-            "seed rolls back whole. A school with no teachers on the cloud can skip it.",
+            True,
+            "No teacher profiles — legitimate when this campus has no staff on the "
+            "cloud. Import import_tenant_staff only when teachers exist.",
         )
     except Exception as exc:  # noqa: BLE001
         return False, f"staff check failed: {exc}"
@@ -358,6 +413,9 @@ def _validate_media_branding(school) -> "tuple[bool, str]":
     enough on an offline box.
     """
     try:
+        waived = _waive_if_recorded(school, "media_branding")
+        if waived is not None:
+            return waived
         metadata = getattr(school, "branding_metadata", None) or {}
         data_uri = str(metadata.get("logo_data_uri") or "")
         if data_uri.startswith("data:"):
@@ -444,6 +502,9 @@ def _validate_lan_hostname(school) -> "tuple[bool, str]":
     with a TLS mode set serves https, and telling its operator that https is the
     failure mode is how a working box gets debugged for an afternoon."""
     try:
+        waived = _waive_if_recorded(school, "configure_lan_hostname")
+        if waived is not None:
+            return waived
         hosts = [str(h).strip().lower() for h in (getattr(settings, "ALLOWED_HOSTS", []) or [])]
         if "*" in hosts:
             return True, "ALLOWED_HOSTS is '*' — any hostname is accepted (open dev config)."
@@ -479,6 +540,9 @@ def _validate_lan_hostname(school) -> "tuple[bool, str]":
 
 def _validate_enable_configure_sync(school) -> "tuple[bool, str]":
     try:
+        waived = _waive_if_recorded(school, "enable_configure_sync")
+        if waived is not None:
+            return waived
         from apps.sync_engine.edge_enabled import edge_sync_enabled, why
 
         if not edge_sync_enabled():
@@ -509,8 +573,14 @@ def _validate_enable_configure_sync(school) -> "tuple[bool, str]":
 
 def _validate_verify_and_sync_gate(school) -> "tuple[bool, str]":
     """The mandatory pre-offline gate: delegate to the no-write dry sync probe."""
-    gate = run_sync_gate(school)
-    return bool(gate.get("cleared")), str(gate.get("detail") or "")
+    try:
+        waived = _waive_if_recorded(school, "verify_and_sync_gate")
+        if waived is not None:
+            return waived
+        gate = run_sync_gate(school)
+        return bool(gate.get("cleared")), str(gate.get("detail") or "")
+    except Exception as extra:  # noqa: BLE001
+        return False, f"sync-gate check failed: {extra}"
 
 
 def _validate_cloud_entitle_pin(school) -> "tuple[bool, str]":
@@ -633,6 +703,9 @@ def _validate_seed_operational_data(school) -> "tuple[bool, str]":
                 f"Operational roster present ({student_n} student(s), "
                 f"{classroom_n} classroom(s))."
             )
+        waived = _waive_if_recorded(school, "seed_operational_data")
+        if waived is not None:
+            return waived
         return (
             False,
             "No students or classrooms — import the pk-preserving data bundle "
@@ -649,6 +722,9 @@ def _validate_conversion_first_action(school) -> "tuple[bool, str]":
 
         if school_first_action_completed(school):
             return True, "Conversion first-value recorded; workspace unlocked."
+        waived = _waive_if_recorded(school, "conversion_first_action")
+        if waived is not None:
+            return waived
         return (
             False,
             "Conversion lock still on — save one attendance, mark, report, or payment "
@@ -672,6 +748,9 @@ def _latest_sync_run(school, *, mode: str):
 def _validate_live_sync_proof(school) -> "tuple[bool, str]":
     """Read-only: last successful LIVE EdgeSyncRun. Never calls run_sync_cycle."""
     try:
+        waived = _waive_if_recorded(school, "live_sync_proof")
+        if waived is not None:
+            return waived
         row = _latest_sync_run(school, mode="live")
         if row is None:
             return (
@@ -692,25 +771,75 @@ def _validate_live_sync_proof(school) -> "tuple[bool, str]":
         return False, f"live-sync proof failed: {extra}"
 
 
+def _validate_box_backup_verified(school) -> "tuple[bool, str]":
+    """Pass when the newest dump was read back in full, or an operator skip (≥12 chars) exists.
+
+    Files only -- no tenant tables -- so this answers on a box whose database is
+    still migrating. The record lives on the backup volume; the web process reads
+    it because compose mounts ``backupdata:/backups:ro``. A skip is for a lab box
+    or a USB dump taken by hand, never for "we'll set this up later".
+    """
+    try:
+        skip = box_backup_skip_reason(school)
+        if len(skip) >= MC_SKIP_REASON_MIN_LEN:
+            return True, f"Box backup skipped by operator ({len(skip)}-char reason)."
+        from apps.lifecycle.box_backup_status import evaluate_box_backup
+
+        ok, detail = evaluate_box_backup()
+        if ok and "off-box copy is NOT" in detail and aspect_is_waived(school, "offbox_copy"):
+            head = detail.split(". off-box copy is NOT", 1)[0]
+            return True, (
+                head + ". off-box copy waived (no USB/NAS at this site)."
+            )
+        return ok, detail
+    except Exception as extra:  # noqa: BLE001
+        return False, f"box-backup check failed: {extra}"
+
+
 def _validate_go_dark_checklist(school) -> "tuple[bool, str]":
-    """Composite pre-offline proof: dry gate row, live proof, zero conflicts, data, conversion."""
+    """Composite pre-offline proof: dry gate, live proof, conflicts, data, conversion, backup.
+
+    Each infrastructure part can be waived with a ≥12-character reason. A site with
+    no uplink waives the dry gate and live proof; a site with no USB acknowledges
+    off-box separately. Roster and conversion stay required unless waived as a lab.
+    """
     try:
         parts: list[str] = []
+        dry_waived = aspect_is_waived(school, "verify_and_sync_gate")
         dry = _latest_sync_run(school, mode="dry")
-        dry_ok = bool(dry and getattr(dry, "ok", False))
-        parts.append("dry-gate=" + ("ok" if dry_ok else "missing"))
+        dry_ok = bool(dry and getattr(dry, "ok", False)) or dry_waived
+        parts.append("dry-gate=" + ("waived" if dry_waived else ("ok" if dry_ok else "missing")))
 
         live_ok, live_detail = _validate_live_sync_proof(school)
-        parts.append("live=" + ("ok" if live_ok else "not-ok"))
+        live_waived = aspect_is_waived(school, "live_sync_proof")
+        parts.append("live=" + ("waived" if live_waived else ("ok" if live_ok else "not-ok")))
 
         live_row = _latest_sync_run(school, mode="live")
         conflicts = int(getattr(live_row, "conflicts", 0) or 0) if live_row is not None else -1
-        parts.append(f"conflicts={conflicts if conflicts >= 0 else 'n/a'}")
+        conflicts_ok = live_waived or conflicts == 0
+        parts.append(
+            "conflicts="
+            + ("n/a" if live_waived or conflicts < 0 else str(conflicts))
+        )
 
         data_ok, _ = _validate_seed_operational_data(school)
         conv_ok, _ = _validate_conversion_first_action(school)
-        parts.append("roster=" + ("ok" if data_ok else "empty"))
-        parts.append("conversion=" + ("unlocked" if conv_ok else "locked"))
+        backup_ok, backup_detail = _validate_box_backup_verified(school)
+        roster_waived = aspect_is_waived(school, "seed_operational_data")
+        conv_waived = aspect_is_waived(school, "conversion_first_action")
+        backup_waived = aspect_is_waived(school, "box_backup_verified")
+        parts.append(
+            "roster="
+            + ("waived" if roster_waived else ("ok" if data_ok else "empty"))
+        )
+        parts.append(
+            "conversion="
+            + ("waived" if conv_waived else ("unlocked" if conv_ok else "locked"))
+        )
+        parts.append(
+            "backup="
+            + ("waived" if backup_waived else ("ok" if backup_ok else "missing"))
+        )
 
         from apps.academics.models import AcademicYear
 
@@ -723,11 +852,20 @@ def _validate_go_dark_checklist(school) -> "tuple[bool, str]":
             "Finance stays cloud-authoritative / down-only."
         )
 
-        if dry_ok and live_ok and conflicts == 0 and data_ok and conv_ok:
+        if dry_ok and live_ok and conflicts_ok and data_ok and conv_ok and backup_ok:
             return True, "Go-dark checklist cleared. " + " ".join(parts)
-        return False, "Go-dark checklist not cleared. " + " ".join(parts) + (
-            "" if live_ok else f" Live: {live_detail}"
+        extra_fail = ""
+        if not live_ok:
+            extra_fail += f" Live: {live_detail}"
+        if not backup_ok:
+            extra_fail += f" Backup: {backup_detail}"
+        extra_fail += (
+            " Each outstanding line can be waived with a reason of at least 12 "
+            "characters on this runbook page, or on the box with "
+            "`python manage.py edge_onboarding_skip --slug <slug> --aspect <key> "
+            "--reason ...`, when this campus does not have that infrastructure."
         )
+        return False, "Go-dark checklist not cleared. " + " ".join(parts) + extra_fail
     except Exception as extra:  # noqa: BLE001
         return False, f"go-dark checklist failed: {extra}"
 
@@ -796,6 +934,9 @@ def _heal_verify_and_sync_gate(school) -> "tuple[bool, str]":
     on_box, why = running_on_edge_box()
     if not on_box:
         return False, why
+    waived = _waive_if_recorded(school, "verify_and_sync_gate")
+    if waived is not None:
+        return waived
     try:
         gate = run_sync_gate(school)
         detail = str(gate.get("detail") or "")
@@ -824,9 +965,13 @@ def _heal_live_sync_proof(school) -> "tuple[bool, str]":
     on_box, why = running_on_edge_box()
     if not on_box:
         return False, why
+    waived = _waive_if_recorded(school, "live_sync_proof")
+    if waived is not None:
+        return waived
     try:
+        dry_waived = aspect_is_waived(school, "verify_and_sync_gate")
         dry = _latest_sync_run(school, mode="dry")
-        if dry is None or not bool(getattr(dry, "ok", False)):
+        if not dry_waived and (dry is None or not bool(getattr(dry, "ok", False))):
             return False, (
                 "Refused: no cleared dry gate on record. The gate exists so a live "
                 "cycle is never the thing that discovers the operator is unreachable. "
@@ -860,11 +1005,13 @@ def _heal_live_sync_proof(school) -> "tuple[bool, str]":
 def _heal_go_dark_checklist(school) -> "tuple[bool, str]":
     """Advance the two parts a machine can, and name the rest honestly.
 
-    The checklist has five parts and only two of them are a machine's to fix. The
+    The checklist has six parts and only two of them are a machine's to fix. The
     roster cannot be filled by a sync -- delta sync is not a bulk loader, and using
     it as one is the mistake this runbook repeats a warning about on every data
     step. Conversion unlock needs a person to save a real attendance, mark, report
-    or payment; that is the point of it.
+    or payment; that is the point of it. A verified backup needs the backup
+    container to have run ``once`` (or an operator skip); Django must never dump
+    or restore from this heal.
 
     So this heal deliberately CANNOT return True on its own for a box missing those,
     and says which of them is outstanding rather than returning a bare False. A heal
@@ -876,11 +1023,16 @@ def _heal_go_dark_checklist(school) -> "tuple[bool, str]":
         return False, why
     try:
         done: list[str] = []
+        dry_waived = aspect_is_waived(school, "verify_and_sync_gate")
         dry = _latest_sync_run(school, mode="dry")
-        if dry is None or not bool(getattr(dry, "ok", False)):
+        if not dry_waived and (dry is None or not bool(getattr(dry, "ok", False))):
             gate_ok, gate_detail = _heal_verify_and_sync_gate(school)
             if not gate_ok:
-                return False, f"Could not clear the dry gate, so nothing after it can run. {gate_detail}"
+                return False, (
+                    "Could not clear the dry gate, so nothing after it can run. "
+                    f"{gate_detail} A campus with no uplink can waive this step "
+                    "with a reason of at least 12 characters."
+                )
             done.append("dry gate cleared")
 
         live_ok, _ = _validate_live_sync_proof(school)
@@ -903,21 +1055,29 @@ def _heal_go_dark_checklist(school) -> "tuple[bool, str]":
         data_ok, _ = _validate_seed_operational_data(school)
         if not data_ok:
             remaining.append(
-                "the roster is empty -- import it (import_tenant_bundle), never a sync"
+                "the roster is empty -- import it (import_tenant_bundle), never a "
+                "sync; or waive this line (≥12 characters) for an empty lab"
             )
         conv_ok, _ = _validate_conversion_first_action(school)
         if not conv_ok:
             remaining.append(
                 "conversion is still locked -- somebody must save one real attendance, "
-                "mark, report or payment on the box"
+                "mark, report or payment on the box; or waive this line for a lab box"
             )
-        live_row = _latest_sync_run(school, mode="live")
-        conflicts = int(getattr(live_row, "conflicts", 0) or 0) if live_row is not None else 0
-        if conflicts:
+        backup_ok, _ = _validate_box_backup_verified(school)
+        if not backup_ok:
             remaining.append(
-                f"{conflicts} unresolved sync conflict(s) -- resolve them in Sync Center; "
-                "money stays cloud-authoritative"
+                "no verified box backup -- run `box-backup.sh once` on the backup "
+                "service (or record a skip reason of at least 12 characters)"
             )
+        if not aspect_is_waived(school, "live_sync_proof"):
+            live_row = _latest_sync_run(school, mode="live")
+            conflicts = int(getattr(live_row, "conflicts", 0) or 0) if live_row is not None else 0
+            if conflicts:
+                remaining.append(
+                    f"{conflicts} unresolved sync conflict(s) -- resolve them in Sync Center; "
+                    "money stays cloud-authoritative"
+                )
         if remaining:
             return False, prefix + "Still needs a person: " + "; ".join(remaining) + "."
         return False, prefix + detail
@@ -1272,10 +1432,10 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         ),
         validate=_validate_media_branding,
         workaround=(
-            "If there is no logo to carry, upload one through the tenant admin branding "
-            "screen on the box — the platform falls back to a neutral mark until then "
-            "(never a crash). Do NOT hand-set logo_url to an off-box https URL: it will "
-            "not resolve on an offline box."
+            "No logo yet? Record a skip reason (≥12 characters) on this runbook page — "
+            "the platform falls back to a neutral mark (never a crash). Or upload one "
+            "through the tenant admin branding screen on the box. Do NOT hand-set "
+            "logo_url to an off-box https URL: it will not resolve on an offline box."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_SOURCE_TENANT,
@@ -1297,7 +1457,8 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         workaround=(
             "Equivalent: import_sovereign_tenant WITHOUT --fresh after the shell exists. "
             "If the target is not empty, the importer refuses — that is safety, not a bug. "
-            "Do not click Sync now to invent a roster."
+            "Empty lab / no students yet? Record a skip reason (≥12 characters) on this "
+            "page. Do not click Sync now to invent a roster."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_SOURCE_TENANT,
@@ -1338,7 +1499,8 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         validate=_validate_conversion_first_action,
         workaround=(
             "The pink first-action CTA on the activation screen records completion. "
-            "There is no manage.py skip — first value must be real."
+            "Lab box with nobody saving a real attendance, mark, or payment yet? "
+            "Record a skip reason (≥12 characters) on this runbook page."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_SOURCE_TENANT,
@@ -1401,7 +1563,8 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         ),
         validate=_validate_lan_hostname,
         workaround=(
-            "No LAN DNS yet? The box is reachable by IP RIGHT NOW — "
+            "No school.lan DNS at this site? Record a skip reason (≥12 characters) on "
+            "this page, or reach the box by IP RIGHT NOW — "
             "http://<BOX_LAN_IP>:<web-port>/ — because SINGLE_TENANT routes any host "
             "to the sole school. Never use https:// on the box (no TLS = the 'no "
             "lock'); use http:// with the explicit port (default 10000). For a real "
@@ -1479,16 +1642,18 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         command_template="python manage.py pair_box --slug {slug} --wait",
         validate=_validate_enable_configure_sync,
         workaround=(
-            "Nobody available to approve? Mint a claim ticket on the cloud "
-            "(python manage.py mint_claim_ticket --slug {slug}) and pass it to the box as "
-            "`pair_box --claim <ticket>`; it pre-authorises exactly ONE adoption of that "
-            "one school and every reuse is counted as misuse. Platform staff can also "
-            "approve on the school's behalf, and a request stays open for days, so an "
-            "installer can leave and it can be approved later. "
-            "Legacy path (still supported, nothing to migrate): mint_edge_credential on "
-            "the cloud and copy the token onto the box as RMC_EDGE_CREDENTIAL with "
-            "RMC_EDGE_OPERATOR_BASE and RMC_EDGE_SYNC_ENABLED=1. A stored pairing always "
-            "wins over these; clear it with `pair_box --unpair --yes` to go back."
+            "No reliable uplink — this box stays sovereign-only? Record a skip reason "
+            "(≥12 characters) on this runbook page. Nobody available to approve? Mint a "
+            "claim ticket on the cloud (python manage.py mint_claim_ticket --slug {slug}) "
+            "and pass it to the box as `pair_box --claim <ticket>`; it pre-authorises "
+            "exactly ONE adoption of that one school and every reuse is counted as "
+            "misuse. Platform staff can also approve on the school's behalf, and a "
+            "request stays open for days, so an installer can leave and it can be "
+            "approved later. Legacy path (still supported, nothing to migrate): "
+            "mint_edge_credential on the cloud and copy the token onto the box as "
+            "RMC_EDGE_CREDENTIAL with RMC_EDGE_OPERATOR_BASE and RMC_EDGE_SYNC_ENABLED=1. "
+            "A stored pairing always wins over these; clear it with "
+            "`pair_box --unpair --yes` to go back."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_BOX_SETTINGS,
@@ -1510,12 +1675,14 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         validate=_validate_verify_and_sync_gate,
         self_heal=_heal_verify_and_sync_gate,
         workaround=(
-            "If the gate does not clear, the box is NOT cleared to go offline. Run "
-            "`python manage.py verify_edge_link --http` first: it walks the whole chain "
-            "(deployment, address, credential, school, scheduler, reachability) and names "
-            "the FIRST broken link with the command that fixes it. Fix that one and "
-            "re-run — the later failures are usually consequences of it. Never take a box "
-            "dark on a red gate."
+            "If the gate does not clear, the box is NOT cleared to go offline. A campus "
+            "with no uplink can waive this step with a reason of at least 12 characters "
+            "on this page. Otherwise run `python manage.py verify_edge_link --http` first: "
+            "it walks the whole chain (deployment, address, credential, school, "
+            "scheduler, reachability) and names the FIRST broken link with the command "
+            "that fixes it. Fix that one and re-run — the later failures are usually "
+            "consequences of it. Never take a box dark on a red gate unless that gate "
+            "is waived in writing."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_NETWORK,
@@ -1533,8 +1700,10 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         validate=_validate_live_sync_proof,
         self_heal=_heal_live_sync_proof,
         workaround=(
-            "If live sync fails, read Sync Center conflicts. Money stays cloud-authoritative. "
-            "Do not retry from the manager host — the credential lives on the box."
+            "No uplink / this campus will not use cloud sync? Record a skip reason "
+            "(≥12 characters) on this page. If live sync fails, read Sync Center "
+            "conflicts. Money stays cloud-authoritative. Do not retry from the manager "
+            "host — the credential lives on the box."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_NETWORK,
@@ -1542,20 +1711,61 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         named_url_name="siteconfig:sync_center",
     ),
     EdgeOnboardingStep(
+        key="box_backup_verified",
+        title="Prove a verified backup of this school's records exists",
+        purpose=(
+            "A sovereign box keeps the fee ledger, marks, attendance and uploaded "
+            "documents on one disk. Delta sync carries only a handful of Class-A "
+            "entities. Go-dark without a dump that has been READ BACK is total loss "
+            "on a dead SSD. This step passes when the newest dump was read end to "
+            "end, or when an operator records a skip reason of at least 12 characters."
+        ),
+        category="verification",
+        command_template=(
+            "# Edge box: {slug} ({country}). Take one backup now, read it back, then "
+            "print the record the runbook reads:\n"
+            "docker compose -f /srv/rmc/deploy/selfhost/docker-compose.yml exec backup "
+            "bash /usr/local/bin/box-backup.sh once\n"
+            "docker compose -f /srv/rmc/deploy/selfhost/docker-compose.yml exec backup "
+            "bash /usr/local/bin/box-backup.sh status\n"
+            "# The off-box copy (USB/NAS) is the one that survives a dead disk:\n"
+            "#   set RMC_BOX_BACKUP_OFFBOX_DIR in deploy/selfhost/.env"
+        ),
+        validate=_validate_box_backup_verified,
+        workaround=(
+            "Lab box, or a USB dump already taken by hand? Record a skip reason "
+            "(≥12 characters) on this runbook page -- never 'we'll set this up later'. "
+            "No USB/NAS at this site? Waive the off-box copy separately (same page) "
+            "once a verified on-box dump exists. The backup service must be running "
+            "(`docker compose up -d backup`); it is not behind a profile. Do not restore "
+            "into the live database from here -- that is deploy/selfhost/box-restore.sh, "
+            "which stops the app first."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_BOX_SETTINGS,
+        cloud_preview=False,
+        help_doc="docs/EDGE_BOX_BACKUP_RUNBOOK.md",
+    ),
+    EdgeOnboardingStep(
         key="go_dark_checklist",
         title="Go-dark checklist (finance down-only, year lock owned by cloud)",
         purpose=(
-            "Final composite: dry gate recorded ok, live sync ok with zero conflicts, "
-            "roster present, conversion unlocked. Finance is cloud-authoritative / down-only. "
-            "Academic year hard-close and soft-close are owned by the cloud; the box cannot reopen them."
+            "Final composite: dry gate recorded ok (or waived), live sync ok with zero "
+            "conflicts (or waived), roster present (or waived as an empty lab), conversion "
+            "unlocked (or waived as a lab), verified backup (or waived). Finance is "
+            "cloud-authoritative / down-only. Academic year hard-close and soft-close are "
+            "owned by the cloud; the box cannot reopen them. Owner login and SECRET_KEY "
+            "are never waivable."
         ),
         category="verification",
         command_template="python manage.py edge_onboarding_verify --slug {slug} --include-gate",
         validate=_validate_go_dark_checklist,
         self_heal=_heal_go_dark_checklist,
         workaround=(
-            "Stay online until every go-dark line is green. A box with an empty roster "
-            "or a red live sync is not offline-ready."
+            "Stay online until every go-dark line is green, or waive the matching "
+            "infrastructure line on that step's form (≥12 characters). A box with an "
+            "empty roster or a red live sync is not offline-ready unless those lines "
+            "are waived in writing. Owner login and SECRET_KEY cannot be skipped."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_COMPOSITE,
@@ -1627,7 +1837,9 @@ def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> di
 
     Returns ``{school_id, slug, country, total, steps}`` where each step is
     ``{key, title, purpose, category, command, workaround, runs_on, evidence,
-    named_url_name, help_doc, cloud_preview}`` with placeholders filled.
+    named_url_name, help_doc, cloud_preview, waives}`` with placeholders filled.
+    ``waives`` is the infrastructure skip forms for that step (empty when the
+    step cannot be waived).
 
     ``with_status=True`` additionally runs every check and adds ``status``, ``detail``
     and ``can_self_heal`` to each step plus a ``progress`` block -- everything a
@@ -1636,15 +1848,31 @@ def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> di
 
     It runs the READ-ONLY preview (``include_gate=False``): no network, and no
     ``EdgeSyncRun`` recorded. Rendering a page must never look like an operator ran
-    the live gate -- the three gate steps come back NOT_CHECKED, which is the honest
-    answer for a check whose evidence lives on the box.
+    the live gate -- the four box-side checks come back NOT_CHECKED, which is the
+    honest answer for a check whose evidence lives on the box.
     """
     steps: list[dict] = []
+    slug = _slug(school)
     for step in EDGE_ONBOARDING_STEPS:
         try:
             command = _fill_command(step.command_template, school, runs_on=step.runs_on)
         except Exception:  # noqa: BLE001 — a template fill must never crash the runbook
             command = step.command_template
+        waives = [
+            {
+                "key": row.key,
+                "label": row.label,
+                "hint": row.hint,
+                "run_kind": row.run_kind,
+                "recorded_chars": len(aspect_skip_reason(school, row.key)),
+                "must_record_on_box": step.runs_on != RUNS_ON_CLOUD,
+                "cli": (
+                    f"python manage.py edge_onboarding_skip --slug {slug} "
+                    f"--aspect {row.key} --reason \"…\""
+                ),
+            }
+            for row in aspects_shown_on_step(step.key)
+        ]
         steps.append(
             {
                 "key": step.key,
@@ -1658,6 +1886,7 @@ def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> di
                 "named_url_name": step.named_url_name,
                 "help_doc": step.help_doc,
                 "cloud_preview": bool(step.cloud_preview),
+                "waives": waives,
             }
         )
     runbook = {
@@ -1708,10 +1937,11 @@ def run_verification_suite(school, *, include_gate: bool = True, host_kind: Opti
     that RAISES is caught and recorded as ``ok=False`` — the suite is never aborted.
 
     ``include_gate=False`` keeps only ``cloud_preview=True`` steps (omits the dry
-    gate, live Class-A proof, and go-dark checklist): a READ-ONLY readiness preview
-    that touches no network and records NO ``EdgeSyncRun``. Those three checks are
-    BOX-SIDE (credential + last cycle live on the box), so a cloud GET must never
-    fake-run them. On the box: ``edge_onboarding_verify --slug <slug> --include-gate``.
+    gate, live Class-A proof, verified backup, and go-dark checklist): a READ-ONLY
+    readiness preview that touches no network and records NO ``EdgeSyncRun``. Those
+    four checks are BOX-SIDE (credential + last cycle + backup record live on the
+    box), so a cloud GET must never fake-run them. On the box:
+    ``edge_onboarding_verify --slug <slug> --include-gate``.
     """
     steps = (
         EDGE_ONBOARDING_STEPS
@@ -1821,4 +2051,10 @@ __all__ = [
     "heal_step",
     "migration_cloud_skip_reason",
     "set_migration_cloud_skip_reason",
+    "box_backup_skip_reason",
+    "set_box_backup_skip_reason",
+    "aspect_skip_reason",
+    "aspect_is_waived",
+    "set_aspect_skip_reason",
+    "WAIVABLE_ASPECTS",
 ]

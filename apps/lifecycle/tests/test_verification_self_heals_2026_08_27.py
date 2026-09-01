@@ -165,7 +165,7 @@ class TheLiveHealRespectsTheGateOrderingTests(SimpleTestCase):
 
 
 class TheGoDarkHealIsHonestAboutWhatItCannotDoTests(SimpleTestCase):
-    """Two of its five parts are a machine's to fix. It must not imply otherwise."""
+    """Two of its six parts are a machine's to fix. It must not imply otherwise."""
 
     def test_it_names_the_roster_rather_than_syncing_one(self):
         # Delta sync is not a bulk loader. Using it as one is the mistake this
@@ -192,6 +192,19 @@ class TheGoDarkHealIsHonestAboutWhatItCannotDoTests(SimpleTestCase):
         self.assertFalse(ok)
         self.assertIn("conversion is still locked", detail)
         self.assertIn("somebody must save", detail)
+
+    def test_it_names_the_missing_backup(self):
+        with mock.patch(EDGE, return_value=True), \
+                mock.patch(LATEST, return_value=_run(ok=True)), \
+                mock.patch.object(eo, "_validate_live_sync_proof", return_value=(True, "ok")), \
+                mock.patch.object(eo, "_validate_go_dark_checklist", return_value=(False, "not cleared")), \
+                mock.patch.object(eo, "_validate_seed_operational_data", return_value=(True, "ok")), \
+                mock.patch.object(eo, "_validate_conversion_first_action", return_value=(True, "unlocked")), \
+                mock.patch.object(eo, "_validate_box_backup_verified", return_value=(False, "missing")):
+            ok, detail = eo._heal_go_dark_checklist(_school())
+        self.assertFalse(ok)
+        self.assertIn("no verified box backup", detail)
+        self.assertIn("box-backup.sh once", detail)
 
     def test_it_says_what_it_DID_do_even_when_it_ends_up_false(self):
         # A heal that quietly does two fifths of the work and returns a bare False is

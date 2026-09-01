@@ -306,6 +306,51 @@ a box that is switched off. That line is the difference.
 Testing with a **small edit after seeding** is the correct test — not watching the bulk
 load travel over sync (it won't; see the exclusion table above).
 
+### Then prove a verified backup exists before go-dark
+
+Delta sync does not copy the fee ledger, marks, or uploaded documents. Those live on
+one disk. The engine step `box_backup_verified` (immediately before `go_dark_checklist`)
+refuses go-dark until the newest dump has been **read back end to end**, or an operator
+records a skip reason of at least 12 characters.
+
+On the box:
+
+```bash
+docker compose -f /srv/rmc/deploy/selfhost/docker-compose.yml exec backup \
+  bash /usr/local/bin/box-backup.sh once
+docker compose -f /srv/rmc/deploy/selfhost/docker-compose.yml exec backup \
+  bash /usr/local/bin/box-backup.sh status
+```
+
+The procedure, retention, and off-box copy: `docs/EDGE_BOX_BACKUP_RUNBOOK.md`. If this
+SOP disagrees with `apps.lifecycle.edge_onboarding.py`, the engine wins.
+
+### Infrastructure this campus does not have
+
+Not every site has an uplink, LAN DNS, USB/NAS, SIS files, or a logo. Each of those
+lines on `/super/edge-onboarding/` has its own skip form. The reason must be **at
+least 12 characters**; a blank skip is not a skip. Waiving live Class-A proof also
+clears the go-dark `conflicts` line (there is no live run to count). Waiving the
+dry gate and live proof together is how a sovereign-only box finishes go-dark
+without probing a cloud it cannot reach. An empty staff list is legitimate and does
+**not** need a skip.
+
+**Cannot be waived from the console:** owner login (`migrate_identities`), `SECRET_KEY`
+/ box environment, entitlements, the tenant shell, or the go-dark composite as a
+whole. Finish or waive the parts; do not skip having a login.
+
+Record the skip on the **same host that will run** `edge_onboarding_verify
+--include-gate`. The manager console writes the cloud school's overlay; the box
+reads its own. A "Note skip on this cloud tenant" click is an audit note on the
+source tenant — it does **not** clear go-dark. Migration Cloud is the exception
+(that step is evaluated on the cloud). On the box:
+
+```bash
+python manage.py edge_onboarding_skip --list
+python manage.py edge_onboarding_skip --slug <slug> --aspect live_sync_proof \
+  --reason "No uplink at this campus — sovereign-only box."
+```
+
 ---
 
 ## "Sync now": what each button actually does

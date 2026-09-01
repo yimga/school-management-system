@@ -1,5 +1,47 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Box-side skip CLI and overlay honesty (batch 1819 - 2026-09-01)
+
+**A. Scope:** Final end-to-end audit of per-aspect onboarding waivers. Dual-file loop: runbook engine + operator console. Stay off in-flight peer `sync_engine` / backup-script work.
+
+**B. Shipped:** `edge_onboarding_skip` management command (records on THIS host and writes `EdgeOnboardingRun` with `via=cli`); waive `cli` + `must_record_on_box`; manager copy no longer implies a cloud click clears go-dark; text export names the box CLI; pairing skip does not auto-waive dry/live; sovereign-only `include_gate=True` suite with a real login + SECRET_KEY.
+
+**C. Proof:** sqlite-memory **133/133 OK** (`test_onboarding_aspect_waivers_2026_09_01`, `test_box_backup_verified_step_2026_08_31`, `test_edge_onboarding`, `test_edge_onboarding_operator_ui`, `test_audit_edge_runbook_2026_08_27`, `test_verification_self_heals_2026_08_27`, `test_edge_bringup_2026_08_16`, `test_runbook_bar_denominator_2026_08_27`); `audit_edge_runbook --strict` **19 steps, 76 OK, 0 WARN, 0 FAIL**.
+
+**D. Release boundary:** no new migration. Skips live on `school.settings["rmc_edge_onboarding"]` of the host that records them. Django never dumps or restores.
+
+**E. Research standard:** two databases, one overlay. Manager GET still does not fake box/network checks. Identity login and SECRET_KEY stay non-waivable.
+
+**F. Deploy:** on the box, `python manage.py edge_onboarding_skip --list` then record each missing infrastructure line before `edge_onboarding_verify --include-gate`.
+
+## Slice - Per-aspect infrastructure waivers (batch 1818 - 2026-09-01)
+
+**A. Scope:** Make every Edge Onboarding infrastructure line finishable at a campus that does not have that infrastructure, without making go-dark a rubber stamp. Dual-file loop: runbook engine + operator console. Stay off in-flight peer `sync_engine` / backup-script work.
+
+**B. Shipped:** `onboarding_waivers.py` catalog (10 aspects); validate/heal/go-dark honor a ≥12-char skip; empty staff PASSes; off-box USB/NAS waiver only rewrites the warning on a verified dump; operator `skip_aspect` POST + `lifecycle/0010` `skip_aspect` kind; runbook `waives` forms; SOP names the skip path. Identity login and SECRET_KEY stay non-waivable.
+
+**C. Proof:** sqlite-memory **112/112 OK** (`test_onboarding_aspect_waivers_2026_09_01`, `test_box_backup_verified_step_2026_08_31`, `test_edge_onboarding`, `test_edge_onboarding_operator_ui`, `test_audit_edge_runbook_2026_08_27`, `test_verification_self_heals_2026_08_27`, `test_edge_bringup_2026_08_16`); `audit_edge_runbook --strict` **19 steps, 76 OK, 0 WARN, 0 FAIL**.
+
+**D. Release boundary:** apply `lifecycle/0010` (choices-only). Skip reasons live on `school.settings["rmc_edge_onboarding"]` like Migration Cloud / box backup. Django never dumps or restores.
+
+**E. Research standard:** a checklist nobody can finish at a real site is not a checklist. Each waiver is a written decision, not a blank skip. Manager GET still does not fake box/network checks.
+
+**F. Deploy:** migrate; operators record per-line skips on `/super/edge-onboarding/` where the campus has no uplink, LAN DNS, USB/NAS, SIS files, or logo.
+
+## Slice - Verified box backup before go-dark (batch 1817 - 2026-08-31)
+
+**A. Scope:** Close the go-dark hole where the Edge Onboarding Runbook could pass without a verified dump of the school's records. Dual-file loop: runbook engine + compose/docs. Stay off in-flight peer backup-script/C2 work.
+
+**B. Shipped:** `box_backup_verified` step (C2 reader `box_backup_status.py`) immediately before `go_dark_checklist`; checklist requires `backup=ok`; ≥12-char skip overlay; compose `backupdata:/backups:ro` on `x-app` (not `backupkeys`); `RMC_BOX_BACKUP_STATE_FILE`; operator skip POST + `EdgeOnboardingRun.kind=skip_backup` (`lifecycle/0009`); SOP and `EDGE_BOX_BACKUP_RUNBOOK.md` point at the engine.
+
+**C. Proof:** sqlite-memory **178/178 OK** (`test_box_backup_verified_step_2026_08_31`, `test_edge_onboarding`, `test_edge_onboarding_operator_ui`, `test_audit_edge_runbook_2026_08_27`, `test_verification_self_heals_2026_08_27`, `test_edge_box_backup_2026_08_31`, `test_edge_bringup_2026_08_16`); `audit_edge_runbook --strict` **19 steps, 76 OK, 0 WARN, 0 FAIL**.
+
+**D. Release boundary:** apply `lifecycle/0009`; recreate/restart app containers so web/worker/beat pick up the read-only `backupdata` mount; run `box-backup.sh once` on the box (or record a skip). Django never dumps or restores.
+
+**E. Research standard:** same C2 gates as `box-audit.sh` (full read-back of the newest dump, age ≤48h). Manager GET does not fake the file check (`cloud_preview=False`).
+
+**F. Deploy:** migrate, `docker compose up -d` (or rebuild) so `backupdata:/backups:ro` is on web, then `box-backup.sh once` before certifying go-dark.
+
 ## Slice - Tenant admin sidebar server ownership and two-loop seal (batch 1816 - 2026-08-20)
 
 **A. Scope:** Execute the binding A-Z platform admin automation prompt with a tenant-wide `/admin/` sidebar upgrade, then run two independent post-implementation audit and validation loops.

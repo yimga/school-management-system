@@ -150,12 +150,13 @@ class RunEdgeBringupTests(TestCase):
 
 
 class GoDarkPhaseTests(TestCase):
-    """Steps 16-17. The bring-up used to stop at 15 and call it done.
+    """Live proof + go-dark. The bring-up used to stop before them and call it done.
 
     It could not have gone further, either: the self-heal loop walks
     run_verification_suite(include_gate=False), which keeps only cloud_preview steps,
-    and all three verification steps are cloud_preview=False precisely because their
-    evidence is a real sync. So they are healed explicitly, after the gate clears.
+    and the box-side checks are cloud_preview=False precisely because their evidence
+    lives on the box. So live proof and the checklist are healed explicitly, after
+    the gate clears.
     """
 
     SLUG = "bringup-godark"

@@ -4175,6 +4175,14 @@ RMC_EDGE_OPERATOR_BASE = (
 RMC_EDGE_SYNC_ENABLED = os.getenv("RMC_EDGE_SYNC_ENABLED", "").strip().lower() in (
     "1", "true", "yes", "on",
 )
+# Where the backup container writes backup-state.json. The web process reads it
+# because compose mounts backupdata:/backups:ro, so the onboarding runbook can
+# refuse go-dark without a verified dump. Override only for tests or a box that
+# mounts the volume elsewhere. The passphrase is on a different volume and is
+# never readable from this path.
+RMC_BOX_BACKUP_STATE_FILE = os.environ.get(
+    "RMC_BOX_BACKUP_STATE_FILE", "/backups/backup-state.json"
+)
 # --------------------------------------------------------------------------- #
 # Edge sync: DELETION propagation (apps/sync_engine/tombstones.py)
 # --------------------------------------------------------------------------- #
