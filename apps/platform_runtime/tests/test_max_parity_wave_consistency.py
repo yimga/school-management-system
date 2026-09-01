@@ -6,8 +6,18 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_renders,
+    assert_wires,
+)
+
 
 ROOT = Path(__file__).resolve().parents[3]
+
+MASTHEAD = ROOT / "templates/components/rmc_page_masthead.html"
+ROLE_TABS = ROOT / "templates/components/rmc_mission_role_tabs.html"
+OPS_FRAME = ROOT / "templates/components/rmc_operational_center_frame_inner.html"
 
 
 class MaxParityWaveConsistencyTests(SimpleTestCase):
@@ -62,14 +72,21 @@ class MaxParityWaveConsistencyTests(SimpleTestCase):
         masthead = (ROOT / "templates/components/rmc_page_masthead.html").read_text(
             encoding="utf-8"
         )
+        # sparkline_points is a context VARIABLE -- template code -- so only a
+        # source read can see it. The spark class is emitted markup.
         self.assertIn("sparkline_points", masthead)
-        self.assertIn("rmc-page-masthead__spark", masthead)
+        assert_markup(self, MASTHEAD, "rmc-page-masthead__spark")
 
         tabs = (ROOT / "templates/components/rmc_mission_role_tabs.html").read_text(
             encoding="utf-8"
         )
+        # mission_role and tab.href are template code (a querystring assembled
+        # inside {% url %}/{{ }}), so they stay source reads. The tab class is
+        # the part of this partial the ENGINE can confirm it really emits, and
+        # it is the template this case is BOUND to.
         self.assertIn("mission_role", tabs)
         self.assertIn("tab.href", tabs)
+        assert_markup(self, ROLE_TABS, "rmc-mission-role")
 
         css = (ROOT / "static/css/rmc-page-archetypes-max.css").read_text(encoding="utf-8")
         self.assertIn("rmc-page-masthead__spark", css)
@@ -78,29 +95,32 @@ class MaxParityWaveConsistencyTests(SimpleTestCase):
             "templates/accounts/backend_dashboard.html",
             "templates/schools/super_dashboard.html",
         ):
-            body = (ROOT / rel).read_text(encoding="utf-8")
+            path = ROOT / rel
+            body = path.read_text(encoding="utf-8")
             with self.subTest(rel=rel):
-                self.assertIn("rmc_mission_role_tabs.html", body)
+                assert_wires(self, path, "rmc_mission_role_tabs.html")
+                # mission_season is a context variable: source read only.
                 self.assertIn("mission_season", body)
-                self.assertIn('data-page-archetype="mission"', body)
+                assert_markup(self, path, 'data-page-archetype="mission"')
 
     def test_money_twins_still_locked(self):
         for rel in (
             "templates/schools/billing_dashboard.html",
             "templates/finance/dashboard.html",
         ):
-            body = (ROOT / rel).read_text(encoding="utf-8")
+            path = ROOT / rel
             with self.subTest(rel=rel):
-                self.assertIn("rmc_page_masthead.html", body)
-                self.assertIn('data-page-archetype="money"', body)
-                self.assertIn("data-rmc-work-root", body)
+                assert_wires(self, path, "rmc_page_masthead.html")
+                assert_markup(
+                    self, path, 'data-page-archetype="money"', "data-rmc-work-root"
+                )
 
     def test_ops_frame_composes_masthead_and_work_root(self):
-        frame = (
-            ROOT / "templates/components/rmc_operational_center_frame_inner.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("rmc_page_masthead.html", frame)
-        self.assertIn("data-rmc-work-root", frame)
+        # The inner frame stands alone -- no extends, no context needs -- so the
+        # work root can be asserted against RENDERED output, which is the
+        # strongest form available for it.
+        assert_wires(self, OPS_FRAME, "rmc_page_masthead.html")
+        assert_renders(self, OPS_FRAME, "data-rmc-work-root")
 
     def test_option_a_purged_from_max_hubs(self):
         hubs = [
