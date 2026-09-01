@@ -103,8 +103,10 @@ def file_stat(path):
         stamp = str(default_storage.get_modified_time(path).timestamp())
     except Exception:  # noqa: BLE001 - some backends cannot report mtime
         stamp = ""
+    # Cache key, not a checksum. usedforsecurity=False satisfies B324 and
+    # leaves the key identical, so warm caches are not invalidated.
     key = _HASH_CACHE_KEY % hashlib.sha1(
-        f"{path}|{size}|{stamp}".encode("utf-8")
+        f"{path}|{size}|{stamp}".encode("utf-8"), usedforsecurity=False
     ).hexdigest()
     try:
         cached = cache.get(key)

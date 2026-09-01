@@ -160,7 +160,10 @@ def _dispatch_webhook(sub, incident, kind: str, status_url: str, payload_label: 
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=_HTTP_TIMEOUT_SECONDS) as resp:  # nosec: subscriber-provided URL accepted by design
+        # Subscriber-provided URL, accepted by design. Scoped to B310 so a
+        # future finding on this line is not waived by a comment written
+        # about a different check.
+        with urllib.request.urlopen(req, timeout=_HTTP_TIMEOUT_SECONDS) as resp:  # nosec B310
             ok = 200 <= resp.status < 300
             return DispatchResult(ok=ok, detail=f"status={resp.status}")
     except urllib.error.HTTPError as exc:
