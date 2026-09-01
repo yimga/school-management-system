@@ -64,6 +64,21 @@ def file_sync_enabled() -> bool:
     return bool(getattr(settings, "RMC_SYNC_FILE_TRANSFER_ENABLED", True))
 
 
+def hash_received_file(path: str) -> str:
+    """Digest a staged upload the way the sender digested it.
+
+    SHA-256, because that is what the manifest advertises and what
+    apps/sync_engine/file_sync.py verifies. Kept at module level so the
+    algorithm can be asserted without a request: when this drifts from the
+    sender the only symptom is every transfer being rejected as corrupt.
+    """
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for block in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def staging_path(school_id, relative_path) -> str:
     """A deterministic local staging file for a partial upload.
 
@@ -74,7 +89,14 @@ def staging_path(school_id, relative_path) -> str:
     root = getattr(settings, "MEDIA_ROOT", "") or os.path.join(
         str(getattr(settings, "BASE_DIR", ".")), "media"
     )
-    digest = hashlib.sha1(f"{school_id}|{relative_path}".encode("utf-8")).hexdigest()
+    # The digest names a staging file so a resumed upload finds its own
+    # partial bytes; it is not a security checksum. usedforsecurity=False
+    # tells bandit (B324) and OpenSSL that, and changes NO byte of the
+    # output -- switching to sha256 would rename every in-flight upload
+    # and restart each resume at zero.
+    digest = hashlib.sha1(
+        f"{school_id}|{relative_path}".encode("utf-8"), usedforsecurity=False
+    ).hexdigest()
     folder = os.path.join(str(root), _STAGING_DIR)
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, f"{digest}.part")
@@ -225,11 +247,14 @@ class SyncFileChunkView(_EdgeFileView):
 
         # Complete: verify BEFORE committing. A truncated or corrupted transfer that got
         # written into storage would be indistinguishable from a good one afterwards.
-        digest = hashlib.sha256()
-        with open(staged, "rb") as fh:
-            for block in iter(lambda: fh.read(1024 * 1024), b""):
-                digest.update(block)
-        actual = digest.hexdigest()
+        # Was hashlib.sha1(), compared against a header the sender fills
+        # with a SHA-256. A 40-char digest never equals a 64-char one, so the
+        # check below was true for EVERY upload that declared a hash and the
+        # endpoint answered hash_mismatch; only senders that omitted the
+        # header could complete. apps/sync_engine/file_manifest.py advertises
+        # sha256 and apps/sync_engine/file_sync.py verifies sha256, so
+        # sha256 is the protocol and this was the odd one out.
+        actual = hash_received_file(staged)
         if declared_sha and actual != declared_sha:
             os.remove(staged)
             return Response(

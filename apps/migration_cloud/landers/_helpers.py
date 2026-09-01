@@ -1340,7 +1340,13 @@ def _scope_token(school) -> str:
     """
     sid = str(getattr(school, "pk", "") or "0")
     if len(sid) > 8:  # magic-number-allow: short-integer-pk-threshold (UUIDs are 36)
-        return hashlib.sha1(sid.encode("utf-8")).hexdigest()[:6]
+        # Shortens a long pk into a stable 6-hex code. The docstring above
+        # promises existing deployments' codes are unchanged, so the digest
+        # is a contract: usedforsecurity=False satisfies B324 without
+        # touching a single output byte.
+        return hashlib.sha1(
+            sid.encode("utf-8"), usedforsecurity=False
+        ).hexdigest()[:6]
     return sid
 
 
