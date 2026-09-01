@@ -16,6 +16,12 @@ from unittest import mock
 from django.test import RequestFactory, SimpleTestCase
 from django.urls import reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
+
+ANOMALY_NUDGE = Path("templates/migration_cloud/anomaly_nudge.html")
+BUNDLE_DETAIL = Path("templates/migration_cloud/bundle_detail.html")
+BUNDLE_REVIEW = Path("templates/migration_cloud/connector/bundle_review.html")
 
 
 class RecoveryGapURLTests(SimpleTestCase):
@@ -74,29 +80,45 @@ class RecoveryGapURLTests(SimpleTestCase):
 
 class RecoveryGapTemplateTests(SimpleTestCase):
     def test_held_table_has_explain_button(self):
-        text = Path("templates/migration_cloud/anomaly_nudge.html").read_text(encoding="utf-8")
-        self.assertIn("data-rmc-q-explain", text)
-        self.assertIn("aiExplainUrl", text)
+        assert_markup(self, ANOMALY_NUDGE, "data-rmc-q-explain", "aiExplainUrl")
 
     def test_held_review_live_board_id_matches_js(self):
-        text = Path("templates/migration_cloud/anomaly_nudge.html").read_text(encoding="utf-8")
-        self.assertIn('id="mc-live-board"', text)
+        assert_markup(self, ANOMALY_NUDGE, 'id="mc-live-board"')
         js = Path("static/js/rmc-migration-live-import.js").read_text(encoding="utf-8")
         self.assertIn("mc-live-board", js)
 
     def test_operator_bundle_detail_has_archive_ui(self):
         text = Path("templates/migration_cloud/bundle_detail.html").read_text(encoding="utf-8")
+        # archive_eligible / archive_source_url are template CODE and the
+        # heading is {% trans %} output. bundle_detail.html cannot render
+        # standalone either (it extends mc_base|default:"control_plane_base.html",
+        # which needs SITE), so all three stay source reads.
         self.assertIn("archive_eligible", text)
         self.assertIn("archive_source_url", text)
         self.assertIn("Archive source files", text)
+        # The archive card's container is the one piece of this block that is
+        # literal markup, and the row drawer is real wiring. Both die when the
+        # file stops producing nodes.
+        assert_markup(self, BUNDLE_DETAIL, '<div class="mt-3 p-3 border rounded">')
+        assert_wires(
+            self, BUNDLE_DETAIL, "partials/portal_row_detail_drawer_bundle.html"
+        )
 
     def test_review_page_has_archive_and_sse(self):
         text = Path("templates/migration_cloud/connector/bundle_review.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("data-progress-stream-url", text)
+        # {% trans %} output and a variable: source reads are the only way.
         self.assertIn("Archive source files", text)
         self.assertIn("archive_source_url", text)
+        # The SSE hook and both archive sections ARE literal markup.
+        assert_markup(
+            self,
+            BUNDLE_REVIEW,
+            "data-progress-stream-url",
+            'id="mc-archive-prompt"',
+            'id="mc-archive-done"',
+        )
 
     def test_live_import_js_supports_sse(self):
         text = Path("static/js/rmc-migration-live-import.js").read_text(encoding="utf-8")
