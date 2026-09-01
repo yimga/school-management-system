@@ -274,14 +274,30 @@ class ReviewTemplateKickoffMarkers(SimpleTestCase):
     def test_review_page_hosts_live_board_not_flight_deck_only(self):
         from pathlib import Path
 
-        review = Path("templates/migration_cloud/connector/bundle_review.html").read_text(
-            encoding="utf-8"
+        from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
+        review = Path("templates/migration_cloud/connector/bundle_review.html")
+        wizard = Path("templates/migration_cloud/connector/_wizard_base.html")
+        # The live-import bundle is a {% static %} argument on the wizard base, so
+        # only the source can show the filename.
+        self.assertIn(
+            "rmc-migration-live-import.js", wizard.read_text(encoding="utf-8")
         )
-        wizard = Path("templates/migration_cloud/connector/_wizard_base.html").read_text(
-            encoding="utf-8"
+        # Everything else is markup or wiring, and a read of either proves nothing:
+        # the harness's {% comment %} keeps every byte and emits none of it.
+        assert_markup(
+            self,
+            review,
+            "data-mc-live-board",
+            "rmc-wfp-pipeline",
+            "data-mc-live-remediator",
         )
-        self.assertIn("data-mc-live-board", review)
-        self.assertIn("rmc-wfp-pipeline", review)
-        self.assertIn("data-mc-live-remediator", review)
-        self.assertIn("rmc-migration-live-import.js", wizard)
-        self.assertIn("rmc_workflow_progress_canvas.html", review)
+        assert_wires(self, review, "rmc_workflow_progress_canvas.html")
+        # The wizard base is the template this case is bound to: assert its own
+        # page root is emitted, because that is what hosts the live board.
+        assert_markup(
+            self,
+            wizard,
+            "rmc-page--migration-connector",
+            "data-rmc-migration-connector-wizard",
+        )
