@@ -73896,3 +73896,68 @@ msgid ""
 msgstr ""
 "{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be "
 "applied"
+
+msgid "%(label)s skip recorded on this host."
+msgstr "%(label)s skip recorded on this host."
+
+msgid ""
+"A campus that does not have an uplink, LAN DNS, USB/NAS, SIS files, or a "
+"logo can waive that matching line on this page with a written reason of at "
+"least 12 characters. Owner login and SECRET_KEY cannot be skipped."
+msgstr ""
+"A campus that does not have an uplink, LAN DNS, USB/NAS, SIS files, or a "
+"logo can waive that matching line on this page with a written reason of at "
+"least 12 characters. Owner login and SECRET_KEY cannot be skipped."
+
+msgid ""
+"A skip is already on file ({{ counter }} character).{% plural %}A skip is "
+"already on file ({{ counter }} characters)."
+msgstr ""
+"A skip is already on file ({{ counter }} character).{% plural %}A skip is "
+"already on file ({{ counter }} characters)."
+
+msgid ""
+"A skip is on file on this cloud tenant ({{ counter }} character).{% plural "
+"%}A skip is on file on this cloud tenant ({{ counter }} characters)."
+msgstr ""
+"A skip is on file on this cloud tenant ({{ counter }} character).{% plural "
+"%}A skip is on file on this cloud tenant ({{ counter }} characters)."
+
+msgid "Box backup skip recorded."
+msgstr "Box backup skip recorded."
+
+msgid "Copy skip command"
+msgstr "Copy skip command"
+
+msgid ""
+"Go-dark reads the box overlay, not this cloud school. Paste the skip command"
+" on the box too."
+msgstr ""
+"Go-dark reads the box overlay, not this cloud school. Paste the skip command"
+" on the box too."
+
+msgid ""
+"Go-dark reads the box overlay, not this cloud school. Paste this command on "
+"the box:"
+msgstr ""
+"Go-dark reads the box overlay, not this cloud school. Paste this command on "
+"the box:"
+
+msgid "Note skip on this cloud tenant"
+msgstr "Note skip on this cloud tenant"
+
+msgid "Skip reason was too short. Use at least 12 characters."
+msgstr "Skip reason was too short. Use at least 12 characters."
+
+msgid "Skip {{ label }} (reason, 12+ characters)"
+msgstr "Skip {{ label }} (reason, 12+ characters)"
+
+msgid ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, verified backup, and go-dark checklist must run on the edge box with:"
+msgstr ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, verified backup, and go-dark checklist must run on the edge box with:"
+
+msgid "This skip is evaluated on the cloud (this host)."
+msgstr "This skip is evaluated on the cloud (this host)."

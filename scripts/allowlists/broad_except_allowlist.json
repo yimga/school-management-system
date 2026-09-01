@@ -1,7 +1,7 @@
 {
   "policy": "No new broad except (bare 'except Exception') in apps/finance or apps/accounts without adding an allowlist entry and linking an issue. CI runs lint_broad_except --strict. See BACKLOG_AND_DEFERRED_CLOSURE.md §2.4.",
   "issue_link": "https://github.com/runmycampus/school-management-system/issues (use backlog/§2.4 for broad-except policy)",
-  "last_reviewed": "2026-08-20",
+  "last_reviewed": "2026-09-01",
   "allowed_counts": {
     "config/admin.py": 1,
     "config/schema.py": 0,
@@ -191,6 +191,14 @@
     "apps/siteconfig/management/commands/verify_region_coverage.py": 0,
     "apps/schools/tests/test_tenant_isolation_and_provisioning.py": 0,
     "apps/schools/tests/test_tenant_isolation_schema_mode.py": 0,
-    "apps/api/tests/test_offline_sync.py": 0
+    "apps/api/tests/test_offline_sync.py": 0,
+    "apps/lifecycle/edge_onboarding.py": 34,
+    "apps/lifecycle/box_backup_status.py": 2,
+    "apps/lifecycle/management/commands/edge_onboarding_skip.py": 1
+  },
+  "notes": {
+    "apps/lifecycle/edge_onboarding.py": "Every _validate_* check in this module returns (ok, detail) and never raises, so one broken check cannot blank the whole go-dark runbook page. That is the file architecture, not an oversight: 32 of these existed before e65254d20 and are why the unlisted ratchet sat at 32. Narrowing the two new ones would make them the only checks in the file that can crash the page.",
+    "apps/lifecycle/box_backup_status.py": "The Python twin of box-audit.sh C2. Its narrow catches are already narrow (OSError/UnicodeError on read, TypeError/ValueError on parse); the two broad ones are the module's outer never-raise boundary -- a settings lookup that must not crash the runbook, and evaluate_box_backup, whose documented contract is to answer with a verdict instead of raising.",
+    "apps/lifecycle/management/commands/edge_onboarding_skip.py": "The overlay is already persisted when this runs; a failure to write the audit row must be reported on stderr, not turned into a non-zero exit that invites the operator to run the skip a second time."
   }
 }
