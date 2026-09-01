@@ -50,12 +50,17 @@
   padding: 0.5rem 0;
   border-left: 2px solid transparent;
   padding-left: 0.75rem;
-  opacity: 0.55;
-  transition: opacity var(--mkt-v3-motion-fast, 200ms ease), border-color var(--mkt-v3-motion-fast, 200ms ease);
+  /* De-emphasis is done with COLOUR, not opacity. `opacity: 0.55` composited
+     the step text against the white panel and dropped it to 2.57:1 (label) and
+     3.87:1 (time) -- axe color-contrast, impact serious. Muted ink keeps the
+     same visual hierarchy at 7.58:1, and the active step is full ink at
+     17.28:1. */
+  color: var(--mkt-edt-ink-muted, #475569);
+  transition: color var(--mkt-v3-motion-fast, 200ms ease), border-color var(--mkt-v3-motion-fast, 200ms ease);
 }
 
 .mkt-v3-bell-clock__step.is-active {
-  opacity: 1;
+  color: var(--mkt-edt-ink, #0F1B2D);
   border-left-color: var(--mkt-edt-accent, #C2410C);
 }
 
@@ -138,13 +143,38 @@
   padding-block: var(--mkt-v3-section-gap, 6rem);
 }
 
-.mkt-v3-cinematic .mkt-v3-eyebrow,
-.mkt-v3-cinematic .mkt-v3-section-headline,
-.mkt-v3-cinematic .mkt-v3-lead {
+/* :not(.mkt-edt-globe) — the globe section carries .mkt-v3-cinematic for its
+   MAP styling (marketing-impact.css `.mkt-edt-globe.mkt-v3-cinematic
+   .mkt-edt-globe__map`), but `[data-mkt-edition="editorial"] .mkt-edt-globe`
+   repaints its background to the CREAM --mkt-edt-bg-soft at higher
+   specificity, so it is not an inverted band. Inverting ink there measures
+   #F5F1EA on #F2EDE4 = 1.04:1. The class is therefore not a reliable
+   "this surface is deep" signal on its own. */
+.mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-v3-eyebrow,
+.mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-v3-section-headline,
+.mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-v3-lead {
   color: var(--mkt-ink-inv, #F5F1EA);
 }
 
-.mkt-v3-cinematic .mkt-v3-lead {
+/* Same inversion for the .mkt-edt-* spelling of those three roles. They were
+   missing from the list above, so on this dark band they kept the
+   light-surface editorial ink and measured 1.06:1 (.mkt-edt-section-headline
+   #0F1B2D), 2.86:1 (.mkt-edt-eyebrow #51606F) and 2.43:1 (.mkt-edt-lead
+   #475569) against #0C1422 -- axe color-contrast, impact serious.
+   [data-mkt-edition] is needed for weight: the losing declarations are
+   `[data-mkt-edition="editorial"] .mkt-edt-*` (0,2,0) in tokens-editorial.css,
+   which the bundle loads AFTER this file. Do NOT fix this by re-pointing
+   --mkt-edt-ink* on the band: `.mkt-edt-globe__chips li` paints
+   `background: var(--mkt-edt-bg)` inside the band, so an inherited inversion
+   lands light-on-light (measured 1.38:1). */
+[data-mkt-edition] .mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-edt-eyebrow,
+[data-mkt-edition] .mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-edt-section-headline,
+[data-mkt-edition] .mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-edt-lead {
+  color: var(--mkt-ink-inv, #F5F1EA);
+}
+
+.mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-v3-lead,
+[data-mkt-edition] .mkt-v3-cinematic:not(.mkt-edt-globe) .mkt-edt-lead {
   color: color-mix(in srgb, var(--mkt-ink-inv, #F5F1EA) 78%, transparent);
 }
 

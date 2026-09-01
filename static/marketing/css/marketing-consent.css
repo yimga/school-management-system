@@ -73,7 +73,11 @@
 }
 
 .mkt-consent__btn--primary {
-  background: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  /* White on the raw accent is 3.19:1 - 4.10:1 depending on which personality
+     the page carries (amber / teal / orange / cyan / sky), all below AA. The
+     derived accent ink is the same hue at AAA-on-cream strength, and white on
+     it measures 7.51:1 - 8.78:1 across the same five lanes. */
+  background: var(--mkt-personality-accent-ink, var(--mkt-personality-accent, #4f46e5)); /* off-token-allow: accent fallback */
   color: #ffffff; /* off-token-allow: on-accent text is white by design */
 }
 

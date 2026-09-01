@@ -73,7 +73,12 @@
 .mkt-personality-viz__metric-delta {
   display: block;
   font-size: 0.75rem;
-  color: var(--mkt-personality-accent);
+  /* --mkt-personality-accent is a mid-tone chosen to be seen as a FILL; as
+     TEXT on the metric card it measured 3.04:1 (#ea580c on #fdead9). The
+     personality registry already derives an AAA-on-cream ink beside every
+     accent (apps/schools/marketing_personality.py _accent_ink_for_contrast,
+     7:1 target) -- use it. #8b3306 on #fdead9 is 6.97:1. */
+  color: var(--mkt-personality-accent-ink, var(--mkt-personality-accent));
 }
 
 .mkt-personality-viz__chart {
@@ -137,6 +142,13 @@ html[data-mkt-personality-os="communicate"] .mkt-personality-viz {
 html[data-mkt-personality="developers"] .mkt-personality-viz {
   background: color-mix(in srgb, #0f172a 92%, var(--mkt-edt-bg) 8%); /* off-token-allow: decorative-gradient */
   color: #e2e8f0; /* off-token-allow: always-dark-surface */
+  /* Inverted band: the ink and accent-ink tokens have to invert with it, or
+     the metric label (--mkt-edt-ink-muted #475569) and the metric delta
+     (accent ink, derived for a CREAM background) land on a near-black panel
+     at 1.92:1 and worse. Measured on the composited band #222941:
+     #cbd5e1 = 9.68:1; the 45%-accent/white mix = 8.24:1 for the cyan lane. */
+  --mkt-edt-ink-muted: #cbd5e1; /* off-token-allow: always-dark-surface */
+  --mkt-personality-accent-ink: color-mix(in srgb, var(--mkt-personality-accent) 45%, #ffffff);
 }
 html[data-mkt-personality="developers"] .mkt-personality-viz__metric-value,
 html[data-mkt-personality="developers"] .mkt-personality-viz__caption {

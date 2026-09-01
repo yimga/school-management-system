@@ -1,9 +1,9 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-08-09T16:46:24Z",
+  "generated_utc": "2026-09-01T02:17:32Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 21661,
+    "bytes": 21960,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
@@ -22,8 +22,8 @@
       },
       {
         "path": "static/marketing/css/marketing-accessibility-hardening.css",
-        "sha256": "36d67e8e41952ceca54e66b60ca402b666f4f76c414f99ea91963f4c97a77e53",
-        "bytes": 13433
+        "sha256": "1884d02bc7d1726002fb8209663c05d40e2f656e8a2c9b76a4a80dd2491e5da4",
+        "bytes": 14615
       },
       {
         "path": "static/marketing/css/marketing-fonts.css",
@@ -34,7 +34,7 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 321766,
+    "bytes": 322614,
     "sources": [
       {
         "path": "static/marketing/css/rmc-class-grammar-marketing-subset.css",
@@ -43,8 +43,8 @@
       },
       {
         "path": "static/css/rmc-platform-header.css",
-        "sha256": "91880898773834f81d9550ae00ebc6010f0ac33a3fb48f94805be7fe93c2a01c",
-        "bytes": 17106
+        "sha256": "57bb0b78fb0003f4513a0f7590c2bc8a87773510d14e2000554dfd18ac8c4f67",
+        "bytes": 18573
       },
       {
         "path": "static/css/statement-header.css",
@@ -53,13 +53,13 @@
       },
       {
         "path": "static/marketing/css/tokens-schoolhouse.css",
-        "sha256": "2cde74e49c9393752195a82e857cc8f2446c1009933cc0c58d8fb51227200502",
-        "bytes": 3468
+        "sha256": "530bd1b69413e6abc6c4ee3e4d055f55a5da6ced3417f24c882d25c85911509f",
+        "bytes": 3905
       },
       {
         "path": "static/marketing/css/marketing-v3-narrative.css",
-        "sha256": "09de4ef200569caee62dd851c4d9155ab1153abb030aedf3708f6bc038b5ae83",
-        "bytes": 12029
+        "sha256": "9d75d23ab4cbff25ce31fa868502259183d8147949178b337ec08f1527a71c28",
+        "bytes": 14127
       },
       {
         "path": "static/marketing/css/marketing-impact.css",
@@ -213,18 +213,18 @@
       },
       {
         "path": "static/css/rmc-premium-os.css",
-        "sha256": "42a1b5ea6463ccdddfd51e51fb2e3b91104686aa960f9d182c169c92e764ac35",
-        "bytes": 5450
+        "sha256": "517f450b2f42845fbccfb22c46de6d8f73640ac14ff2a061952717bd1c74dbc9",
+        "bytes": 6140
       },
       {
         "path": "static/css/rmc-premium-polish.css",
-        "sha256": "00be76a1c2a9cf63d03434f70d1b28db399ae20ab69b1f828c0645c13dbce57a",
+        "sha256": "fa86f9a1009486d8497daafda6ced309996e7fe414a33ef21610d913554701c0",
         "bytes": 3477
       },
       {
         "path": "static/css/rmc-world-class-experience.css",
-        "sha256": "af7dbc4cfad51fb1f0f714e098391aade4b7424febfd605ca55907fb67049e7e",
-        "bytes": 27278
+        "sha256": "6b69116c9f0ece9bda7bb25d624acbf0fc8c39e7774690f9d2a6294c0743c064",
+        "bytes": 27347
       },
       {
         "path": "static/css/rmc-corporate-os.css",
