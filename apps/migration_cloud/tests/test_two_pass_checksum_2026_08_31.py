@@ -1705,10 +1705,10 @@ class PresenceDomainPlantTests(_TenantFixture):
                 },
             )
             term, _ = Term.objects.get_or_create(
+                school=self.school,
                 academic_year=year,
                 name="FIRST",
                 defaults={
-                    "school": self.school,
                     "start_date": dt.date(2025, 9, 1),
                     "end_date": dt.date(2025, 12, 15),
                 },
