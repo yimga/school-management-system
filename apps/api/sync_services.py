@@ -930,6 +930,34 @@ def _reassert_row_after_refused_delete(model, school_id, pk):
         return False
 
 
+def _has_attname(model, name) -> bool:
+    """Does ``model`` carry a concrete column reachable as ``name``?
+
+    Asked before every optional filter on the delete path. ``client_offline_id`` and
+    ``school_id`` are present on almost every rail model and absent on a few, and a
+    ``FieldError`` raised from inside the resolution pass would take down rows that have
+    nothing to do with the one that is missing a column.
+    """
+    return any(getattr(f, "attname", "") == name for f in model._meta.get_fields())
+
+
+def _live_row_count(model, school_id) -> int:
+    """How many rows of ``model`` this school holds right now - the proportional guard's
+    denominator. ``_base_manager`` on purpose: a soft-deleted row is still a row, and
+    counting it makes the guard more conservative, never less."""
+    try:
+        qs = model._base_manager.all()
+        if _has_attname(model, "school_id"):
+            qs = qs.filter(school_id=school_id)
+        return int(qs.count())
+    except Exception:  # noqa: BLE001 - a guard's own read must never break the batch
+        logger.debug("could not count live rows for %s", model, exc_info=True)
+        # Zero disables the fraction guard for this entity rather than refusing the
+        # bundle: an unreadable count is a defect in the guard, and a guard that cannot
+        # measure must not be the thing that stops a sync.
+        return 0
+
+
 def apply_deletes(school_id, user, rows, *, sync_origin=None):
     """Apply DELETION rows (``op="delete"``) from a delta bundle.
 
@@ -946,13 +974,32 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
         entity may be deleted DOWNWARD by the cloud but never UPWARD by a box. A refused
         upward delete re-asserts the cloud row so the appliance gets it back rather than
         the two sides diverging in silence;
-      * **flood guard** - a bundle carrying more than
+      * **identity** - which row is this deletion actually about. A deletion carrying an
+        offline anchor is matched by that anchor and by NOTHING ELSE; a pk-only deletion
+        may destroy a live local row only where this side holds evidence that the pk means
+        the same row on both sides. See :mod:`apps.sync_engine.delete_safety`, which is
+        where the measurement and the reasoning are written down;
+      * **flood guard, by count** - a bundle carrying more than
         ``RMC_SYNC_MAX_DELETES_PER_BUNDLE`` deletions is refused WHOLE. A mistaken bulk
-        action on one side is then a loud refusal instead of a mirrored wipe.
+        action on one side is then a loud refusal instead of a mirrored wipe;
+      * **flood guard, by proportion** - and separately, a bundle that would delete more
+        than ``RMC_SYNC_MAX_DELETE_FRACTION_PER_BUNDLE`` of ONE entity's live rows is
+        refused for that entity. 39 deletions are far under a 500-row cap and are also
+        every teacher a school has; only a fraction can tell those apart.
 
     A tombstone is recorded on this side even when the row is already absent: knowing a
     row is buried is what stops it being re-created by a later bundle, and it is what
-    makes delete-dominance answer the same way regardless of which side is asked first.
+    makes delete-dominance answer the same way regardless of which side is asked first. It
+    is NOT recorded for a refused row - burying a pk this side cannot identify would then
+    refuse every future update to whatever really lives there, turning one unsafe delete
+    into a permanently unreachable record.
+
+    THREE PASSES, AND THE MIDDLE ONE IS WHY. Grading (policy), naming (identity), then
+    deleting. The proportional guard is a question about the WHOLE bundle - "how much of
+    this table would this take" - and cannot be answered one row at a time, so every row
+    has to be resolved to its target before any row is destroyed. That ordering is also
+    what keeps the guard honest: it counts rows that would really delete something, not
+    tombstones received, which a rail re-offers every cycle until its cursor passes.
 
     Returns ``{"deleted", "results"}``; results carry per-row ``index``/``status``.
     """
@@ -966,7 +1013,7 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
     )
 
     from apps.api.entity_api import _is_admin_like
-    from apps.sync_engine import tombstones
+    from apps.sync_engine import delete_safety, tombstones
 
     rows = list(rows or [])
     config = _get_entity_config(include_derived=sync_origin is not None)
@@ -1021,8 +1068,12 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
         )
         return {"deleted": 0, "results": flood_results}
 
-    deleted = 0
-    results: list[dict] = []
+    # ----------------------------------------------------------------------- #
+    # PASS 1 - policy. Nothing is read from the entity tables and nothing is
+    # deleted; a row that policy refuses never becomes a plan at all.
+    # ----------------------------------------------------------------------- #
+    results_by_index: dict = {}
+    plans: list[dict] = []
     for idx, item in enumerate(rows):
         entity_type = (item.get("entity_type") or "").strip().lower()
         pk = item.get("id")
@@ -1030,38 +1081,193 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
         deleted_at = _parse_client_updated_at(item.get("updated_at")) or timezone.now()
 
         if entity_type not in config or (pk is None and not coid):
-            results.append(
-                {"index": idx, "status": 400, "data": {"error": "entity_type_and_id_required"}}
-            )
+            results_by_index[idx] = {
+                "index": idx, "status": 400,
+                "data": {"error": "entity_type_and_id_required"},
+            }
             continue
         model, _allowed = config[entity_type]
 
         decision = _conflict_decision(entity_type, sync_origin, deleted_at, None)
         if decision == "reject":
-            results.append(
-                {
-                    "index": idx,
-                    "status": 409,
-                    "data": {"error": "online_required", "entity_type": entity_type},
-                }
-            )
+            results_by_index[idx] = {
+                "index": idx, "status": 409,
+                "data": {"error": "online_required", "entity_type": entity_type},
+            }
             continue
         if decision == "conflict":
             # Protected entity, deletion travelling the wrong way. Refuse it AND put the
             # row back in the far side's next window, or the sides diverge for good.
             reasserted = _reassert_row_after_refused_delete(model, school_id, pk)
-            results.append(
-                {
-                    "index": idx,
-                    "status": 409,
-                    "data": {
-                        "error": "delete_refused_protected",
-                        "entity_type": entity_type,
-                        "reasserted": reasserted,
-                    },
-                }
-            )
+            results_by_index[idx] = {
+                "index": idx, "status": 409,
+                "data": {
+                    "error": "delete_refused_protected",
+                    "entity_type": entity_type,
+                    "reasserted": reasserted,
+                },
+            }
             continue
+        plans.append({
+            "index": idx, "entity_type": entity_type, "model": model,
+            "pk": pk, "coid": coid, "deleted_at": deleted_at,
+            "target": None, "matched_by": "", "refusal": None,
+        })
+
+    # ----------------------------------------------------------------------- #
+    # PASS 2 - identity. WHICH row is each deletion about?
+    # ----------------------------------------------------------------------- #
+    # Evidence, loaded once for the whole bundle: which of these pks has the far side
+    # already addressed on this side, and had this side apply its content? That is the
+    # trace a pk-preserving clone leaves and a locally-minted row does not.
+    addressed = delete_safety.peer_addressed_pks(
+        school_id,
+        {
+            (plan["entity_type"], str(plan["pk"]))
+            for plan in plans
+            if not plan["coid"] and plan["pk"] is not None
+        },
+    )
+    trusts_peer_pks = delete_safety.trusts_peer_pks()
+    for plan in plans:
+        model = plan["model"]
+        entity_type = plan["entity_type"]
+        try:
+            qs = model._base_manager.all()
+            if _has_attname(model, "school_id"):
+                qs = qs.filter(school_id=school_id)
+            coid = plan["coid"]
+            if coid and _has_attname(model, "client_offline_id"):
+                # ANCHOR-PREFERRING, AND ANCHOR-ONLY. The anchor is the only identity in
+                # this system that both sides mint once and agree on; the pk beside it in
+                # the same row was minted by the SENDER for a row the sender upserted by
+                # anchor, so it names nothing here. Trying pk first - which is what this
+                # did - meant a deletion that carried a perfectly good portable identity
+                # could still land on an unrelated local row that happened to sit at the
+                # sender's number. An anchor that matches nothing here is a row that is
+                # already gone, not a licence to guess.
+                plan["target"] = qs.filter(client_offline_id=coid).first()
+                plan["matched_by"] = "anchor"
+                continue
+            plan["matched_by"] = "pk"
+            target = qs.filter(pk=plan["pk"]).first() if plan["pk"] is not None else None
+            plan["target"] = target
+            if target is None:
+                # There is nothing here to destroy, so there is nothing to be wrong
+                # about. Still recorded as buried below, exactly as before.
+                continue
+            if (getattr(target, "client_offline_id", "") or "").strip():
+                # PROVABLE, not inferred. This local row is matched everywhere by its
+                # anchor, so the far side's copy of it carries that anchor and the far
+                # side's tombstone for it would too. A tombstone with no anchor is
+                # therefore about a different row - and this one is a row somebody created
+                # offline in a school, which is the least replaceable kind there is.
+                plan["refusal"] = (
+                    delete_safety.REASON_ANCHOR_MISMATCH,
+                    {
+                        "entity_type": entity_type,
+                        "local_client_offline_id": (
+                            getattr(target, "client_offline_id", "") or ""
+                        )[:64],
+                    },
+                )
+                continue
+            if trusts_peer_pks:
+                # The deployment has declared its pk space is the far side's. A
+                # declaration, not a derivation - see delete_safety.trusts_peer_pks.
+                continue
+            if (entity_type, str(plan["pk"])) in addressed:
+                continue
+            plan["refusal"] = (
+                delete_safety.REASON_PK_NOT_SHARED,
+                {"entity_type": entity_type, "id": str(plan["pk"])},
+            )
+        except (
+            IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+            OperationalError, ProgrammingError,
+        ) as exc:
+            # An id of the wrong shape for this pk column, or a schema this deployment has
+            # not migrated. Reported as one row, never raised: the rest of the batch is
+            # unaffected and the next cycle re-offers this one.
+            plan["refusal"] = (
+                "delete_failed", {"detail": str(exc)[:200]}, 422,
+            )
+
+    # ----------------------------------------------------------------------- #
+    # PASS 2b - proportion. A count cannot tell a big school's churn from a small
+    # school's extinction; the share of one entity's live rows can.
+    # ----------------------------------------------------------------------- #
+    targets_by_entity: dict = {}
+    for plan in plans:
+        if plan["refusal"] or plan["target"] is None:
+            continue
+        targets_by_entity.setdefault(plan["entity_type"], set()).add(str(plan["target"].pk))
+    if targets_by_entity:
+        max_fraction, min_live_rows = delete_safety.delete_fraction_policy(school_id)
+        live_by_entity = {
+            entity_type: _live_row_count(config[entity_type][0], school_id)
+            for entity_type in targets_by_entity
+        }
+        over = delete_safety.entities_over_delete_fraction(
+            {e: len(t) for e, t in targets_by_entity.items()},
+            live_by_entity,
+            max_fraction=max_fraction,
+            min_live_rows=min_live_rows,
+        )
+        for plan in plans:
+            if plan["refusal"] or plan["target"] is None:
+                continue
+            numbers = over.get(plan["entity_type"])
+            if numbers:
+                # Refused for the entity as a WHOLE, like the row-count flood guard and
+                # for the same reason: deleting the first few and refusing the rest is a
+                # partial wipe plus an error. Reversible in the same way too - the far
+                # side keeps its tombstones, so raising the threshold (per tenant or per
+                # deployment) applies every one of them on the next cycle.
+                plan["refusal"] = (
+                    delete_safety.REASON_PROPORTION_GUARD,
+                    {"entity_type": plan["entity_type"], **numbers},
+                )
+    for plan in plans:
+        if not plan["refusal"]:
+            continue
+        error, extra = plan["refusal"][0], plan["refusal"][1]
+        status = plan["refusal"][2] if len(plan["refusal"]) > 2 else 409
+        results_by_index[plan["index"]] = {
+            "index": plan["index"], "status": status, "data": {"error": error, **extra},
+        }
+
+    # ----------------------------------------------------------------------- #
+    # PASS 3 - the deletion itself.
+    # ----------------------------------------------------------------------- #
+    deleted = 0
+    # Local rows this batch has already destroyed. Two deletion rows can name one
+    # local row - the far side may hold a pk-keyed burial and an anchor-keyed one for
+    # what is a single record here - and counting the second as another removal would
+    # make `deleted` larger than the number of rows that stopped existing, which is the
+    # one number an operator reads as "records were destroyed".
+    deleted_keys: set = set()
+    for plan in plans:
+        if plan["refusal"]:
+            continue
+        idx = plan["index"]
+        entity_type = plan["entity_type"]
+        model = plan["model"]
+        pk = plan["pk"]
+        coid = plan["coid"]
+        target = plan["target"]
+        if target is not None and (entity_type, str(target.pk)) in deleted_keys:
+            # Already gone, and already buried by the row that removed it.
+            results_by_index[idx] = {
+                "index": idx, "status": 200,
+                "data": {"deleted": False, "already_absent": True},
+            }
+            continue
+        # Keyed on the LOCAL row when we found one. Keying an anchor-matched burial on the
+        # sender's pk - which is what this used to do - buries a number that means nothing
+        # here, so delete-dominance would then refuse updates to whatever really lives at
+        # it while leaving the row we actually deleted unburied.
+        tomb_key = str(target.pk) if target is not None else (pk if pk is not None else coid)
 
         # Record the burial FIRST. If the delete below fails we still know the row is
         # meant to be gone, so a later bundle cannot quietly re-create it; and a row that
@@ -1069,27 +1275,21 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
         tombstones.record_tombstone(
             school_id,
             entity_type,
-            pk if pk is not None else coid,
-            deleted_at=deleted_at,
+            tomb_key,
+            deleted_at=plan["deleted_at"],
             client_offline_id=coid,
             origin=sync_origin or "",
         )
 
+        if target is None:
+            results_by_index[idx] = {
+                "index": idx, "status": 200,
+                "data": {"deleted": False, "already_absent": True},
+            }
+            continue
+
         try:
             with transaction.atomic():  # savepoint: one undeletable row must not kill the batch
-                qs = model._base_manager.all()
-                if any(
-                    getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()
-                ):
-                    qs = qs.filter(school_id=school_id)
-                target = qs.filter(pk=pk).first() if pk is not None else None
-                if target is None and coid:
-                    target = qs.filter(client_offline_id=coid).first()
-                if target is None:
-                    results.append(
-                        {"index": idx, "status": 200, "data": {"deleted": False, "already_absent": True}}
-                    )
-                    continue
                 target_pk = target.pk
                 with tombstones.applying_remote_delete():
                     # The INSTANCE's delete(), never a queryset delete. Several models
@@ -1105,13 +1305,11 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
                     # is ordinary column data and travels on the update rail like any
                     # other change. Leaving the tombstone would be actively wrong: it
                     # would refuse every later update to a row that still exists.
-                    tombstones.clear_tombstone(
-                        school_id, entity_type, pk if pk is not None else coid
-                    )
-                    results.append(
-                        {"index": idx, "status": 200,
-                         "data": {"deleted": False, "soft_deleted": True}}
-                    )
+                    tombstones.clear_tombstone(school_id, entity_type, tomb_key)
+                    results_by_index[idx] = {
+                        "index": idx, "status": 200,
+                        "data": {"deleted": False, "soft_deleted": True},
+                    }
                     continue
                 # The echo-suppression marker describes a row that no longer exists.
                 from apps.sync_engine.models import SyncApplyLedger
@@ -1124,13 +1322,16 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
             OperationalError, ProgrammingError,
         ) as exc:
             # A PROTECT/RESTRICT relation, or a schema this deployment has not migrated.
-            results.append(
-                {"index": idx, "status": 422, "data": {"error": "delete_failed", "detail": str(exc)[:200]}}
-            )
+            results_by_index[idx] = {
+                "index": idx, "status": 422,
+                "data": {"error": "delete_failed", "detail": str(exc)[:200]},
+            }
             continue
         deleted += 1
-        results.append({"index": idx, "status": 200, "data": {"deleted": True}})
+        deleted_keys.add((entity_type, str(target_pk)))
+        results_by_index[idx] = {"index": idx, "status": 200, "data": {"deleted": True}}
 
+    results = [results_by_index[i] for i in range(len(rows)) if i in results_by_index]
     _record_apply_outcomes(
         school_id, _delete_row_keys(rows), results, sync_origin=sync_origin
     )
