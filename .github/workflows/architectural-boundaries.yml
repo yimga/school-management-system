@@ -130,6 +130,9 @@ on:
       - "scripts/scan_wizard_json_schema_drift.py"
       - "scripts/scan_wizard_class_grammar.py"
       - "scripts/verify_unified_wizard_framework.py"
+      - "scripts/verify_wizard_playwright_spec_coverage.py"
+      - "tests/e2e/unified-wizard-framework.spec.js"
+      - "tests/e2e/helpers/wizard-registry.js"
       - "apps/setup_studio/wizards/**/*.json"
       - "apps/setup_studio/wizard_*.py"
       - "apps/setup_studio/ai_prompts.py"
@@ -682,6 +685,14 @@ jobs:
             python scripts/scan_wizard_class_grammar.py
           }
 
+          u_wizard_framework_integrity() {
+            python scripts/verify_unified_wizard_framework.py
+          }
+
+          u_wizard_playwright_spec_coverage() {
+            python scripts/verify_wizard_playwright_spec_coverage.py
+          }
+
           u_canonical_headers_drift() {
             python scripts/scan_companion_canonical_headers_drift.py --strict
           }
@@ -882,6 +893,8 @@ jobs:
           run_unit u_hardcoded_client_fetch "Hardcoded client fetch paths (platform configurability cascade)"
           run_unit u_wizard_json_schema_drift "Unified Wizard Framework: JSON schema drift (baseline 0)"
           run_unit u_wizard_class_grammar "Unified Wizard Framework: .rmc-wizard-* class grammar (baseline 0)"
+          run_unit u_wizard_framework_integrity "Unified Wizard Framework: registry + resolver integrity"
+          run_unit u_wizard_playwright_spec_coverage "Unified Wizard Framework: Playwright spec derives from the registry"
           run_unit u_canonical_headers_drift "Companion canonical_headers.json drift vs Django SOT"
           run_unit u_template_render_safety "Template render-safety (leaks / unclosed tags / missing refs)"
           run_unit u_include_with_default_context_var "|default/slice/add missing_var (VariableDoesNotExist 500)"

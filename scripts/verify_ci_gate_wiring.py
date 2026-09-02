@@ -40,6 +40,13 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-09-02. Both wizard gates below existed, were correct, and were
+    # invoked by NOTHING -- verify_unified_wizard_framework.py was even named in
+    # this workflow's `paths:` filter, which triggers the job without running the
+    # gate. The spec-coverage one had been reporting 14 registered wizards missing
+    # from the Playwright spec into a log no run ever produced.
+    ("scripts/verify_wizard_playwright_spec_coverage.py", "architectural-boundaries.yml"),
+    ("scripts/verify_unified_wizard_framework.py", "architectural-boundaries.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts
