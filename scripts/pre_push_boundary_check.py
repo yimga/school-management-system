@@ -166,6 +166,13 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
     # a word separator out of a token is the right answer.
     ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
+    # Rewritten 2026-09-02 to stop pinning a June service-worker literal and
+    # assert the property that literal was reaching for: the shipped CACHE_VERSION
+    # must be at least the wave the stylesheet's own banner declares, or returning
+    # browsers keep serving the cached pre-wave sheet. It has been green ever since
+    # -- and until now the only file in this repository that mentioned it was
+    # itself, which is the whole C tier in one gate. 1s, stdlib only.
+    ("theme-dual-plane-shell", ["verify_theme_experience_dual_plane_shell.py"]),
     # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
     # title — operators scrolled past empty rules to reach "Platform Command Center".
     ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),

@@ -295,6 +295,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-09-02. Stdlib-only (re + pathlib), so it rides the deps-free
     # boundary workflow rather than ci.yml::django-tests.
     ("scripts/scan_dangling_static_reference.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Rewritten the same day to stop pinning a frozen June
+    # service-worker literal -- which made it go red on EVERY cache bump and kept
+    # it red for three months -- and to assert instead that the shipped cache
+    # generation still covers the wave the stylesheet declares. Before this entry
+    # the only file in the repository that named it was itself.
+    ("scripts/verify_theme_experience_dual_plane_shell.py", "architectural-boundaries.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:
     # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
     # resolves) and SQLite cannot create tenant schemas — while production runs

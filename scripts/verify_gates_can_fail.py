@@ -999,6 +999,22 @@ MUTATIONS["companion-server-contract"] = Mutation(
     content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
 )
 
+MUTATIONS["theme-dual-plane-shell"] = Mutation(
+    kind="patch",
+    path="static/css/rmc-theme-experience-dual-plane.css",
+    defect=(
+        "the dual-plane stylesheet stops declaring which wave it belongs to, so "
+        "nothing can tell whether the shipped service-worker cache generation "
+        "still covers it and returning browsers keep the pre-wave sheet"
+    ),
+    # The banner FILENAME, not its version: a version anchor goes stale the next
+    # time the sheet is revised, and a mutation that no longer applies is a
+    # standing proof that quietly stops proving anything. The filename can only
+    # change in a rename, which also moves the gate's own MARKER constant.
+    anchor=b"rmc-theme-experience-dual-plane.css",
+    replacement=b"rmc-theme-experience-dual-plane-gateproof.css",
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",
