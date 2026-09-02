@@ -932,3 +932,110 @@ html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-focus h2,
 html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-focus h2 {
   color: var(--text-primary);
 }
+
+/* ===== Workflow fold nav + progress train =============================
+   templates/partials/tenant/workflow_portal.html has always shipped
+   `.tp-workflow-section-nav` and `.tp-workflow-progress-train`, but no
+   stylesheet in the tree ever defined either one:
+     * the nav inherited only the generic `.rmc-section-nav` base (a STICKY
+       LEFT RAIL sized for a `__list` structure), while its direct
+       `.rmc-section-nav__link` children are styled nowhere outside
+       `.rmc-surface-subnav` / `.rmc-admin-bento__tabs` -- so the four page
+       anchors rendered as bare inline links inside a sticky elevated card;
+     * the progress train's nodes are EMPTY `<a>` elements, so with no box of
+       their own the whole train occupied zero pixels and was invisible on
+       every workflow centre (parent / teacher / student).
+   ===================================================================== */
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-height: none;
+  overflow: visible;
+  padding: 8px;
+  border: 1px solid var(--hairline, rgba(15, 23, 42, 0.08));
+  border-radius: 14px;
+  background: var(--surface-elevated, #ffffff);
+  box-shadow: var(--elev-1, 0 2px 8px rgba(15, 23, 42, 0.05));
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--hairline, rgba(15, 23, 42, 0.08));
+  border-radius: 999px;
+  background: var(--surface-canvas, #fbfbfd);
+  color: var(--text-secondary, #334155);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background var(--motion-fast, 120ms) ease, color var(--motion-fast, 120ms) ease;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link i {
+  color: var(--text-tertiary, #64748b);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link:hover,
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link:focus-visible,
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link.is-active {
+  background: var(--surface-accent-subtle, rgba(30, 111, 58, 0.08));
+  border-color: var(--school-primary, #1e6f3a);
+  color: var(--school-primary, #1e6f3a);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link:hover i,
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link.is-active i {
+  color: var(--school-primary, #1e6f3a);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-progress-train {
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-progress-train__node {
+  display: block;
+  flex: 1 1 0;
+  min-width: 14px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--hairline-strong, rgba(15, 23, 42, 0.14));
+  transition: background var(--motion-fast, 120ms) ease;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-progress-train__node.is-done {
+  background: var(--school-primary, #1e6f3a);
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-progress-train__node.is-active {
+  height: 8px;
+  background: var(--school-primary, #1e6f3a);
+  box-shadow: 0 0 0 3px var(--surface-accent-subtle, rgba(30, 111, 58, 0.08));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-rmc-tp-v3-shell="1"] .tp-workflow-section-nav .rmc-section-nav__link,
+  html[data-rmc-tp-v3-shell="1"] .tp-workflow-progress-train__node {
+    transition: none;
+  }
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-section-nav,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-section-nav,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-section-nav .rmc-section-nav__link,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-section-nav .rmc-section-nav__link {
+  background: var(--surface-elevated);
+  border-color: var(--hairline);
+  color: var(--text-secondary);
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-progress-train__node,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-progress-train__node {
+  background: var(--hairline);
+}
