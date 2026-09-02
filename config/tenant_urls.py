@@ -9,6 +9,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.shortcuts import redirect
 from django.urls import include, path
+from config.internal_machine_urls import INTERNAL_MACHINE_URLPATTERNS
 from django.views.decorators.cache import cache_page
 from drf_spectacular.views import SpectacularAPIView
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -291,6 +292,10 @@ from apps.siteconfig.views_service_worker import (  # noqa: E402
 )
 
 urlpatterns = [
+    # Token-authed machine endpoints. Mounted from ONE shared list so a route
+    # cannot exist on some hosts and 404 on others -- see
+    # config/internal_machine_urls.py for the outage that caused.
+    *INTERNAL_MACHINE_URLPATTERNS,
     # Language switcher (Django i18n) — must exist on every host urlconf or the
     # platform-wide "Translate this page" form + error-page links raise NoReverseMatch.
     path("i18n/setlang/", __import__("django.views.i18n", fromlist=["set_language"]).set_language, name="set_language"),

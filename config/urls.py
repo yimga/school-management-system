@@ -18,7 +18,7 @@ from apps.platform_runtime.views_click_tracking import (
 )
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.platform_runtime.views_rum import rum_ingest
-from apps.platform_runtime.views_internal_cron import internal_cron_run
+from config.internal_machine_urls import INTERNAL_MACHINE_URLPATTERNS
 from apps.people.views_transfer_consent import (
     transfer_consent_decide,
     transfer_consent_landing,
@@ -877,11 +877,10 @@ urlpatterns = [
     ),
     # rbac-allow: rum-ingest-authed-by-body-token-or-x-rum-key-header
     path("api/internal/rum/", rum_ingest, name="rum_ingest"),
-    path(  # rbac-allow: machine endpoint authed by INTERNAL_CRON_TOKEN shared secret (constant-time)
-        "api/internal/cron/run/",
-        internal_cron_run,
-        name="internal_cron_run",
-    ),
+    # Token-authed machine endpoints. Mounted from ONE shared list so a route
+    # cannot exist on some hosts and 404 on others -- see
+    # config/internal_machine_urls.py for the outage that caused.
+    *INTERNAL_MACHINE_URLPATTERNS,
     path(
         "api/internal/click-tracking/",
         record_click_event,
