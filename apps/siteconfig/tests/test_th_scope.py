@@ -9,9 +9,12 @@ non-trivial table (WCAG 1.3.1).
 from __future__ import annotations
 
 import importlib.util
+import re
 from pathlib import Path
 
 from django.test import SimpleTestCase
+
+from apps.siteconfig.tests._template_nodes import literal_text
 
 REPO = Path(__file__).resolve().parents[3]
 SCANNER = REPO / "scripts" / "scan_th_scope.py"
@@ -35,8 +38,18 @@ class ThScopeTests(SimpleTestCase):
         )
 
     def test_row_header_tables_use_scope_row(self) -> None:
-        # the vertical key-value table fixed in this wave heads its rows, not cols
-        src = (REPO / "templates/evals/resolve_offline_conflict.html").read_text(encoding="utf-8")
-        self.assertIn('<th scope="row">Seq 1:</th>', src)
-        self.assertNotIn('<th scope="col">Seq 1:</th>', src)
-        self.assertNotIn("<th>Exam:</th>", src)
+        # The vertical key-value table fixed in this wave heads its ROWS, not
+        # its columns. This asked for one exact string and went red the day
+        # the labels were wrapped in {% trans %} -- the header association
+        # never changed, only the literal did. Ask for the property, and ask
+        # the template ENGINE for it so a commented-out table cannot pass.
+        emitted = literal_text(
+            REPO / "templates/evals/resolve_offline_conflict.html"
+        )
+        headers = re.findall(r"<th[^>]*>", emitted)
+        self.assertTrue(
+            headers, "the conflict table emits no <th> at all"
+        )
+        for header in headers:
+            with self.subTest(header=header):
+                self.assertIn('scope="row"', header)

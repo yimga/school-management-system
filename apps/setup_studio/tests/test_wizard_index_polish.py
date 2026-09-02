@@ -21,12 +21,17 @@ from django.test import SimpleTestCase
 from apps.setup_studio import wizard_categories, wizard_engine
 from apps.setup_studio.wizard_analytics import build_wizard_search_index
 from apps.setup_studio.wizard_labels import humanize_wizard_token
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 # tests/ -> setup_studio/ -> apps/ -> <repo root: school-management-system/>
 _HERE = Path(__file__).resolve()
 _REPO_ROOT = _HERE.parents[3]
 _APP_ROOT = _REPO_ROOT / "apps" / "setup_studio"
 _TEMPLATES = _REPO_ROOT / "templates" / "setup_studio"
+
+_TENANT_WIZARD_INDEX = _TEMPLATES / "tenant_wizard_index.html"
+_OPERATOR_WIZARD_INDEX = _TEMPLATES / "operator_wizard_index.html"
+_TENANT_WIZARD = _TEMPLATES / "tenant_wizard.html"
 
 
 class CompletionBannerHumanizationTests(SimpleTestCase):
@@ -41,6 +46,13 @@ class CompletionBannerHumanizationTests(SimpleTestCase):
         self.assertIn(
             "just_completed_wizard_key|humanize_wizard_token",
             tpl,
+        )
+        # Both of those are template CODE -- a {% blocktrans with %} argument and
+        # a filter expression -- so no parse and no render can see either and the
+        # reads stay. What a read cannot tell is whether the banner is still on
+        # the page at all, so assert the banner element is really EMITTED.
+        assert_markup(
+            self, _TENANT_WIZARD_INDEX, "rmc-wizard-completion-banner__title"
         )
 
     def test_view_passes_label_not_raw_key_to_banner(self):
@@ -395,17 +407,20 @@ class BespokeIndexSurfaceTests(SimpleTestCase):
 
     def test_tenant_index_uses_lifecycle_stages_and_status_cards(self):
         tpl = (_TEMPLATES / "tenant_wizard_index.html").read_text(encoding="utf-8")
-        self.assertIn("rmc-wz-stages", tpl)
-        self.assertIn("rmc-wz-hero", tpl)
+        # These three carry a {{ variable }} or a {% static %} argument, so none of
+        # them is emitted text and only the source read can see them.
         self.assertIn('data-rmc-wz-status="{{ card.status }}"', tpl)
         self.assertIn("rmc-wizard-engine.css", tpl)
         # Inline progress is a plain CSS custom-property number (token-gate safe).
         self.assertIn("--rmc-wz-pct:{{ stage.progress.pct }}", tpl)
+        # The two grammar hooks ARE plain markup: ask the engine if they are emitted.
+        assert_markup(self, _TENANT_WIZARD_INDEX, "rmc-wz-stages", "rmc-wz-hero")
 
     def test_operator_index_also_adopts_the_bespoke_grammar(self):
         tpl = (_TEMPLATES / "operator_wizard_index.html").read_text(encoding="utf-8")
-        self.assertIn("rmc-wz-stages", tpl)
+        # The stylesheet is a {% static %} argument, invisible to a parse.
         self.assertIn("rmc-wizard-engine.css", tpl)
+        assert_markup(self, _OPERATOR_WIZARD_INDEX, "rmc-wz-stages", "rmc-wz-hero")
 
     def test_engine_stylesheet_defines_the_namespace(self):
         css = (
@@ -421,11 +436,16 @@ class BespokeIndexSurfaceTests(SimpleTestCase):
         tpl = (_TEMPLATES / "tenant_wizard_index.html").read_text(encoding="utf-8")
         self.assertIn("{% block extrastyle %}", tpl)
         self.assertNotIn("{% block extra_head %}", tpl)
+        # A block NAME is template code, so those two stay reads. But extrastyle
+        # is portal_base's block: stop extending portal_base and the block goes
+        # inert with the source unchanged -- and a parse CAN see an {% extends %}.
+        assert_wires(self, _TENANT_WIZARD_INDEX, "portal_base.html")
 
     def test_step_run_template_also_uses_the_real_css_block(self):
         tpl = (_TEMPLATES / "tenant_wizard.html").read_text(encoding="utf-8")
         self.assertIn("{% block extrastyle %}", tpl)
         self.assertNotIn("{% block extra_head %}", tpl)
+        assert_wires(self, _TENANT_WIZARD, "portal_base.html")
 
 
 # --------------------------------------------------------------------------

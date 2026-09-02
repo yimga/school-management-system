@@ -1,28 +1,13 @@
 {
-  "finding_count": 188,
+  "finding_count": 119,
   "measured": {
-    "population": 385,
-    "measured": 255,
-    "vacuous": 188,
-    "sound": 67,
-    "unmeasurable": 130
+    "population": 366,
+    "measured": 239,
+    "vacuous": 119,
+    "sound": 120,
+    "unmeasurable": 127
   },
   "vacuous": [
-    {
-      "id": "apps.accounts.tests.test_cockpit_ui_contract_2026_08_02.AppearanceStripCollapseTests.test_style_strip_collapses_chips_behind_disclosure",
-      "file": "apps/accounts/tests/test_cockpit_ui_contract_2026_08_02.py",
-      "template": "templates/partials/tenant/setup_dashboard_style_strip.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_cockpit_ui_contract_2026_08_02.ChecklistButtonContractTests.test_partial_renders_checklist_button_with_icon",
-      "file": "apps/accounts/tests/test_cockpit_ui_contract_2026_08_02.py",
-      "template": "templates/partials/tenant/setup_command_surface.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_cockpit_ui_contract_2026_08_02.SeasonHintContrastTests.test_season_hint_drops_text_muted",
-      "file": "apps/accounts/tests/test_cockpit_ui_contract_2026_08_02.py",
-      "template": "templates/accounts/backend_dashboard.html"
-    },
     {
       "id": "apps.accounts.tests.test_cross_host_admin_reverse.CertificationTemplateGuardsEmptyUrlsTests.test_admin_buttons_are_wrapped_in_existence_checks",
       "file": "apps/accounts/tests/test_cross_host_admin_reverse.py",
@@ -37,41 +22,6 @@
       "id": "apps.accounts.tests.test_login_front_door_12_contract.LoginFrontDoorTwelveContractTests.test_production_surface_exposes_all_twelve_contract_markers",
       "file": "apps/accounts/tests/test_login_front_door_12_contract.py",
       "template": "templates/auth/login.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_approved_v3_visual_structure_is_in_production_assets",
-      "file": "apps/accounts/tests/test_login_immersive_context.py",
-      "template": "templates/auth/login.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_every_operator_and_tenant_login_boundary_declares_local_first_policy",
-      "file": "apps/accounts/tests/test_login_immersive_context.py",
-      "template": "templates/auth/admin_login.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_login_template_includes_canvas_partial",
-      "file": "apps/accounts/tests/test_login_immersive_context.py",
-      "template": "templates/auth/login.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_login_immersive_context.LoginImmersiveTemplateContractTests.test_upgrade_modal_placeholder_exists",
-      "file": "apps/accounts/tests/test_login_immersive_context.py",
-      "template": "templates/components/upgrade_modal_placeholder.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_quiet_header_approval_contract.QuietHeaderApprovalContractTests.test_finance_primary_and_help_panel_contract",
-      "file": "apps/accounts/tests/test_quiet_header_approval_contract.py",
-      "template": "templates/partials/rmc_tools_help_panel.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_quiet_header_approval_contract.QuietHeaderApprovalContractTests.test_quiet_header_is_wired_on_tenant_operator_and_admin",
-      "file": "apps/accounts/tests/test_quiet_header_approval_contract.py",
-      "template": "templates/components/admin_nav_bridge.html"
-    },
-    {
-      "id": "apps.accounts.tests.test_quiet_header_approval_contract.QuietHeaderApprovalContractTests.test_utilities_menus_are_tiled_not_bootstrap_grey",
-      "file": "apps/accounts/tests/test_quiet_header_approval_contract.py",
-      "template": "templates/components/rmc_operator_workspace_dropdown.html"
     },
     {
       "id": "apps.accounts.tests.test_setup_command_surface.SetupCommandSurfaceContractTests.test_dashboard_wires_partial_and_stylesheet",
@@ -179,26 +129,6 @@
       "template": "templates/migration_cloud/connector/_wizard_base.html"
     },
     {
-      "id": "apps.migration_cloud.tests.test_recovery_gaps_closeout_2026_08_22.RecoveryGapTemplateTests.test_held_review_live_board_id_matches_js",
-      "file": "apps/migration_cloud/tests/test_recovery_gaps_closeout_2026_08_22.py",
-      "template": "templates/migration_cloud/anomaly_nudge.html"
-    },
-    {
-      "id": "apps.migration_cloud.tests.test_recovery_gaps_closeout_2026_08_22.RecoveryGapTemplateTests.test_held_table_has_explain_button",
-      "file": "apps/migration_cloud/tests/test_recovery_gaps_closeout_2026_08_22.py",
-      "template": "templates/migration_cloud/anomaly_nudge.html"
-    },
-    {
-      "id": "apps.migration_cloud.tests.test_recovery_gaps_closeout_2026_08_22.RecoveryGapTemplateTests.test_operator_bundle_detail_has_archive_ui",
-      "file": "apps/migration_cloud/tests/test_recovery_gaps_closeout_2026_08_22.py",
-      "template": "templates/migration_cloud/bundle_detail.html"
-    },
-    {
-      "id": "apps.migration_cloud.tests.test_recovery_gaps_closeout_2026_08_22.RecoveryGapTemplateTests.test_review_page_has_archive_and_sse",
-      "file": "apps/migration_cloud/tests/test_recovery_gaps_closeout_2026_08_22.py",
-      "template": "templates/migration_cloud/connector/bundle_review.html"
-    },
-    {
       "id": "apps.migration_cloud.tests.test_tenant_closeout_ux_2026_07_20.TemplateCloseoutMarkers.test_command_center_tip_mentions_inspect",
       "file": "apps/migration_cloud/tests/test_tenant_closeout_ux_2026_07_20.py",
       "template": "templates/migration_cloud/operator/command_center.html"
@@ -252,21 +182,6 @@
       "id": "apps.platform_runtime.tests.test_governed_installation_ux_flow.GovernedInstallationUXFlowTests.test_tenant_install_surfaces_do_not_expose_platform_only_route",
       "file": "apps/platform_runtime/tests/test_governed_installation_ux_flow.py",
       "template": "templates/platform_runtime/tenant_blueprint_setup.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_guided_action_surface_contract.GuidedActionSurfaceContractTests.test_api_center_instruction_is_not_rendered_as_plain_text",
-      "file": "apps/platform_runtime/tests/test_guided_action_surface_contract.py",
-      "template": "templates/apicenter/partials/dashboard_body.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_guided_action_surface_contract.GuidedActionSurfaceContractTests.test_open_in_ai_center_is_a_visible_pill_action",
-      "file": "apps/platform_runtime/tests/test_guided_action_surface_contract.py",
-      "template": "templates/components/ai_guided_assistant_card.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_guided_action_surface_contract.GuidedActionSurfaceContractTests.test_preview_and_apply_actions_use_action_classes",
-      "file": "apps/platform_runtime/tests/test_guided_action_surface_contract.py",
-      "template": "templates/marketplace/templates_apply_confirm.html"
     },
     {
       "id": "apps.platform_runtime.tests.test_layout_token_matrix.LayoutPersonalityMatrixTests.test_shell_html_attrs_include_personality_os",
@@ -364,31 +279,6 @@
       "template": "templates/platform_runtime/school_configuration_center.html"
     },
     {
-      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_audited_operator_tables_wrap_long_values_instead_of_clipping",
-      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
-      "template": "templates/super/ai_line_intent_coverage.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_audited_operator_workbenches_have_one_shared_steering_owner",
-      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
-      "template": "templates/schools/super_provision_queue.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_school_settings_has_title_primary_action_tenant_safety_and_mobile_marker",
-      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
-      "template": "templates/platform_runtime/school_configuration_center.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_tenant_pack_setup_uses_the_approved_full_canvas_contract",
-      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
-      "template": "templates/platform_runtime/tenant_pack_setup.html"
-    },
-    {
-      "id": "apps.platform_runtime.tests.test_tenant_school_experience_redesign.TenantSchoolExperienceRedesignTests.test_tenant_setup_surfaces_show_external_blockers_honestly",
-      "file": "apps/platform_runtime/tests/test_tenant_school_experience_redesign.py",
-      "template": "templates/platform_runtime/tenant_blueprint_setup.html"
-    },
-    {
       "id": "apps.platform_runtime.tests.test_ux_factory_cta_cleanup.CtaCleanupTemplateAuditTests.test_audited_operational_templates_no_dummy_ctas",
       "file": "apps/platform_runtime/tests/test_ux_factory_cta_cleanup.py",
       "template": "templates/partials/onboarding_what_next.html"
@@ -412,26 +302,6 @@
       "id": "apps.platform_runtime.tests.test_world_class_component_contracts.WorldClassComponentContractTests.test_primary_action_slots_and_empty_state_have_actions",
       "file": "apps/platform_runtime/tests/test_world_class_component_contracts.py",
       "template": "templates/components/rmc_empty_state.html"
-    },
-    {
-      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_ask_with_ai_is_integrated_into_copilot_rail",
-      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
-      "template": "templates/partials/cockpit/_ai_copilot_rail.html"
-    },
-    {
-      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_inline_assistant_is_suppressed_when_copilot_rail_enabled",
-      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
-      "template": "templates/partials/help_module_inline_assistant.html"
-    },
-    {
-      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_portal_shell_no_longer_mounts_bottom_ai_panel",
-      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.portal.tests.test_copilot_rail_tenant.TransportWiringTests.test_template_resolves_host_correct_endpoints",
-      "file": "apps/portal/tests/test_copilot_rail_tenant.py",
-      "template": "templates/partials/cockpit/_ai_copilot_rail.html"
     },
     {
       "id": "apps.portal.tests.test_parent_finance_pay_all.ParentFinancePayAllContractTests.test_confirm_template_regional_guidance",
@@ -534,56 +404,6 @@
       "template": "templates/marketing/homepage.html"
     },
     {
-      "id": "apps.schools.tests.test_marketing_page_management.MarketingAnalyticsContractTests.test_cta_menu_and_form_tracking_hooks_are_present",
-      "file": "apps/schools/tests/test_marketing_page_management.py",
-      "template": "templates/marketing/marketing_footer.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_page_management.MarketingAnalyticsContractTests.test_marketing_shell_wires_analytics_config_and_local_script",
-      "file": "apps/schools/tests/test_marketing_page_management.py",
-      "template": "templates/marketing/base_marketing.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_page_management.MarketingPageManagementContractTests.test_demo_and_contact_forms_route_buyer_intent",
-      "file": "apps/schools/tests/test_marketing_page_management.py",
-      "template": "templates/marketing/components/_marketing_contact_form.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_page_management.MarketingPageManagementContractTests.test_solutions_hub_is_a_buyer_world_map",
-      "file": "apps/schools/tests/test_marketing_page_management.py",
-      "template": "templates/marketing/pages/solutions_overview.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_academics_template_viewport",
-      "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/academics.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_edge_mesh_drop_simulator",
-      "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/partials/sections/_rugged_engine.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_edge_mesh_trinity",
-      "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/partials/sections/_viewport_trinity.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_enterprise_ledger_constellation",
-      "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/partials/sections/_enterprise_constellation.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_homepage_one_record_scroll",
-      "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/homepage.html"
-    },
-    {
-      "id": "apps.schools.tests.test_marketing_personality_pages.MarketingPersonalityPagesTests.test_zero_ui_template_playground",
-      "file": "apps/schools/tests/test_marketing_personality_pages.py",
-      "template": "templates/marketing/partials/sections/_zero_ui_lab.html"
-    },
-    {
       "id": "apps.schools.tests.test_marketing_phase0_visual_truth.PricingCopyRegressionTest.test_home_pricing_avoids_exact_pound_figures",
       "file": "apps/schools/tests/test_marketing_phase0_visual_truth.py",
       "template": "templates/schools/marketing_landing_v2.html"
@@ -659,31 +479,6 @@
       "template": "templates/setup_studio/operator_wizard.html"
     },
     {
-      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_index_injects_css_into_a_real_portal_block",
-      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
-      "template": "templates/setup_studio/tenant_wizard_index.html"
-    },
-    {
-      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_operator_index_also_adopts_the_bespoke_grammar",
-      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
-      "template": "templates/setup_studio/operator_wizard_index.html"
-    },
-    {
-      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_step_run_template_also_uses_the_real_css_block",
-      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
-      "template": "templates/setup_studio/tenant_wizard.html"
-    },
-    {
-      "id": "apps.setup_studio.tests.test_wizard_index_polish.BespokeIndexSurfaceTests.test_tenant_index_uses_lifecycle_stages_and_status_cards",
-      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
-      "template": "templates/setup_studio/tenant_wizard_index.html"
-    },
-    {
-      "id": "apps.setup_studio.tests.test_wizard_index_polish.CompletionBannerHumanizationTests.test_template_humanizes_just_completed_key",
-      "file": "apps/setup_studio/tests/test_wizard_index_polish.py",
-      "template": "templates/setup_studio/tenant_wizard_index.html"
-    },
-    {
       "id": "apps.setup_studio.tests.test_wizard_offline_intake_wiring.WizardOfflineIntakeWiringTests.test_tenant_wizard_loads_encrypted_indexeddb_draft_runtime",
       "file": "apps/setup_studio/tests/test_wizard_offline_intake_wiring.py",
       "template": "templates/setup_studio/tenant_wizard.html"
@@ -709,99 +504,9 @@
       "template": "templates/admin/sidebar_inner.html"
     },
     {
-      "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_base_manager_login_uses_civic_not_bundle",
-      "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_control_plane_uses_civic_operator_footer",
-      "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/partials/rmc_operator_footer_civic.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_manager_admin_workbench_delegates_footer_to_control_plane",
-      "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/admin/base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_operator_footer_uses_preview_cp_footer_layout",
-      "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/partials/rmc_operator_footer_compact.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_portal_never_includes_marketing_footer",
-      "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_footer_surface_contract.FooterSurfaceContractTests.test_tenant_dashboard_footer_surface_marker",
-      "file": "apps/siteconfig/tests/test_footer_surface_contract.py",
-      "template": "templates/components/dashboard_footer.html"
-    },
-    {
       "id": "apps.siteconfig.tests.test_icon_button_aria.IconButtonAriaTests.test_fixed_controls_now_labelled",
       "file": "apps/siteconfig/tests/test_icon_button_aria.py",
       "template": "templates/communication/group_list.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_manager_admin_workbench_delegates_footer_to_control_plane",
-      "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/partials/rmc_operator_footer_civic.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_permission_matrix_denied_banner",
-      "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/siteconfig/permission_matrix_simulator.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_tenant_school_templates_use_marketing_public_find_school",
-      "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/schools/global_login_discovery.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_tenant_sidebar_points_to_help_center_not_kb_only",
-      "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/partials/portal_sidebar.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_user_dropdown_defers_help_to_tools_rail",
-      "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/partials/rmc_tools_help_panel.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_interaction_integrity_contract.InteractionIntegrityContractTests.test_user_dropdown_logout_present",
-      "file": "apps/siteconfig/tests/test_interaction_integrity_contract.py",
-      "template": "templates/components/user_dropdown.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_ai_guided_assistant_card_semantic_surface",
-      "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/components/ai_guided_assistant_card.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_control_plane_skeleton_wires_civic_operator_footer",
-      "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/control_plane_skeleton.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_manager_admin_shell_uses_control_plane_chrome",
-      "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/admin/base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_manager_topbar_uses_unified_control_row_toolbar",
-      "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/partials/manager_operator_topbar.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_portal_base_excludes_marketing_corporate_footer",
-      "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/portal_base.html"
-    },
-    {
-      "id": "apps.siteconfig.tests.test_manager_portal_chrome_contract.ManagerPortalChromeContractTests.test_studio_experience_real_canvas_contract_is_terminal",
-      "file": "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-      "template": "templates/studio_os/partials/workspace/experience_inpage_canvas.html"
     },
     {
       "id": "apps.siteconfig.tests.test_sidebar_empty_label_defense_2026_08_03.V8SidebarTemplateLabelGuardSealTests.test_item_render_guard_requires_label",
@@ -864,36 +569,6 @@
       "template": "templates/components/admin_nav_bridge.html"
     },
     {
-      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_agent3_partials_exist_and_load_i18n",
-      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
-      "template": "templates/studio_os/partials/workspace/automation_canvas.html"
-    },
-    {
-      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_dependency_graph_uses_scroll_wrapper",
-      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
-      "template": "templates/studio_os/partials/automation_dependency_graph_body.html"
-    },
-    {
-      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_environment_banner_surfaces_scope_label",
-      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
-      "template": "templates/studio_os/partials/automation_environment_banner.html"
-    },
-    {
-      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_long_workflow_names_have_wrap_signal",
-      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
-      "template": "templates/studio_os/partials/automation_dependency_graph_body.html"
-    },
-    {
-      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_mode_template_loads_cockpit_css",
-      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
-      "template": "templates/studio_os/modes/automation.html"
-    },
-    {
-      "id": "apps.studio_os.tests.test_automation_simulation_cockpit.AutomationCockpitStaticContractTests.test_simulation_pane_has_honest_empty_state",
-      "file": "apps/studio_os/tests/test_automation_simulation_cockpit.py",
-      "template": "templates/studio_os/partials/automation_simulation_preview_pane.html"
-    },
-    {
       "id": "apps.studio_os.tests.test_cockpit_shell_contract.CockpitShellContractTests.test_mode_template_inherits_cleanly",
       "file": "apps/studio_os/tests/test_cockpit_shell_contract.py",
       "template": "templates/studio_os/modes/automation.html"
@@ -922,26 +597,6 @@
       "id": "apps.sync_engine.tests.test_student_note_crdt_client_wiring.StudentNoteCRDTBrowserClientWiringTests.test_counselor_caseload_template_wires_enhance_script",
       "file": "apps/sync_engine/tests/test_student_note_crdt_client_wiring.py",
       "template": "templates/staff/counselor_caseload.html"
-    },
-    {
-      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1DeadHrefRepairTests.test_group_detail_leave_uses_button_not_dead_href",
-      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
-      "template": "templates/communication/group_detail.html"
-    },
-    {
-      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1LayoutShellContractTests.test_navigation_inner_drops_min_h_screen_trap",
-      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
-      "template": "templates/unfold/helpers/navigation.html"
-    },
-    {
-      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1NavigationContractTests.test_account_links_include_logout",
-      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
-      "template": "templates/unfold/helpers/account_links.html"
-    },
-    {
-      "id": "apps.tenancy.tests.test_phase1_layout_navigation_contract.Phase1NavigationContractTests.test_navigation_user_menu_opens_above_card",
-      "file": "apps/tenancy/tests/test_phase1_layout_navigation_contract.py",
-      "template": "templates/unfold/helpers/navigation_user.html"
     },
     {
       "id": "apps.tenancy.tests.test_phase2_portal_shell_contract.Phase2PortalNavigationTests.test_user_dropdown_logout_marker",

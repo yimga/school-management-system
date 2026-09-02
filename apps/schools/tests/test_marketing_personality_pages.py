@@ -19,8 +19,23 @@ from apps.schools.marketing_url_inventory import (
     ACQUISITION_PERSONALITY_SLUGS,
     iter_marketing_acquisition_smoke_targets,
 )
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 REPO = Path(__file__).resolve().parents[3]
+
+ACADEMICS = REPO / "templates/marketing/academics.html"
+EDGE_MESH = REPO / "templates/marketing/edge_mesh.html"
+ENTERPRISE_LEDGER = REPO / "templates/marketing/enterprise_ledger.html"
+HOMEPAGE = REPO / "templates/marketing/homepage.html"
+ZERO_UI_LAB = REPO / "templates/marketing/zero_ui_lab.html"
+SECTIONS = REPO / "templates/marketing/partials/sections"
+CONSTELLATION = SECTIONS / "_enterprise_constellation.html"
+RUGGED_ENGINE = SECTIONS / "_rugged_engine.html"
+VIEWPORT_TRINITY = SECTIONS / "_viewport_trinity.html"
+ZERO_UI_LAB_SECTION = SECTIONS / "_zero_ui_lab.html"
+SPEED_DUEL_STAGE = (
+    REPO / "templates/marketing/partials/one_record_scroll/_stage_speed_duel.html"
+)
 
 
 class MarketingPersonalityPagesTests(SimpleTestCase):
@@ -53,42 +68,31 @@ class MarketingPersonalityPagesTests(SimpleTestCase):
 
     def test_zero_ui_template_playground(self):
         text = (REPO / "templates/marketing/zero_ui_lab.html").read_text(encoding="utf-8")
-        partial = (
-            REPO / "templates/marketing/partials/sections/_zero_ui_lab.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn('data-mkt-personality-page="zero-ui"', text)
+        # A {% static %} argument is not emitted text, so only the source read can
+        # see the bundle name. The markup and the wiring are asked of the engine.
         self.assertIn("mkt-zero-ui-playground.js", text)
-        self.assertIn("data-mkt-zero-ui-playground", partial)
+        assert_markup(self, ZERO_UI_LAB, 'data-mkt-personality-page="zero-ui"')
+        assert_wires(self, ZERO_UI_LAB, "_zero_ui_lab.html")
+        assert_markup(self, ZERO_UI_LAB_SECTION, "data-mkt-zero-ui-playground")
 
     def test_enterprise_ledger_constellation(self):
-        text = (REPO / "templates/marketing/enterprise_ledger.html").read_text(
-            encoding="utf-8"
+        assert_markup(
+            self, ENTERPRISE_LEDGER, 'data-mkt-personality-page="enterprise-ledger"'
         )
-        partial = (
-            REPO
-            / "templates/marketing/partials/sections/_enterprise_constellation.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn('data-mkt-personality-page="enterprise-ledger"', text)
-        self.assertIn("_enterprise_constellation.html", text)
-        self.assertIn("data-mkt-enterprise-constellation", partial)
+        assert_wires(self, ENTERPRISE_LEDGER, "_enterprise_constellation.html")
+        assert_markup(self, CONSTELLATION, "data-mkt-enterprise-constellation")
 
     def test_homepage_one_record_scroll(self):
         text = (REPO / "templates/marketing/homepage.html").read_text(encoding="utf-8")
-        stage = (
-            REPO / "templates/marketing/partials/one_record_scroll/_stage_speed_duel.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("_one_record_scroll.html", text)
+        # Both bundles are {% static %} arguments; a parse cannot see either.
         self.assertIn("mkt-one-record-scroll.js", text)
         self.assertIn("mkt-speed-duel.js", text)
-        self.assertIn("data-mkt-speed-duel", stage)
+        assert_wires(self, HOMEPAGE, "_one_record_scroll.html")
+        assert_markup(self, SPEED_DUEL_STAGE, "data-mkt-speed-duel")
 
     def test_edge_mesh_trinity(self):
-        text = (REPO / "templates/marketing/edge_mesh.html").read_text(encoding="utf-8")
-        partial = (
-            REPO / "templates/marketing/partials/sections/_viewport_trinity.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("_viewport_trinity.html", text)
-        self.assertIn("data-mkt-viewport-trinity", partial)
+        assert_wires(self, EDGE_MESH, "_viewport_trinity.html")
+        assert_markup(self, VIEWPORT_TRINITY, "data-mkt-viewport-trinity")
 
     def test_acquisition_smoke_inventory(self):
         targets = iter_marketing_acquisition_smoke_targets()
@@ -99,15 +103,17 @@ class MarketingPersonalityPagesTests(SimpleTestCase):
 
     def test_academics_template_viewport(self):
         text = (REPO / "templates/marketing/academics.html").read_text(encoding="utf-8")
-        self.assertIn('data-mkt-personality-page="academics"', text)
+        # The morph bundle is a {% static %} argument; the read stays for it alone.
         self.assertIn("mkt-gradebook-morph.js", text)
+        assert_markup(self, ACADEMICS, 'data-mkt-personality-page="academics"')
 
     def test_edge_mesh_drop_simulator(self):
-        rugged = (
-            REPO / "templates/marketing/partials/sections/_rugged_engine.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("data-mkt-drop-simulator", rugged)
-        self.assertIn('data-mkt-network="blackout"', rugged)
+        assert_markup(
+            self,
+            RUGGED_ENGINE,
+            "data-mkt-drop-simulator",
+            'data-mkt-network="blackout"',
+        )
 
     def test_personality_pages_verifier(self):
         proc = subprocess.run(

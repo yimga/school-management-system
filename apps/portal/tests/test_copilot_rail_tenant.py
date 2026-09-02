@@ -18,8 +18,17 @@ from django.test.client import RequestFactory
 
 from apps.platform_runtime import ai_onboarding_context as onb
 from apps.portal import views_copilot_rail as rail
+from apps.siteconfig.tests._template_nodes import (
+    assert_does_not_wire,
+    assert_markup,
+    assert_wires,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
+
+_RAIL = _REPO_ROOT / "templates/partials/cockpit/_ai_copilot_rail.html"
+_PORTAL_BASE = _REPO_ROOT / "templates/portal_base.html"
+_INLINE_ASSISTANT = _REPO_ROOT / "templates/partials/help_module_inline_assistant.html"
 
 
 def _authed_post(body: dict | str):
@@ -158,25 +167,55 @@ class TenantRailContextTests(SimpleTestCase):
 
 class TransportWiringTests(SimpleTestCase):
     def test_template_resolves_host_correct_endpoints(self):
-        tpl = (_REPO_ROOT / "templates" / "partials" / "cockpit" / "_ai_copilot_rail.html").read_text(encoding="utf-8")
+        tpl = _RAIL.read_text(encoding="utf-8")
+        # The {% url %} names are template CODE -- no parse and no render can see
+        # them, so the source read stays. What a parse CAN see is whether the rail
+        # still EMITS the transport attributes those URLs are resolved into; if it
+        # does not, resolving them host-correctly buys nothing.
+        assert_markup(
+            self,
+            _RAIL,
+            'data-context-url="',
+            'data-send-url="',
+            'data-send-stream-url="',
+        )
         self.assertIn("portal:copilot_rail_context", tpl)
         self.assertIn("portal:copilot_rail_send", tpl)
         self.assertIn("studio_os:copilot_rail_context", tpl)  # manager branch preserved
 
     def test_ask_with_ai_is_integrated_into_copilot_rail(self):
-        tpl = (_REPO_ROOT / "templates" / "partials" / "cockpit" / "_ai_copilot_rail.html").read_text(encoding="utf-8")
-        self.assertIn('data-rmc-copilot-tab="help"', tpl)
-        self.assertIn('data-rmc-copilot-pane="help"', tpl)
-        self.assertIn("data-rmc-kb-ai-panel", tpl)
+        tpl = _RAIL.read_text(encoding="utf-8")
+        # Tab, pane and panel are markup: ask the engine what the rail emits, not
+        # what its bytes contain -- a needle inside {% comment %} renders nothing.
+        assert_markup(
+            self,
+            _RAIL,
+            'data-rmc-copilot-tab="help"',
+            'data-rmc-copilot-pane="help"',
+            "data-rmc-kb-ai-panel",
+        )
+        # The script name is a {% static %} argument, not emitted text: source read.
         self.assertIn("rmc-kb-ai-assistant.js", tpl)
 
     def test_portal_shell_no_longer_mounts_bottom_ai_panel(self):
-        tpl = (_REPO_ROOT / "templates" / "portal_base.html").read_text(encoding="utf-8")
+        tpl = _PORTAL_BASE.read_text(encoding="utf-8")
+        # "No longer mounts the bottom panel" is only half the contract; the shell
+        # has to mount the RAIL instead, and that is a wiring question the parser
+        # answers. Both directions asked of the shell itself.
+        assert_wires(self, _PORTAL_BASE, "partials/cockpit/_ai_copilot_rail.html")
+        assert_does_not_wire(self, _PORTAL_BASE, "help_module_inline_assistant.html")
+        # A {% static %} argument -- present in the source, never emitted.
         self.assertIn("rmc-copilot-help-mode.css", tpl)
         self.assertNotIn('include "partials/help_module_inline_assistant.html"', tpl)
 
     def test_inline_assistant_is_suppressed_when_copilot_rail_enabled(self):
-        tpl = (_REPO_ROOT / "templates" / "partials" / "help_module_inline_assistant.html").read_text(encoding="utf-8")
+        tpl = _INLINE_ASSISTANT.read_text(encoding="utf-8")
+        # The guard is an {% if %} condition -- template code, invisible to both a
+        # parse and a render, so the source read stays. What it guards is not:
+        # the partial must really emit its section and really pull in the KB panel,
+        # or "suppressed when the rail is on" is a statement about nothing.
+        assert_markup(self, _INLINE_ASSISTANT, "data-rmc-module-inline-help")
+        assert_wires(self, _INLINE_ASSISTANT, "portal/partials/kb_ai_assistant_panel.html")
         self.assertIn("not cockpit.ai_copilot_rail.enabled", tpl)
 
     def test_routes_reverse(self):
