@@ -228,6 +228,46 @@ def reachable_templates(rel: str, depth: int = 6) -> set[str]:
     return seen
 
 
+def included_templates(rel: str, depth: int = 6) -> set[str]:
+    """Every template *rel* pulls in through `{% include %}` -- NOT its shell.
+
+    `reachable_templates()` follows `{% extends %}` as well, which is right for
+    "what does the browser receive" but wrong for "what does THIS PAGE declare".
+    Every portal page inherits templates/portal_base.html, whose page body
+    carries `data-rmc-page-fold-nav="required"` unconditionally, so a content
+    assertion resolved through the extends chain passes for every page in the
+    repo and can never fail.  Walking includes only keeps such a gate binding:
+    the page's own content tree is the part it is actually responsible for.
+    """
+    seen: set[str] = set()
+
+    def walk(target: str, level: int) -> None:
+        if target in seen or level < 0:
+            return
+        seen.add(target)
+        text = reachable_text(target)
+        if not text:
+            return
+        for child, _kwargs in _INCLUDE.findall(text):
+            child_rel = "templates/" + child.lstrip("/")
+            if (REPO / child_rel).is_file():
+                walk(child_rel, level - 1)
+
+    walk(rel, depth)
+    return seen
+
+
+def content_text(rel: str, depth: int = 6) -> str:
+    """Reachable text of *rel* plus every template it includes, concatenated.
+
+    The string a content gate should grep: unreachable markup already removed,
+    included partials already folded in, the inherited shell left out.
+    """
+    return "\n".join(
+        reachable_text(target) for target in sorted(included_templates(rel, depth=depth))
+    )
+
+
 def renders(rel: str, template_name: str, depth: int = 6) -> bool:
     """True when *rel* actually renders the partial called *template_name*.
 
