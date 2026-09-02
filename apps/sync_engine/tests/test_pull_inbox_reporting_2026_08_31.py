@@ -41,9 +41,12 @@ def _result(**overrides):
         "created": 0,
         "upserted": 0,
         "deleted": 0,
+        "already_absent": 0,
+        "soft_deleted": 0,
         "conflicts": 0,
         "malformed": 0,
         "skipped": 0,
+        "unaccounted": 0,
         "skipped_reasons": {},
         "skipped_missing_parents": {},
         "conflict_details": [],
@@ -113,10 +116,23 @@ class PullInboxAccountsForEveryRowTests(_PullCommandCaller, TestCase):
         self.assertIn("insert_held_for_entity x26", text)
 
     def test_deletions_are_counted_so_the_tally_closes(self):
-        # The 46-tombstone case. received - applied = 46 with every other PRINTED bucket
-        # at zero reads as loss; naming `deleted` is what makes it read as a deletion.
-        text = self._run(_result(received=75755, applied=75709, deleted=46))
-        self.assertIn("deleted 46", text)
+        # The 46-tombstone case, with the fixture CORRECTED on 2026-09-02.
+        #
+        # This test used to stub `deleted=46` and assert the line said so. The box
+        # never returned that. `apply_deletes` answered 200 for all 46 while removing
+        # nothing -- `deleted 0` -- because the rows were already gone, and this file
+        # had invented the one number that would have made the tally close. So the
+        # claim in the commit message, that the printed buckets sum to `received`,
+        # was proved by a fixture rather than by the rail, and shipped false.
+        #
+        # It is not a small distinction. Those 46 were the residue of a deletion that
+        # had ALREADY destroyed 13 teacher records, and `deleted 0, skipped 0` is what
+        # that looked like going past. The real shape is asserted here now.
+        text = self._run(_result(
+            received=75755, applied=75709, deleted=0, already_absent=46
+        ))
+        self.assertIn("deleted 0", text)
+        self.assertIn("already absent 46", text)
 
     def test_the_absent_parent_is_named_not_just_counted(self):
         # missing_reference is the one reason whose REPAIR depends on which parent it is:
@@ -128,6 +144,19 @@ class PullInboxAccountsForEveryRowTests(_PullCommandCaller, TestCase):
             skipped_missing_parents={"people.TeacherProfile": 3},
         ))
         self.assertIn("people.TeacherProfile x3", text)
+
+    def test_a_tally_that_does_not_close_says_so(self):
+        # The seal the previous pass lacked. A remainder means some outcome is going
+        # unreported, which is the state this rail was in while it deleted teachers;
+        # an operator must not have to subtract the line themselves to find out.
+        text = self._run(_result(received=75755, applied=75709, unaccounted=46))
+        self.assertIn("TALLY DOES NOT CLOSE", text)
+        self.assertIn("46 of 75755", text)
+
+    def test_a_closing_tally_stays_quiet_about_it(self):
+        # CONTROL for the line above: the warning must be a signal, not furniture.
+        text = self._run(_result(received=500, applied=500))
+        self.assertNotIn("TALLY DOES NOT CLOSE", text)
 
     def test_a_clean_pull_still_names_its_zero(self):
         # The tally must close on a HEALTHY pull too. A bucket that appears only

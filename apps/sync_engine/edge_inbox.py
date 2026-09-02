@@ -11,8 +11,12 @@ here opens an inbound port on the box.
 """
 from __future__ import annotations
 
+import logging
+
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
 from apps.sync_engine.tombstones import DELETE_OP
+
+logger = logging.getLogger(__name__)
 
 
 def split_bundle_rows(rows):
@@ -96,6 +100,77 @@ def tally_skipped_rows(
     return skipped_reasons, missing_parents
 
 
+def tally_delete_outcomes(delete_results):
+    """Count delete results that answered 200 and removed NOTHING.
+
+    :func:`apps.api.sync_services.apply_deletes` answers 200 in three distinct shapes
+    and only ONE of them is a deletion::
+
+        {"deleted": True}                              the row was removed
+        {"deleted": False, "already_absent": True}      there was no such row here
+        {"deleted": False, "soft_deleted": True}        the model kept it, marked void
+
+    The last two were counted by nothing at all. ``tally_skipped_rows`` skips every
+    2xx by design - a 200 is not a refusal - and ``removed["deleted"]`` counts only
+    real removals, so a bundle of 46 deletions reported ``deleted 0`` and ``skipped 0``
+    while 46 rows fell out of a tally the caller prints as though it were complete.
+
+    MEASURED on a production appliance 2026-09-02. A pull of 75,755 rows reported
+    ``applied 75709, created 0, upserted 0, deleted 0, conflicts 0, malformed 0,
+    skipped 0``. Every one of those numbers was true and the sum was 46 short, and
+    those 46 were the residue of a deletion that had ALREADY destroyed 13 teacher
+    records on an earlier cycle. A wipe and a no-op wore the same shape. That is what
+    this function exists to stop: not to change any outcome, but to make the two
+    distinguishable in the only output an operator ever reads.
+
+    ``already_absent`` is the interesting one. It is the ORDINARY answer when both
+    sides already agree a row is gone, and it is also exactly what a deletion that hit
+    the wrong row leaves behind on every cycle afterwards. The count alone does not
+    tell those apart - but an unexplained 46, printed, is what sends someone looking.
+    """
+    outcomes = {"already_absent": 0, "soft_deleted": 0}
+    for res in delete_results or ():
+        if res.get("status") != 200:
+            continue
+        data = res.get("data") or {}
+        if data.get("deleted"):
+            continue
+        if data.get("already_absent"):
+            outcomes["already_absent"] += 1
+        elif data.get("soft_deleted"):
+            outcomes["soft_deleted"] += 1
+    return outcomes
+
+
+def unaccounted_rows(summary) -> int:
+    """``received`` minus every bucket - 0 when the tally closes.
+
+    The buckets PARTITION the bundle: a row is malformed, or it is an update that
+    applied / conflicted / was skipped, or an insert that was created / upserted /
+    skipped, or a delete that removed a row / found none / soft-deleted / was skipped.
+    Nothing else can happen to it, so anything left over means a result shape exists
+    that no bucket knows about - which is the defect this whole module just shipped.
+
+    Returning a NUMBER rather than raising is deliberate. A tally that does not close
+    is a reporting fault, and refusing to finish a sync over it would turn an
+    accounting bug into an outage. The caller logs it and carries it in the summary.
+    """
+    return int(summary.get("received", 0)) - sum(
+        int(summary.get(k, 0))
+        for k in (
+            "malformed",
+            "applied",
+            "conflicts",
+            "created",
+            "upserted",
+            "deleted",
+            "already_absent",
+            "soft_deleted",
+            "skipped",
+        )
+    )
+
+
 def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud-pull") -> dict:
     """Verify a pulled bundle for ``school`` and apply its rows on the box.
 
@@ -177,7 +252,12 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
         conflict_indexes={c.get("index") for c in out["conflicts"]},
     )
 
-    return {
+    # A delete that answered 200 without removing anything is neither an application
+    # nor a refusal, so until now it landed in no bucket and the tally silently did not
+    # sum to `received`. See tally_delete_outcomes for what that hid.
+    delete_outcomes = tally_delete_outcomes(removed["results"])
+
+    summary = {
         "ok": True,
         "received": len(rows),
         "malformed": malformed,
@@ -186,6 +266,8 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
         "created": inserted["created"],
         "upserted": inserted["updated"],
         "deleted": removed["deleted"],
+        "already_absent": delete_outcomes["already_absent"],
+        "soft_deleted": delete_outcomes["soft_deleted"],
         "skipped": sum(skipped_reasons.values()),
         "skipped_reasons": skipped_reasons,
         "skipped_missing_parents": missing_parents,
@@ -194,6 +276,36 @@ def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str =
         "insert_results": inserted["results"],
         "delete_results": removed["results"],
     }
+    # The buckets partition the bundle, so a non-zero remainder means a result shape
+    # nothing here knows how to count. Report it rather than let it vanish: the whole
+    # reason 46 destroyed rows went unnoticed is that the arithmetic was never checked.
+    leftover = unaccounted_rows(summary)
+    summary["unaccounted"] = leftover
+    if leftover:
+        logger.warning(
+            "pulled bundle tally does not close for school %s: %s of %s rows are in no "
+            "bucket (applied=%s conflicts=%s created=%s upserted=%s deleted=%s "
+            "already_absent=%s soft_deleted=%s skipped=%s malformed=%s)",
+            getattr(school, "pk", None),
+            leftover,
+            summary["received"],
+            summary["applied"],
+            summary["conflicts"],
+            summary["created"],
+            summary["upserted"],
+            summary["deleted"],
+            summary["already_absent"],
+            summary["soft_deleted"],
+            summary["skipped"],
+            summary["malformed"],
+        )
+    return summary
 
 
-__all__ = ["apply_pulled_bundle", "split_bundle_rows", "tally_skipped_rows"]
+__all__ = [
+    "apply_pulled_bundle",
+    "split_bundle_rows",
+    "tally_delete_outcomes",
+    "tally_skipped_rows",
+    "unaccounted_rows",
+]
