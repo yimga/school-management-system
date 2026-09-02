@@ -3,12 +3,22 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from apps.test_utils.tenant_hosts import HOST_ROUTED_SETTINGS, public_client
 
+
+# ROOT_URLCONF makes reverse() produce the public-host path; the HOST is what makes
+# the REQUEST arrive there. Without public_client() below, UrlConfSwitcherMiddleware
+# would serve every post from config.urls -- the developer urlconf.
 @override_settings(
     RATELIMIT_ENABLE=False,
     ROOT_URLCONF="config.public_urls",
+    **HOST_ROUTED_SETTINGS,
 )
 class SignupCountryRequiredTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = public_client()
+
     def test_post_without_country_surfaces_required_error(self):
         response = self.client.post(
             reverse("signup_school"),

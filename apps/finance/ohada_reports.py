@@ -89,7 +89,14 @@ def build_dsf_report(
 
     net_result = revenue_total - expense_total
 
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    # tenant-isolation-allow: COUNTRY-scoped and cannot be school-scoped today -
+    # JournalEntry and JournalLine carry no school column, so the ledger half of
+    # this report (line_rows, above) cannot be bounded by school at all. Payment
+    # and Invoice CAN be, and deliberately are not: scoping only these two would
+    # pair school-scoped receipts with a country-wide ledger, and the resulting
+    # DSF would not reconcile - a quieter wrong answer than the present one. The
+    # fix is a migration adding school to the journal models; until then this is
+    # consistently country-scoped, and says so. Reviewed 2026-09-02.
     payments_qs = Payment.objects.filter(invoice__profile=profile, status="completed")
     invoices_qs = Invoice.objects.filter(profile=profile)
     if start_date:

@@ -9,6 +9,7 @@ from apps.platform_runtime.learning_institution_catalog import (
     INSTITUTION_TYPE_PACKS,
     LEARNING_DELIVERY_MODES,
 )
+from apps.test_utils.tenant_hosts import HOST_ROUTED_SETTINGS, manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -34,7 +35,10 @@ class LearningDeliveryPacksTests(TestCase):
         self.assertTrue(p.exists())
 
     def test_get_not_404(self):
-        client = Client()
-        with self.settings(ROOT_URLCONF="config.manager_urls"):
+        # manager_client() carries the control-plane Host header. Without it the
+        # request is served by config.urls (developer), which also mounts /super/,
+        # so the assertion would pass without ever touching the manager surface.
+        client = manager_client()
+        with self.settings(ROOT_URLCONF="config.manager_urls", **HOST_ROUTED_SETTINGS):
             r = client.get("/super/learning-delivery-packs/", follow=False)
             self.assertIn(r.status_code, (200, 302))

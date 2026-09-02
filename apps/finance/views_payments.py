@@ -293,14 +293,24 @@ def split_allocation(request: HttpRequest):
     """
     from apps.people.models import StudentGuardian, StudentProfile
 
+    # AcademicYear.is_active is documented on the field itself as "exactly one
+    # should be active PER SCHOOL", so an unscoped is_active read does not return
+    # "the" active year -- it returns whichever school's year sorts first. On the
+    # cloud each tenant has its own schema and that is invisible; on an edge box
+    # every school shares one schema, so this page was liable to bill a student
+    # against another school's academic year. The school is what bounds it.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
     active_year = (
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+        AcademicYear.objects.filter(school=school, is_active=True)
+        .order_by("-start_date")
+        .first()
     )
     if not active_year:
         return render(
@@ -311,11 +321,9 @@ def split_allocation(request: HttpRequest):
                 "error": "No active academic year. Set an academic year as active first.",
             },
         )
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-
-    students = StudentProfile.objects.filter(academic_year=active_year).order_by(
-        "last_name", "first_name"
-    )
+    students = StudentProfile.objects.filter(
+        school=school, academic_year=active_year
+    ).order_by("last_name", "first_name")
     selected_student_id = (
         request.POST.get("student") or request.GET.get("student") or ""
     ).strip()
@@ -323,6 +331,7 @@ def split_allocation(request: HttpRequest):
     if selected_student_id.isdigit():
         guardians = StudentGuardian.objects.filter(
             student_id=int(selected_student_id),
+            student__school=school,
             student__academic_year=active_year,
             can_view_finance=True,
             guardian_user__is_active=True,
@@ -366,6 +375,7 @@ def split_allocation(request: HttpRequest):
 
         with transaction.atomic():
             invoice = Invoice.objects.create(
+                school=school,
                 profile=profile,
                 academic_year=active_year,
                 student=student,
@@ -388,6 +398,7 @@ def split_allocation(request: HttpRequest):
             if payer_allocations:
                 assign_invoice_payer_shares(invoice, payer_allocations, due_date=today)
             payment = Payment.objects.create(
+                school=school,
                 invoice=invoice,
                 student=student,
                 amount=total_amount,

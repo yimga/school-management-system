@@ -21,6 +21,8 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/scan_test_host_fidelity.py"
+      - "apps/test_utils/tenant_hosts.py"
       - "scripts/scan_ci_shell_command_integrity.py"
       - "scripts/scan_admin_registered_on_unmounted_site.py"
       - "scripts/lint_broad_except.py"
@@ -334,6 +336,14 @@ jobs:
           u_duplicate_dict_keys() {
             python scripts/scan_duplicate_dict_keys.py --strict
             python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
+          }
+
+          # A test naming config.tenant_urls that never sets a Host header is
+          # served by config.urls -- the developer urlconf, a superset -- so it
+          # passes while proving nothing about the surface it names.
+          u_test_host_fidelity() {
+            python scripts/scan_test_host_fidelity.py --compare
+            python -m unittest scripts.tests.test_scan_test_host_fidelity -v
           }
 
           # Split out of u_duplicate_dict_keys on 2026-08-31. It is an
@@ -790,6 +800,7 @@ jobs:
           run_unit u_ota_pipeline_wiring "The OTA pipeline is still connected end to end"
           run_unit u_raw_token_in_ui "No internal identifier is shown to a human as words"
           run_unit u_duplicate_dict_keys "No dict literal silently discards an entry"
+          run_unit u_test_host_fidelity "Tests reach the host urlconf they name"
           run_unit u_operator_landing_header_order "Operator landing header precedes cockpit chrome"
           run_unit u_lander_row_streaming "Migration Cloud landers stream canonical rows"
           run_unit u_migration_apply_stall_contract "Migration apply stall detection contract"

@@ -820,6 +820,33 @@ MUTATIONS["ci-shell-command-integrity"] = Mutation(
     ),
 )
 
+MUTATIONS["test-host-fidelity"] = Mutation(
+    kind="create",
+    path=f"apps/schools/tests/{_PROOF}_host_fidelity.py",
+    defect=(
+        "a test that names config.tenant_urls and then issues a request with no "
+        "Host header - so it is served by config.urls, the DEVELOPER urlconf, which "
+        "mounts a superset of every tenant route; the test passes, request.school is "
+        "None, and a route deleted from the tenant urlconf stays green here while "
+        "every real school 404s"
+    ),
+    # The plant must use the shape the scanner cannot forgive: a host urlconf on the
+    # decorator, a real client request inside the decorated scope, and NO host
+    # anywhere in it. Deliberately not `reverse(urlconf=...)` and not a request
+    # carrying HTTP_HOST -- both are correct as written and are exactly what the
+    # scanner was taught to leave alone, so a plant using one would leave this gate
+    # looking dead when it is working.
+    content=(
+        b"from django.test import TestCase, override_settings" + chr(10).encode()
+        + chr(10).encode()
+        + chr(10).encode()
+        + b"@override_settings(ROOT_URLCONF=\"config.tenant_urls\")" + chr(10).encode()
+        + b"class PlantedHostFidelityTests(TestCase):" + chr(10).encode()
+        + b"    def test_reaches_the_tenant_surface(self):" + chr(10).encode()
+        + b"        self.client.get(\"/finance/reports/\")" + chr(10).encode()
+    ),
+)
+
 MUTATIONS["tenant-queryset-safety"] = Mutation(
     kind="create",
     path=f"apps/schools/{_PROOF}_unscoped_queryset.py",
