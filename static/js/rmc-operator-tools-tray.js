@@ -645,13 +645,13 @@
       messagesChip.addEventListener("click", function (ev) {
         // The adopted chathead carries its native click handler — defer to it.
         if (messagesChip.classList.contains("portal-chathead")) return;
-        // A chathead mounted elsewhere on the page? Open it in place.
-        var chathead = document.querySelector(".portal-chathead");
-        if (chathead && chathead !== messagesChip) {
-          ev.preventDefault();
-          chathead.click();
-          return;
-        }
+        // No second chathead to look for: the floating .portal-chathead FAB is
+        // retired on every shell (templates/portal_base.html), sealed by
+        // scripts/verify_header_utilities_contract.py, by
+        // apps/portal/tests/test_tenant_role_home_parity.py and by
+        // tests/e2e/preview-shell-parity.spec.js. Reaching for it here was both
+        // dead and off-registry — non-adopter code must go through
+        // [data-rmc-assist-slot-id] (see scripts/scan_assist_dock_offregistry.py).
         // No in-page messages panel on this surface — go to the inbox.
         if (urls.messages && urls.messages !== "#") {
           ev.preventDefault();

@@ -144,23 +144,43 @@ class Command(BaseCommand):
                 f"Pulled bundle failed verification: {result.get('errors')}. Cursor NOT advanced."
             )
 
-        # EVERY bucket, not a chosen six. This line used to print received, applied,
-        # created, upserted, conflicts and malformed -- and drop `deleted` and
-        # `skipped`. So a pull that received 75,755 rows reported 75,709 applied and
-        # left 46 with no account anywhere in the output, which an operator can only
-        # read as "something did not arrive".
+        # EVERY bucket, not a chosen six -- and the previous attempt at this line was
+        # still wrong, in a way worth recording because it is why nobody looked.
         #
-        # Both readings of that silence are expensive, and the box measured on
-        # 2026-08-31 produced both on the same day: the 46 were tombstones applied
-        # exactly as intended, while a REAL 26-row refusal on the same rail wore the
-        # identical shape. A number that does not appear cannot be told apart from a
-        # number that is fine, so print the whole tally and let it sum to `received`.
+        # It used to print six buckets and drop `deleted` and `skipped`, so a pull of
+        # 75,755 rows reported 75,709 applied and left 46 with no account anywhere. Two
+        # buckets were added and the comment then claimed the tally would "sum to
+        # `received`". It did not. Measured on a production appliance 2026-09-02, the
+        # same pull printed `deleted 0` and `skipped 0` with the 46 STILL in no bucket,
+        # `apply_deletes` answers 200 in three shapes and only one of them is counted:
+        # a row that was already gone, and a row the model soft-deleted, belonged
+        # nowhere. The claim was checked by a test that STUBBED `deleted=46` -- the
+        # number that would have made it close -- so the fiction passed and shipped.
+        #
+        # That mattered far more than an untidy line. Those 46 were the residue of a
+        # deletion that had ALREADY destroyed 13 teacher records on an earlier cycle,
+        # and `deleted 0` is precisely what a destructive bundle looked like on its way
+        # through. A wipe and a no-op wore the same shape. So: print every bucket, and
+        # then CHECK the arithmetic instead of asserting it in a comment.
         self.stdout.write(self.style.SUCCESS(
             f"Pulled {result['received']} row(s) -> applied {result['applied']}, "
             f"created {result['created']}, upserted {result['upserted']}, "
-            f"deleted {result['deleted']}, conflicts {result['conflicts']}, "
+            f"deleted {result['deleted']}, "
+            f"already absent {result.get('already_absent', 0)}, "
+            f"soft-deleted {result.get('soft_deleted', 0)}, "
+            f"conflicts {result['conflicts']}, "
             f"malformed {result['malformed']}, skipped {result['skipped']}."
         ))
+        # The buckets partition the bundle, so a remainder means a result shape nothing
+        # counts -- exactly the state this rail was in while it deleted teachers. Say so
+        # in the output an operator already reads, rather than leaving them to subtract.
+        unaccounted = int(result.get("unaccounted", 0) or 0)
+        if unaccounted:
+            self.stdout.write(self.style.WARNING(
+                f"  TALLY DOES NOT CLOSE: {unaccounted} of {result['received']} row(s) "
+                "are in no bucket. Some outcome is going unreported -- do not read this "
+                "pull as clean."
+            ))
         # A SKIP is the one outcome with no other surface. A conflict is persisted and
         # reviewable; a malformed row is a wire fault; a skip is simply a row the cloud
         # sent and this box did not apply, recorded nowhere. ``apply_pulled_bundle`` has
