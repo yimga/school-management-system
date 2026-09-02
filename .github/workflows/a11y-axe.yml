@@ -74,9 +74,17 @@ jobs:
         with:
           chrome-version: stable
       - name: Verify chrome
+        # The chromedriver print is diagnostic -- setup-chrome does not
+        # always place a driver on PATH, and Selenium Manager supplies one
+        # at runtime when it does not, so its absence is not by itself a
+        # fault; the axe step below fails loudly if no driver can be had.
+        # It is ordered FIRST so that the step exits on google-chrome, which
+        # is the assertion this step is named for. A trailing `|| true`
+        # pins the WHOLE step to exit 0 -- see
+        # scripts/scan_workflow_swallowed_exit_codes.py.
         run: |
-          google-chrome --version
           chromedriver --version || true
+          google-chrome --version
       - name: Run axe smoke tests
         run: |
           python -m pytest \

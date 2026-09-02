@@ -29,9 +29,17 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
+        # Was `pip install -r requirements.txt 2>/dev/null || pip install
+        # django djangorestframework`. If the real install failed for ANY
+        # reason the job continued on a 2-package environment instead of the
+        # 68 in requirements.txt, and `2>/dev/null` deleted the reason. Every
+        # other workflow in this repo (30+ jobs) already does the bare
+        # install; this file was the only exception, and the fallback was
+        # never a documented workaround -- it arrived with the file in
+        # 2b07bfff4 and no commit has ever justified it.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt 2>/dev/null || pip install django djangorestframework
+          pip install -r requirements.txt
       - name: Run Django checks
         run: python manage.py check
       - name: Verify get_model registry integrity
@@ -181,15 +189,22 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install Python deps
+        # Same mask as the django-tests job above, one package narrower:
+        # the fallback installed Django ALONE. Playwright's smoke E2E then
+        # booted a server missing DRF and ~67 other pins, and the only
+        # record of why was sent to /dev/null.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt 2>/dev/null || pip install django
+          pip install -r requirements.txt
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci 2>/dev/null || npm install
+      # `npm ci 2>/dev/null || npm install` hid the one thing `npm ci`
+      # exists to report: package.json drifting from package-lock.json.
+      # package-lock.json is tracked, and 33 other jobs run bare `npm ci`.
+      - run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
       - name: Migrate

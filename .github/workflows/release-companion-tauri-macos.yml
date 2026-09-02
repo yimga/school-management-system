@@ -267,7 +267,13 @@ jobs:
           echo "Second-build sha256=$SHA"
           # Pull the first-build hash from the uploaded subject manifest.
           mkdir -p /tmp/intoto-cmp
-          gh run download "${{ github.run_id }}" -n intoto-subject-macos -D /tmp/intoto-cmp || true
+          # No `|| true`. The artifact is produced by build-sign-notarize,
+          # which this job `needs:`, so a failed download is a real fault --
+          # and with `|| true` it fell through to the else-branch below and
+          # turned the release's only reproducibility proof into a warning
+          # that passed. The sibling attest job downloads the same artifact
+          # with actions/download-artifact and fails hard; this now matches.
+          gh run download "${{ github.run_id }}" -n intoto-subject-macos -D /tmp/intoto-cmp
           if [ -f /tmp/intoto-cmp/macos-subject.json ]; then
             FIRST=$(python3 -c "import json;print(json.load(open('/tmp/intoto-cmp/macos-subject.json'))['sha256'])")
             if [ "$FIRST" != "$SHA" ]; then
@@ -277,7 +283,8 @@ jobs:
             fi
             echo "OK: both builds produced sha256=$SHA"
           else
-            echo "::warning::could not load first-build subject manifest; manual diff required"
+            echo "::error::first-build subject manifest missing after a successful download; cannot verify reproducibility"
+            exit 1
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

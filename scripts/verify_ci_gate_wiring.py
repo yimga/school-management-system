@@ -56,6 +56,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # had genuinely regressed out of the template -- were never checked at all.
     ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
     ("scripts/scan_ci_shell_command_integrity.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. A step ending in `|| true` / `|| echo` / carrying
+    # continue-on-error cannot report a failure, so every gate inside it is
+    # decorative. This gate is exactly the kind that gets quietly unwired,
+    # because unwiring it makes nothing go red.
+    ("scripts/scan_workflow_swallowed_exit_codes.py", "architectural-boundaries.yml"),
     ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
     # Added 2026-08-27, detector integrity. These three were each green for a
     # reason unrelated to the tree being clean, which is the worst state a gate
