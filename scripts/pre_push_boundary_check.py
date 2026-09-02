@@ -431,6 +431,13 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # guard keeps answering -- confidently, and wrongly. Zero-baseline: a difference
     # in either direction is a finding, and the fix is to regenerate the table.
     ("lander-write-targets", ["audit_lander_write_reachability.py", "--check-declaration"]),
+    # The companion siblings are the only shipped code in this repo that is not
+    # served by this server -- they call it. Every RMC path they hardcode 404s on
+    # every urlconf, so both the desktop app and the Docker appliance die at their
+    # own step 1. Baselined with a written reason per path, and the baseline may
+    # only shrink: a NEW dead path fails, and so does an entry that has started to
+    # resolve, which stops the list decaying into a number nobody rereads.
+    ("companion-server-contract", ["verify_companion_server_contract.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
     # Its blind spot: a child table that reaches its school through a parent has
     # no `school` field, so the gate above cannot see it and truthfully says 0.

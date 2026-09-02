@@ -987,6 +987,18 @@ MUTATIONS["lander-write-targets"] = Mutation(
     replacement=b'        # gate-proof: this line was removed to plant the drift',
 )
 
+MUTATIONS["companion-server-contract"] = Mutation(
+    kind="create",
+    # A sibling source file, not a test: the gate deliberately skips tests/, so a
+    # plant there would prove the opposite of what it looks like it proves.
+    path=f"companion-tauri/src/{_PROOF}_dead_path.ts",
+    defect=(
+        "a companion client calling a server path that resolves on no urlconf -- "
+        "the fetch 404s, the client swallows it, and the feature is simply dead"
+    ),
+    content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",

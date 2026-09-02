@@ -47,6 +47,14 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # from the Playwright spec into a log no run ever produced.
     ("scripts/verify_wizard_playwright_spec_coverage.py", "architectural-boundaries.yml"),
     ("scripts/verify_unified_wizard_framework.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. The four companion-* siblings are separate programs that
+    # talk to this server over HTTP, and nothing ever checked that the paths they
+    # hardcode exist. A resolve of every literal against all four urlconfs returned
+    # 404 for every one -- including /api/v1/auth/login/, so the shipped desktop app
+    # cannot complete step 1 of its own documented flow. Every client failure is
+    # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
+    # can see it.
+    ("scripts/verify_companion_server_contract.py", "ci.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts
