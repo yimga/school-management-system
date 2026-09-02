@@ -1,0 +1,64 @@
+{
+  "gate": "companion-server-contract",
+  "script": "scripts/verify_companion_server_contract.py",
+  "established": "2026-09-02",
+  "summary": "Every RMC server path the shipped companion siblings target resolves on NO urlconf. Both the Tauri desktop app and the Docker appliance fail at step 1 of their own four-step flow. The views exist, but only under session-gated HTML shells that a Bearer JWT cannot authenticate; the /api/v1/ surface the clients and the spec both name was never mounted. Mounting it is a product decision (new authenticated public endpoints, one of which accepts credentials and one of which accepts uploads) and is deliberately NOT taken by this gate.",
+  "spec": "docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md sections 2.1-2.4",
+  "ratchet": "This list may only SHRINK. A dead path not listed here fails the gate; a listed path that starts resolving fails the gate until it is deleted from this file; an entry with no reason fails the gate.",
+  "known_dead": [
+    {
+      "path": "/api/v1/auth/login/",
+      "reason": "Never mounted. The real token endpoint is /api/auth/token/ (RateLimitedTokenObtainPairView, apps/api/urls.py). The clients parse token|key|access, so they already understand the SimpleJWT response shape -- only the path differs. Because this is step 1, every later step is unreachable regardless of its own mount. Fixing it means either mounting an alias or changing both shipped clients; that is an operator decision, not a gate's.",
+      "callers": [
+        "companion-docker/app/rmc_handshake.py",
+        "companion-tauri/src-tauri/src/rmc_handshake.rs"
+      ]
+    },
+    {
+      "path": "/api/v1/migration/maa/text/",
+      "reason": "Never mounted under /api/v1/. The view exists as migration_cloud.companion_receiver.maa_text_view but only at /super/migration/companion/maa/text/ and /portal/configure/migration/companion/maa/text/, and it is @login_required -- Django session auth, which a Bearer JWT does not satisfy.",
+      "callers": [
+        "companion-docker/app/rmc_handshake.py",
+        "companion-tauri/src-tauri/src/rmc_handshake.rs"
+      ]
+    },
+    {
+      "path": "/api/v1/migration/maa/sign/",
+      "reason": "Never mounted under /api/v1/. MAASignView exists at the two shell mounts above and is LoginRequiredMixin (session auth).",
+      "callers": [
+        "companion-docker/app/rmc_handshake.py",
+        "companion-tauri/src-tauri/src/rmc_handshake.rs"
+      ]
+    },
+    {
+      "path": "/api/v1/migration/companion/upload/",
+      "reason": "Never mounted under /api/v1/. CompanionUploadView exists at the two shell mounts above and is LoginRequiredMixin (session auth). Exposing an upload receiver on the public API surface is a security decision and is left to the operator.",
+      "callers": [
+        "companion-docker/app/canonical_csv.py",
+        "companion-tauri/src-tauri/src/canonical_csv.rs"
+      ]
+    },
+    {
+      "path": "/api/v1/migration/companion/server-pubkey/",
+      "reason": "Never mounted under /api/v1/. companion_server_pubkey_view exists at the two shell mounts above. The view itself carries only @require_GET and was hardened (E-8) to be read-only and safe for an anonymous caller, so it is the least risky of the six to mount -- but the client fetch is best-effort and wrapped in `if (pubResp.ok)`, so its 404 is silent: serverPubkeyB64 stays null and the user is told to 'complete login + MAA + server pubkey fetch first', which they cannot act on.",
+      "callers": [
+        "companion-tauri/src/main.ts"
+      ]
+    },
+    {
+      "path": "/api/v1/migration/receipts/",
+      "reason": "Never mounted anywhere, under any prefix -- unlike the five above there is no equivalent view behind a shell either. The receipt list/fetch step of the documented flow has no server implementation at all.",
+      "callers": [
+        "companion-docker/app/rmc_handshake.py",
+        "companion-tauri/src-tauri/src/rmc_handshake.rs"
+      ]
+    },
+    {
+      "path": "/api/v1/migration/receipts/<id>/",
+      "reason": "The per-receipt form of the row above; likewise unimplemented. RMC_RECEIPT_PATH_PREFIX is concatenated with a receipt id by both clients.",
+      "callers": [
+        "companion-tauri/src-tauri/src/rmc_handshake.rs"
+      ]
+    }
+  ]
+}

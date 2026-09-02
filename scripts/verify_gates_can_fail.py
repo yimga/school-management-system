@@ -987,6 +987,34 @@ MUTATIONS["lander-write-targets"] = Mutation(
     replacement=b'        # gate-proof: this line was removed to plant the drift',
 )
 
+MUTATIONS["companion-server-contract"] = Mutation(
+    kind="create",
+    # A sibling source file, not a test: the gate deliberately skips tests/, so a
+    # plant there would prove the opposite of what it looks like it proves.
+    path=f"companion-tauri/src/{_PROOF}_dead_path.ts",
+    defect=(
+        "a companion client calling a server path that resolves on no urlconf -- "
+        "the fetch 404s, the client swallows it, and the feature is simply dead"
+    ),
+    content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
+)
+
+MUTATIONS["theme-dual-plane-shell"] = Mutation(
+    kind="patch",
+    path="static/css/rmc-theme-experience-dual-plane.css",
+    defect=(
+        "the dual-plane stylesheet stops declaring which wave it belongs to, so "
+        "nothing can tell whether the shipped service-worker cache generation "
+        "still covers it and returning browsers keep the pre-wave sheet"
+    ),
+    # The banner FILENAME, not its version: a version anchor goes stale the next
+    # time the sheet is revised, and a mutation that no longer applies is a
+    # standing proof that quietly stops proving anything. The filename can only
+    # change in a rename, which also moves the gate's own MARKER constant.
+    anchor=b"rmc-theme-experience-dual-plane.css",
+    replacement=b"rmc-theme-experience-dual-plane-gateproof.css",
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",

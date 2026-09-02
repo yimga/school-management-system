@@ -166,6 +166,13 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
     # a word separator out of a token is the right answer.
     ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
+    # Rewritten 2026-09-02 to stop pinning a June service-worker literal and
+    # assert the property that literal was reaching for: the shipped CACHE_VERSION
+    # must be at least the wave the stylesheet's own banner declares, or returning
+    # browsers keep serving the cached pre-wave sheet. It has been green ever since
+    # -- and until now the only file in this repository that mentioned it was
+    # itself, which is the whole C tier in one gate. 1s, stdlib only.
+    ("theme-dual-plane-shell", ["verify_theme_experience_dual_plane_shell.py"]),
     # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
     # title — operators scrolled past empty rules to reach "Platform Command Center".
     ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),
@@ -431,6 +438,13 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # guard keeps answering -- confidently, and wrongly. Zero-baseline: a difference
     # in either direction is a finding, and the fix is to regenerate the table.
     ("lander-write-targets", ["audit_lander_write_reachability.py", "--check-declaration"]),
+    # The companion siblings are the only shipped code in this repo that is not
+    # served by this server -- they call it. Every RMC path they hardcode 404s on
+    # every urlconf, so both the desktop app and the Docker appliance die at their
+    # own step 1. Baselined with a written reason per path, and the baseline may
+    # only shrink: a NEW dead path fails, and so does an entry that has started to
+    # resolve, which stops the list decaying into a number nobody rereads.
+    ("companion-server-contract", ["verify_companion_server_contract.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
     # Its blind spot: a child table that reaches its school through a parent has
     # no `school` field, so the gate above cannot see it and truthfully says 0.

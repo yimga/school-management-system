@@ -23,6 +23,8 @@ on:
       - "scripts/scan_duplicate_dict_keys.py"
       - "scripts/scan_test_host_fidelity.py"
       - "scripts/scan_dangling_static_reference.py"
+      - "scripts/verify_theme_experience_dual_plane_shell.py"
+      - "static/css/rmc-theme-experience-dual-plane.css"
       - "apps/test_utils/tenant_hosts.py"
       - "scripts/scan_ci_shell_command_integrity.py"
       - "scripts/scan_workflow_swallowed_exit_codes.py"
@@ -838,6 +840,16 @@ jobs:
           }
 
           run_unit u_dangling_static_reference "Static references point at files that exist"
+
+          # The shipped service-worker cache generation must be at least the wave
+          # this stylesheet declares, or a returning browser keeps serving the
+          # cached pre-wave sheet. Until 2026-09-02 the gate pinned one June
+          # literal instead and had been red for three months; nothing ran it.
+          u_theme_dual_plane_shell() {
+            python scripts/verify_theme_experience_dual_plane_shell.py
+          }
+
+          run_unit u_theme_dual_plane_shell "Dual-plane sheet is covered by the shipped cache generation"
           run_unit u_operator_landing_header_order "Operator landing header precedes cockpit chrome"
           run_unit u_lander_row_streaming "Migration Cloud landers stream canonical rows"
           run_unit u_migration_apply_stall_contract "Migration apply stall detection contract"

@@ -47,6 +47,14 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # from the Playwright spec into a log no run ever produced.
     ("scripts/verify_wizard_playwright_spec_coverage.py", "architectural-boundaries.yml"),
     ("scripts/verify_unified_wizard_framework.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. The four companion-* siblings are separate programs that
+    # talk to this server over HTTP, and nothing ever checked that the paths they
+    # hardcode exist. A resolve of every literal against all four urlconfs returned
+    # 404 for every one -- including /api/v1/auth/login/, so the shipped desktop app
+    # cannot complete step 1 of its own documented flow. Every client failure is
+    # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
+    # can see it.
+    ("scripts/verify_companion_server_contract.py", "ci.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts
@@ -287,6 +295,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-09-02. Stdlib-only (re + pathlib), so it rides the deps-free
     # boundary workflow rather than ci.yml::django-tests.
     ("scripts/scan_dangling_static_reference.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Rewritten the same day to stop pinning a frozen June
+    # service-worker literal -- which made it go red on EVERY cache bump and kept
+    # it red for three months -- and to assert instead that the shipped cache
+    # generation still covers the wave the stylesheet declares. Before this entry
+    # the only file in the repository that named it was itself.
+    ("scripts/verify_theme_experience_dual_plane_shell.py", "architectural-boundaries.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:
     # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
     # resolves) and SQLite cannot create tenant schemas — while production runs
