@@ -228,10 +228,11 @@ class StrandedWriteReport:
 
     @property
     def rows_stranded(self) -> int:
-        """Rows whose CONTENT cannot leave. The two buckets add up to this.
+        """Rows that cannot leave this box at all -- ``rows_box_only``, and only that.
 
-        Deliberately NOT the sum over every domain that strands anything: that
-        figure counted a fully-syncing student roster as lost because one column
+        Deliberately NOT the sum over every domain that strands anything.
+        ``rows_partial`` is reported beside it rather than folded into it: adding
+        them would count a fully-syncing student roster as lost because one column
         did not map, and a number that overstates is discarded exactly as fast as
         one that understates.
         """
