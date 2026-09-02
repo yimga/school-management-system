@@ -2,7 +2,7 @@
 
 import uuid
 
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -15,7 +15,27 @@ _MGR_HOST = MANAGER_HOST
     ALLOWED_HOSTS=["*", _MGR_HOST],
     **MANAGER_TEST_DEFAULTS,
 )
-class ApiCenterOpenAndUsableTests(TransactionTestCase):
+class ApiCenterOpenAndUsableTests(TestCase):
+    """TestCase, deliberately -- see the note below.
+
+    This was a ``TransactionTestCase`` from the bulk v3.33 wave commit, and
+    nothing here ever needed one: no threads, no ``select_for_update``, no
+    ``on_commit`` assertion, no raw connection work. The cost was severe and
+    invisible. Django flushes EVERY table at a TransactionTestCase teardown and
+    does not roll it back, so this class emptied the migration-seeded catalog
+    (``accounts_permission``, ``accounts_accessrole``, grading scales, theme
+    packs) for every test that ran after it -- permanently, because the
+    persisted test database keeps those migrations recorded as applied, so the
+    idempotent seed never re-runs. The flush re-emits ``post_migrate``, which is
+    why exactly one SUPERADMIN role reappears and everything else stays gone.
+
+    Granular RBAC resolves through those tables, so the symptom was unrelated
+    suites returning 403 and looking like permission regressions.
+
+    ``TestCase`` wraps each test in a transaction and rolls it back, so nothing
+    leaks and nothing is flushed. It is also faster than both the original and
+    the ``serialized_rollback = True`` alternative."""
+
     def setUp(self):
         password = "Test1234!"
         user = User.objects.create_user(
