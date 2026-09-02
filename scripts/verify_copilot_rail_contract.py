@@ -31,7 +31,11 @@ def _read(path: pathlib.Path) -> str:
 
 
 def check_partial_hooks() -> list[str]:
-    partial = REPO_ROOT / "templates" / "studio_os" / "partials" / "cockpit_copilot_rail.html"
+    # Was studio_os/partials/cockpit_copilot_rail.html, retired 2026-09-02 with
+    # its stylesheet: its only include sat inside the {% if False %} retired
+    # cockpit block, so these hooks were being asserted on markup that never
+    # rendered. The LIVE rail carries all three.
+    partial = REPO_ROOT / "templates" / "partials" / "cockpit" / "_ai_copilot_rail.html"
     text = _read(partial)
     if not text:
         return [f"missing: {partial}"]
@@ -194,7 +198,6 @@ def check_send_urls_in_template() -> list[str]:
     findings: list[str] = []
     for rel in (
         "templates/partials/cockpit/_ai_copilot_rail.html",
-        "templates/studio_os/partials/cockpit_copilot_rail.html",
     ):
         path = REPO_ROOT / rel
         text = _read(path)
