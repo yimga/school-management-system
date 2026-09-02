@@ -82,4 +82,18 @@ jobs:
           python manage.py migrate --noinput
           python manage.py runserver 0.0.0.0:8000 &
           sleep 8
-          npx playwright test tests/e2e/help-center-crawl.spec.js --reporter=line || echo "Lane 2 e2e skipped/failed — run locally with hosts mapped"
+          # The `|| echo "Lane 2 e2e skipped/failed"` that used to close
+          # this line contradicted the job comment above it: the lane was
+          # declared enforcing on 2026-08-22 but still exited 0 on every
+          # failure, printing a reassuring sentence instead. The echo's
+          # advice was also wrong -- playwright.config.js already maps
+          # *.runmycampus.com to 127.0.0.1 via --host-resolver-rules, so
+          # hosts are not what is missing here.
+          #
+          # KNOWN GAP, read this before re-masking it: unlike the canonical
+          # local runner (scripts/run_help_center_e2e_lane2.sh) this job
+          # never seeds a tenant, so there is no `gilead-school` and no
+          # `demo.admin`, and the spec's tenantLogin() will time out waiting
+          # to leave /authentication/login/. That is a real gap in the lane,
+          # not a reason to discard its exit code.
+          npx playwright test tests/e2e/help-center-crawl.spec.js --reporter=line

@@ -93,7 +93,10 @@
   <div class="rmc-cockpit" data-rmc-cockpit="studio-os">
     {% include "studio_os/partials/cockpit_signal_strip.html" %}
     {% include "studio_os/partials/cockpit_canvas.html" with cockpit_inline=True %}
-    {% include "studio_os/partials/cockpit_copilot_rail.html" %}
+    {# cockpit_copilot_rail.html retired 2026-09-02. Its stylesheet rmc-copilot-rail.css #}
+    {# was loaded by no shell, and 15 of its 18 selectors were used only by that #}
+    {# partial, which the retired block above has kept unreachable. The one rule a #}
+    {# live template still needed moved to rmc-cp-200x.css. See CSS_RETIREMENT_DOCKET. #}
   </div>
   {% endif %}
 

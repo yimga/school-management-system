@@ -68,7 +68,13 @@ jobs:
           node-version: ${{ matrix.node }}
           registry-url: "https://registry.npmjs.org"
       - name: Install deps
-        run: npm ci || npm install --no-audit --no-fund
+        # `npm ci || npm install` discarded the only signal npm ci exists to
+        # give: package.json out of sync with package-lock.json. This
+        # workflow publishes to npm with OIDC provenance, so the fallback
+        # would have attested a tarball built from freshly resolved versions
+        # rather than the locked ones. The lockfile is tracked and its
+        # dependency sets match package.json.
+        run: npm ci
       - name: Type-check
         run: npx tsc --noEmit
       - name: Run vitest
@@ -86,7 +92,13 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
       - name: Install deps
-        run: npm ci || npm install --no-audit --no-fund
+        # `npm ci || npm install` discarded the only signal npm ci exists to
+        # give: package.json out of sync with package-lock.json. This
+        # workflow publishes to npm with OIDC provenance, so the fallback
+        # would have attested a tarball built from freshly resolved versions
+        # rather than the locked ones. The lockfile is tracked and its
+        # dependency sets match package.json.
+        run: npm ci
       - name: Build (tsup → dual ESM/CJS + .d.ts)
         run: npm run build
       - name: Pack tarball (dry-run inspection then real)
@@ -120,7 +132,13 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
       - name: Install deps
-        run: npm ci || npm install --no-audit --no-fund
+        # `npm ci || npm install` discarded the only signal npm ci exists to
+        # give: package.json out of sync with package-lock.json. This
+        # workflow publishes to npm with OIDC provenance, so the fallback
+        # would have attested a tarball built from freshly resolved versions
+        # rather than the locked ones. The lockfile is tracked and its
+        # dependency sets match package.json.
+        run: npm ci
       - name: Build
         run: npm run build
       - name: Publish to npm with provenance
