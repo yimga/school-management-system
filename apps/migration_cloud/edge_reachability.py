@@ -112,6 +112,12 @@ def _rows_phrase(rows: int, uncounted: int) -> str:
     if not uncounted:
         return "%d %s" % (rows, unit)
     files = "file" if uncounted == 1 else "files"
+    if rows == 0:
+        # "at least 0 rows" is true and useless -- it is the shape of a clean result
+        # for a case where NOTHING could be counted. Say what actually happened.
+        return "an unknown number of rows (%d %s could not be row-counted)" % (
+            uncounted, files,
+        )
     return "at least %d %s (%d %s could not be row-counted)" % (
         rows, unit, uncounted, files,
     )

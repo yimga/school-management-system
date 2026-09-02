@@ -180,7 +180,10 @@ The policy resolves through the configurability cascade — `apps/migration_clou
 * `python scripts/audit_lander_write_reachability.py --check-declaration` — exits non-zero on any difference in either direction (a lander that gains a model, or a declared model no longer written).
 * `apps/migration_cloud/tests/test_edge_write_reachability_2026_09_02.py::DeclarationIsMeasuredTests` runs that comparison **and** the resolver's `--self-test`, so both the declaration and the detector's ability to find anything are asserted in CI.
 
-Proven capable of failing: deleting `"schoolops.Route"` from the `transport` entry makes `--check-declaration` exit 1 with `transport: resolver found undeclared writes ['schoolops.Route']`; restoring it returns 0.
+Proven capable of failing, by hand and by harness:
+
+* By hand — deleting `"schoolops.Route"` from the `transport` entry makes `--check-declaration` exit 1 with `transport: resolver found undeclared writes ['schoolops.Route']`; restoring it returns 0.
+* By harness — the gate is registered in `scripts/verify_gates_can_fail.py` as `lander-write-targets`, which plants that same deletion in a detached worktree at `HEAD` and asserts the gate wakes up. `python scripts/verify_gates_can_fail.py --gate lander-write-targets` → **PROVEN** (102s). That registration is not optional: `pre_push_boundary_check.py`'s `gates-can-fail-coverage` step refuses a new `DJANGO_GATES` entry that carries neither a mutation nor a written exemption.
 
 ---
 

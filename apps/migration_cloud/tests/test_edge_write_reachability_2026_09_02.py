@@ -374,7 +374,18 @@ class AssessmentHonestyTests(SimpleTestCase):
         self.assertFalse(report.counts_are_complete)
         self.assertEqual(report.rows_stranded, 10)
         self.assertIn("at least 10 rows", report.operator_message())
-        self.assertIn("could not be row-counted", report.operator_message())
+        self.assertIn("1 file could not be row-counted", report.operator_message())
+
+    def test_nothing_countable_says_so_instead_of_at_least_zero(self):
+        """An "at least 0 rows" total is true, useless, and shaped like good news."""
+        edge = mock.patch.object(er, "deployment_is_edge", return_value=True)
+        policy = mock.patch.object(er, "stranded_write_policy",
+                                   return_value=er.POLICY_WARN)
+        with edge, policy:
+            report = er.assess(_StubBundle(), [_Job(STRANDED_DOMAIN, None)])
+        self.assertEqual(report.rows_stranded, 0)
+        self.assertIn("an unknown number of rows", report.operator_message())
+        self.assertNotIn("at least 0", report.operator_message())
 
     def test_an_unreadable_rail_reports_nothing_rather_than_zero(self):
         with mock.patch.object(er, "deployment_is_edge", return_value=True), \
