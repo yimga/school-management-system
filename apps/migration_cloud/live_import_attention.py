@@ -534,7 +534,17 @@ def compose_live_import(
     # and fell back to neutral "live counts" copy, so a finished import and a
     # wedged one looked the same to the tenant -- the endless-spinner report.
     succeeded = (not in_flight) and status in _APPLY_DONE and issues == 0
+    # What this appliance will not be able to send on. Computed for the page the
+    # operator presses Apply from, so the warning arrives BEFORE the write rather
+    # than as an explanation afterwards. None on the cloud and on a clean bundle.
+    try:
+        from .edge_reachability import review_notice
+
+        edge_stranding = review_notice(bundle)
+    except Exception:  # noqa: BLE001 -- the board must render even if this cannot
+        edge_stranding = None
     return {
+        "edge_stranding": edge_stranding,
         "status": status,
         "succeeded": succeeded,
         "workflow_state": workflow_state_label(

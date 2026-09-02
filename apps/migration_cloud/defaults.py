@@ -76,6 +76,19 @@ _SEED: dict[str, Any] = {
     "migration_cloud.slo.large_seconds": 12 * 60 * 60,      # 12h
     # Worker fan-out for parallel domain ingest (Phase U5).
     "migration_cloud.orchestrator.worker_count": 8,
+    # What an EDGE APPLIANCE does when an import is about to write rows to models
+    # the edge sync rail does not carry -- rows that will stay on the box and can
+    # never reach the cloud copy of the school. See
+    # ``apps/migration_cloud/edge_reachability.py``.
+    #   "warn"   (default) -- record it on the bundle, put it on the Review & Import
+    #                         page and in the live event stream, and apply anyway.
+    #                         A box being the system of record for a domain is a
+    #                         legitimate choice; making it by accident is not.
+    #   "refuse"           -- stop an import whose stranding nobody has acknowledged.
+    #   "off"              -- do not assess. Only sensible where the box is knowingly
+    #                         and permanently the only copy.
+    # Inert on the cloud, which is itself the destination.
+    "migration_cloud.edge.stranded_write_policy": "warn",
     # Apply stall watchdog (LoopWatchdog) — tier base + row scale (see apply_stall.py).
     "migration_cloud.apply.stall_timeout_seconds": {
         "small": 120,
