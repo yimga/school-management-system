@@ -63,7 +63,10 @@ def _recurring_subscription_process_payment(self):
         return False
     student = None
     if getattr(self.user, "id", None):
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: IDENTITY lookup, not a tenant listing - it resolves
+        # the acting user's own student profile by user_id, so the row it returns is
+        # already the caller's. Bounding it by school would need a school this code
+        # path is not given. Reviewed 2026-09-02.
         sp = StudentProfile.objects.filter(user_id=self.user.id).first()
         if sp:
             student = sp
@@ -477,7 +480,9 @@ class PaymentAdvancedService:
         """Get payment analytics for user"""
         from apps.finance.models import Invoice, Payment
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: IDENTITY lookup - both queries are bounded by one
+        # student, so they return that student's own rows whatever school they are
+        # in; there is no cross-tenant set to widen to. Reviewed 2026-09-02.
         invoices = Invoice.objects.filter(student=user)
         payments = Payment.objects.filter(invoice__student=user)
 

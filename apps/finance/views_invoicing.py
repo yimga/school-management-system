@@ -93,6 +93,15 @@ def invoice_list(request: HttpRequest):
     from apps.accounts.effective_access import module_access
 
     finance_privileged = module_access(request.user, "finance", "read")
+    # ComplianceProfile carries a country_code and NO school column, so
+    # filter(profile=profile) bounds this list to a COUNTRY, not a school. A
+    # parent is saved by the guardian filter below; a staff member was not, and
+    # on a shared-schema box saw every co-located school's invoices. Invoice has
+    # a school FK -- use it.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -101,8 +110,7 @@ def invoice_list(request: HttpRequest):
     year_id = request.GET.get("year")
     search = (request.GET.get("q") or "").strip()
     qs = (
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        Invoice.objects.filter(profile=profile)
+        Invoice.objects.filter(school=school, profile=profile)
         .select_related("student", "academic_year", "profile")
         .prefetch_related(
             "payments",
@@ -301,6 +309,13 @@ th{{background:#f5f5f5;}} .header{{margin-bottom:12px;}}</style></head>
 
 @require_permission("finance.manage")
 def generate_fees(request: HttpRequest):
+    # This is a WRITE path: the plans read here are what fees get generated
+    # from. Unscoped, it offered every school's active plans, so a generation
+    # run could bill this school's students against another school's fees.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -312,8 +327,7 @@ def generate_fees(request: HttpRequest):
         if blocked is not None:
             return blocked
 
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    plans = FeePlan.objects.filter(is_active=True).select_related(
+    plans = FeePlan.objects.filter(school=school, is_active=True).select_related(
         "academic_year", "classroom", "specialty"
     )
 

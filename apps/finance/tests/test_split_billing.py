@@ -3,7 +3,7 @@ from decimal import Decimal
 from smtplib import SMTPException
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -27,10 +27,27 @@ from apps.finance.services import (
 from apps.finance.tasks import run_payment_reminders
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.schools.models import School, SchoolMembership
+from apps.test_utils.tenant_hosts import (
+    HOST_ROUTED_SETTINGS,
+    tenant_client,
+    tenant_host,
+)
 
 
+# finance:invoices is now school-scoped, and the school arrives from the HOST.
+# ComplianceProfile carries only a country_code, so the list was previously bounded
+# to a COUNTRY -- every co-located school's invoices, for any staff member.
+@override_settings(**HOST_ROUTED_SETTINGS)
 class SplitBillingFlowTests(TestCase):
     def setUp(self):
+        self.school = School.objects.create(
+            name="Split Billing School",
+            slug="split-billing-school",
+            subdomain="split-billing-school",
+            is_active=True,
+        )
+        self.tenant_host = tenant_host(self.school)
         self.profile = ComplianceProfile.objects.create(name="Test", country_code="CM")
         site = get_platform_site_settings_record(create=True)
         site.apply_feature_control_state(
@@ -38,12 +55,14 @@ class SplitBillingFlowTests(TestCase):
         )
 
         self.year = AcademicYear.objects.create(
+            school=self.school,
             name="2025/2026",
             start_date=date(2025, 9, 1),
             end_date=date(2026, 6, 30),
             is_active=True,
         )
         self.student = StudentProfile.objects.create(
+            school=self.school,
             first_name="Split",
             last_name="Student",
             academic_year=self.year,
@@ -249,6 +268,7 @@ class SplitBillingFlowTests(TestCase):
 
     def _create_invoice(self) -> Invoice:
         invoice = Invoice.objects.create(
+            school=self.school,
             profile=self.profile,
             academic_year=self.year,
             student=self.student,
@@ -588,9 +608,25 @@ class SplitBillingFlowTests(TestCase):
         )
         staff.is_staff = True
         staff.save(update_fields=["is_staff"])
+        # A tenant host requires a SchoolMembership: apps/schools/middleware.py
+        # bounces an authenticated non-superuser with no membership for the bound
+        # school back to the public login. Both of these people work at this school;
+        # testserver bound no school, so this was never exercised.
+        for member, member_role in (
+            (self.guardian_a, User.Role.PARENT),
+            (staff, User.Role.ACCOUNTANT),
+        ):
+            SchoolMembership.objects.get_or_create(
+                user=member,
+                school=self.school,
+                defaults={"role": member_role, "is_primary": True},
+            )
 
         # Full Client stack returns 200 but not a TemplateResponse (no response.context);
         # assert on rendered list markup instead of paginator context.
+        # The client must speak to the tenant host: that is what binds request.school,
+        # and finance:invoices refuses without one.
+        self.client = tenant_client(self.tenant_host)
         self.client.force_login(self.guardian_a)
         parent_response = self.client.get(reverse("finance:invoices"))
         self.assertEqual(parent_response.status_code, 200)
