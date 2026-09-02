@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load i18n static admin_extras %}
+{% load i18n static admin_extras emit_once_tags %}
 
 {% block bodyclass %}{{ block.super }} {% if is_manager_host %}admin-manager-shell control-plane-shell cp-surface{% else %}admin-premium-shell{% endif %}{% endblock %}
 
@@ -802,7 +802,7 @@
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-workflow-progress-canvas.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
-    <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+    {% emit_once "js-page-fold-standards" %}<script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>{% endemit_once %}
     {% include "partials/rmc_isomorphic_grid_boot.html" %}
     <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
     <script src="{% static 'js/rmc-data-table.js' %}" defer></script>

@@ -7,7 +7,7 @@
 <script src="{% static 'js/rmc-cp-chrome-offset.js' %}" defer></script>
 <script src="{% static 'js/rmc-cp-chrome-scroll-polish.js' %}" defer></script>
 {% emit_once "js-scroll-container" %}<script src="{% static 'js/rmc-scroll-container.js' %}" defer></script>{% endemit_once %}
-<script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+{% emit_once "js-page-fold-standards" %}<script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>{% endemit_once %}
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <script src="{% static 'js/rmc-layout-health-sentinel.js' %}" defer></script>
 {% include "components/back_to_top.html" %}
