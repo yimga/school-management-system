@@ -34,7 +34,7 @@ from apps.api.sync_services import apply_changes, apply_deletes, apply_edge_inse
 from apps.schools.models import School
 from apps.sync_engine.edge_inbox import split_bundle_rows
 from apps.sync_engine.edge_outbox import build_edge_delta_rows
-from apps.sync_engine.models import SyncTombstone
+from apps.sync_engine.models import SyncTombstone, record_sync_apply
 from apps.sync_engine.tombstones import (
     DELETE_OP,
     prune_tombstones,
@@ -73,7 +73,31 @@ class _Fixture(TestCase):
         self.admin = User.objects.create_user(
             username="tomb-admin", password="x" * 12, role=User.Role.ADMIN, is_staff=True
         )
-        self.dept = Department.objects.create(school=self.school, name="Trades", code="TRD")
+        self.dept = self._cloud_authored(
+            "department",
+            Department.objects.create(school=self.school, name="Trades", code="TRD"),
+        )
+
+    def _cloud_authored(self, entity_type, obj):
+        """Leave behind what a row the FAR SIDE authored leaves behind on this side.
+
+        These tests delete by pk alone, which is how the cloud names a row it created:
+        ``_create_from_cloud_pull`` creates such a row AT THE OPERATOR'S PK and records
+        the apply, and ``apply_changes`` records one for every row this side has taken an
+        update from. That ledger entry is the evidence ``apply_deletes`` now requires
+        before a pk-only deletion may destroy a LIVE local row - see
+        :mod:`apps.sync_engine.delete_safety`.
+
+        A row a test merely creates has none, and is indistinguishable from one an admin
+        typed into the box's own form: anchor-less and box-pk'd. That is precisely the
+        row a far-side integer must not be allowed to delete, so a test that means
+        "cloud-authored" now has to say so rather than borrow the old rail's assumption.
+        """
+        record_sync_apply(
+            str(self.school.id), entity_type, obj.pk,
+            getattr(obj, "updated_at", None), "cloud-pull",
+        )
+        return obj
 
     def _pull(self, rows):
         return apply_deletes(str(self.school.id), self.admin, rows, sync_origin="cloud-pull")
@@ -118,7 +142,10 @@ class DeletionCrossesTheBoundaryTests(_Fixture):
         )
 
     def test_deleting_one_row_does_not_stop_the_rest_of_the_batch(self):
-        other = Department.objects.create(school=self.school, name="Other", code="OTH")
+        other = self._cloud_authored(
+            "department",
+            Department.objects.create(school=self.school, name="Other", code="OTH"),
+        )
         rows = [
             _delete_row("nonsense_entity", 1, timezone.now()),
             _delete_row("department", other.pk, timezone.now()),
@@ -262,7 +289,7 @@ class DeletionAuthorityTests(_Fixture):
         tombstone behind, because a tombstone would refuse every later update to a row
         that still exists.
         """
-        inv = self._an_invoice()
+        inv = self._cloud_authored("invoice", self._an_invoice())
         out = self._pull([_delete_row("invoice", inv.pk, timezone.now())])
 
         self.assertEqual(out["results"][0]["data"], {"deleted": False, "soft_deleted": True})
@@ -353,7 +380,10 @@ class DeleteDominanceTests(_Fixture):
         edit_at = timezone.now()
         delete_at = edit_at + dt.timedelta(minutes=1)
 
-        a = Department.objects.create(school=self.school, name="A", code="AAA")
+        a = self._cloud_authored(
+            "department",
+            Department.objects.create(school=self.school, name="A", code="AAA"),
+        )
         apply_changes(
             str(self.school.id), self.admin,
             [_update_row("department", a.pk, {"name": "Edited"}, edit_at)],
@@ -362,7 +392,10 @@ class DeleteDominanceTests(_Fixture):
         self._pull([_delete_row("department", a.pk, delete_at)])
         first_order_exists = Department.objects.filter(pk=a.pk).exists()
 
-        b = Department.objects.create(school=self.school, name="B", code="BBB")
+        b = self._cloud_authored(
+            "department",
+            Department.objects.create(school=self.school, name="B", code="BBB"),
+        )
         self._pull([_delete_row("department", b.pk, delete_at)])
         apply_changes(
             str(self.school.id), self.admin,
@@ -517,8 +550,17 @@ class DeletionEndToEndThroughTheWireTests(TestCase):
 
         # Re-create the row so the apply has something to remove — this stands in for the
         # far side, which still holds the record the sender has just buried.
-        Department.objects.create(
+        stand_in = Department.objects.create(
             school=self.school, id=pk, name="Doomed", code=self.dept.code
+        )
+        # ...and stand in COMPLETELY. A cloud-authored row is on the box because the
+        # pull path put it there at the operator's pk, which records an apply-ledger
+        # entry; that entry is what tells the delete path this pk means the same row on
+        # both sides. Without it the row is indistinguishable from one created on the
+        # box, which a far-side pk may not delete.
+        record_sync_apply(
+            str(self.school.id), "department", stand_in.pk,
+            stand_in.updated_at, "cloud-pull",
         )
 
         result = apply_pulled_bundle(self.school, self.user, data, origin="cloud-pull")

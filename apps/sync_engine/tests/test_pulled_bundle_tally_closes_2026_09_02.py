@@ -16,15 +16,28 @@ MEASURED on the Gilead box 2026-09-02, on the real rail::
     Pulled 75755 row(s) -> applied 75709, created 0, upserted 0, deleted 0,
                            conflicts 0, malformed 0, skipped 0.
 
-Every one of those numbers is true and they sum to 75,709. The 46 missing rows were the
-residue of a deletion that had ALREADY destroyed 13 teacher records on an earlier cycle:
-tombstones minted against a pk range from a different schema, matching rows that were
-never the rows they described. On its way through, that wipe printed ``deleted 0``.
+Every one of those numbers is true and they sum to 75,709. Forty-six rows were reported
+by nothing at all, and the output gave an operator no way to tell that from a clean sync.
 
-So a destructive bundle and a no-op wore the same shape, and the reason nobody looked is
-that the shortfall never had to be explained -- no bucket was missing, the buckets simply
-did not have to add up. The tests here are about the arithmetic, not the deletion: the
-deletion is somebody's bug, but the SILENCE is this module's.
+WHY THAT IS WORTH TESTING. ``already_absent`` is the ordinary answer when both sides
+already agree a row is gone. It is ALSO exactly what a deletion that hit the WRONG row
+leaves behind on every cycle afterwards. Those two situations printed identically, and
+one of them is data loss -- so a destructive bundle and a harmless one wore the same
+shape, and nobody had to explain the shortfall because no bucket was missing; the
+buckets simply did not have to add up.
+
+WHAT THE 46 ACTUALLY WERE IS STILL UNMEASURED, and an earlier reading of this got it
+wrong in a way worth recording HERE, in the file whose whole subject is arithmetic
+nobody checked. That reading said 13 teacher records had been destroyed, by subtracting
+26 survivors from 39 tombstones. The box's own data does not support it: live teacher
+pks are 2..27 and the tombstones cover 28..66, which are DISJOINT, so ``already_absent``
+may be literally true for all 39. It is not disproven either -- it is unmeasured. (The 6
+``specialty_subject`` tombstones, pks 1..6, DO overlap where a small catalog's rows live,
+and that has not been checked.) A subtraction that looked convincing is the same kind of
+reasoning this module now refuses to accept from itself.
+
+The tests here are about the arithmetic, not the deletion. Whether anything died is
+somebody's bug to chase; the SILENCE was this module's.
 
 The previous attempt at this (``9575fbeef``) added ``deleted`` and ``skipped`` to the
 printed line and stated in its own comment that the tally now sums to ``received``. It

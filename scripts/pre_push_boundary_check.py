@@ -425,6 +425,12 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # slugs (slugify returns "" for any script it cannot transliterate, so a school's
     # SECOND Arabic help article raised IntegrityError).
     ("blank-unique-text-fields", ["scan_blank_unique_text_fields.py"]),
+    # The edge pre-import guard answers "which of these rows can never leave this
+    # box" from a declared table, because it runs before the first write on hardware
+    # that cannot afford an AST pass. If the table stops matching the landers, the
+    # guard keeps answering -- confidently, and wrongly. Zero-baseline: a difference
+    # in either direction is a finding, and the fix is to regenerate the table.
+    ("lander-write-targets", ["audit_lander_write_reachability.py", "--check-declaration"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
     # Its blind spot: a child table that reaches its school through a parent has
     # no `school` field, so the gate above cannot see it and truthfully says 0.

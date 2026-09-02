@@ -163,6 +163,31 @@ deletes travel too). What an operator needs to know:
   deletions in one bundle are all refused and reported. If the deletions are genuinely
   intended, raise the cap for one cycle — nothing is lost by the refusal, because the far
   side keeps its tombstones.
+* **A deletion must prove which row it names.** A deletion carrying a
+  `client_offline_id` is matched by that anchor and by nothing else. A deletion carrying
+  only a pk may destroy a live local row only where this side's apply ledger shows the
+  far side has already addressed that exact pk here - which is what a cloud-authored row
+  leaves behind and a locally created one does not. Otherwise it is refused:
+  `delete_anchor_mismatch` (the local row carries an anchor, so it is provably a
+  different row) or `delete_pk_not_provably_shared` (this side has no evidence either
+  way, and absent evidence is not permission). Both appear in `skipped_reasons` and in
+  the dead-letter table, per row. Nothing is lost by a refusal - the far side keeps its
+  tombstone and re-offers it - and no tombstone is recorded for a refused row, so a
+  refusal can never bury a pk and make a live record unupdatable.
+  `RMC_SYNC_DELETE_TRUSTS_PEER_PKS=1` re-enables pk-only deletion whole; set it ONLY on a
+  box restored as a verbatim pk-preserving clone. It cannot switch off the anchor
+  refusal, which is provable from the two rows.
+* **A proportional flood is refused too.** The row-count cap above cannot tell a big
+  school's churn from a small school's extinction: 39 deletions are 8% of a 500-row cap
+  and 100% of a teaching staff. A bundle that would delete more than
+  `RMC_SYNC_MAX_DELETE_FRACTION_PER_BUNDLE` (default 0.25) of ONE entity's live rows has
+  that entity's deletions refused as a batch, with the numbers in the refusal
+  (`targets`, `live`, `fraction`). It counts rows that would REALLY delete something, not
+  tombstones received, and it does not fire below
+  `RMC_SYNC_DELETE_FRACTION_MIN_ROWS` (default 10) live rows - deleting two of three
+  classrooms is an ordinary Tuesday. Both are overridable per tenant in
+  `School.settings` (`sync_max_delete_fraction_per_bundle` /
+  `sync_delete_fraction_min_rows`).
 * **The kill switch is `RMC_SYNC_DELETE_PROPAGATION_ENABLED=0`,** which restores the previous
   behaviour exactly. Turning propagation ON is never retroactive: the tombstone table starts
   empty, so only deletions from that point forward travel.

@@ -1,9 +1,9 @@
 {
   "version": "2026-06-02",
-  "generated_utc": "2026-09-02T15:15:19Z",
+  "generated_utc": "2026-09-02T19:58:38Z",
   "enhanced": {
     "path": "static/css/portal-shell-enhanced.min.css",
-    "bytes": 852744,
+    "bytes": 855743,
     "sources": [
       {
         "path": "static/css/rmc-bulk-actions.css",
@@ -72,8 +72,8 @@
       },
       {
         "path": "static/css/rmc-tenant-v3-100x-role-home.css",
-        "sha256": "df728002872ee5083bcaf7d53f75cd7f85cff8189a3d5198c4d8ff6c37e0be27",
-        "bytes": 30143
+        "sha256": "71fad48b59615958566d6020ce404efd4673db0ad61c516c233e4b7b1ab1d2b4",
+        "bytes": 34484
       },
       {
         "path": "static/css/rmc-platform-inner-pages.css",

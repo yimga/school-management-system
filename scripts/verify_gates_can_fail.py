@@ -970,6 +970,23 @@ MUTATIONS["edge-rail-coverage"] = Mutation(
     ),
 )
 
+MUTATIONS["lander-write-targets"] = Mutation(
+    kind="patch",
+    path="apps/migration_cloud/landers/write_targets.py",
+    defect=(
+        "the declared write-target table drifts away from what the landers actually "
+        "write - the edge pre-import guard then tells an operator an import is clean "
+        "while it lands rows on a model no rail carries"
+    ),
+    # Deleting a DECLARED model is the drift that matters and the one a reviewer
+    # would not notice: the resolver still finds schoolops.Route in transport_lander,
+    # the table no longer claims it, and the guard stops counting the bus roster as
+    # box-resident. The anchor is one line of a generated table, so it cannot go
+    # stale against someone else's edit the way a prose anchor would.
+    anchor=b'        "schoolops.Route",',
+    replacement=b'        # gate-proof: this line was removed to plant the drift',
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",
