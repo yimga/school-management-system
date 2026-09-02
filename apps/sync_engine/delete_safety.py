@@ -87,6 +87,9 @@ fraction is informative.
 """
 from __future__ import annotations
 
+from django.core.exceptions import FieldError
+from django.db import Error as DatabaseLayerError
+
 import logging
 
 from django.conf import settings
@@ -153,7 +156,7 @@ def _school_overrides(school_id) -> dict:
             .first()
         )
         return raw if isinstance(raw, dict) else {}
-    except Exception:  # noqa: BLE001 - a config read must never break an apply
+    except (DatabaseLayerError, FieldError, ImportError):  # a config read must never break an apply
         logger.debug("could not read school delete-guard overrides", exc_info=True)
         return {}
 
@@ -234,7 +237,7 @@ def peer_addressed_pks(school_id, keys) -> set:
             local_pk__in=sorted({p for _e, p in keys}),
         ).values_list("entity_type", "local_pk")
         return {(r[0], r[1]) for r in rows} & keys
-    except Exception:  # noqa: BLE001 - never break an apply; refuse instead
+    except (DatabaseLayerError, FieldError):  # never break an apply; refuse instead
         logger.debug("could not read the apply ledger for delete safety", exc_info=True)
         return set()
 
