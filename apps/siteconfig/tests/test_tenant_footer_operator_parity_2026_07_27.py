@@ -14,6 +14,12 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 ROOT = Path(__file__).resolve().parents[3]
 FINISH_CSS = ROOT / "static" / "css" / "rmc-tenant-chrome-finish.css"
 PORTAL_BASE = ROOT / "templates" / "portal_base.html"
@@ -37,3 +43,7 @@ class TenantFooterOperatorParityTests(SimpleTestCase):
             '[data-rmc-footer-surface="tenant-standard"].rmc-civic-footer{padding:6px clamp(14px,2vw,20px) 6px!important',
             html,
         )
+        # The pin is an inline <style> block, so it IS emitted text -- which
+        # means the engine can be asked for it rather than the file.
+        assert_markup(self, _TN_ROOT / "templates/portal_base.html",
+                      'id="rmc-tenant-chrome-critical"')

@@ -3,6 +3,13 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -38,6 +45,17 @@ class AdminSidebarV3SourceTests(SimpleTestCase):
             "data-rmc-admin-undo",
         ):
             self.assertIn(token, body)
+        # Scope attributes and the shared body are markup and a parse node.
+        assert_markup(self, _TN_ROOT / "templates/admin/sidebar_inner.html",
+                      'data-rmc-admin-sidebar-scope="tenant"')
+        assert_wires(self, _TN_ROOT / "templates/admin/sidebar_inner.html",
+                     "admin/sidebar_v3_body.html")
+        assert_markup(self, _TN_ROOT / "templates/partials/manager_platform_admin_sidebar.html",
+                      'data-rmc-admin-sidebar-scope="operator"')
+        assert_wires(self, _TN_ROOT / "templates/partials/manager_platform_admin_sidebar.html",
+                     "admin/sidebar_v3_body.html")
+        assert_markup(self, _TN_ROOT / "templates/admin/sidebar_v3_body.html",
+                      "data-rmc-admin-command-open")
 
     def test_runtime_has_conflict_offline_keyboard_and_accessibility_contracts(self):
         javascript = (ROOT / "static/js/rmc-admin-sidebar-v3.js").read_text(encoding="utf-8")

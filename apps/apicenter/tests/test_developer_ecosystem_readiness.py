@@ -4,6 +4,13 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_urls_reverse,
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -28,6 +35,11 @@ class DeveloperEcosystemReadinessTests(SimpleTestCase):
         self.assertIn("Webhook testing guide", webhooks)
         self.assertIn("App review policy", certification)
         self.assertIn("Partner sandbox guidance", sandbox)
+        # Every needle above is a {% trans %} msgid, invisible to a parse.
+        # The docs page really extending the backend shell is not.
+        assert_wires(self, _TN_ROOT / "templates/apicenter/api_portal_docs.html",
+                     "backend_base.html")
+        assert_urls_reverse(self, _TN_ROOT / "templates/apicenter/api_portal_docs.html")
 
     def test_developer_templates_do_not_fake_marketplace_or_payment_readiness(self):
         combined = "\n".join(

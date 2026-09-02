@@ -24,6 +24,12 @@ from apps.schools.onboarding_recommendations import (
     hydrate_confidence_display,
 )
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 def _empty_envelope() -> dict:
     """An envelope with nothing supplied, so every evidence key is missing."""
@@ -182,6 +188,9 @@ class SurfaceContractTests(SimpleTestCase):
         # `score_kind` is a machine constant; the envelope carries the sentence.
         self.assertIn("signup_confidence.calibration.statement", source)
         self.assertNotIn("signup_confidence.score_kind", source)
+        # Every needle is a {{ }} path, and two are absences. The shell is not.
+        assert_wires(self, _TN_ROOT / "templates/schools/super_tenant_360.html",
+                     "control_plane_base.html")
 
 
 class FullManifestTests(SimpleTestCase):

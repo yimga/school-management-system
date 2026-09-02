@@ -10,6 +10,14 @@ from apps.portal.parent_identity import (
     resolve_parent_simplified_default,
     school_membership_switch_context,
 )
+
+from pathlib import Path
+
+from apps.siteconfig.tests._template_nodes import (
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
 class ParentSimplifiedDefaultTests(SimpleTestCase):
     def test_default_on_without_query(self):
         from unittest.mock import patch
@@ -71,3 +79,6 @@ class ParentSettingsSecurityContractTests(SimpleTestCase):
         )
         body = tpl.read_text(encoding="utf-8")
         self.assertIn("passkey", body.lower())
+        # "passkey" is {% trans %} copy; the shell it extends is a parse node.
+        assert_wires(self, _TN_ROOT / "templates/parent/settings_security.html",
+                     "portal_base.html")

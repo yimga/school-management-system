@@ -9,6 +9,12 @@ from django.urls import reverse
 from apps.schools.onboarding_recommendations import build_onboarding_recommendations
 from apps.schools.signup_views import signup_journey_event, signup_recommendations_preview
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_loads_static,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 class RecommendationConfidenceEnvelopeTests(SimpleTestCase):
     def test_incomplete_answers_never_claim_high_confidence(self):
@@ -140,3 +146,7 @@ class SignupWizardStaticContractTests(SimpleTestCase):
             css,
         )
         self.assertIn("prefers-reduced-motion", source)
+        # The template half of this test is one {% static %} argument, which is
+        # still in the bytes of a commented-out page. Ask for the tag.
+        assert_loads_static(self, _TN_ROOT / "templates/schools/signup_school.html",
+                            "js/rmc-signup-wizard-v4.js")

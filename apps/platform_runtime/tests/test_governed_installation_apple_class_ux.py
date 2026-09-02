@@ -2,6 +2,13 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -27,3 +34,9 @@ class GovernedInstallationAppleClassTests(SimpleTestCase):
                 self.assertIn("hide_nav_detail", text)
                 self.assertIn("apple_class_dependency_graph.html", text)
                 self.assertIn("rollback", text.lower())
+        # The sweep above runs over a CONCATENATION of the page, the nav module
+        # and the frame, so a hit says nothing about which file carries it.
+        assert_wires(self, _TN_ROOT / "templates/platform_runtime/change_requests.html",
+                     "rmc_operational_center_frame.html")
+        assert_markup(self, _TN_ROOT / "templates/platform_runtime/change_requests.html",
+                      "rmc-configuration-change-requests")

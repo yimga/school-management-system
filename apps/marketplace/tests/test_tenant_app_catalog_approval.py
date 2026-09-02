@@ -17,6 +17,12 @@ from apps.people.models import TeacherProfile
 from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models_platform_catalog import Plan
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 HOST = "catalog-approval.runmycampus.com"
@@ -57,6 +63,10 @@ class TenantAppCatalogApprovalSourceTests(SimpleTestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("--text-primary: var(--color-base-50, #f8fafc)", stylesheet)
         self.assertIn("--rmc-catalog-ink: var(--color-base-50, #f8fafc)", stylesheet)
+        # Three of the markers above are markup the catalog must PUT ON THE PAGE.
+        assert_markup(self, _TN_ROOT / "templates/marketplace/tenant_app_catalog.html",
+                      "rmc-catalog-readiness-grid", "data-rmc-catalog-filter-form",
+                      "rmc-catalog-app-grid")
 
     def test_filter_controller_never_replaces_governed_server_cards(self):
         controller = (ROOT / "static/js/tenant-app-catalog.js").read_text(

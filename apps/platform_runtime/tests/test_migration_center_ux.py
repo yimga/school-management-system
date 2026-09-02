@@ -2,6 +2,12 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -20,3 +26,7 @@ class MigrationCenterUXTests(SimpleTestCase):
         self.assertIn("Quarantine", text)
         self.assertIn("Rollback", text)
         self.assertIn("summary.quarantine_pending", text)
+        # os_center_key= is an {% include ... with %} argument and the rest are
+        # {% trans %} labels; the two includes are parse nodes.
+        assert_wires(self, _TN_ROOT / "templates/schools/super_migration_cloud.html",
+                     "rmc_operational_center_frame.html", "world_class_guided_stepper.html")
