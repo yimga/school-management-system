@@ -2,6 +2,12 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -33,3 +39,7 @@ class PremiumOperationalCenterTests(SimpleTestCase):
         self.assertIn("manual", lowered)
         self.assertNotIn("psp is live", lowered)
         self.assertNotIn("fully live payments", lowered)
+        # "missing"/"manual" are prose and the rest are absences, which an
+        # emptied template satisfies. The frame it hangs on is not.
+        assert_wires(self, _TN_ROOT / "templates/finance/payment_readiness_dashboard.html",
+                     "rmc_operational_center_frame.html")

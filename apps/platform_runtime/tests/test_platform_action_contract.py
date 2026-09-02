@@ -3,6 +3,8 @@ from pathlib import Path
 from django.conf import settings
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 class PlatformActionContractTests(SimpleTestCase):
     def read(self, relative):
@@ -29,8 +31,14 @@ class Tenant360SupportContractTests(SimpleTestCase):
     def test_tenant_360_exposes_safe_effective_configuration(self):
         root = Path(settings.BASE_DIR)
         view = (root / "apps/schools/super_views_platform_monitoring.py").read_text(encoding="utf-8")
-        template = (root / "templates/schools/super_tenant_360.html").read_text(encoding="utf-8")
+        tenant_360 = root / "templates/schools/super_tenant_360.html"
+        template = tenant_360.read_text(encoding="utf-8")
         self.assertIn("support_configuration", view)
         self.assertIn("sensitive_fragments", view)
-        self.assertIn('id="tenant-360-configuration"', template)
+        # The disclosure sentence is a {% trans %} msgid -- template code, so it
+        # stays a source read.
         self.assertIn("Credentials and secret-like values are always excluded", template)
+        # "Exposes" is a claim about the page. The section id is emitted text, so
+        # ask the engine rather than the bytes: a {% comment %} keeps the id and
+        # renders no configuration panel at all.
+        assert_markup(self, tenant_360, 'id="tenant-360-configuration"')

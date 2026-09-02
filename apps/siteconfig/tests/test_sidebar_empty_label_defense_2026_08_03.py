@@ -19,6 +19,7 @@ from django.template.loader import get_template
 from django.test import SimpleTestCase
 
 from apps.siteconfig.portal_sidebar_items import _dedupe_sidebar_items
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 
 class DedupeDropsLabellessItemsTests(SimpleTestCase):
@@ -52,5 +53,11 @@ class V8SidebarTemplateLabelGuardSealTests(SimpleTestCase):
         origin = get_template("partials/portal_sidebar_v8_groups.html").origin.name
         src = Path(origin).read_text(encoding="utf-8")
         # The render guard requires a label, so a label-less item never renders
-        # a blank pill even if one slips past the source dedupe.
+        # a blank pill even if one slips past the source dedupe. The guard is an
+        # {% if %} condition -- template code -- so this stays a source read.
         self.assertIn("item.url and item.label", src)
+        # A guard is only a guard while it still guards a pill. The pill's own
+        # markup is emitted text, and a {% comment %} keeps the guard expression
+        # in the bytes while rendering no pill at all -- which passes the read
+        # above for exactly the wrong reason.
+        assert_markup(self, origin, "cp-sidebar__item-label", "cp-nav-label")

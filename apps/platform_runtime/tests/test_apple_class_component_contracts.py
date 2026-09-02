@@ -3,6 +3,12 @@ from pathlib import Path
 from django.template.loader import get_template
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 COMPONENTS = ROOT / "templates" / "components"
@@ -36,6 +42,9 @@ class AppleClassComponentContractTests(SimpleTestCase):
         self.assertIn("<label", inline)
         self.assertIn("aria-label", inline)
         self.assertIn('role="meter"', meter)
+        # An accessible name only reaches a screen reader if it is EMITTED.
+        assert_markup(self, _TN_ROOT / "templates/components/apple_class_data_quality_meter.html",
+                      'role="meter"', "rmc-acx-data-quality")
 
     def test_css_supports_depth_mobile_and_reduced_motion(self):
         css = (ROOT / "static" / "css" / "rmc-world-class-experience.css").read_text(encoding="utf-8")

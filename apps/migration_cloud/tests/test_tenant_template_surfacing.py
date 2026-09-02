@@ -12,6 +12,9 @@ from pathlib import Path
 from django.test import SimpleTestCase, override_settings
 
 from apps.migration_cloud.views_tenant_upload import _canonical_template_urls
+from apps.siteconfig.tests._template_nodes import assert_markup
+
+UPLOAD_TPL = Path("templates/migration_cloud/connector/upload.html")
 
 
 @override_settings(ROOT_URLCONF="config.tenant_urls")
@@ -34,5 +37,10 @@ class UploadTemplateHasDownloadPanelTests(SimpleTestCase):
         src = Path(
             "templates/migration_cloud/connector/upload.html"
         ).read_text(encoding="utf-8")
+        # template_picker_url is the CONTEXT VARIABLE the panel is conditioned
+        # on -- template code, invisible to a parse -- so it stays a read. The
+        # panel's own heading is markup, and "surfaces the panel" is a claim
+        # about the page, so the engine answers that half.
+        assert_markup(self, UPLOAD_TPL, "mc-template-heading")
         self.assertIn("template_picker_url", src)
         self.assertIn("mc-template-heading", src)

@@ -4,9 +4,14 @@
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import shell_css_contract  # noqa: E402
+
 CONTRACT_CSS = ROOT / "static/css/rmc-sidebar-rail-contract.css"
 MCP_CSS = ROOT / "static/css/manager-control-plane.css"
 
@@ -58,14 +63,19 @@ def main() -> int:
                 "manager-control-plane.css regressed: #cp-sidebar-col max-height calc trap still present"
             )
 
+    # Delivery, not spelling. templates/portal_base.html ships this stylesheet
+    # inside css/portal-shell-enhanced.min.css (source 31 of 77) and
+    # templates/control_plane_base.html inherits the whole head of
+    # templates/control_plane_skeleton.html, so a substring test over each
+    # shell's own bytes reported both of them missing while both serve the rules.
     for rel, marker in SHELL_MARKERS:
         path = ROOT / rel
         if not path.is_file():
             errors.append(f"missing shell template {rel}")
             continue
-        body = path.read_text(encoding="utf-8")
-        if marker not in body:
-            errors.append(f"{rel} does not load {marker}")
+        finding = shell_css_contract.missing_stylesheet(rel, marker)
+        if finding:
+            errors.append(finding)
 
     if errors:
         print("verify_sidebar_rail_contract: FAIL")

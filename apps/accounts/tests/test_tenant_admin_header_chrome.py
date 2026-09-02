@@ -29,6 +29,8 @@ from pathlib import Path
 from django.conf import settings
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 REPO_ROOT = Path(settings.BASE_DIR)
 CSS_DIR = REPO_ROOT / "static" / "css"
 TEMPLATES_DIR = REPO_ROOT / "templates"
@@ -74,8 +76,11 @@ class TenantAdminBootstrapAsymmetryTests(SimpleTestCase):
         )
 
     def test_tenant_admin_header_includes_the_utilities_dropdown(self):
-        nav_bridge = NAV_BRIDGE.read_text(encoding="utf8")
-        self.assertIn("components/rmc_tenant_header_utilities.html", nav_bridge)
+        # "includes" is an {% include %}. Reading the bytes cannot tell a live
+        # include from one inside {% comment %}, and a commented-out one is
+        # exactly the regression that would take Utilities off the tenant
+        # /admin/ header while leaving this filename in the file.
+        assert_wires(self, NAV_BRIDGE, "components/rmc_tenant_header_utilities.html")
 
 
 class UtilitiesMenuOwnsItsGeometryTests(SimpleTestCase):
@@ -111,9 +116,16 @@ class UtilitiesMenuOwnsItsGeometryTests(SimpleTestCase):
         )
 
     def test_template_relies_on_the_show_class_contract(self):
-        markup = UTILITIES_TPL.read_text(encoding="utf8")
-        self.assertIn('data-bs-toggle="dropdown"', markup)
-        self.assertIn("rmc-header-utilities__menu", markup)
+        # The whole module docstring is about markup that ships without the CSS
+        # that closes it. The toggle attribute Bootstrap JS binds to, and the
+        # class the stylesheet keys .show off, both have to be ON THE ELEMENT --
+        # so both are asked of the template engine rather than of the bytes.
+        assert_markup(
+            self,
+            UTILITIES_TPL,
+            'data-bs-toggle="dropdown"',
+            "rmc-header-utilities__menu",
+        )
 
 
 class TenantAdminBootstrapLayoutShimTests(SimpleTestCase):

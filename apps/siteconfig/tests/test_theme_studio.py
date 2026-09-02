@@ -27,6 +27,12 @@ from apps.test_utils.http_clients import (
     login_manager_client,
 )
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 User = get_user_model()
 _TenantSettingsModel = getattr(_siteconfig_models, "Site" + "Settings")
@@ -595,6 +601,12 @@ class ThemeStudioTemplateMarkerTests(SimpleTestCase):
         self.assertIn('name="skip_theme_publish_guard__present"', template_text)
         self.assertIn('name="use_secondary_font_for_headings__present"', template_text)
         self.assertIn('name="report_downloads_enabled__present"', template_text)
+        # A hidden input only reaches the POST if the page EMITS it.
+        assert_markup(
+            self,
+            _TN_ROOT / "templates/siteconfig/partials/theme_colors_page_body.html",
+            'name="use_dark_mode__present"',
+        )
 
 
 class ThemeStudioApplyScriptTests(SimpleTestCase):

@@ -14,6 +14,13 @@ from apps.migration_cloud.models import BundleStatus, IntakeMethod, MigrationBun
 from apps.schools.models import School
 from apps.platform_runtime.northstar_self_heal_status import self_heal_requires_attention
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 class PdfFragmentDetectionTests(SimpleTestCase):
     def test_custom_fields_raw_line_is_fragment(self):
@@ -94,6 +101,12 @@ class WizardBaseBlockBridgeTests(SimpleTestCase):
             "{% block connector_body %}{% block cp_shell_page %}{% endblock %}{% endblock %}",
             source,
         )
+        # The block chain above is template CODE. What is checkable is that the
+        # bridge template still extends the shell and emits its own page root.
+        assert_wires(self, _TN_ROOT / "templates/migration_cloud/connector/_wizard_base.html",
+                     "portal_base.html")
+        assert_markup(self, _TN_ROOT / "templates/migration_cloud/connector/_wizard_base.html",
+                      "rmc-page--migration-connector")
 
 
 class AutoDismissFragmentIntegrationTests(TestCase):

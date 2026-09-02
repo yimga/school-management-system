@@ -24,8 +24,11 @@ from apps.schools.dashboard_rbac import (
 )
 from apps.schools.middleware_dashboard_topology import DashboardTopologyRBACMiddleware
 from apps.schools.super_admin_paired_surfaces import build_surface_parity_matrix
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 ROOT = Path(__file__).resolve().parents[3]
+_PORTAL_BASE = ROOT / "templates" / "portal_base.html"
+_USER_DROPDOWN = ROOT / "templates" / "components" / "user_dropdown.html"
 
 
 class DashboardTopologyClassificationTests(SimpleTestCase):
@@ -128,12 +131,18 @@ class DashboardTopologyViewportMarkerTests(SimpleTestCase):
         text = (ROOT / "templates" / "components" / "user_dropdown.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("data-rmc-shell-viewport-safe", text)
+        # accounts:logout is a {% url %} argument -- it renders to a path, so the
+        # route NAME is only ever visible in the source.
         self.assertIn("accounts:logout", text)
+        # The viewport-safe hook is markup and the theme chip is an {% include %}.
+        # Both are things the engine can answer, and a {% comment %} answers
+        # neither -- which is what makes this a behaviour check and not a spelling
+        # check.
+        assert_markup(self, _USER_DROPDOWN, "data-rmc-shell-viewport-safe")
         # v4.01.43: the theme control moved from an inline `rmc-theme-btn` element
         # into the shared header_theme_chip component (rendered in the dropdown) +
         # rmc-theme-toggle.js. Assert the theme control is present via its component.
-        self.assertIn("header_theme_chip.html", text)
+        assert_wires(self, _USER_DROPDOWN, "header_theme_chip.html")
 
     def test_control_plane_shell_uses_scrollable_main(self):
         skeleton = (ROOT / "templates" / "control_plane_skeleton.html").read_text(
@@ -169,8 +178,13 @@ class DashboardTopologyViewportMarkerTests(SimpleTestCase):
         # rules moved into design-tokens.css (data-rmc-shell-main) and
         # rmc-class-grammar.css (.rmc-dashboard-widget-boundary), both loaded
         # blocking here. Assert the widget-boundary JS + the grammar that styles it.
+        # Both are {% static %} arguments, never emitted text, so they stay reads.
         self.assertIn("rmc-dashboard-widget-boundary.js", portal)
         self.assertIn("rmc-class-grammar.css", portal)
+        # data-rmc-shell-main is the marker those retired rules moved ONTO, and it
+        # is real markup -- so this asks whether the shell still emits the element
+        # the whole consolidation hangs on, which no source read can tell.
+        assert_markup(self, _PORTAL_BASE, "data-rmc-shell-main")
 
 
 class DashboardTopologyContextProcessorTests(TestCase):

@@ -12,6 +12,9 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO / "scripts"))
+
+import shell_css_contract  # noqa: E402
 
 SUBPROCESS_GATES = (
     "scripts/verify_platform_vertical_workspace_policy.py",
@@ -77,10 +80,13 @@ def main() -> int:
     portal = _read(PORTAL)
     if "_activity_ticker_inline.html" not in portal:
         findings.append(f"{PORTAL}: tenant header must include Tier-1 inline partial")
-    if "rmc-cp-activity-tiers.css" not in portal:
-        findings.append(f"{PORTAL}: missing activity tiers CSS")
-    if portal.count("rmc-cp-activity-tiers.css") < 1:
-        findings.append(f"{PORTAL}: activity tiers CSS not wired")
+    # The tenant shell links ONE minified bundle that carries this stylesheet as
+    # source 63 of 77, so the filename appears nowhere in the template while the
+    # rules ship on every tenant page. Both of these substring tests were the
+    # same false positive, counted twice.
+    tiers_finding = shell_css_contract.missing_stylesheet(PORTAL, "rmc-cp-activity-tiers.css")
+    if tiers_finding:
+        findings.append(tiers_finding)
     if "_activity_ticker_drawer.html" not in portal or "rmc-cp-activity-drawer.js" not in portal:
         findings.append(f"{PORTAL}: authenticated portal must include drawer + JS")
     if "portal_landing_activity_ticker" not in portal:
@@ -110,16 +116,21 @@ def main() -> int:
                 if "_platform_pulse.html" in chrome:
                     findings.append(f"{rel}: platform_pulse must be landing-only")
         if rel in ("templates/control_plane_skeleton.html",):
-            if "rmc-cp-activity-tiers.css" not in text:
-                findings.append(f"{rel}: missing rmc-cp-activity-tiers.css")
+            skeleton_finding = shell_css_contract.missing_stylesheet(
+                rel, "rmc-cp-activity-tiers.css"
+            )
+            if skeleton_finding:
+                findings.append(skeleton_finding)
             if "_activity_ticker_drawer.html" not in text:
                 findings.append(f"{rel}: missing activity drawer include")
             if "rmc-cp-activity-drawer.js" not in text:
                 findings.append(f"{rel}: missing activity drawer JS")
 
-    admin_site = _read("templates/admin/base_site.html")
-    if "rmc-cp-activity-tiers.css" not in admin_site:
-        findings.append("admin/base_site.html: missing rmc-cp-activity-tiers.css")
+    admin_finding = shell_css_contract.missing_stylesheet(
+        "templates/admin/base_site.html", "rmc-cp-activity-tiers.css"
+    )
+    if admin_finding:
+        findings.append(admin_finding)
 
     admin_base = _read("templates/admin/base.html")
     if "_activity_ticker_drawer.html" not in admin_base:
@@ -156,14 +167,41 @@ def main() -> int:
     if "data-rmc-vertical-workspace-policy" not in registry:
         findings.append("shell registry: missing data-rmc-vertical-workspace-policy")
 
-    # Tier 1 opens drawer; Tier 2 on operator landings
-    for landing in (
+    # Tier 1 opens the drawer; Tier 2 on the operator landings.
+    #
+    # _activity_ticker_landing_strip.html is RETIRED: hoisted off these three
+    # landings into the shared header on 2026-06-06 (ae1b2cc4d), then removed
+    # from the header itself on 2026-08-19 (0711ac109, quiet-header v2:
+    # "Landing-strip chrome is retired from the header stack"). Nothing includes
+    # it today, so this loop asserted the pre-2026-08-19 contract and failed on
+    # all three landings every run. What replaced it is the Tier-1 inline badge
+    # plus the drawer it opens, inherited through each landing's shell chain --
+    # so that is what is asserted, with a half-wired revival as the finding.
+    landings = (
         "templates/schools/super_dashboard.html",
         "templates/super/founder_dashboard.html",
         "templates/customersuccess/super_dashboard.html",
-    ):
-        if "_activity_ticker_landing_strip.html" not in _read(landing):
-            findings.append(f"{landing}: missing operator Tier-2 landing strip")
+    )
+    strip_wired = [
+        rel
+        for rel in landings
+        if shell_css_contract.renders(rel, "_activity_ticker_landing_strip.html")
+    ]
+    if strip_wired and len(strip_wired) != len(landings):
+        findings.append(
+            "operator Tier-2 landing strip is half-wired: "
+            + ", ".join(strip_wired)
+            + " render it while the other operator landings do not"
+        )
+    for landing in landings:
+        if landing in strip_wired:
+            continue
+        for partial in ("_activity_ticker_inline.html", "_activity_ticker_drawer.html"):
+            if not shell_css_contract.renders(landing, partial):
+                findings.append(
+                    f"{landing}: no operator Tier-2 activity surface -- neither the "
+                    f"retired landing strip nor {partial} is reachable"
+                )
 
     if findings:
         print("PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_FAIL", file=sys.stderr)

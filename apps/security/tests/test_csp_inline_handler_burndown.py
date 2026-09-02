@@ -18,6 +18,12 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_renders,
+    assert_wires,
+)
+
 import apps.security as _security_pkg
 
 _REPO = Path(_security_pkg.__file__).resolve().parents[2]
@@ -194,7 +200,22 @@ class Batch1DelegatedConversionTests(SimpleTestCase):
 
     def test_standalone_print_docs_load_handler_module(self):
         for rel in _STANDALONE_LOADS_HANDLER:
-            body = (_REPO / rel).read_text(encoding="utf-8")
+            path = _REPO / rel
+            body = path.read_text(encoding="utf-8")
+            # The doc must still BE a live standalone document: emitting the
+            # marker the module exists to serve, and wiring its own styles and
+            # brand block. Both are asked of the ENGINE, so a body moved inside
+            # {% comment %} fails here although the bytes are unchanged.
+            assert_markup(self, path, "data-rmc-print")
+            assert_wires(
+                self,
+                path,
+                "reports/_report_styles.html",
+                "partials/rmc_print_v2_brand_block.html",
+            )
+            # The module name itself is a {% static %} ARGUMENT, and neither doc
+            # renders standalone (the brand block needs SITE.primary_color), so
+            # that half has to stay a source read.
             self.assertIn(
                 "js/rmc-csp-handlers.js",
                 body,
@@ -207,7 +228,14 @@ class Batch1DelegatedConversionTests(SimpleTestCase):
         # is a plain same-URL anchor, and no inline onclick reload survives.
         body = (_REPO / "templates/errors/500_minimal.html").read_text(encoding="utf-8")
         self.assertNotIn("onclick=", body)
-        self.assertIn('<a class="primary" href="">', body)
+        # The retry control has to be a real anchor in the RENDERED page, not a
+        # string in the file. 500_minimal has no shell and no context needs, so
+        # it renders standalone and this is the strongest form available here.
+        assert_renders(
+            self,
+            _REPO / "templates/errors/500_minimal.html",
+            '<a class="primary" href="">',
+        )
 
 
 # STEP 2d — the full non-admin inline on*= burndown (40 handlers / 21 templates).

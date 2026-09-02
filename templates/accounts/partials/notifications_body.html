@@ -124,13 +124,7 @@
       {% else %}
         {% url 'accounts:redirect' as notifications_dashboard_url %}
       {% endif %}
-      {% include "components/rmc_empty_state.html" with
-         icon="bi-bell"
-         title=_("You're all caught up")|stringformat:"s"
-         message=_("No notifications right now. We'll let you know when something needs your attention.")|stringformat:"s"
-         primary_label=_("Back to dashboard")|stringformat:"s"
-         primary_url=notifications_dashboard_url
-      %}
+      {% include "components/rmc_empty_state.html" with icon="bi-bell" title=_("You're all caught up")|stringformat:"s" message=_("No notifications right now. We'll let you know when something needs your attention.")|stringformat:"s" primary_label=_("Back to dashboard")|stringformat:"s" primary_url=notifications_dashboard_url %}
     {% endif %}
   </div>
 </div>

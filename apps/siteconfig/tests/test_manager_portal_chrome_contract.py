@@ -1,5 +1,6 @@
 """Manager corporate footer + tenant portal chrome template contracts."""
 
+import re
 from pathlib import Path
 
 from django.test import SimpleTestCase
@@ -7,12 +8,14 @@ from django.test import SimpleTestCase
 from apps.siteconfig.tests._template_nodes import (
     assert_markup,
     assert_wires,
+    literal_text,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
 
 SKELETON = ROOT / "templates/control_plane_skeleton.html"
 ADMIN_BASE = ROOT / "templates/admin/base.html"
+BASE_SITE = ROOT / "templates/admin/base_site.html"
 PORTAL_BASE = ROOT / "templates/portal_base.html"
 AI_CARD = ROOT / "templates/components/ai_guided_assistant_card.html"
 MANAGER_TOPBAR = ROOT / "templates/partials/manager_operator_topbar.html"
@@ -94,10 +97,22 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         # rmc-django-command-band (single band per the v15 Scan/Form archetype).
         self.assertIn("rmc-django-command-band", change_list)
         self.assertIn("rmc-django-command-band", change_form)
-        # Versioned admin-canvas cache-bust marker (bumped per admin-OS wave, e.g.
-        # 20260724-admin-os-v158); assert the stable admin-OS version prefix so a
-        # routine version bump doesn't trip this contract.
-        self.assertIn("admin-os-v", base_site)
+        # Versioned cache-bust marker. This asked for the literal prefix
+        # "admin-os-v" so a routine BUMP would not trip it -- and then the
+        # prefix itself was renamed (20260724-admin-os-v158 became
+        # 20260827-admin-navigation-v23), so the contract has been RED ever
+        # since while the cache-busting it stands for never stopped working.
+        #
+        # A prefix is not the stable part; the SHAPE is. Assert that the
+        # shell really emits a ?v= token and the build stamp, through the
+        # engine -- a base_site whose body is one {% comment %} emits neither.
+        emitted = literal_text(BASE_SITE)
+        self.assertTrue(
+            re.search(r"\?v=[0-9]{8}-[a-z0-9\-]+", emitted),
+            "manager admin shell must cache-bust its stylesheets with a "
+            "dated ?v= token; found none in the emitted markup",
+        )
+        self.assertIn('name="rmc-admin-approval-build"', emitted)
         self.assertIn('data-rmc-admin-surface="smart-form"', change_form)
         self.assertIn('data-rmc-admin-surface="smart-changelist"', change_list)
         self.assertIn("real-admin-canvas: terminal production contract", canvas_css)

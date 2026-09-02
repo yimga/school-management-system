@@ -181,6 +181,39 @@ def _html_literals(node: ast.AST) -> set[str]:
     return out
 
 
+def _shared_html_literals(tree: ast.AST) -> set[str]:
+    """Template literals a whole module shares -- NOT another test's.
+
+    module-level constants, class attributes, setUp and helper methods all
+    count: a test that uses PORTAL_BASE really is about portal_base.html.
+    A literal that appears only inside a DIFFERENT test function does not:
+    walking the whole tree credited every test in a 20-test module with all
+    twenty templates, so emptying one changed nothing for nineteen of them
+    and they landed in UNMEASURABLE -- a bucket excluded from the rate,
+    which made this gate look better the wider the attribution got.
+
+    Measured 2026-09-01: population 385 -> 323, and not one BASELINED
+    finding left the pool. The 62 that go are cases that read a .py, .js or
+    .css file and were only ever candidates by inheritance.
+    """
+    keep: set[str] = set()
+
+    def walk(node: ast.AST) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(
+                child, (ast.FunctionDef, ast.AsyncFunctionDef)
+            ) and child.name.startswith("test"):
+                continue
+            if isinstance(child, ast.Constant) and isinstance(child.value, str):
+                value = child.value
+                if value.endswith((".html", ".htm")) and " " not in value:
+                    keep.add(value)
+            walk(child)
+
+    walk(tree)
+    return keep
+
+
 def asserted_needles(fn: ast.FunctionDef) -> list[str]:
     """Every literal this test asserts IS PRESENT.
 
@@ -236,7 +269,7 @@ def candidates(root: Path, include_db_backed: bool = False) -> list[dict]:
             tree = ast.parse(source)
         except (OSError, SyntaxError):
             continue
-        module_html = _html_literals(tree)
+        module_html = _shared_html_literals(tree)
         db_free = _db_free_classes(tree)
         rel = str(path.relative_to(root)).replace("\\", "/")
         for cls in ast.walk(tree):

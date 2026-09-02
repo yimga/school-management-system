@@ -9,11 +9,13 @@ from pathlib import Path
 from django.test import SimpleTestCase
 
 from apps.schools.tests.test_marketing_phase0_visual_truth import assert_no_exact_plan_pound_teasers
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 LANDING = REPO_ROOT / "templates" / "schools" / "marketing_landing_v2.html"
 BASE_MARKETING = REPO_ROOT / "templates" / "marketing" / "base_marketing.html"
+BELL_CLOCK = REPO_ROOT / "templates" / "marketing" / "components" / "_bell_clock_sticky.html"
 
 
 class MarketingPhase1AssetsTest(SimpleTestCase):
@@ -50,6 +52,20 @@ class MarketingPhase1AssetsTest(SimpleTestCase):
 class MarketingPhase1HomeWiringTest(SimpleTestCase):
     def test_home_includes_day_role_story_shell(self) -> None:
         text = LANDING.read_text(encoding="utf-8")
+        # "includes" is an {% include %}: three of the four names below are
+        # partials the home page must actually pull in, and a filename left in
+        # a comment pulls in nothing. mkt-day-role-toggle.js is a {% static %}
+        # argument and stays a read, as does the whole-text handoff to
+        # assert_no_exact_plan_pound_teasers below.
+        assert_wires(
+            self,
+            LANDING,
+            "marketing/components/_day_role_story.html",
+            "marketing/components/_rotating_headline.html",
+            "marketing/components/_product_proof_block.html",
+        )
+        assert_markup(self, LANDING, "mkt-edt-voices--compact")
+        assert_markup(self, BELL_CLOCK, "data-mkt-bell-clock")
         self.assertIn("_day_role_story.html", text)
         self.assertIn("mkt-day-role-toggle.js", text)
         self.assertIn("_rotating_headline.html", text)
@@ -60,6 +76,11 @@ class MarketingPhase1HomeWiringTest(SimpleTestCase):
 
     def test_base_marketing_loads_v3_assets(self) -> None:
         text = BASE_MARKETING.read_text(encoding="utf-8")
+        # The four asset names are {% static %} ARGUMENTS -- not emitted text,
+        # and this shell does not render standalone -- so they stay reads. The
+        # theme attribute is markup the shell has to put on the page for
+        # theme-toggle.js to have anything to flip, so the engine answers it.
+        assert_markup(self, BASE_MARKETING, 'data-theme="light"')
         self.assertIn("marketing-critical.min.css", text)
         self.assertIn("marketing-enhanced.min.css", text)
         self.assertIn("scroll-narrative.js", text)

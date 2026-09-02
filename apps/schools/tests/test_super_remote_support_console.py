@@ -19,6 +19,7 @@ from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.schools import super_views_remote_support as srs
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 rf = RequestFactory()
 
@@ -67,37 +68,55 @@ class SuperRemoteSupportConsoleViewTests(SimpleTestCase):
 
     def test_template_source_carries_static_hooks(self):
         src = _TEMPLATE.read_text(encoding="utf-8")
-        for needle in (
+        # A {% static %} argument is never emitted text, so the bundle name is
+        # only visible in the source.
+        self.assertIn("rmc-super-remote-support.js", src)
+        # Carries no inline style attributes -- a negative over the whole source.
+        self.assertNotIn("style=", src)
+        # Every other hook here is plain markup, and reading the file cannot tell
+        # a live console from one whose body sits inside {% comment %} -- which is
+        # a page the JS binds nothing to. Ask the engine what is EMITTED.
+        assert_markup(
+            self,
+            _TEMPLATE,
             'id="rmc-super-remote-support-config"',
             "data-rmc-remote-support-rows",
             "data-rmc-remote-support-empty-row",
             "data-rmc-remote-support-refresh",
             "data-rmc-remote-support-status",
-            "rmc-super-remote-support.js",
             "sessions_url",
             "accept_url_template",
             "end_url_template",
-        ):
-            self.assertIn(needle, src, needle)
-        # Extends the control-plane base; carries no inline style attributes.
-        self.assertIn('{% extends "control_plane_base.html" %}', src)
-        self.assertNotIn("style=", src)
+        )
+        # Extends the control-plane base. A parse sees the ExtendsNode; a comment
+        # produces none, which is what "extends" has to mean here.
+        assert_wires(self, _TEMPLATE, "control_plane_base.html")
 
     def test_js_template_integration_contract(self):
-        # The hooks/config keys the JS consumes must be emitted by the template —
+        # The hooks/config keys the JS consumes must be emitted by the template --
         # this is the operator click-path contract (open -> see -> accept/end).
         js = _JS.read_text(encoding="utf-8")
-        tpl = _TEMPLATE.read_text(encoding="utf-8")
 
         self.assertIn("rmc-super-remote-support-config", js)
-        self.assertIn("rmc-super-remote-support-config", tpl)
         for key in ("sessions_url", "accept_url_template", "end_url_template"):
             self.assertIn(key, js)
-            self.assertIn(key, tpl)
-        # Containers the JS queries exist in the template.
+        # Containers the JS queries.
         for hook in ("data-rmc-remote-support-rows", "data-rmc-remote-support-status"):
             self.assertIn(hook, js)
-            self.assertIn(hook, tpl)
+        # The template half of the contract says "emitted by the template", and
+        # only a parse can check that. A source read passes over a console whose
+        # whole body has been commented out, which is exactly the page on which
+        # this integration silently stops existing.
+        assert_markup(
+            self,
+            _TEMPLATE,
+            "rmc-super-remote-support-config",
+            "sessions_url",
+            "accept_url_template",
+            "end_url_template",
+            "data-rmc-remote-support-rows",
+            "data-rmc-remote-support-status",
+        )
         # Action hooks the JS generates + listens for (template need not contain them).
         for hook in (
             "data-rmc-remote-support-accept",
@@ -106,7 +125,7 @@ class SuperRemoteSupportConsoleViewTests(SimpleTestCase):
         ):
             self.assertIn(hook, js)
         # CSRF regression guard: the manager-host cookie name MUST be read (the
-        # /super/ host blanks the plain csrftoken cookie — without this the
+        # /super/ host blanks the plain csrftoken cookie -- without this the
         # Accept/End POSTs ship an empty token and Django 403s them).
         self.assertIn("rmc_manager_csrftoken", js)
 

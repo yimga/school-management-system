@@ -70,10 +70,7 @@
           </div>
         </section>
       {% empty %}
-        {% include "components/rmc_empty_state.html" with
-           icon="bi-sliders"
-           title=_("No configuration available")|stringformat:"s"
-           message=_("Your plan does not expose tenant-level configuration. Contact your account manager.")|stringformat:"s" %}
+        {% include "components/rmc_empty_state.html" with icon="bi-sliders" title=_("No configuration available")|stringformat:"s" message=_("Your plan does not expose tenant-level configuration. Contact your account manager.")|stringformat:"s" %}
       {% endfor %}
     </main>
   </div>

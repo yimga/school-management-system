@@ -11,6 +11,9 @@ from apps.schools.marketing_v3_surfaces import (
     marketing_navbar_verb_primary,
     marketing_verb_nav_enabled,
 )
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
+_MARKETING_HOME = Path("templates/schools/marketing_landing_v2.html")
 
 
 class MarketingVerbNavTest(SimpleTestCase):
@@ -182,18 +185,28 @@ class MarketingHomeNineSectionsTest(SimpleTestCase):
 
         text = Path("templates/schools/marketing_landing_v2.html").read_text(encoding="utf-8")
         # Hero + ROI + walkthrough + globe + switching + compare + pricing + voices + close
-        self.assertIn("mkt-edt-hero", text)
-        self.assertIn("_day_role_story.html", text)
+        # The toggle bundle is a {% static %} argument and the two absences are
+        # negatives the mutation does not feed, so those three stay source reads.
         self.assertIn("mkt-day-role-toggle.js", text)
-        self.assertIn("mkt-edt-roi", text)
-        self.assertIn("mkt-edt-walkthrough", text)
-        self.assertIn("mkt-edt-globe", text)
-        self.assertIn("mkt-edt-switching", text)
-        self.assertIn("mkt-edt-compare", text)
-        self.assertIn("mkt-edt-voices--compact", text)
-        self.assertIn("mkt-edt-close", text)
         self.assertNotIn("mkt-edt-lens", text)
         self.assertNotIn("mkt-edt-jobs", text)
+        # Eight section classes are emitted markup and the day/role story is an
+        # {% include %}. A source read of any of them passes over a home page whose
+        # whole body is inside {% comment %} -- a page with NO sections at all,
+        # which is the one thing "has nine primary sections" must exclude.
+        assert_markup(
+            self,
+            _MARKETING_HOME,
+            "mkt-edt-hero",
+            "mkt-edt-roi",
+            "mkt-edt-walkthrough",
+            "mkt-edt-globe",
+            "mkt-edt-switching",
+            "mkt-edt-compare",
+            "mkt-edt-voices--compact",
+            "mkt-edt-close",
+        )
+        assert_wires(self, _MARKETING_HOME, "_day_role_story.html")
 
 
 @override_settings(ROOT_URLCONF="config.public_urls", ALLOWED_HOSTS=["runmycampus.com", "testserver"])

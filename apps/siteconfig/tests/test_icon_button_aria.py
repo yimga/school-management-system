@@ -13,6 +13,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 REPO = Path(__file__).resolve().parents[3]
 SCANNER = REPO / "scripts" / "scan_icon_button_aria.py"
 
@@ -42,8 +44,10 @@ class IconButtonAriaTests(SimpleTestCase):
             "templates/schools/custom_domain_wizard.html": ["copy-txt", "aria-label="],
             "templates/communication/group_list.html": ["bi-chat-dots", "aria-label="],
         }
+        # An accessible name only reaches a screen reader if the attribute is
+        # actually EMITTED. Reading the bytes cannot tell a live aria-label from
+        # one inside {% comment %} -- and a zero-tolerance a11y gate that passes
+        # over a commented-out control is worse than no gate at all.
         for rel, needles in checks.items():
-            src = (REPO / rel).read_text(encoding="utf-8")
-            for needle in needles:
-                with self.subTest(template=rel, needle=needle):
-                    self.assertIn(needle, src)
+            with self.subTest(template=rel):
+                assert_markup(self, REPO / rel, *needles)

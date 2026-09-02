@@ -30,6 +30,7 @@ from apps.accounts.views_workflow import (
     _LINK_VISIBILITY,
     _viewer_is_teacher,
 )
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 
 class _FakeUser:
@@ -126,15 +127,22 @@ class EmptyStepRendersAnExplanationTests(SimpleTestCase):
     """Filtering can empty a step — a blank card reads as a broken page."""
 
     def test_step_link_loop_has_an_empty_branch(self):
-        markup = (
+        workflow_main = (
             Path(settings.BASE_DIR)
             / "templates"
             / "accounts"
             / "partials"
             / "workflow_center_main.html"
-        ).read_text(encoding="utf8")
+        )
+        markup = workflow_main.read_text(encoding="utf8")
+        # {% empty %} is a tag and the note is a {% trans %} msgid: both are
+        # template code, so both stay source reads.
         self.assertIn("{% empty %}", markup)
         self.assertIn("Nothing here for your role", markup)
+        # The branch only helps if it renders. Its <p> is the one element in the
+        # file carrying this class list, and a class list IS emitted text -- so
+        # this asserts the honest note exists as markup, not merely as bytes.
+        assert_markup(self, workflow_main, "workflow-subtitle wrap mb-0 text-muted")
 
 
 class LinksCarryTheirUrlNameTests(SimpleTestCase):
