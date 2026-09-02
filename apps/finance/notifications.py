@@ -265,7 +265,12 @@ def notify_guardians_new_invoices_bulk(
     from apps.finance.models import Invoice
 
     total = 0
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    # tenant-isolation-allow: bounded by PROVENANCE, not by a filter. The only
+    # caller (views_invoicing.notify_guardians_new_invoices) pops invoice_ids from
+    # the SERVER-SIDE session key generate_fees wrote; the list never comes from the
+    # request body, so a caller cannot name another school's invoices. generate_fees
+    # became school-scoped on 2026-09-02, which is what makes that provenance sound
+    # -- before it, this list could have carried another school's rows.
     for inv in Invoice.objects.filter(id__in=invoice_ids).select_related("student"):
         total += notify_guardians_new_invoice(
             inv, created_by=created_by, send_email=send_email, force=True
