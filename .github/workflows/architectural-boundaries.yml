@@ -22,6 +22,7 @@ on:
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
       - "scripts/scan_test_host_fidelity.py"
+      - "scripts/scan_dangling_static_reference.py"
       - "apps/test_utils/tenant_hosts.py"
       - "scripts/scan_ci_shell_command_integrity.py"
       - "scripts/scan_admin_registered_on_unmounted_site.py"
@@ -801,6 +802,16 @@ jobs:
           run_unit u_raw_token_in_ui "No internal identifier is shown to a human as words"
           run_unit u_duplicate_dict_keys "No dict literal silently discards an entry"
           run_unit u_test_host_fidelity "Tests reach the host urlconf they name"
+
+          # A referenced asset that was never shipped does not fail the deploy --
+          # the storage subclass forgives it by design. It is simply absent for
+          # every user, and the log line looks exactly like a source-map miss.
+          u_dangling_static_reference() {
+            python scripts/scan_dangling_static_reference.py --compare
+            python -m unittest scripts.tests.test_scan_dangling_static_reference -v
+          }
+
+          run_unit u_dangling_static_reference "Static references point at files that exist"
           run_unit u_operator_landing_header_order "Operator landing header precedes cockpit chrome"
           run_unit u_lander_row_streaming "Migration Cloud landers stream canonical rows"
           run_unit u_migration_apply_stall_contract "Migration apply stall detection contract"

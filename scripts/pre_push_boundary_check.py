@@ -335,6 +335,14 @@ GATES: list[tuple[str, list[str]]] = [
     # passes while proving nothing, and reads to a reviewer as proof of the opposite.
     # Measured on a live request, not inferred (test_host_routing_contract_2026_09_02).
     ("test-host-fidelity", ["scan_test_host_fidelity.py", "--compare"]),
+    # A stylesheet asking for an asset nobody shipped fails SILENTLY:
+    # ForgivingCompressedManifestStaticFilesStorage refuses to fail a deploy over
+    # an unresolvable reference, so the icon is simply absent for every user. The
+    # vendored bootstrap-icons CSS declared a .woff fallback that was never copied
+    # into static/ (2026-09-02); it hid among eight source-map misses printed at
+    # the same level. Zero-tolerance, no baseline -- the tree measured 0 on
+    # introduction (899 files, 9 dev-only .map, 0 gaps).
+    ("dangling-static-reference", ["scan_dangling_static_reference.py", "--compare"]),
     # Pins transaction.atomic on four named money mutators. Deliberately NARROW
     # -- it is a hand-maintained list, not coverage of apps/finance/, and its own
     # docstring says so at length. Wired because four enforced invariants beat

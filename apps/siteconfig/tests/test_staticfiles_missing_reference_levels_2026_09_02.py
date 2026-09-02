@@ -130,6 +130,58 @@ class TheLevelCarriesTheMeaningTests(SimpleTestCase):
                 self.assertEqual(returned, name)
 
 
+class TheGateAndTheStorageMustAgreeTests(SimpleTestCase):
+    """Two copies of one rule, and they are not importable from each other.
+
+    ``scripts/scan_dangling_static_reference.py`` decides the same question at
+    push time that the storage decides at deploy time: is this miss a dev-only
+    artifact or a real gap? The scanner is stdlib-only on purpose -- it rides the
+    deps-free boundary workflow and cannot import Django app code -- so the
+    suffix list is duplicated by necessity. Nothing but this test stops the two
+    drifting apart, which would let the gate pass a shape the deploy still warns
+    about, or the reverse."""
+
+    def _scanner(self):
+        import importlib.util
+        from pathlib import Path as _Path
+
+        path = _Path(__file__).resolve().parents[3] / (
+            "scripts/scan_dangling_static_reference.py"
+        )
+        if not path.is_file():
+            self.skipTest("scanner not present at %s" % path)
+        spec = importlib.util.spec_from_file_location("_dangling_scan", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_the_dev_only_suffix_list_is_the_same_on_both_sides(self):
+        self.assertEqual(
+            tuple(self._scanner().DEV_ONLY_SUFFIXES),
+            tuple(Storage.DEV_ONLY_SUFFIXES),
+            "the push gate and the deploy log would disagree about what is expected",
+        )
+
+    def test_both_sides_classify_the_same_references_the_same_way(self):
+        scanner = self._scanner()
+        classify = Storage._reference_is_dev_only.__get__(
+            Storage.__new__(Storage), Storage
+        )
+        for reference in (
+            "js/vendor/dexie.min.js.map",
+            "vendor/bootstrap/css/bootstrap.min.css.map ",
+            "js/thing.js.map?v=3",
+            "vendor/bootstrap-icons/css/fonts/bootstrap-icons.woff?dd670306",
+            "img/sitemap.png",
+            "css/app.css",
+        ):
+            with self.subTest(reference=reference):
+                self.assertEqual(
+                    scanner.is_dev_only(scanner.normalise(reference)),
+                    classify(reference),
+                )
+
+
 class TheDeadFontReferenceIsGoneTests(SimpleTestCase):
     """Fixing the log level does not fix the asset. This does."""
 

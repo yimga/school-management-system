@@ -847,6 +847,26 @@ MUTATIONS["test-host-fidelity"] = Mutation(
     ),
 )
 
+MUTATIONS["dangling-static-reference"] = Mutation(
+    kind="create",
+    path=f"static/css/{_PROOF}_dangling.css",
+    defect=(
+        "a stylesheet that asks for an asset nobody shipped - the storage subclass "
+        "forgives the unresolvable reference by design, so the deploy stays green "
+        "and the icon is simply absent for every user; this is the shape that put a "
+        "bootstrap-icons .woff fallback into production with only .woff2 vendored"
+    ),
+    # A .css file, a real url(), and a target that is neither a data: URI nor a
+    # .map -- the three shapes the scanner was taught NOT to forgive. A plant using
+    # a forgiven one (a url() call inside JavaScript, a nested url(%23n) in an
+    # inline SVG, a missing source map) would leave this gate looking dead when it
+    # is working exactly as designed. url() without quotes is valid CSS.
+    content=(
+        b"@font-face{font-family:GateProof;" + chr(10).encode()
+        + b"src:url(fonts/gateproof-never-shipped.woff2) format(woff2)}" + chr(10).encode()
+    ),
+)
+
 MUTATIONS["tenant-queryset-safety"] = Mutation(
     kind="create",
     path=f"apps/schools/{_PROOF}_unscoped_queryset.py",
