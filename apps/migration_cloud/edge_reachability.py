@@ -62,11 +62,24 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
+from django.core.exceptions import FieldError, ImproperlyConfigured
+from django.db import DataError, OperationalError, ProgrammingError
 from django.utils.translation import gettext_lazy as _
 
 from .landers.write_targets import is_import_bookkeeping, write_targets_for
 
 logger = logging.getLogger(__name__)
+
+# Every defensive catch below is NAMED, not ``except Exception``. This module's whole
+# job is to say that something will be silently lost; a broad catch here would swallow
+# a bug in the assessment itself and return "nothing stranded" -- the exact shape of
+# the silence it exists to end. These two tuples are what a registry read and a
+# database touch can actually raise on a half-configured box.
+_RESOLVE_ERRORS = (
+    ImportError, AttributeError, LookupError, TypeError, ValueError, RuntimeError,
+    ImproperlyConfigured,
+)
+_DB_ERRORS = (ProgrammingError, OperationalError, DataError, FieldError)
 
 #: Configuration key, resolved through ``apps.migration_cloud.defaults`` (tenant
 #: SiteSettings -> env -> RuntimeDefaults -> seed), never read from a literal here.
@@ -327,7 +340,10 @@ def deployment_is_edge() -> bool:
         from apps.sync_engine.edge_enabled import edge_sync_enabled, is_sovereign_box
 
         return bool(is_sovereign_box() or edge_sync_enabled())
-    except Exception:  # noqa: BLE001 -- an unbootable sync app must not break an import
+    except _RESOLVE_ERRORS:
+        # An unbootable sync app must not break an import. Answering False is the
+        # SAFE side here: it makes the guard inert rather than making it invent a
+        # verdict about a deployment it could not identify.
         logger.debug("edge_reachability: could not determine deployment shape", exc_info=True)
         return False
 
@@ -338,7 +354,9 @@ def stranded_write_policy() -> str:
         from . import defaults as mc_defaults
 
         raw = str(mc_defaults.get(POLICY_KEY) or "").strip().lower()
-    except Exception:  # noqa: BLE001 -- bootstrap / unmigrated DB
+    except _RESOLVE_ERRORS + _DB_ERRORS:
+        # Bootstrap, or an unmigrated RuntimeDefaults table. Falling back to WARN and
+        # never to OFF: a deployment that cannot read its policy still gets told.
         logger.debug("edge_reachability: policy lookup failed, defaulting to warn",
                      exc_info=True)
         return POLICY_WARN
@@ -355,12 +373,14 @@ def _rail_labels() -> tuple[set[str], set[str]] | None:
     """
     try:
         from apps.sync_engine.rail_coverage import rail_entity_config
-    except Exception:  # noqa: BLE001
+    except _RESOLVE_ERRORS:
         logger.debug("edge_reachability: rail_coverage unavailable", exc_info=True)
         return None
     try:
         config = rail_entity_config()
-    except Exception:  # noqa: BLE001
+    except _RESOLVE_ERRORS:
+        # rail_entity_config raises RuntimeError by design when sync_services exposes
+        # no accessor it recognises, precisely so this cannot be guessed at.
         logger.debug("edge_reachability: rail registry could not be derived", exc_info=True)
         return None
 
@@ -371,7 +391,9 @@ def _rail_labels() -> tuple[set[str], set[str]] | None:
         held_entities = {
             str(e) for e in (getattr(sync_services, "_INSERT_HELD_ENTITIES", None) or ())
         }
-    except Exception:  # noqa: BLE001 -- an unreadable hold list is not a rail failure
+    except _RESOLVE_ERRORS:
+        # An unreadable hold list is not a rail failure: every entity then reports as
+        # reaching the cloud, which is the answer the rail itself would give.
         logger.debug("edge_reachability: insert-hold list unavailable", exc_info=True)
 
     on_rail: set[str] = set()
@@ -479,7 +501,8 @@ def preview_for_bundle(bundle: Any) -> StrandedWriteReport:
         from .orchestrator import _build_jobs
 
         jobs = _build_jobs(bundle)
-    except Exception:  # noqa: BLE001 -- a preview must never break the review page
+    except _RESOLVE_ERRORS + _DB_ERRORS:
+        # A preview must never break the review page.
         logger.debug("edge_reachability: could not build jobs for preview", exc_info=True)
         return StrandedWriteReport(is_edge=deployment_is_edge(),
                                    policy=stranded_write_policy())
@@ -525,7 +548,9 @@ def guard_before_apply(bundle: Any, jobs: Any, *, dry_run: bool = False,
                 stage="APPLYING",
                 message=message,
             )
-        except Exception:  # noqa: BLE001 -- surfacing a warning never breaks an apply
+        except _RESOLVE_ERRORS + _DB_ERRORS:
+            # Surfacing a warning never breaks an apply. The bundle record written
+            # just above is the durable copy, so the warning is not lost with it.
             logger.debug("edge_reachability: progress emit failed", exc_info=True)
 
     # A dry run is a PREVIEW: its entire job is to show what a real apply would do,
@@ -551,7 +576,9 @@ def _record(bundle: Any, report: StrandedWriteReport) -> None:
             SUMMARY_KEY: report.to_dict(),
         }
         bundle.save(update_fields=["mapping_summary", "updated_at"])
-    except Exception:  # noqa: BLE001 -- recording the warning must not break the apply
+    except _RESOLVE_ERRORS + _DB_ERRORS:
+        # Recording the warning must not break the apply; the log line and the
+        # progress event still carry it.
         logger.debug("edge_reachability: could not record the assessment", exc_info=True)
 
 

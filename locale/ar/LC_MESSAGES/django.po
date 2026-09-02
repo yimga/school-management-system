@@ -66601,3 +66601,41 @@ msgid ""
 " a schedule for {{ year_name }} – {{ term_label }}, your sessions will "
 "appear here."
 msgstr ""
+
+msgid "Some of this import will stay on this appliance"
+msgstr ""
+
+msgid ""
+"The sync rail could not be read on this box, so we cannot tell you which of "
+"these records would be able to reach the cloud. This is not a clean result "
+"-- it is a check that did not run."
+msgstr ""
+
+msgid "This appliance could not check what it can sync"
+msgstr ""
+
+msgid ""
+"This deployment refuses imports whose appliance-only records nobody has "
+"accepted. Accept them to continue, or import this data on the cloud instead."
+msgstr ""
+
+msgid ""
+"at least {{ count }} row stays on this appliance{% plural %}at least {{ "
+"count }} rows stay on this appliance"
+msgstr ""
+
+msgid ""
+"{{ count }} file could not be row-counted, so the figures above are a floor,"
+" not a total.{% plural %}{{ count }} files could not be row-counted, so the "
+"figures above are a floor, not a total."
+msgstr ""
+
+msgid ""
+"{{ count }} row stays on this appliance{% plural %}{{ count }} rows stay on "
+"this appliance"
+msgstr ""
+
+msgid ""
+"{{ count }} row syncs; only its unmapped columns stay here{% plural %}{{ "
+"count }} rows sync; only their unmapped columns stay here"
+msgstr ""

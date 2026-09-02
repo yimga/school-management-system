@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db import OperationalError, ProgrammingError
 from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
@@ -541,7 +542,11 @@ def compose_live_import(
         from .edge_reachability import review_notice
 
         edge_stranding = review_notice(bundle)
-    except Exception:  # noqa: BLE001 -- the board must render even if this cannot
+    except (ImportError, AttributeError, LookupError, TypeError, ValueError,
+            ProgrammingError, OperationalError):
+        # The board must render even if this cannot. Named rather than broad: a
+        # TypeError from a real defect in the assessment should be visible in the
+        # log, not indistinguishable from an unmigrated table.
         edge_stranding = None
     return {
         "edge_stranding": edge_stranding,
