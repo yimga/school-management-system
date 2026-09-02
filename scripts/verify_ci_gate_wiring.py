@@ -55,6 +55,13 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # declared one template twice, and the shadowed entry's markers -- one of which
     # had genuinely regressed out of the template -- were never checked at all.
     ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. The pre-import guard on an edge appliance reads a TABLE of
+    # what each lander writes (it cannot AST-parse 35 modules before every apply, on
+    # a box that may be a Raspberry Pi). A table that stops matching the code turns
+    # the guard into a confident lie: a lander gains a model, the model is on no
+    # rail, and the operator is told the import is clean. This gate re-resolves the
+    # landers and fails on any difference in either direction.
+    ("scripts/audit_lander_write_reachability.py", "ci.yml"),
     ("scripts/scan_ci_shell_command_integrity.py", "architectural-boundaries.yml"),
     # Added 2026-09-02. A step ending in `|| true` / `|| echo` / carrying
     # continue-on-error cannot report a failure, so every gate inside it is

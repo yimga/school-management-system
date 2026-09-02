@@ -403,6 +403,37 @@ def _apply_bundle_inner(
             pass
         return _empty_result(bundle, dry_run, BundleStatus.FAILED)
 
+    # Before the FIRST tenant row is written, say what this box will not be able to
+    # send anywhere. An unregistered model does not fail to sync -- it succeeds
+    # locally and is never mentioned again, so the only moment this can be raised is
+    # now. This sits here rather than on the Apply button because the button is one of
+    # a dozen entry points (the tenant wizard, customer self-serve approval, the DRF
+    # endpoint, the Celery task, the HeavyWorkOutbox drain, repair_bundle, the
+    # transfer FSM, mc_recover_import); they all converge HERE.
+    from .edge_reachability import StrandedWriteRefused, guard_before_apply
+
+    try:
+        guard_before_apply(
+            bundle, per_artifact_jobs, dry_run=dry_run, emit=_emit_progress,
+        )
+    except StrandedWriteRefused as exc:
+        logger.error(
+            "orchestrator: bundle %s refused -- %s (policy=refuse, not acknowledged)",
+            bundle_id, exc,
+        )
+        bundle.mark_status(
+            BundleStatus.FAILED,
+            summary_patch={"edge_stranded_writes_refused": str(exc)},
+        )
+        _emit_progress(
+            bundle_id=bundle_id, kind="warning", stage="APPLYING",
+            message=(
+                "Import stopped before writing anything. %s Accept these records as "
+                "appliance-resident to continue, or import them on the cloud." % exc
+            ),
+        )
+        return _empty_result(bundle, dry_run, BundleStatus.FAILED)
+
     try:
         from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
 

@@ -14,6 +14,14 @@ Block obviously broken bundles BEFORE the apply step burns workers:
     * :func:`check_disk_space` — local disk has room for the intake +
       asset pipeline (rough estimate using artifact byte_size + 2× headroom).
 
+    * :func:`check_edge_reachability` — on an EDGE appliance, whether this
+      bundle writes to models the sync rail does not carry, i.e. rows that will
+      stay on the box forever. It is a WARNING, not a blocker: the check passes
+      unless the deployment's policy is ``refuse`` and nobody has acknowledged
+      the stranding. The load-bearing copy of this guard is in the orchestrator
+      (every entry path reaches it); this one exists so the wizard can show the
+      operator the answer before they press the button.
+
     * :func:`run_all` — convenience wrapper returning a single dict
       consumed by the wizard before flipping APPLYING.
 """
@@ -198,6 +206,68 @@ def check_cross_bundle_fks(*, bundle: MigrationBundle, namespaces: list[str] | N
     )
 
 
+def check_edge_reachability(*, bundle: MigrationBundle) -> PreflightCheck:
+    """On an appliance: which of this import can never leave the box.
+
+    PASSES while warning. That reads oddly for a preflight check and is the point:
+    a box owning a domain is a legitimate deliberate choice, so this must not become
+    a thing operators learn to click past. It fails only under the ``refuse`` policy
+    with the stranding unacknowledged -- the deployment having said, in advance, that
+    it does not accept box-only data.
+
+    On a cloud deployment, and when the policy is off, it reports the honest no-op:
+    nothing here is stranded, because the cloud is where things were going.
+    """
+    from .edge_reachability import (
+        POLICY_OFF,
+        POLICY_REFUSE,
+        preview_for_bundle,
+    )
+
+    report = preview_for_bundle(bundle)
+    if not report.is_edge:
+        return PreflightCheck(
+            name="edge_reachability",
+            passed=True,
+            message="Not an edge appliance — every domain reaches the cloud by definition.",
+            detail={"is_edge": False},
+        )
+    if report.policy == POLICY_OFF:
+        return PreflightCheck(
+            name="edge_reachability",
+            passed=True,
+            message="Stranded-write assessment is switched off on this deployment.",
+            detail={"policy": POLICY_OFF},
+        )
+    if report.rail_unavailable:
+        # NOT a pass dressed as one. The check could not run; say which it is.
+        return PreflightCheck(
+            name="edge_reachability",
+            passed=True,
+            message=(
+                "The sync rail could not be read on this box, so no stranded-write "
+                "assessment was possible. This is a check that did not run, not a "
+                "clean result."
+            ),
+            detail={"rail_unavailable": True},
+        )
+    if not report.has_finding:
+        return PreflightCheck(
+            name="edge_reachability",
+            passed=True,
+            message="Every model this import writes is carried by the sync rail.",
+            detail={"is_edge": True, "policy": report.policy},
+        )
+
+    blocking = report.policy == POLICY_REFUSE and not report.acknowledged
+    return PreflightCheck(
+        name="edge_reachability",
+        passed=not blocking,
+        message=report.operator_message(),
+        detail=report.to_dict(),
+    )
+
+
 def run_all(*, bundle: MigrationBundle) -> PreflightReport:
     """Run every check; returns a single report consumable by the wizard."""
     return PreflightReport(
@@ -206,5 +276,6 @@ def run_all(*, bundle: MigrationBundle) -> PreflightReport:
             check_capacity(bundle=bundle),
             check_disk_space(bundle=bundle),
             check_cross_bundle_fks(bundle=bundle),
+            check_edge_reachability(bundle=bundle),
         ],
     )

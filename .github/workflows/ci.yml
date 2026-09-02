@@ -114,6 +114,10 @@ jobs:
         run: python scripts/audit_url_kwarg_contract.py
       - name: Shell chrome cross-host {% url %} contract
         run: python scripts/audit_shell_url_namespace_contract.py
+      - name: Lander write targets match what the landers actually write
+        run: python scripts/audit_lander_write_reachability.py --check-declaration
+      - name: Prove the write-reachability resolver can report a non-zero answer
+        run: python scripts/audit_lander_write_reachability.py --self-test
       - name: Single migration leaf per app (a merge can create two silently)
         run: python scripts/verify_single_migration_leaf.py
       - name: blank+unique text fields (optional exactly once)
