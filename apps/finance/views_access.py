@@ -64,8 +64,16 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             messages.error(request, "Invalid student selection.")
             return finance_save_redirect(request, "finance:invoices")
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        student = StudentProfile.objects.filter(id=student_id).first()
+        # student_id arrives from request.POST and the block below GRANTS finance
+        # access to that student's guardians. Unbounded, a staff member could pass
+        # another school's student id and grant that school's guardians access to
+        # its own invoices -- a cross-tenant write, not merely a read.
+        school = getattr(request, "school", None)
+        if not school:
+            return HttpResponseForbidden("Open from a school (tenant) workspace.")
+        student = StudentProfile.objects.filter(
+            id=student_id, school=school
+        ).first()
         if not student:
             messages.error(request, "Student not found.")
             return finance_save_redirect(request, "finance:invoices")
@@ -175,7 +183,12 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
 
     invoice_ref = None
     if invoice_id:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: authorised by the guardian-link check immediately
+        # below, not by tenancy - the request is refused unless invoice.student is
+        # one of THIS requester's linked students, which is strictly narrower than a
+        # school bound. Deliberately not also school-scoped: migration 0082 backfills
+        # Invoice.school only for AR rows, so adding it would silently 403 a guardian
+        # on a legitimately school-less invoice. Reviewed 2026-09-02.
         invoice = (
             Invoice.objects.filter(id=invoice_id).select_related("student").first()
         )

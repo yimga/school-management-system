@@ -74,12 +74,24 @@ logger = logging.getLogger(__name__)
 
 @require_permission("finance.view", "finance.manage")
 def payment_list(request: HttpRequest):
+    # profile is a ComplianceProfile (country_code, no school column), so
+    # filter(invoice__profile=...) alone bounds this to a COUNTRY.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    qs = Payment.objects.filter(invoice__profile=profile).select_related(
+    # Scoped through the INVOICE's school rather than Payment.school: both
+    # columns are nullable, but migration 0082 backfilled Invoice.school for
+    # every AR row with a student, and nothing backfilled Payment.school -- so
+    # keying on the payment's own column would hide a school's legacy receipts
+    # from its own list.
+    qs = Payment.objects.filter(
+        invoice__school=school, invoice__profile=profile
+    ).select_related(
         "invoice", "invoice__student", "invoice__academic_year"
     )
 
@@ -198,6 +210,14 @@ def cash_office_closure(request: HttpRequest):
     Daily cash closure: recomputes cash collected from completed CASH payments
     for the selected day; stores opening cash, deposited amount, physical cash, discrepancy.
     """
+    # This reconciles physical cash against recorded takings. Bounded only by
+    # ComplianceProfile it summed every co-located school's cash into this
+    # school's closure, and the discrepancy it reports is the number someone
+    # is held to.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -214,9 +234,8 @@ def cash_office_closure(request: HttpRequest):
     closure_date = initial_date
     if request.method == "POST" and form.is_valid():
         closure_date = form.cleaned_data["closure_date"]
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-
     cash_collected = Payment.objects.filter(
+        invoice__school=school,
         invoice__profile=profile,
         method=PaymentMethodCode.CASH,
         status="completed",
@@ -1142,7 +1161,10 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseBadRequest("Missing invoice_id.")
 
     try:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: primary-key lookup on an id the PAYMENT PROVIDER
+        # echoed back to us, in an unauthenticated webhook that has no tenant
+        # context to be scoped by - the request is authorised by signature, not by
+        # session. Reviewed 2026-09-02.
         invoice = Invoice.objects.get(id=invoice_id)
     except Invoice.DoesNotExist:
         _create_webhook_log(

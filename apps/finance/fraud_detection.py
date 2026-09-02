@@ -384,7 +384,12 @@ class ReceiptFraudDetector:
         from .models import Invoice
 
         try:
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+            # tenant-isolation-allow: primary-key read of an id taken from a stored
+            # PaymentProofUpload row (tasks.py passes proof_upload.invoice_id), not
+            # from a request. The tenancy question belongs one layer up, at upload
+            # time -- and PaymentProofUpload carries no school column, so it cannot
+            # be answered with a filter here. See the bank-import chain, same gap.
+            # Reviewed 2026-09-02.
             invoice = Invoice.objects.get(id=invoice_id)
             invoice_balance = invoice.balance_amount
 

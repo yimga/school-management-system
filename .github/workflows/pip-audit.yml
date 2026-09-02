@@ -1,12 +1,23 @@
 name: pip-audit (CVE scan)
 
 # 12-pillar audit P7 follow-up. Scheduled CVE scan over the Python
-# dependency set. Runs weekly + on requirements.txt changes. The
-# scheduled run posts a job summary; CI doesn't fail on every CVE
-# (vulnerabilities are real but often non-exploitable in our path) —
-# the gate is "Critical / High CVSS findings fail loudly," "Medium /
-# Low CVSS findings are reported but don't block." Dependabot is the
-# remediation vehicle; this is the visibility / audit gate.
+# dependency set. Runs weekly + on requirements.txt changes. Dependabot
+# is the remediation vehicle; this is the visibility / audit gate.
+#
+# This header used to describe a severity tiering -- "Critical / High CVSS
+# findings fail loudly," "Medium / Low CVSS findings are reported but don't
+# block" -- that the file has never been able to deliver, and the wording is
+# corrected here rather than left standing over a gate that does something
+# else. pip-audit's JSON vulnerability records carry `id`, `fix_versions`,
+# `aliases` and `description`, and no `severity` at all, so there is nothing
+# to tier on; the old implementation read a key that is never present and
+# therefore failed on nothing, at any severity (proven 2026-09-02 against a
+# real 5-CVE report). Until pip-audit supplies severity, ANY finding fails
+# and every finding is printed. Measured at the time of the change: this
+# requirements.txt resolves 170 dependencies with zero known vulnerabilities,
+# so this gate's green means the scan ran and found nothing. A reviewed,
+# accepted finding belongs in an explicit allowlist of vulnerability IDs in
+# the gate step -- never behind a mask on the scanner's exit code.
 
 on:
   workflow_dispatch: {}
@@ -45,42 +56,127 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pip-audit
-      - name: Run pip-audit (informational JSON)
-        # Captures the full report into an artifact even on success;
-        # auditors / Dependabot reviewers consume this asynchronously.
+      - name: Run pip-audit (JSON report)
+        id: audit
+        # `--strict || true` was self-cancelling: --strict asks pip-audit to exit
+        # non-zero, and the very next token threw that exit code away. `|| true`
+        # also swallowed a pip-audit that CRASHED without writing a report at all,
+        # and the gate step below then read the missing file as "no findings".
+        #
+        # The informational tier itself is deliberate (see the header), so a
+        # non-zero exit here still does not end the job -- but it is now RECORDED
+        # instead of discarded, and the gate step decides what it means.
         run: |
+          set +e
           pip-audit --requirement requirements.txt --format json \
-            --output pip-audit-report.json --strict || true
-      - name: Fail on Critical / High CVSS
-        # We treat severity strings as 'critical' or 'high' (case-insensitive).
-        # pip-audit's JSON format includes a `fix_versions` and `aliases`
-        # per finding; severity is in the underlying advisory record.
-        # If pip-audit can't compute severity (offline / OSV miss), the
-        # informational pass above still wrote the JSON; the strict
-        # critical-only check below is best-effort gating.
+            --output pip-audit-report.json
+          rc=$?
+          echo "pip_audit_exit=$rc" >> "$GITHUB_OUTPUT"
+          echo "pip-audit exited ${rc} (0 = clean, 1 = vulnerabilities found, other = scanner fault)"
+      - name: Fail on findings
+        env:
+          PIP_AUDIT_EXIT: ${{ steps.audit.outputs.pip_audit_exit }}
+        # This step could not fail. Proven on 2026-09-02 by running the exact
+        # loop below over a real pip-audit report for jinja2==2.11.2 (5 known
+        # vulnerabilities): it printed "critical=0 high=0" and exited 0.
+        #
+        # The cause: pip-audit's JSON vulnerability records carry the keys
+        # `id`, `fix_versions`, `aliases` and `description` -- and NOTHING
+        # else. There is no `severity` key, so `v.get("severity") or ""` was
+        # always the empty string, so both buckets were always empty, so
+        # `if critical: sys.exit(1)` could never fire. The workflow name says
+        # "Critical+High strict" and the header says Critical/High "fail
+        # loudly"; the gate failed on nothing at all, at any severity.
+        #
+        # Two further holes, both of which turned a scanner FAULT into a pass:
+        # a missing report exited 0 with "treating as no findings", and the
+        # `|| true` above guaranteed the step was reached even when pip-audit
+        # never ran.
+        #
+        # Behaviour now: a missing or unparseable report fails. Zero findings
+        # passes -- and that green means pip-audit actually ran and found
+        # nothing. If findings exist but carry no severity (today: always),
+        # the Critical/High tiering cannot be evaluated, so the gate fails
+        # closed and prints every finding rather than reporting a zero it
+        # cannot stand behind. The severity arm is kept for the day pip-audit
+        # populates it; it is not reachable today, and that is stated here
+        # rather than hidden behind a number that is structurally always 0.
+        #
+        # This IS stricter than the header's "Medium / Low report but do not
+        # block" tier, because pip-audit gives us nothing to tier ON. If a
+        # finding is reviewed and accepted, the remedy is an explicit,
+        # reviewed allowlist of vulnerability IDs here -- not a mask.
         run: |
           python - <<'PY'
-          import json, sys
-          try:
-              data = json.load(open("pip-audit-report.json"))
-          except (OSError, json.JSONDecodeError):
-              print("pip-audit: no JSON report; treating as no findings.")
-              sys.exit(0)
-          # pip-audit shape: { "dependencies": [ { "vulns": [ { ... }, ... ] }, ... ] }
-          critical = []
-          high = []
-          for dep in data.get("dependencies", []):
-              for v in dep.get("vulns", []) or []:
-                  sev = (v.get("severity") or "").lower()
-                  if "critical" in sev:
-                      critical.append((dep.get("name"), v.get("id"), v.get("description", "")[:120]))
-                  elif "high" in sev:
-                      high.append((dep.get("name"), v.get("id"), v.get("description", "")[:120]))
-          print(f"pip-audit: critical={len(critical)} high={len(high)}")
-          for n, vid, d in critical + high:
-              print(f"  {n} {vid}: {d}")
-          if critical:
+          import json, os, pathlib, sys
+
+          rc = os.environ.get("PIP_AUDIT_EXIT", "?")
+          report = pathlib.Path("pip-audit-report.json")
+
+          if not report.is_file():
+              print(
+                  "::error::pip-audit wrote no JSON report (scanner exit=%s). "
+                  "A missing report is a scanner fault, not a clean bill of health."
+                  % rc
+              )
               sys.exit(1)
+          try:
+              data = json.loads(report.read_text(encoding="utf-8"))
+          except json.JSONDecodeError as exc:
+              print("::error::pip-audit report is not valid JSON: %s" % exc)
+              sys.exit(1)
+
+          findings = []
+          severity_seen = False
+          for dep in data.get("dependencies", []):
+              for v in dep.get("vulns") or []:
+                  sev = (v.get("severity") or "").strip()
+                  if sev:
+                      severity_seen = True
+                  findings.append(
+                      {
+                          "name": dep.get("name"),
+                          "version": dep.get("version"),
+                          "id": v.get("id"),
+                          "severity": sev,
+                          "aliases": ", ".join(v.get("aliases") or []) or "-",
+                          "fix": ", ".join(v.get("fix_versions") or []) or "none published",
+                          "desc": " ".join((v.get("description") or "").split())[:160],
+                      }
+                  )
+
+          print("pip-audit exit=%s; %d vulnerability record(s)" % (rc, len(findings)))
+          for f in findings:
+              print(
+                  "  %(name)s %(version)s  %(id)s  severity=%(severity)s  "
+                  "aliases=[%(aliases)s]  fix=%(fix)s" % f
+              )
+              print("    %(desc)s" % f)
+
+          if not findings:
+              print("pip-audit: no known vulnerabilities in requirements.txt.")
+              sys.exit(0)
+
+          if not severity_seen:
+              print(
+                  "::error::pip-audit reported %d vulnerability record(s) and "
+                  "supplied no severity for any of them, so the Critical/High "
+                  "tiering cannot be evaluated. Failing closed -- see the list "
+                  "above." % len(findings)
+              )
+              sys.exit(1)
+
+          blocking = [
+              f for f in findings
+              if "critical" in f["severity"].lower() or "high" in f["severity"].lower()
+          ]
+          if blocking:
+              print(
+                  "::error::%d Critical/High finding(s) -- see the list above."
+                  % len(blocking)
+              )
+              sys.exit(1)
+          print("pip-audit: findings present, none Critical/High.")
           PY
       - name: Upload pip-audit report
         if: always()

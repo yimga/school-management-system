@@ -25,6 +25,7 @@ on:
       - "scripts/scan_dangling_static_reference.py"
       - "apps/test_utils/tenant_hosts.py"
       - "scripts/scan_ci_shell_command_integrity.py"
+      - "scripts/scan_workflow_swallowed_exit_codes.py"
       - "scripts/scan_admin_registered_on_unmounted_site.py"
       - "scripts/lint_broad_except.py"
       - "scripts/allowlists/broad_except_allowlist.json"
@@ -361,6 +362,20 @@ jobs:
           # way the step reports on work it never did.
           u_ci_shell_command_integrity() {
             python scripts/scan_ci_shell_command_integrity.py
+          }
+
+          # The sibling question. scan_ci_shell_command_integrity asks
+          # whether a CI command can RUN what it names; this asks whether
+          # the step can REPORT that it failed. A trailing `|| true` or
+          # `|| echo` pins the shell's exit status to 0, so every gate in
+          # that step draws a green check whatever it found. On
+          # 2026-09-02 that was true of the pip-audit CVE scan, the
+          # help-center browser lane (under a comment declaring it
+          # enforcing), the a11y seed step, and both release
+          # reproducibility proofs.
+          u_workflow_swallowed_exit_codes() {
+            python scripts/scan_workflow_swallowed_exit_codes.py
+            python -m unittest scripts.tests.test_scan_workflow_swallowed_exit_codes -v
           }
 
           u_operator_landing_header_order() {
@@ -895,6 +910,7 @@ jobs:
           run_unit u_control_plane_registry_drift "Every control-plane page is registered or exempt"
           run_unit u_admin_unmounted_site "Every registered admin is mounted on a reachable site"
           run_unit u_ci_shell_command_integrity "Every CI command can run what it names"
+          run_unit u_workflow_swallowed_exit_codes "Every CI step can report that it failed"
 
           if [ -n "$failed" ]; then
             echo ""

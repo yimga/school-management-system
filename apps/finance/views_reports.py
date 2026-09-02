@@ -60,13 +60,10 @@ def finance_reports(request: HttpRequest):
     overdue_by_class = arrears_qs.values("student__classroom__name").annotate(
         overdue_total=Sum("balance_amount")
     )
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-
     total_ar = Invoice.objects.filter(
         school=school, profile=profile, invoice_type=Invoice.InvoiceType.AR
     ).aggregate(
         total=Sum("total_amount"),
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         balance=Sum("balance_amount"),
     )
     paid_total = Invoice.objects.filter(

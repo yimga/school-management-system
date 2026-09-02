@@ -361,6 +361,14 @@ GATES: list[tuple[str, list[str]]] = [
     # five N+1 query-count suites. Wired on measurement: 780 ms.
     ("ci-shell-command-integrity", ["scan_ci_shell_command_integrity.py"]),
 
+    # And the other half of the same question (2026-09-02): a step that
+    # runs the right command but cannot report that it failed. `pip-audit
+    # --strict || true` asks pip-audit to exit non-zero and throws that
+    # exit code away in the next token; the help-center browser lane
+    # printed a reassuring sentence on failure under a comment that
+    # declared it enforcing. Text scan over 65 workflow files, ~0.3s.
+    ("workflow-swallowed-exit-codes", ["scan_workflow_swallowed_exit_codes.py"]),
+
     # A test that still passes once the behaviour it names is deleted
     # (2026-09-01). Measured across the whole population: 143 of the 175
     # measurable candidates are vacuous. --scope-changed bounds this to the

@@ -847,6 +847,42 @@ MUTATIONS["test-host-fidelity"] = Mutation(
     ),
 )
 
+MUTATIONS["workflow-swallowed-exit-codes"] = Mutation(
+    kind="create",
+    path=f".github/workflows/{_PROOF}-swallowed-exit-code.yml",
+    defect=(
+        "a CI step whose LAST command ends in `|| echo` - the shell exits 0 "
+        "whatever the tool found, so the step, and every gate inside it, draws "
+        "a green check on a failure it has already seen. The shape that let "
+        "the help-center browser lane report success on every failure while a "
+        "comment directly above it declared the lane enforcing"
+    ),
+    # A whole workflow file rather than a patch: the gate enumerates with
+    # `git ls-files -- .github/workflows`, which the harness satisfies with
+    # `git add -N`, and a new file cannot go stale the way a byte anchor in
+    # someone else's workflow does.
+    #
+    # The swallow must be the LAST line. The gate deliberately does not flag a
+    # `|| true` that is followed by real work -- a cleanup before an `exit 1`,
+    # a readiness sentinel whose loop enforces -- so a plant that buried the
+    # swallow mid-block would report this gate DEAD while it is working
+    # exactly as designed.
+    content=(
+        b"name: gateproof swallowed exit code" + chr(10).encode()
+        + b"on:" + chr(10).encode()
+        + b"  workflow_dispatch: {}" + chr(10).encode()
+        + b"jobs:" + chr(10).encode()
+        + b"  proof:" + chr(10).encode()
+        + b"    runs-on: ubuntu-latest" + chr(10).encode()
+        + b"    steps:" + chr(10).encode()
+        + b"      - name: A gate that cannot report its own failure"
+        + chr(10).encode()
+        + b"        run: |" + chr(10).encode()
+        + b"          python scripts/some_gate.py "
+        + b'|| echo "skipped - run it locally"' + chr(10).encode()
+    ),
+)
+
 MUTATIONS["dangling-static-reference"] = Mutation(
     kind="create",
     path=f"static/css/{_PROOF}_dangling.css",

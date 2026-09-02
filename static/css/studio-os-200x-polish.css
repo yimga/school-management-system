@@ -22,7 +22,8 @@
    Non-goals:
      - Override theme tokens (handled by design-tokens.css).
      - Change layout primitives (handled by .rmc-app-shell).
-     - Touch the copilot rail (lives in rmc-copilot-rail.css).
+     - Touch the copilot rail (rmc-copilot-rail.css was deleted 2026-09-02;
+       its one live rule now lives in rmc-cp-200x.css).
    ============================================================ */
 
 /* ---------- Page header: glow + eyebrow ---------- */

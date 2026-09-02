@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -18,10 +18,27 @@ from apps.finance.models import (
     PaymentMethodCode,
 )
 from apps.people.models import StudentProfile
+from apps.schools.models import School
+from apps.test_utils.tenant_hosts import (
+    HOST_ROUTED_SETTINGS,
+    tenant_client,
+    tenant_host,
+)
 
 
+# cash_office_closure is now school-scoped: it reconciles PHYSICAL cash against
+# recorded takings, and bounded only by ComplianceProfile (which carries a
+# country_code and no school column) it summed every co-located school's cash into
+# this school's closure. The school arrives from the HOST.
+@override_settings(**HOST_ROUTED_SETTINGS)
 class CashOfficeClosureTests(TestCase):
     def setUp(self):
+        self.school = School.objects.create(
+            name="Cash Office School",
+            slug="cash-office-school",
+            subdomain="cash-office-school",
+            is_active=True,
+        )
         self.profile = ComplianceProfile.objects.create(
             name="Cameroon Finance",
             country_code="CM",
@@ -31,24 +48,30 @@ class CashOfficeClosureTests(TestCase):
             is_active=True,
         )
         self.year = AcademicYear.objects.create(
+            school=self.school,
             name="2025/2026",
             start_date="2025-09-01",
             end_date="2026-06-30",
             is_active=True,
         )
-        self.department = Department.objects.create(name="Science", code="SCI")
+        self.department = Department.objects.create(
+            school=self.school, name="Science", code="SCI"
+        )
         self.specialty = Specialty.objects.create(
+            school=self.school,
             department=self.department,
             name="General",
             code="GEN",
         )
         self.classroom = Classroom.objects.create(
+            school=self.school,
             academic_year=self.year,
             department=self.department,
             name="Form 3",
             code="F3",
         )
         self.student = StudentProfile.objects.create(
+            school=self.school,
             first_name="Abajo",
             last_name="Jeffter",
             student_code="STU-CASH-001",
@@ -57,6 +80,7 @@ class CashOfficeClosureTests(TestCase):
             specialty=self.specialty,
         )
         self.invoice = Invoice.objects.create(
+            school=self.school,
             profile=self.profile,
             academic_year=self.year,
             invoice_type=Invoice.InvoiceType.AR,
@@ -78,6 +102,10 @@ class CashOfficeClosureTests(TestCase):
             email="cashadmin@example.com",
             password="Pass_1234",
         )
+        # The tenant host is what binds request.school. A superuser skips the
+        # membership check in apps/schools/middleware.py, but the view's own school
+        # guard applies to everyone.
+        self.client = tenant_client(tenant_host(self.school))
         self.client.login(username="cashadmin", password="Pass_1234")
 
     def test_cash_office_closure_view_creates_expected_reconciliation(self):
