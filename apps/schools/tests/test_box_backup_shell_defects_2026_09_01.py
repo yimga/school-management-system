@@ -170,3 +170,129 @@ class TheSpaceGuardStillComparesTests(SimpleTestCase):
         self.assertNotIn("integer expression expected", proc.stderr)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("comparable=yes", proc.stdout)
+
+
+def _check_line(*must_contain):
+    """The one line of the real script that makes a given decision."""
+    for line in _text().splitlines():
+        if all(token in line for token in must_contain):
+            return line
+    raise AssertionError("no line containing %r in box-backup.sh" % (must_contain,))
+
+
+#: 9,733 lines, matching the real archive measured on the box -- ~500KB, comfortably
+#: past the 64KB pipe buffer. THE SIZE IS THE TEST. Below the buffer, `printf` finishes
+#: before `grep -q` closes the pipe, no SIGPIPE is raised, and the broken form behaves
+#: perfectly. That is exactly why a suite of 40 tests passed over this for its whole life.
+_BIG_TOC = (
+    'toc="$(seq 1 9733 | sed \'s/$/; 1259 16385 TABLE public django_migrations rmc/\')"\n'
+)
+_BIG_TOC_WITHOUT = (
+    'toc="$(seq 1 9733 | sed \'s/$/; 1259 16385 TABLE public something_else rmc/\')"\n'
+)
+
+
+class AnEarlyMatchInALargeListIsNotAMissTests(SimpleTestCase):
+    """LOAD-BEARING. Each fails on the unfixed tree, and the defect is an INVERSION.
+
+    The script runs under ``set -uo pipefail``. ``grep -q`` exits the instant it matches
+    and closes its input, so a ``printf`` feeding it a large string dies of SIGPIPE (141)
+    -- and ``pipefail`` promotes that to the pipeline's status. Every ``... | grep -q``
+    in the file therefore reported NOT FOUND precisely when the thing WAS found.
+
+    MEASURED on the Gilead box 2026-09-01: a 65,491,424-byte dump, whose decrypted
+    archive lists 9,733 entries and names django_migrations five times, was rejected as
+    "not of this application" on every single attempt. The service could not report a
+    successful backup of a real database, ever.
+    """
+
+    def setUp(self):
+        if shutil.which("bash") is None:
+            self.skipTest("bash unavailable")
+
+    def test_a_real_sized_toc_that_names_the_table_is_accepted(self):
+        proc = _run(
+            "set -uo pipefail\n"
+            'EXPECT_TABLE="django_migrations"\n'
+            + _BIG_TOC
+            + _check_line("EXPECT_TABLE", "grep -q") + "\n"
+            '  echo VERDICT=missing\n'
+            "else\n"
+            '  echo VERDICT=present\n'
+            "fi\n"
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("VERDICT=present", proc.stdout)
+
+    def test_a_dump_kept_by_retention_is_not_reported_as_prunable(self):
+        # Not cosmetic: this decision DELETES files. A false "not a survivor" removes a
+        # backup that should have been kept, and it is position-dependent -- an early
+        # match in a 20,000-line list reported NOT FOUND while a late one reported found.
+        proc = _run(
+            "set -uo pipefail\n"
+            'name="file-1.dump.enc"\n'
+            'survivors="$(seq 1 20000 | sed \'s/^/file-/;s/$/.dump.enc/\')"\n'
+            + _check_line("survivors", "grep -qxF") + "\n"
+            '  echo VERDICT=keep\n'
+            "else\n"
+            '  echo VERDICT=delete\n'
+            "fi\n"
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("VERDICT=keep", proc.stdout)
+
+    def test_no_early_exit_consumer_is_fed_by_a_pipe(self):
+        # The general shape, so the next one is caught at review rather than on a box.
+        # `set +o pipefail` is already used for the passphrase `head -c` in this file --
+        # the trap was known, it just had not been applied to the greps.
+        #
+        # Reported as line numbers, not with assertNotIn on the file: the haystack is
+        # 46KB and a bare assertNotIn prints all of it, burying the finding it just made.
+        offenders = [
+            "%d: %s" % (n, line.strip())
+            for n, line in enumerate(_text().splitlines(), 1)
+            if "| grep -q" in line
+        ]
+        self.assertEqual(offenders, [], "piped early-exit grep(s):\n" + "\n".join(offenders))
+
+
+class TheGuardStillRejectsARealFailureTests(SimpleTestCase):
+    """CONTROLS. These pass on BOTH trees, and the second one explains the whole story."""
+
+    def setUp(self):
+        if shutil.which("bash") is None:
+            self.skipTest("bash unavailable")
+
+    def test_a_toc_that_genuinely_lacks_the_table_is_still_rejected(self):
+        # The fix must not turn the check into a rubber stamp. Note this passed even
+        # while broken -- grep read to EOF, so there was no SIGPIPE to invert.
+        proc = _run(
+            "set -uo pipefail\n"
+            'EXPECT_TABLE="django_migrations"\n'
+            + _BIG_TOC_WITHOUT
+            + _check_line("EXPECT_TABLE", "grep -q") + "\n"
+            '  echo VERDICT=missing\n'
+            "else\n"
+            '  echo VERDICT=present\n'
+            "fi\n"
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("VERDICT=missing", proc.stdout)
+
+    def test_a_small_toc_behaves_correctly_even_unfixed(self):
+        # WHY NOBODY SAW THIS. Under the 64KB pipe buffer the broken form is correct:
+        # printf writes everything and exits before grep closes the pipe, so no SIGPIPE.
+        # A fixture-sized table of contents can only ever agree with a real one here --
+        # which is the argument for sizing this module's fixtures to the real archive.
+        proc = _run(
+            "set -uo pipefail\n"
+            'EXPECT_TABLE="django_migrations"\n'
+            'toc="$(printf \'%s\\n\' a b django_migrations c)"\n'
+            + _check_line("EXPECT_TABLE", "grep -q") + "\n"
+            '  echo VERDICT=missing\n'
+            "else\n"
+            '  echo VERDICT=present\n'
+            "fi\n"
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("VERDICT=present", proc.stdout)

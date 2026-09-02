@@ -38,12 +38,20 @@ def finance_reports(request: HttpRequest):
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
+
+    # `profile` is a ComplianceProfile: country_code, currency, min wage, leave
+    # days. Every school in a country shares one, so filtering by it bounds this
+    # page to a COUNTRY, not to a tenant. views_payment_readiness_dashboard in
+    # this same app already refuses without a school for exactly this reason.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
     start = parse_date(request.GET.get("start") or "")
     end = parse_date(request.GET.get("end") or "")
 
     today = timezone.localdate()
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     arrears_qs = Invoice.objects.filter(
+        school=school,
         profile=profile,
         balance_amount__gt=0,
         due_date__lt=today,
@@ -55,14 +63,14 @@ def finance_reports(request: HttpRequest):
 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
     total_ar = Invoice.objects.filter(
-        profile=profile, invoice_type=Invoice.InvoiceType.AR
+        school=school, profile=profile, invoice_type=Invoice.InvoiceType.AR
     ).aggregate(
         total=Sum("total_amount"),
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         balance=Sum("balance_amount"),
     )
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     paid_total = Invoice.objects.filter(
+        school=school,
         profile=profile,
         invoice_type=Invoice.InvoiceType.AR,
         status=Invoice.Status.PAID,
@@ -72,6 +80,11 @@ def finance_reports(request: HttpRequest):
         (paid_total / issued_total * 100) if issued_total else Decimal("0.00")
     )
 
+    # tenant-isolation-allow: NOT school-scoped and cannot be - neither Payslip nor
+    # PayrollRun carries a school column, so there is nothing to filter on. On the
+    # schema-per-tenant cloud the schema bounds this; on a shared-schema edge these
+    # totals span every school in the country. Closing it needs a school FK and a
+    # backfill, not a filter (recorded 2026-09-01).
     payroll_liabilities = Payslip.objects.filter(
         payroll_run__profile=profile
     ).aggregate(

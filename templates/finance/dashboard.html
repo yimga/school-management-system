@@ -91,8 +91,8 @@ note leaked the sealed strings into the DOM and tripped the consolidation seal.
       </div>
       <div class="rmc-wcx-actions">
         <a class="btn btn-primary btn-sm" href="{% url 'finance:invoices' %}" data-action="money-open-invoices" data-task="money_center" data-task-step="finance:invoices">{% trans "Open invoices" %}</a>
-        <a class="btn btn-outline-secondary btn-sm" href="{{ wcx_payment_readiness_url }}" data-action="money-payment-readiness" data-task="money_center" data-task-step="finance:readiness">{% trans "Payment readiness" %}</a>
-        <a class="btn btn-outline-secondary btn-sm" href="{{ wcx_workforce_money_url }}">{% trans "Workforce & money hub" %}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payment_readiness_dashboard' %}" data-action="money-payment-readiness" data-task="money_center" data-task-step="finance:readiness">{% trans "Payment readiness" %}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:workforce_command_center' %}">{% trans "Workforce & money hub" %}</a>
       </div>
     </div>
   <details class="mt-3 de-secondary-collapsible">

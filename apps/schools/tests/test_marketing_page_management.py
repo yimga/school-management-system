@@ -6,6 +6,22 @@ from pathlib import Path
 from django.conf import settings
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_renders,
+    assert_wires,
+)
+
+_TEMPLATES = Path(settings.BASE_DIR) / "templates" / "marketing"
+_MKT_BASE = _TEMPLATES / "base_marketing.html"
+_MKT_HEADER = _TEMPLATES / "marketing_header.html"
+_MKT_FOOTER = _TEMPLATES / "marketing_footer.html"
+_MKT_INNER_CORE = _TEMPLATES / "partials" / "marketing_inner_core.html"
+_MKT_ANALYTICS = _TEMPLATES / "partials" / "marketing_analytics.html"
+_MKT_DEMO_FORM = _TEMPLATES / "components" / "_marketing_demo_form.html"
+_MKT_CONTACT_FORM = _TEMPLATES / "components" / "_marketing_contact_form.html"
+_MKT_SOLUTIONS = _TEMPLATES / "pages" / "solutions_overview.html"
+
 
 MAJOR_PLATFORM_SLUGS = (
     "platform-admissions",
@@ -109,25 +125,22 @@ class MarketingPageManagementContractTests(SimpleTestCase):
         self.assertIn("Animated product preview", portal)
 
     def test_demo_and_contact_forms_route_buyer_intent(self):
-        demo = (
-            Path(settings.BASE_DIR)
-            / "templates"
-            / "marketing"
-            / "components"
-            / "_marketing_demo_form.html"
-        ).read_text(encoding="utf-8")
-        contact = (
-            Path(settings.BASE_DIR)
-            / "templates"
-            / "marketing"
-            / "components"
-            / "_marketing_contact_form.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("interest_migration", demo)
-        self.assertIn("interest_offline", demo)
-        self.assertIn("interest_procurement", demo)
-        self.assertIn("developer-integration", contact)
-        self.assertIn('data-cta="contact-submit"', contact)
+        # Every needle here is markup the form is supposed to PUT ON THE PAGE, so
+        # ask the template engine for what it emits. Reading the bytes could not
+        # tell a live field from one parked inside {% comment %}.
+        assert_markup(
+            self,
+            _MKT_DEMO_FORM,
+            "interest_migration",
+            "interest_offline",
+            "interest_procurement",
+        )
+        assert_markup(
+            self,
+            _MKT_CONTACT_FORM,
+            "developer-integration",
+            'data-cta="contact-submit"',
+        )
 
     def test_solutions_hub_is_a_buyer_world_map(self):
         data = self._content("solutions")
@@ -144,14 +157,11 @@ class MarketingPageManagementContractTests(SimpleTestCase):
             ],
         )
 
-        template = (
-            Path(settings.BASE_DIR)
-            / "templates"
-            / "marketing"
-            / "pages"
-            / "solutions_overview.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("data-mkt-buyer-world-hub", template)
+        template = _MKT_SOLUTIONS.read_text(encoding="utf-8")
+        # The hub marker is markup -- the engine settles whether it is emitted.
+        assert_markup(self, _MKT_SOLUTIONS, "data-mkt-buyer-world-hub")
+        # solution_buyer_worlds is a CONTEXT VARIABLE name: template code, which
+        # neither a parse nor a render can see. Source read stays.
         self.assertIn("solution_buyer_worlds", template)
         self.assertNotIn("Five roles. Five Tuesdays.", template)
         self.assertNotIn("data-mkt-persona-tabs", template)
@@ -188,38 +198,26 @@ class MarketingAnalyticsContractTests(SimpleTestCase):
             self.assertNotIn(forbidden, text.lower())
 
     def test_marketing_shell_wires_analytics_config_and_local_script(self):
-        base = (Path(settings.BASE_DIR) / "templates" / "marketing" / "base_marketing.html").read_text(
-            encoding="utf-8"
-        )
-        partial = (
-            Path(settings.BASE_DIR)
-            / "templates"
-            / "marketing"
-            / "partials"
-            / "marketing_analytics.html"
-        ).read_text(encoding="utf-8")
-        self.assertIn("marketing/partials/marketing_analytics.html", base)
-        self.assertIn("rmc-marketing-analytics-config", partial)
-        self.assertIn("marketing/js/marketing-analytics.js", partial)
+        # "wires" is an {% include %}: ask the parser, not the bytes.
+        assert_wires(self, _MKT_BASE, "marketing/partials/marketing_analytics.html")
+        # The config node is emitted markup...
+        assert_markup(self, _MKT_ANALYTICS, "rmc-marketing-analytics-config")
+        # ...and the script path only exists once {% static %} has run, so this
+        # one needs a real render of the partial's bytes.
+        assert_renders(self, _MKT_ANALYTICS, "marketing/js/marketing-analytics.js")
 
     def test_cta_menu_and_form_tracking_hooks_are_present(self):
-        header = (Path(settings.BASE_DIR) / "templates" / "marketing" / "marketing_header.html").read_text(
-            encoding="utf-8"
+        # These are the attributes marketing-analytics.js hangs its listeners on.
+        # An attribute that is only in the file's bytes carries no listener, so
+        # every one of them is asked of the template engine.
+        assert_markup(self, _MKT_HEADER, "data-menu-link")
+        assert_markup(
+            self,
+            _MKT_INNER_CORE,
+            'data-form-name="contact"',
+            'data-form-name="demo"',
         )
-        core = (
-            Path(settings.BASE_DIR)
-            / "templates"
-            / "marketing"
-            / "partials"
-            / "marketing_inner_core.html"
-        ).read_text(encoding="utf-8")
-        footer = (Path(settings.BASE_DIR) / "templates" / "marketing" / "marketing_footer.html").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("data-menu-link", header)
-        self.assertIn('data-form-name="contact"', core)
-        self.assertIn('data-form-name="demo"', core)
-        self.assertIn('data-form-name="newsletter"', footer)
+        assert_markup(self, _MKT_FOOTER, 'data-form-name="newsletter"')
 
     def test_footer_solution_links_follow_buyer_worlds(self):
         footer = (Path(settings.BASE_DIR) / "templates" / "marketing" / "marketing_footer.html").read_text(
