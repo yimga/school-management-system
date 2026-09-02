@@ -14,6 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from apps.schools.models import School, SignupVerification
+from apps.test_utils.tenant_hosts import HOST_ROUTED_SETTINGS, PUBLIC_HOST
 
 
 class ResendVerificationTests(TestCase):
@@ -25,9 +26,13 @@ class ResendVerificationTests(TestCase):
         from django.urls import reverse
 
         reverse("resend_signup_verification", urlconf="config.public_urls")
-        with self.settings(ROOT_URLCONF="config.public_urls"):
+        # ROOT_URLCONF alone would not put this request on the public surface:
+        # UrlConfSwitcherMiddleware sets request.urlconf from the Host header, and
+        # the default test host (testserver) is classified local -> config.urls.
+        with self.settings(ROOT_URLCONF="config.public_urls", **HOST_ROUTED_SETTINGS):
             resp = self.client.get(
-                reverse("verify_signup") + "?token=00000000-0000-0000-0000-000000000000"
+                reverse("verify_signup") + "?token=00000000-0000-0000-0000-000000000000",
+                HTTP_HOST=PUBLIC_HOST,
             )
         self.assertEqual(resp.status_code, 400)
         self.assertContains(resp, "Resend my verification link", status_code=400)

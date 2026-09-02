@@ -325,6 +325,16 @@ GATES: list[tuple[str, list[str]]] = [
     # in apps/schools/tests/), the 18 survivors were read and marked, and it now
     # exits 0 -- so it can hold the line instead of being ignored.
     ("tenant-queryset-safety", ["scan_tenant_queryset_safety.py", "--compare"]),
+    # The sibling question to the one above: not "is this query scoped" but "did
+    # this test ever reach the surface it claims to test". ROOT_URLCONF does not
+    # choose the urlconf here -- UrlConfSwitcherMiddleware sets request.urlconf from
+    # the Host header -- so @override_settings(ROOT_URLCONF="config.tenant_urls") on
+    # a test that issues a hostless request is DISCARDED, and the request is served
+    # by config.urls, the developer urlconf, with request.school None. It does not
+    # fail; the developer urlconf mounts a superset of every production route, so it
+    # passes while proving nothing, and reads to a reviewer as proof of the opposite.
+    # Measured on a live request, not inferred (test_host_routing_contract_2026_09_02).
+    ("test-host-fidelity", ["scan_test_host_fidelity.py", "--compare"]),
     # Pins transaction.atomic on four named money mutators. Deliberately NARROW
     # -- it is a hand-maintained list, not coverage of apps/finance/, and its own
     # docstring says so at length. Wired because four enforced invariants beat

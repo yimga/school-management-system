@@ -9,16 +9,27 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.schools.models import School
+from apps.test_utils.tenant_hosts import HOST_ROUTED_SETTINGS, public_client
 
+# ROOT_URLCONF makes reverse() produce the public-host path; the HOST is what makes
+# the REQUEST arrive there. UrlConfSwitcherMiddleware sets request.urlconf from the
+# Host header, so without public_client() below every one of these requests would be
+# served by config.urls -- the developer urlconf, which mounts a superset of these
+# routes and would therefore pass while proving nothing about the public surface.
 _PUBLIC = dict(
     RATELIMIT_ENABLE=False,
     ROOT_URLCONF="config.public_urls",
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    **HOST_ROUTED_SETTINGS,
 )
 
 
 @override_settings(**_PUBLIC)
 class DecisionsPreviewEndpointTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = public_client()
+
     def _get(self, **params):
         resp = self.client.get(reverse("signup_decisions_preview"), params)
         self.assertEqual(resp.status_code, 200)
@@ -47,6 +58,10 @@ class DecisionsPreviewEndpointTests(TestCase):
 
 @override_settings(**_PUBLIC)
 class SignupCapturesNewDimensionsTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = public_client()
+
     def test_signup_persists_new_dimensions_and_flows_to_manifest(self):
         resp = self.client.post(reverse("signup_school"), {
             "name": "Nuance Academy", "slug": "nuance-academy",

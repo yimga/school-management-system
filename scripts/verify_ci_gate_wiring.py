@@ -262,6 +262,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/scan_visibility_anti_bleed.py", "architectural-boundaries.yml"),
     ("scripts/scan_money_float.py", "architectural-boundaries.yml"),
     ("scripts/scan_tenant_queryset_safety.py", "tenant-isolation-scan.yml"),
+    # Added 2026-09-02. Stdlib-only (ast + pathlib), so it rides the deps-free
+    # boundary workflow rather than ci.yml::django-tests.
+    ("scripts/scan_test_host_fidelity.py", "architectural-boundaries.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:
     # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
     # resolves) and SQLite cannot create tenant schemas — while production runs
