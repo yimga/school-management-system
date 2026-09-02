@@ -4,6 +4,7 @@ API host URL configuration (api.runmycampus.com).
 
 from django.http import JsonResponse
 from django.urls import include, path
+from config.internal_machine_urls import INTERNAL_MACHINE_URLPATTERNS
 
 from apps.observability import views as obs_views
 
@@ -18,6 +19,10 @@ def api_home(_request):
 
 
 urlpatterns = [
+    # Token-authed machine endpoints. Mounted from ONE shared list so a route
+    # cannot exist on some hosts and 404 on others -- see
+    # config/internal_machine_urls.py for the outage that caused.
+    *INTERNAL_MACHINE_URLPATTERNS,
     path("", api_home, name="api_home"),
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
