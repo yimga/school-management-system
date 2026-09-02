@@ -1,8 +1,24 @@
 {
   "by_kind": {},
+  "declarations": [
+    {
+      "file": "templates/studio_os/partials/launch_select_plan_body.html",
+      "kind": "coming-soon",
+      "line": 17,
+      "marker_line": 16,
+      "reason": "plans are not productized yet; the lede directly below states that and lists what tenant and operator can do today (v3.54.0, 2026-05-21)",
+      "snippet": "<span>{% trans \"Coming soon\" %}</span>"
+    }
+  ],
+  "declared_by_kind": {
+    "coming-soon": 1
+  },
+  "declared_count": 1,
+  "enforced_by": "scripts/audit_no_placeholder.py --strict (pre_push_boundary_check.py::no-placeholder-copy, architectural-boundaries.yml::u_no_placeholder_copy)",
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-19T02:04:26.707483+00:00",
+  "generated_at": "2026-09-02T21:08:34.822698+00:00",
   "generated_by": "scripts/audit_no_placeholder.py",
-  "templates_scanned": 1086
+  "templates_scanned": 1922,
+  "templates_scanned_note": "A census taken at generated_at over templates/ plus every apps/*/templates/ (APP_DIRS is True). It is deliberately NOT gated: the corpus grows daily and a JSON that must be regenerated on every added template is a gate somebody switches off. Do not read this number as current. What IS enforced on every push is the finding and declaration set below, which --strict re-derives from the live tree."
 }
