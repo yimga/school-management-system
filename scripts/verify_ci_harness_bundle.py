@@ -37,8 +37,11 @@ def main() -> int:
     workflow = ROOT / ".github/workflows/architectural-boundaries.yml"
     if workflow.is_file():
         wf = workflow.read_text(encoding="utf-8")
-        if "playwright-ci-harness:" not in wf:
-            errors.append("architectural-boundaries.yml missing playwright-ci-harness job")
+        # 45d4d7743 consolidated architectural-boundaries.yml from 108 jobs to 2,
+        # keeping every gate command. Requiring a per-gate JOB NAME asserted the old
+        # structure rather than coverage, so this has been red on main ever since --
+        # unseen, because Actions billing has been down since 2026-08-15. What the
+        # gate is for is that the command is actually wired into CI.
         if "verify_ci_harness_bundle.py" not in wf:
             errors.append("architectural-boundaries.yml missing verify_ci_harness_bundle.py step")
     else:

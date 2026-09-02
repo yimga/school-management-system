@@ -177,6 +177,13 @@ GATES: list[tuple[str, list[str]]] = [
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
     # An admin registered on a site no urlconf mounts is a page nobody can open.
     ("admin-unmounted-site", ["scan_admin_registered_on_unmounted_site.py", "--compare"]),
+    # A raw cursor.execute() outside set_rls_school_id() reads past the row policies
+    # that ARE the isolation mechanism on a single-schema edge box. This scanner was
+    # CI-only, and with Actions billing down since 2026-08-15 it ran nowhere at all --
+    # two new bypasses had already landed unnoticed. Same reasoning as the two RLS
+    # gates below: the property is too important to be enforced only by a job that
+    # is not currently executing.
+    ("rls-bypass", ["scan_rls_bypass.py", "--compare"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists

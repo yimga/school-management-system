@@ -181,8 +181,13 @@ def main() -> int:
         failures.append("admin/base_site.html missing rmc-page-context-help.js")
 
     gh_workflow = (ROOT / ".github/workflows/architectural-boundaries.yml").read_text(encoding="utf-8")
-    if "ai-engine-room:" not in gh_workflow or "verify_ai_engine_room.py" not in gh_workflow:
-        failures.append("architectural-boundaries.yml missing ai-engine-room CI job")
+    # 45d4d7743 consolidated architectural-boundaries.yml from 108 jobs to 2,
+    # keeping every gate command. Requiring a per-gate JOB NAME asserted the old
+    # structure rather than coverage, so this has been red on main ever since --
+    # unseen, because Actions billing has been down since 2026-08-15. What the
+    # gate is for is that the command is actually wired into CI.
+    if "verify_ai_engine_room.py" not in gh_workflow:
+        failures.append("architectural-boundaries.yml missing verify_ai_engine_room.py step")
 
     release = (ROOT / "scripts/release_readiness_check.sh").read_text(encoding="utf-8")
     if "verify_ai_engine_room.py" not in release:

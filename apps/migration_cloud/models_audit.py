@@ -773,6 +773,7 @@ def _tenant_chain_append_lock(tenant_id_hash: str, using: str | None = None):
                 signed=True,
             )
             with connection.cursor() as cursor:
+                # rls-bypass-allow: advisory-lock-is-not-a-row-read-or-write
                 cursor.execute("SELECT pg_advisory_xact_lock(%s)", [key])
             yield
         return

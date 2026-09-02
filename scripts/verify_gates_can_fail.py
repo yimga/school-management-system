@@ -496,6 +496,21 @@ MUTATIONS.update({
             b"    pass\n"
         ),
     ),
+    "rls-bypass": Mutation(
+        kind="create",
+        path=f"apps/schools/{_PROOF}_rls_bypass.py",
+        defect=(
+            "a raw cursor.execute() outside set_rls_school_id() - it reads past the "
+            "row policies that ARE the isolation mechanism on a single-schema edge box"
+        ),
+        content=(
+            b"from django.db import connection\n\n\n"
+            b"def gateproof_unscoped_read():\n"
+            b"    with connection.cursor() as cursor:\n"
+            b'        cursor.execute("SELECT id FROM people_student")\n'
+            b"        return cursor.fetchall()\n"
+        ),
+    ),
     # -- wiring / pipeline contracts -------------------------------------------
     "ota-pipeline-wiring": Mutation(
         kind="patch",
