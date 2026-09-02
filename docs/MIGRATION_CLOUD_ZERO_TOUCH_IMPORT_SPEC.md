@@ -177,9 +177,9 @@ signature useful:
       (`MAX_AUTO_REMEDIATE_PASSES = 2`.)
 - [x] **Remediation must not depend on the LLM being reachable.**
       (Rules-only path in `auto_remediate.py`; AI explain is optional overlay.)
-- [ ] **Every claim about behaviour is backed by a state read**, not by reading
-      the code and reasoning about it. **The one rule still open**, and the one
-      the "bundle N will clear on first open" claim depends on.
+- [x] **Every claim about behaviour is backed by a state read**, not by reading
+      the code and reasoning about it. **Closed 2026-08-30** by an actual read of
+      production, not by making the read possible. What it found is below.
 
       Running the real pass to find out is not a state read -- it changes the
       state, and on a live tenant it closes rows in order to tell you whether it
@@ -195,6 +195,40 @@ signature useful:
       ATTEMPTED, the row is re-landed, and a failed land stays held. It also
       counts how many automated decisions rest on an `issue_class` guessed from
       the error text rather than declared by the lander.
+
+      **The read (2026-08-30, production).** Bundle 85 -- the bundle the
+      "88 rows will clear" claim was about:
+
+      ```
+      88  missing_required  academics  school_stats_2026-01-18 22_47_25.679938.pdf
+      88 auto_close · 0 auto_replay · 0 needs_person · rule: pdf_noise
+      ```
+
+      The claim held. It is trustworthy for three reasons the totals alone do not
+      show: no replays, so nothing rests on the uncertain outcome; zero decisions
+      on a guessed class, so every row carries `reason_source: declared`; and one
+      artifact, one domain, one class, so no minority of real records is hiding in
+      a mixed population.
+
+      Reading the state also found four things reading the code had not, each now
+      fixed and mutation-proven:
+
+      * Bundle 83 carries **75,600** held rows, and the page-open pass ran five
+        queryset passes over all of them -- two of which write. `QUARANTINE_RECORD_CAP`
+        caps writes per ARTIFACT per pass, so it never was the bundle ceiling.
+        (`REVIEW_OPEN_ROW_BUDGET`, plus `remediate_quarantine_batch` so large
+        bundles still have a path.)
+      * The PDF-noise rule tested a filename substring ABOVE the extension gate, so
+        a `.csv` named `school_stats*` was dismissed by a PDF rule.
+      * The preview held a dict per row, defeating the `.iterator()` it was built
+        around, and derived `pending` from that list.
+      * An artifact whose every row is quarantined then dismissed leaves an APPLIED
+        bundle with an empty queue and nothing saying it produced no records.
+        (`artifact_yield_overview`, which separates a mapping failure from a
+        derived report and from an unreadable file.)
+
+      The lesson the rule exists for: every one of those was invisible to code
+      reading and obvious in the data.
 
       Ticking this box needs the output of those two commands against a real
       bundle, pasted somewhere durable. Nothing in the repo can do it -- the
