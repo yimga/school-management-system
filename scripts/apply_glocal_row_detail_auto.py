@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
-"""Wire data-rmc-row-detail-table (+ auto scrape) on templates using rmc-data-table."""
+"""Wire data-rmc-row-detail-table (+ auto scrape) on templates using rmc-data-table.
+
+This script used to do a second thing: `_ensure_glocal_tags` appended
+`glocal_tags` to each patched template's first `{% load %}` line.  That is
+where the 102 templates carrying a `{% load glocal_tags %}` they never use
+came from -- apps/platform_runtime/templatetags/glocal_tags.py registers ONE
+tag, `glocal_token`, and no template in the repo calls it.  The load was
+written to satisfy a check in verify_glocal_adoption_tranche that asked
+whether the WORD appeared; that check now asserts use instead, so injecting
+the line would only manufacture more dead source.  Adopting the lexicon means
+calling the tag, which is a decision per template, not a codemod.
+
+It also rewrote every patched file with `newline="\n"`.  Templates in this
+repo are committed CRLF, so a two-attribute edit came back as a whole-file
+diff.  Line endings are now preserved as found.
+"""
 
 from __future__ import annotations
 
@@ -28,9 +43,6 @@ TABLE_OPEN_RE = re.compile(
     r"<table\b(?P<attrs>[^>]*\brmc-data-table\b[^>]*)>",
     re.IGNORECASE,
 )
-LOAD_RE = re.compile(r"(\{%\s*load\s+)([^%]+?)(\s*%\})")
-
-
 def _patch_table_opener(match: re.Match[str], *, use_auto: bool) -> str:
     attrs = match.group("attrs")
     if "data-rmc-row-detail-table" not in attrs:
@@ -40,24 +52,12 @@ def _patch_table_opener(match: re.Match[str], *, use_auto: bool) -> str:
     return f"<table{attrs}>"
 
 
-def _ensure_glocal_tags(content: str) -> str:
-    if "glocal_tags" in content:
-        return content
-    load = LOAD_RE.search(content)
-    if not load:
-        return content
-    tags = load.group(2).strip()
-    if "glocal_tags" in tags:
-        return content
-    new_tags = f"{tags} glocal_tags"
-    return content[: load.start(2)] + new_tags + content[load.end(2) :]
-
-
 def patch_file(path: Path) -> bool:
     rel = path.relative_to(ROOT).as_posix()
     if rel in EXCLUDE_REL:
         return False
-    text = path.read_text(encoding="utf-8")
+    raw = path.read_bytes()
+    text = raw.decode("utf-8")
     if "rmc-data-table" not in text:
         return False
     use_auto = 'data-rmc-row-detail="1"' not in text and "data-rmc-row-detail='1'" not in text
@@ -65,10 +65,11 @@ def patch_file(path: Path) -> bool:
         lambda m: _patch_table_opener(m, use_auto=use_auto),
         text,
     )
-    new_text = _ensure_glocal_tags(new_text)
     if new_text == text:
         return False
-    path.write_text(new_text, encoding="utf-8", newline="\n")
+    # Write bytes, not text: newline="\n" normalised every CRLF
+    # template it touched, turning a two-attribute edit into a whole-file diff.
+    path.write_bytes(new_text.encode("utf-8"))
     return True
 
 
