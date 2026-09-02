@@ -21,10 +21,7 @@
   </div>
 
   {% if readiness.drill_manual_if_all_rails_down %}
-  {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
-    If every online gateway fails, guardians should still follow the manual receipt path —
-    finance staff reconciles uploads before balances update.
-  ") message=_("Nothing here yet — check back after your school adds data.") %}
+  {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_(" If every online gateway fails, guardians should still follow the manual receipt path — finance staff reconciles uploads before balances update. ") message=_("Nothing here yet — check back after your school adds data.") %}
   {% endif %}
 
   <div class="row g-4 rmc-reveal-stagger">

@@ -10,6 +10,58 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "templates"
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import shell_css_contract  # noqa: E402
+
+NAV_CSS = "static/css/rmc-nav-sidebar.css"
+DUAL_PLANE_CSS = "static/css/rmc-theme-experience-dual-plane.css"
+DUAL_PLANE_INCLUDE = "rmc_theme_experience_dual_plane_styles.html"
+
+
+def _cascade_finding(label: str, region: str) -> str | None:
+    """Report only when the <link> ORDER of these two sheets decides a winner.
+
+    The original assertion was positional: rmc-nav-sidebar.css had to come after
+    the terminal dual-plane include. That held when it was written (2026-06-05,
+    a9a411922) and stopped holding on 2026-07-31 (959584f4f), which deliberately
+    moved the dual-plane include to the END of <head> -- "Terminal authenticated
+    theme layer remains head-owned after every conditional shell stylesheet" --
+    and dropped the duplicate body-tail pass. Nothing in <head> can be after a
+    terminal include, so the two contracts are mutually exclusive by
+    construction; the positional one simply lost, silently, and this gate had
+    been red on two shells ever since.
+
+    Position was always a proxy for the real question: can a dual-plane rule beat
+    a nav-sidebar rule? Source order settles that only when two declarations tie
+    on specificity AND on !important; otherwise specificity or origin decides and
+    moving a <link> changes nothing. So the proxy is replaced by the measurement.
+
+    Worth stating because it is the obvious objection: rmc-nav-sidebar.css is NOT
+    one of the 77 sources of css/portal-shell-enhanced.min.css, and neither is
+    rmc-theme-experience-dual-plane.css, so for these two sheets the effective
+    cascade position really is the <link> position -- there is no bundled copy
+    landing somewhere else in the order.
+    """
+    dual_pos = region.rfind(DUAL_PLANE_INCLUDE)
+    nav_pos = region.rfind("rmc-nav-sidebar.css")
+    if dual_pos == -1:
+        return f"{label}: dual-plane theme include missing from the head region"
+    if nav_pos == -1:
+        return f"{label}: rmc-nav-sidebar.css missing from the head region"
+    if nav_pos > dual_pos:
+        return None
+    collisions = shell_css_contract.order_decided_collisions(NAV_CSS, DUAL_PLANE_CSS)
+    if not collisions:
+        return None
+    first = collisions[0]
+    return (
+        f"{label}: rmc-nav-sidebar.css loads BEFORE the terminal dual-plane "
+        f"include and {len(collisions)} declaration(s) are decided by that order "
+        f"alone -- e.g. {first['property']} at specificity {first['specificity']} "
+        f"on {first['a']!r} vs {first['b']!r}. Move the nav sidebar sheet after "
+        f"the dual-plane include, or resolve the collision by specificity"
+    )
 
 
 def _read(rel: str) -> str:
@@ -204,23 +256,17 @@ def main() -> int:
     if "cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded" in portal:
         failures.append("portal_base.html manager sidebar still uses rounded double-wrap inner shell")
 
-    portal_head = portal.split("</head>", 1)[0]
-    dual_plane_pos = portal_head.rfind("rmc_theme_experience_dual_plane_styles.html")
-    nav_css_pos = portal_head.rfind("rmc-nav-sidebar.css")
-    if dual_plane_pos == -1 or nav_css_pos == -1 or nav_css_pos < dual_plane_pos:
-        failures.append("portal_base.html must load rmc-nav-sidebar.css after terminal dual-plane include in <head>")
-
-    skeleton_head = skeleton.split("</head>", 1)[0]
-    sk_dual = skeleton_head.rfind("rmc_theme_experience_dual_plane_styles.html")
-    sk_nav = skeleton_head.rfind("rmc-nav-sidebar.css")
-    if sk_dual == -1 or sk_nav == -1 or sk_nav < sk_dual:
-        failures.append("control_plane_skeleton.html must load rmc-nav-sidebar.css after dual-plane include")
-
-    admin_extrastyle = admin_site.split("{% block extrastyle %}", 1)[-1].split("{% endblock %}", 1)[0]
-    ad_dual = admin_extrastyle.rfind("rmc_theme_experience_dual_plane_styles.html")
-    ad_nav = admin_extrastyle.rfind("rmc-nav-sidebar.css")
-    if ad_dual == -1 or ad_nav == -1 or ad_nav < ad_dual:
-        failures.append("admin/base_site.html must load rmc-nav-sidebar.css after dual-plane include in extrastyle")
+    for label, region in (
+        ("portal_base.html", portal.split("</head>", 1)[0]),
+        ("control_plane_skeleton.html", skeleton.split("</head>", 1)[0]),
+        (
+            "admin/base_site.html",
+            admin_site.split("{% block extrastyle %}", 1)[-1].split("{% endblock %}", 1)[0],
+        ),
+    ):
+        finding = _cascade_finding(label, region)
+        if finding:
+            failures.append(finding)
 
     if 'class="cp-sidebar-inner cp-sidebar-inner--surface d-flex flex-column flex-grow-1 min-h-0 p-2"' not in zero_ticket:
         failures.append("zero_ticket_shell.html missing cp-sidebar-inner scroll wrapper")

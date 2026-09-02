@@ -289,10 +289,20 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
     def test_local_front_door_keeps_promotions_away_from_credentials(self):
         canvas_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "partials" / "login_immersive_canvas.html"
         html = canvas_tpl.read_text(encoding="utf-8")
-        self.assertIn("data-rmc-sponsored-region", html)
-        self.assertIn("data-rmc-sponsored-empty", html)
+        # These three are markup the canvas must PUT ON THE PAGE; a source
+        # read cannot tell them from the same strings inside a comment, which
+        # is why this case measured vacuous once the harness stopped
+        # crediting it with a sibling test's template.
+        assert_markup(
+            self,
+            canvas_tpl,
+            "data-rmc-sponsored-region",
+            "data-rmc-sponsored-empty",
+            "data-rmc-offline-note",
+        )
+        # A {% trans %} msgid: no parse and no render of this partial can see
+        # it, so the source read stays.
         self.assertIn("Local partner", html)
-        self.assertIn("data-rmc-offline-note", html)
         login_tpl = (Path(settings.BASE_DIR) / "templates" / "auth" / "login.html").read_text(encoding="utf-8")
         credentials = login_tpl.split('data-rmc-auth-step="creds"', 1)[1]
         self.assertNotIn("data-rmc-sponsored-slot", credentials)

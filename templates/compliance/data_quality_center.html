@@ -84,11 +84,7 @@
       {% endfor %}
     </div>
   {% else %}
-    {% include "components/rmc_empty_state.html" with
-       icon="bi-shield-check"
-       title=_("Data is clean")|stringformat:"s"
-       message=_("Every registered completeness and reachability check passed for this tenant. Re-run after the next import to confirm.")|stringformat:"s"
-    %}
+    {% include "components/rmc_empty_state.html" with icon="bi-shield-check" title=_("Data is clean")|stringformat:"s" message=_("Every registered completeness and reachability check passed for this tenant. Re-run after the next import to confirm.")|stringformat:"s" %}
   {% endif %}
 </div>
 {% endblock %}

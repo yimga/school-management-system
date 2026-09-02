@@ -11,10 +11,23 @@ dashboard shells:
 
 For each shell the gate asserts:
   - {% include "partials/rmc_command_bar.html" %} present
-  - <link rel=stylesheet ... rmc-command-bar.css> loaded
-  - <link rel=stylesheet ... rmc-signature-motion.css> loaded
+  - rmc-command-bar.css delivered
+  - rmc-signature-motion.css delivered
   - <script ... rmc-command-bar.js> loaded WITHOUT defer/async
-    (armed-attribute invariant — flag must land before first paint)
+    (armed-attribute invariant -- flag must land before first paint)
+
+"Delivered" is not "the filename appears in this file". templates/portal_base.html
+links ONE minified sheet, css/portal-shell-enhanced.min.css, which concatenates 77
+sources including both of these; the old substring test therefore reported
+"missing stylesheet" for CSS the tenant shell has always shipped. Resolution now
+runs through scripts/shell_css_contract.py, which accepts a bundle ONLY when the
+shell links it, a hash manifest declares it, the stylesheet is one of its sources,
+AND that source's sha256 still matches the file on disk -- a bundle built from an
+older copy serves stale rules and is reported, never passed.
+
+The include/script assertions run against REACHABLE template text: markup parked
+behind {% if False %} or inside {% comment %} is not shipped, and a raw substring
+test happily finds it there.
 
 Stdlib-only. Exits 0 on PASS, 1 on FAIL.
 """
@@ -25,8 +38,11 @@ import re
 import sys
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+import shell_css_contract  # noqa: E402
+
 SHELLS = (
     REPO_ROOT / "templates" / "base.html",
     REPO_ROOT / "templates" / "portal_base.html",
@@ -47,21 +63,18 @@ _SCRIPT_RE = re.compile(
 def _check_shell(path: Path) -> list[str]:
     if not path.exists():
         return [f"{path.relative_to(REPO_ROOT)}: shell template missing"]
-    text = path.read_text(encoding="utf-8")
+    rel = path.relative_to(REPO_ROOT).as_posix()
+    text = shell_css_contract.reachable_text(rel)
     findings: list[str] = []
 
     if PARTIAL_TOKEN not in text:
         findings.append(
             f"{path.relative_to(REPO_ROOT)}: missing include of {PARTIAL_TOKEN}"
         )
-    if CSS_BAR_TOKEN not in text:
-        findings.append(
-            f"{path.relative_to(REPO_ROOT)}: missing stylesheet {CSS_BAR_TOKEN}"
-        )
-    if CSS_MOTION_TOKEN not in text:
-        findings.append(
-            f"{path.relative_to(REPO_ROOT)}: missing stylesheet {CSS_MOTION_TOKEN}"
-        )
+    for css in (CSS_BAR_TOKEN, CSS_MOTION_TOKEN):
+        finding = shell_css_contract.missing_stylesheet(rel, css)
+        if finding:
+            findings.append(finding)
 
     script_tags = _SCRIPT_RE.findall(text)
     if not script_tags:
@@ -93,7 +106,12 @@ def main() -> int:
     print("PASS: command-bar shell coverage clean")
     print(f"  shells wired: {len(SHELLS)}")
     for s in SHELLS:
-        print(f"    {s.relative_to(REPO_ROOT)}")
+        rel = s.relative_to(REPO_ROOT).as_posix()
+        how = ", ".join(
+            f"{css}={shell_css_contract.resolve(rel, css)[0]}"
+            for css in (CSS_BAR_TOKEN, CSS_MOTION_TOKEN)
+        )
+        print(f"    {rel}  [{how}]")
     return 0
 
 

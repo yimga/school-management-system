@@ -1,11 +1,11 @@
 {
   "finding_count": 0,
   "measured": {
-    "population": 342,
-    "measured": 218,
+    "population": 313,
+    "measured": 216,
     "vacuous": 0,
-    "sound": 218,
-    "unmeasurable": 124
+    "sound": 216,
+    "unmeasurable": 96
   },
   "vacuous": [],
   "rule": "Tests measured VACUOUS: they still pass when the template they name is made to render nothing while every string they assert stays in its bytes. RATCHET DOWN ONLY. Fix a test (assert on rendered output) and REMOVE its entry; the gate fails on a baselined entry that has become SOUND, so the list cannot rot. Never add an entry to silence a finding -- a new vacuous test in a changed file is a finding, not a baseline candidate. finding_count may only fall EXCEPT when \"measured\" grows: a harness that can see more cases legitimately finds more, and that rise must be justified in the commit that makes it. Measured by scripts/verify_test_asserts_behaviour.py."

@@ -14,13 +14,10 @@
   {% if not year or not term %}
     <div class="rmc-banner rmc-banner--warning">No active academic year or term is set. Ask an admin to set the current year and term.</div>
   {% elif not schedule %}
-    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
-      No timetable is published for the current term yet. When the admin publishes a schedule for {{ year.name }} – {{ term.custom_label|default:term.name }}, your sessions will appear here.
-    ") message=_("Nothing here yet — check back after your school adds data.") %}
+    {% blocktrans asvar timetable_no_schedule_title with year_name=year.name term_label=term.custom_label|default:term.name %}No timetable is published for the current term yet. When the admin publishes a schedule for {{ year_name }} – {{ term_label }}, your sessions will appear here.{% endblocktrans %}
+    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=timetable_no_schedule_title message=_("Nothing here yet — check back after your school adds data.") %}
   {% elif not entries %}
-    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("
-      You have no assigned sessions in the current timetable. If you expect to see classes here, ask the admin to assign you in the schedule.
-    ") message=_("Nothing here yet — check back after your school adds data.") %}
+    {% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("You have no assigned sessions in the current timetable. If you expect to see classes here, ask the admin to assign you in the schedule.") message=_("Nothing here yet — check back after your school adds data.") %}
   {% else %}
     <div class="card">
       <div

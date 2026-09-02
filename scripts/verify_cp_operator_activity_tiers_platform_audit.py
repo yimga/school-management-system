@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
-"""Platform-wide gate: operator activity tiers + dual-plane shell audit."""
+"""Platform-wide gate: operator activity tiers + dual-plane shell audit.
+
+Two of this gate's assertions were measuring the word, not the behaviour:
+
+  * rmc-cp-activity-tiers.css on templates/portal_base.html. The tenant shell
+    links one minified bundle (css/portal-shell-enhanced.min.css) that contains
+    this stylesheet as source 63 of 77, so the rules ship and the filename does
+    not appear. Delivery now resolves through scripts/shell_css_contract.py.
+
+  * The Tier-2 landing ticker strip. That partial is retired -- see the block
+    comment at the check itself -- so the include it asserted had not existed on
+    any of the three landings since 2026-08-19.
+
+Stdlib-only.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +21,9 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO / "scripts"))
+
+import shell_css_contract  # noqa: E402
 
 TIER_PARTIALS = (
     "templates/partials/cockpit/_activity_ticker_inline.html",
@@ -70,8 +87,10 @@ def main() -> int:
 
     for rel in MANAGER_SHELLS:
         text = _read(rel)
-        if "rmc-cp-activity-tiers.css" not in text and rel != "templates/control_plane_base.html":
-            findings.append(f"{rel}: missing rmc-cp-activity-tiers.css")
+        if rel != "templates/control_plane_base.html":
+            finding = shell_css_contract.missing_stylesheet(rel, "rmc-cp-activity-tiers.css")
+            if finding:
+                findings.append(finding)
         if rel == "templates/control_plane_skeleton.html":
             if "_activity_ticker_drawer.html" not in text:
                 findings.append("control_plane_skeleton.html: missing activity drawer include")
@@ -91,9 +110,41 @@ def main() -> int:
                 "control_plane_base.html: platform_pulse must be landing-only, not canvas chrome"
             )
 
+    # ---- Tier 2: the landing ticker strip ---------------------------------
+    # _activity_ticker_landing_strip.html is RETIRED. It was hoisted off these
+    # three operator landings into the shared header on 2026-06-06 (ae1b2cc4d:
+    # "LIVE marquee row is now the DEFAULT in control_plane_unified_header.html
+    # -- per-dashboard override removed to avoid a double row"), and the header
+    # row itself was removed on 2026-08-19 (0711ac109, quiet-header v2:
+    # "Landing-strip chrome is retired from the header stack"), which also
+    # dropped it from portal_base's tenant role-home banner. Nothing includes
+    # the partial today, so asserting the include asserted the pre-2026-08-19
+    # contract and failed on all three landings every run.
+    #
+    # What replaced it is the Tier-1 inline badge plus the drawer it opens, both
+    # of which every landing inherits through its shell chain -- so that is what
+    # is asserted. A HALF state is a finding: some landings carrying the retired
+    # strip while others do not is exactly the drift this gate exists to catch.
+    strip_wired = [
+        rel
+        for rel in LANDING_TEMPLATES
+        if shell_css_contract.renders(rel, "_activity_ticker_landing_strip.html")
+    ]
+    if strip_wired and len(strip_wired) != len(LANDING_TEMPLATES):
+        findings.append(
+            "Tier-2 landing ticker strip is half-wired: "
+            + ", ".join(strip_wired)
+            + " render it while the other operator landings do not"
+        )
     for rel in LANDING_TEMPLATES:
-        if "_activity_ticker_landing_strip.html" not in _read(rel):
-            findings.append(f"{rel}: missing Tier-2 landing ticker strip")
+        if rel in strip_wired:
+            continue
+        for partial in ("_activity_ticker_inline.html", "_activity_ticker_drawer.html"):
+            if not shell_css_contract.renders(rel, partial):
+                findings.append(
+                    f"{rel}: no Tier-2 activity surface -- neither the retired "
+                    f"landing strip nor {partial} is reachable from this landing"
+                )
 
     skeleton = _read("templates/control_plane_skeleton.html")
     if not any(marker in skeleton for marker in DUAL_PLANE_MARKERS):
