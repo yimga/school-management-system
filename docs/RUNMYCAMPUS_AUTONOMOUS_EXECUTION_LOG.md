@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Production deploy + review HTTP E2E (batch 1836 - 2026-09-03)
+
+**A. Scope:** Wire slug-alias env for Render deploy; prove Review & Import renders all post-import closure panels over HTTP.
+
+**B. Shipped:** `RMC_TENANT_SLUG_LOOKUP_ALIASES` on web + worker in `render.yaml` (`sync: false`); `test_bundle_review_closure_panels_2026_09_03.py`; playbook Render dashboard note.
+
+**C. Proof:** sqlite-memory **2/2 OK**; local `remediate_tenant_post_import --dry-run --school demo-school` runs all five steps.
+
+**D. Deploy:** After Render deploy, set `RMC_TENANT_SLUG_LOOKUP_ALIASES` JSON on web + worker, then run production playbook on Gilead's applied bundle.
+
 ## Slice - Gilead slug alias resolution (batch 1835 - 2026-09-03)
 
 **A. Scope:** Post-import operator commands must accept production host token `gilead-tech` as well as tenant slug `gilead-school`.
