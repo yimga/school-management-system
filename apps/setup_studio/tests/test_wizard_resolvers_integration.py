@@ -31,6 +31,7 @@ from apps.setup_studio.wizard_resolvers_domain import (
     write_parent_contact_preferences_step,
     write_parent_payment_setup_step,
     write_password_rotation_step,
+    write_student_course_selection_step,
     write_teacher_attendance_intake_step,
     write_teacher_gradebook_setup_step,
 )
@@ -248,3 +249,133 @@ class ResolverErrorPathTests(SimpleTestCase):
         )
         # If the function were case-sensitive, this would be a real risk. The
         # writer lowercases the key on match, so this is the regression pin.
+
+
+class RoleWizardKernelWiringTests(TestCase):
+    """The role wizards must reach their kernels, not just a settings blob.
+
+    ``apps/academics/role_wizard_kernel.py`` and
+    ``apps/billing/parent_payment_wizard_kernel.py`` were written for exactly
+    these four writers and had ZERO callers anywhere in the tree -- not one
+    import, not one test. The writers hand-rolled a subset of what the kernels
+    do, so the kernel-only effects (the gradebook projection, the assembled
+    course request) never happened. Each assertion below fails if a writer is
+    reverted to writing the settings slice itself.
+    """
+
+    _ACTOR = 4242
+
+    def setUp(self):
+        from apps.schools.models import School
+        self.school = School.objects.create(name="Role Kernel Wiring Test")
+
+    def _settings(self):
+        self.school.refresh_from_db()
+        return self.school.settings or {}
+
+    def test_gradebook_writer_projects_policies_onto_the_chosen_classroom(self):
+        """Only the kernel writes ``teacher_gradebook.<classroom_id>``.
+
+        The wizard asks for the class in ``select_class`` and the marking
+        policy in ``policies``; a gradebook reads the policy BY CLASSROOM, and
+        nothing assembled that projection while the writer wrote its own slice.
+        """
+        write_teacher_gradebook_setup_step(
+            school=self.school, wizard_key="teacher_gradebook_setup",
+            step_key="select_class", payload={"value": "77"},
+            actor_user_id=self._ACTOR,
+        )
+        write_teacher_gradebook_setup_step(
+            school=self.school, wizard_key="teacher_gradebook_setup",
+            step_key="policies", payload={"late_penalty": "10"},
+            actor_user_id=self._ACTOR,
+        )
+        settings = self._settings()
+        self.assertIn(
+            "teacher_gradebook", settings,
+            "policies step did not reach apply_teacher_gradebook_step",
+        )
+        self.assertIn("77", settings["teacher_gradebook"])
+        row = settings["teacher_gradebook"]["77"]
+        self.assertEqual(row["policies"], {"late_penalty": "10"})
+        self.assertEqual(row["teacher_user_id"], self._ACTOR)
+
+    def test_attendance_writer_stamps_updated_at_through_the_kernel(self):
+        write_teacher_attendance_intake_step(
+            school=self.school, wizard_key="teacher_attendance_intake",
+            step_key="default_statuses", payload={"default": "present"},
+            actor_user_id=self._ACTOR,
+        )
+        slice_ = (
+            self._settings()["role_wizards"]["teacher_attendance_intake"]
+            ["users"][str(self._ACTOR)]["default_statuses"]
+        )
+        self.assertEqual(slice_["default"], "present")
+        self.assertIn(
+            "updated_at", slice_,
+            "the kernel stamps updated_at; a raw settings write does not",
+        )
+
+    def test_course_selection_keeps_every_step_instead_of_overwriting_one_key(self):
+        """The old writer put each step at ``student_course_requests.<actor>``.
+
+        That is ONE key, so every step overwrote the previous one and only the
+        last answer survived -- a student's required_courses selection was
+        destroyed by their electives selection. Each step must now survive, and
+        the confirm step must assemble the request.
+        """
+        for step_key, payload in (
+            ("academic_year", {"value": "2026-2027"}),
+            ("required_courses", {"value": ["MATH", "PHYS"]}),
+            ("electives", {"value": ["ART"]}),
+            ("confirm", {"value": True}),
+        ):
+            write_student_course_selection_step(
+                school=self.school, wizard_key="student_course_selection",
+                step_key=step_key, payload=payload, actor_user_id=self._ACTOR,
+            )
+        settings = self._settings()
+        user_slice = (
+            settings["role_wizards"]["student_course_selection"]
+            ["users"][str(self._ACTOR)]
+        )
+        for step_key in ("academic_year", "required_courses", "electives", "confirm"):
+            self.assertIn(
+                step_key, user_slice,
+                f"{step_key} was overwritten -- the writer is not keeping a slice per step",
+            )
+        self.assertEqual(user_slice["required_courses"]["value"], ["MATH", "PHYS"])
+        confirmed = settings["student_course_requests"][str(self._ACTOR)]
+        self.assertIn("confirmed_at", confirmed)
+        self.assertEqual(confirmed["required_courses"]["value"], ["MATH", "PHYS"])
+
+    def test_parent_payment_writer_reaches_the_kernel_without_leaking_secrets(self):
+        """The billing kernel does NOT sanitise; the writer must hand it `safe`."""
+        write_parent_payment_setup_step(
+            school=self.school, wizard_key="parent_payment_setup",
+            step_key="card_details",
+            payload={
+                "billing_name": "Jane Smith",
+                "card_number": "4242424242424242",
+                "cvv": "123",
+                "iban": "DE89370400440532013000",
+            },
+            actor_user_id=self._ACTOR,
+        )
+        settings = self._settings()
+        row = settings["parent_payment_setup"]["users"][str(self._ACTOR)]["card_details"]
+        self.assertEqual(row["billing_name"], "Jane Smith")
+        self.assertIn(
+            "updated_at", row,
+            "the billing kernel stamps updated_at; a raw settings write does not",
+        )
+        self.assertIn("updated_at", settings["parent_payment_setup"])
+        blob = str(settings)
+        for secret in ("4242424242424242", "123456", "DE89370400440532013000"):
+            self.assertNotIn(
+                secret, blob,
+                "payment secret reached school.settings -- the kernel does not "
+                "strip, so the writer must sanitise BEFORE delegating",
+            )
+        for key in ("card_number", "cvv", "iban"):
+            self.assertNotIn(key, row)

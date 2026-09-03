@@ -40,6 +40,21 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-09-02. Both wizard gates below existed, were correct, and were
+    # invoked by NOTHING -- verify_unified_wizard_framework.py was even named in
+    # this workflow's `paths:` filter, which triggers the job without running the
+    # gate. The spec-coverage one had been reporting 14 registered wizards missing
+    # from the Playwright spec into a log no run ever produced.
+    ("scripts/verify_wizard_playwright_spec_coverage.py", "architectural-boundaries.yml"),
+    ("scripts/verify_unified_wizard_framework.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. The four companion-* siblings are separate programs that
+    # talk to this server over HTTP, and nothing ever checked that the paths they
+    # hardcode exist. A resolve of every literal against all four urlconfs returned
+    # 404 for every one -- including /api/v1/auth/login/, so the shipped desktop app
+    # cannot complete step 1 of its own documented flow. Every client failure is
+    # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
+    # can see it.
+    ("scripts/verify_companion_server_contract.py", "ci.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts
@@ -68,6 +83,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # decorative. This gate is exactly the kind that gets quietly unwired,
     # because unwiring it makes nothing go red.
     ("scripts/scan_workflow_swallowed_exit_codes.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Its own tracked artifact is what made the case: a
+    # "finding_count": 0 over 1086 templates, dated 2026-05-19, while the tree
+    # held 1910 -- a clean bill of health over 824 templates it had never seen.
+    # An unwired reporter rots silently and is then read as a fact, so the
+    # invocation itself is the thing that has to be defended.
+    ("scripts/audit_no_placeholder.py", "architectural-boundaries.yml"),
     ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
     # Added 2026-08-27, detector integrity. These three were each green for a
     # reason unrelated to the tree being clean, which is the worst state a gate
@@ -280,6 +301,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-09-02. Stdlib-only (re + pathlib), so it rides the deps-free
     # boundary workflow rather than ci.yml::django-tests.
     ("scripts/scan_dangling_static_reference.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Rewritten the same day to stop pinning a frozen June
+    # service-worker literal -- which made it go red on EVERY cache bump and kept
+    # it red for three months -- and to assert instead that the shipped cache
+    # generation still covers the wave the stylesheet declares. Before this entry
+    # the only file in the repository that named it was itself.
+    ("scripts/verify_theme_experience_dual_plane_shell.py", "architectural-boundaries.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:
     # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
     # resolves) and SQLite cannot create tenant schemas — while production runs

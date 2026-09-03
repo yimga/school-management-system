@@ -222,20 +222,32 @@ def _list_courses(school: Any, *, required_only: bool) -> list[dict[str, Any]]:
 
 
 def write_teacher_gradebook_setup_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
+    """Delegate to the academics role kernel.
+
+    The kernel writes the same ``role_wizards.<wizard>.users.<actor>.<step>``
+    slice this used to write directly, and additionally projects the chosen
+    weights/policies onto ``teacher_gradebook.<classroom_id>`` once the class
+    has been picked -- which is the part a teacher's gradebook actually reads.
+    """
     if school is None:
         return
-    _write_user_step(
-        school=school, root_key="role_wizards", wizard_key=wizard_key,
-        step_key=step_key, payload=payload, actor_user_id=actor_user_id,
+    from apps.academics.role_wizard_kernel import apply_teacher_gradebook_step
+
+    apply_teacher_gradebook_step(
+        school=school, actor_user_id=actor_user_id,
+        step_key=step_key, payload=payload,
     )
 
 
 def write_teacher_attendance_intake_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
+    """Delegate to the academics role kernel (same settings slice, one owner)."""
     if school is None:
         return
-    _write_user_step(
-        school=school, root_key="role_wizards", wizard_key=wizard_key,
-        step_key=step_key, payload=payload, actor_user_id=actor_user_id,
+    from apps.academics.role_wizard_kernel import apply_teacher_attendance_step
+
+    apply_teacher_attendance_step(
+        school=school, actor_user_id=actor_user_id,
+        step_key=step_key, payload=payload,
     )
 
 
@@ -251,10 +263,14 @@ def write_parent_payment_setup_step(*, school: Any, wizard_key: str, step_key: s
     if school is None:
         logger.info("parent_payment_setup step=%s actor=%s safe_field_count=%d", step_key, actor_user_id, len(safe))
         return
-    # parent_payment_setup owns a top-level bucket: parent_payment_setup.users.<actor>.<step>
-    _write_user_step(
-        school=school, root_key=wizard_key, wizard_key=wizard_key,
-        step_key=step_key, payload=safe, actor_user_id=actor_user_id, nest_wizard=False,
+    # parent_payment_setup owns a top-level bucket: parent_payment_setup.users.<actor>.<step>.
+    # The kernel writes that exact path; it does NOT sanitise, so it is handed
+    # `safe` and never the raw payload.
+    from apps.billing.parent_payment_wizard_kernel import apply_parent_payment_step
+
+    apply_parent_payment_step(
+        school=school, actor_user_id=actor_user_id,
+        step_key=step_key, payload=safe,
     )
 
 
@@ -277,13 +293,22 @@ def write_parent_contact_preferences_step(*, school: Any, wizard_key: str, step_
 
 
 def write_student_course_selection_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:
+    """Delegate to the academics role kernel.
+
+    This used to write the whole step to ONE key,
+    ``student_course_requests.<actor> = {wizard_key, step_key, payload}``, so
+    every step overwrote the previous one and only the last answer survived --
+    the student's required_courses selection was destroyed by their electives
+    selection. The kernel keeps one slice per step and assembles the confirmed
+    request at the ``confirm`` step.
+    """
     if school is None or not actor_user_id:
         return
-    # Record the student's course request under a per-user requests bucket.
-    _write_to_site_settings(
-        school,
-        f"student_course_requests.{actor_user_id}",
-        {"wizard_key": wizard_key, "step_key": step_key, "payload": payload},
+    from apps.academics.role_wizard_kernel import apply_student_course_selection_step
+
+    apply_student_course_selection_step(
+        school=school, actor_user_id=actor_user_id,
+        step_key=step_key, payload=payload,
     )
 
 

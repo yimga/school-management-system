@@ -3,6 +3,16 @@
 {% load admin_list i18n unfold admin_urls static %}
 {% block base %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+    {% comment %} Platform chrome bundle — mounted HERE, a direct child of <body> and a
+       SIBLING of .rmc-app-shell, so the seven chrome scripts and the back-to-top button
+       are outside the fixed-height shell scroll canvas from first paint (no pre-hydration
+       flash, nothing for components__back_to_top.js::ensureBodyMounted to hoist).
+       This must stay the FIRST emission: {% emit_once %} is first-wins per request, and
+       every later include of the same bundle — {% block footer %} below, base_site.html's
+       footer block, and the manager-host include after the shell — dedupes into it.
+       Before this mount the winner was the in-<main> include, so the whole bundle rendered
+       INSIDE .rmc-app-shell on both admin hosts. {% endcomment %}
+    {% include "partials/rmc_platform_chrome_scripts.html" %}
 {# Tenant admin uses the same 2-col grid + canvas scroll as manager — never rmc-app-shell--fluid (that stacks sidebar over canvas and locks scroll). #}
 <div class="rmc-app-shell admin-cp-unified-page{% if is_manager_host %} admin-manager-shell control-plane-shell cp-surface{% endif %}{% if not is_manager_host and is_popup %} rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-shell-sidebar="offcanvas" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub" data-rmc-admin-cp-unified="1" data-rmc-admin-approval-build="2026-08-27-v23.0"{% if is_manager_host %} data-rmc-backoffice-frame="v2"{% endif %}{% if active_experience_template %} data-rmc-experience-active="1" data-rmc-experience-template="{{ active_experience_template.template_key }}" data-rmc-experience-layout="{{ active_experience_template.layout }}" data-rmc-experience-palette="{{ active_experience_template.palette_family }}" data-rmc-experience-typography="{{ active_experience_template.typography_stack }}" data-rmc-experience-density="{{ active_experience_template.density_mode }}" data-rmc-experience-mobile="{{ active_experience_template.mobile_behavior }}"{% endif %}>
 
@@ -158,12 +168,16 @@
     </div>
     {% if is_manager_host %}
     {% include 'components/back_to_top.html' %}
-    {% comment %}Manager host: .rmc-app-shell is the fixed-height scroll canvas, so the
-       back-to-top sits OUTSIDE it (sibling of the shell) — inside, it is clipped/
-       scroll-bound pre-hydration; components__back_to_top.js only hoists to <body>
-       when it finds the button inside .rmc-app-shell. The tenant back-to-top include
-       stays inside <main> above (v16.1: the workbench FOOTER is now the pinned grid
-       row-3 band, not an in-<main> block). emit_once dedupes if the chrome-scripts
-       partial also ran.{% endcomment %}
+    {% comment %}Manager host: back-to-top must sit OUTSIDE .rmc-app-shell (the
+       fixed-height scroll canvas) — inside, it is clipped/scroll-bound until
+       components__back_to_top.js::ensureBodyMounted hoists it to <body>.
+       Since the platform chrome bundle is mounted at the top of this block (also
+       outside the shell, and for BOTH hosts), that emission wins emit_once and this
+       include renders nothing. It is kept as a belt-and-braces fallback: if the
+       bundle above is ever removed or host-gated, the manager host still gets the
+       button outside the shell. It is NOT the primary mount — do not read it as one,
+       and do not add the tenant arm here: the bundle already covers both hosts.
+       (v16.1: the workbench FOOTER is the pinned grid row-3 band, not an in-<main>
+       block.){% endcomment %}
     {% endif %}
 {% endblock %}

@@ -23,6 +23,11 @@ on:
       - "scripts/scan_duplicate_dict_keys.py"
       - "scripts/scan_test_host_fidelity.py"
       - "scripts/scan_dangling_static_reference.py"
+      - "scripts/verify_theme_experience_dual_plane_shell.py"
+      - "static/css/rmc-theme-experience-dual-plane.css"
+      - "scripts/audit_no_placeholder.py"
+      - "docs/generated/no_placeholder_audit.json"
+      - "apps/*/templates/**/*.html"
       - "apps/test_utils/tenant_hosts.py"
       - "scripts/scan_ci_shell_command_integrity.py"
       - "scripts/scan_workflow_swallowed_exit_codes.py"
@@ -130,6 +135,9 @@ on:
       - "scripts/scan_wizard_json_schema_drift.py"
       - "scripts/scan_wizard_class_grammar.py"
       - "scripts/verify_unified_wizard_framework.py"
+      - "scripts/verify_wizard_playwright_spec_coverage.py"
+      - "tests/e2e/unified-wizard-framework.spec.js"
+      - "tests/e2e/helpers/wizard-registry.js"
       - "apps/setup_studio/wizards/**/*.json"
       - "apps/setup_studio/wizard_*.py"
       - "apps/setup_studio/ai_prompts.py"
@@ -682,6 +690,14 @@ jobs:
             python scripts/scan_wizard_class_grammar.py
           }
 
+          u_wizard_framework_integrity() {
+            python scripts/verify_unified_wizard_framework.py
+          }
+
+          u_wizard_playwright_spec_coverage() {
+            python scripts/verify_wizard_playwright_spec_coverage.py
+          }
+
           u_canonical_headers_drift() {
             python scripts/scan_companion_canonical_headers_drift.py --strict
           }
@@ -827,6 +843,27 @@ jobs:
           }
 
           run_unit u_dangling_static_reference "Static references point at files that exist"
+
+          # The shipped service-worker cache generation must be at least the wave
+          # this stylesheet declares, or a returning browser keeps serving the
+          # cached pre-wave sheet. Until 2026-09-02 the gate pinned one June
+          # literal instead and had been red for three months; nothing ran it.
+          u_theme_dual_plane_shell() {
+            python scripts/verify_theme_experience_dual_plane_shell.py
+          }
+
+          run_unit u_theme_dual_plane_shell "Dual-plane sheet is covered by the shipped cache generation"
+          # A tracked artifact that certified a clean state over a surface it
+          # never scanned: no_placeholder_audit.json read 0 findings over 1086
+          # templates while 1910 existed, because the script always returned 0
+          # and nothing in the repository invoked it. --strict re-derives the
+          # answer from the live tree and writes nothing.
+          u_no_placeholder_copy() {
+            python scripts/audit_no_placeholder.py --strict
+            python -m unittest scripts.tests.test_audit_no_placeholder -v
+          }
+
+          run_unit u_no_placeholder_copy "No undeclared placeholder copy ships"
           run_unit u_operator_landing_header_order "Operator landing header precedes cockpit chrome"
           run_unit u_lander_row_streaming "Migration Cloud landers stream canonical rows"
           run_unit u_migration_apply_stall_contract "Migration apply stall detection contract"
@@ -882,6 +919,8 @@ jobs:
           run_unit u_hardcoded_client_fetch "Hardcoded client fetch paths (platform configurability cascade)"
           run_unit u_wizard_json_schema_drift "Unified Wizard Framework: JSON schema drift (baseline 0)"
           run_unit u_wizard_class_grammar "Unified Wizard Framework: .rmc-wizard-* class grammar (baseline 0)"
+          run_unit u_wizard_framework_integrity "Unified Wizard Framework: registry + resolver integrity"
+          run_unit u_wizard_playwright_spec_coverage "Unified Wizard Framework: Playwright spec derives from the registry"
           run_unit u_canonical_headers_drift "Companion canonical_headers.json drift vs Django SOT"
           run_unit u_template_render_safety "Template render-safety (leaks / unclosed tags / missing refs)"
           run_unit u_include_with_default_context_var "|default/slice/add missing_var (VariableDoesNotExist 500)"
