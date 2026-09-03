@@ -66659,3 +66659,36 @@ msgstr ""
 
 msgid "Verify imported catalog data before sync:"
 msgstr ""
+
+msgid ""
+"A subject master list (Matières) is tagged as filières — the exact failure "
+"that creates phantom departments. Fix the tags below before importing."
+msgstr ""
+
+msgid "Check subject and specialty file tags"
+msgstr ""
+
+msgid "Critical: fix subject/filière tags before import"
+msgstr ""
+
+msgid "Curriculum link reasoning (sample rows)"
+msgstr ""
+
+msgid "I reviewed the catalog warnings and want to import anyway"
+msgstr ""
+
+msgid ""
+"Live import is blocked until you fix the record types or acknowledge below."
+msgstr ""
+
+msgid ""
+"One or more spreadsheets look like a subject or specialty catalog but are "
+"tagged with the wrong record type. Fix the tags below before importing — "
+"otherwise Matières can land as departments or filières."
+msgstr ""
+
+msgid "likely filières"
+msgstr ""
+
+msgid "no matching filière code in this bundle"
+msgstr ""

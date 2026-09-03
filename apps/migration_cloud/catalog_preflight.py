@@ -2,7 +2,7 @@
 
 Reuses :mod:`ingestion_lexicon` shape heuristics so the connector warns BEFORE
 apply when a file looks like Matières (subjects) but is tagged as Filières /
-structure — the Cameroon TVET mis-routing class Gilead hit.
+structure — the Cameroon TVET subject/filière mis-routing failure mode.
 
 Advanced reasoning layers (beyond shape ↔ domain):
 
@@ -153,7 +153,7 @@ def _severity_for_mismatch(
     subj_shape: bool,
     lexicon,
 ) -> str:
-    """``critical`` only for the known Gilead failure mode on CM coefficient schools."""
+    """``critical`` only for the known CM coefficient-school subject/filière mis-tag."""
     if (
         lexicon.country_code == "CM"
         and lexicon.uses_coefficients

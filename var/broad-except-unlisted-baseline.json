@@ -410,7 +410,7 @@
     "apps/migration_cloud/orchestrator.py": 29,
     "apps/migration_cloud/pdf_extract.py": 18,
     "apps/migration_cloud/people_activation.py": 3,
-    "apps/migration_cloud/pipeline.py": 9,
+    "apps/migration_cloud/pipeline.py": 10,
     "apps/migration_cloud/post_apply_provision.py": 2,
     "apps/migration_cloud/preflight.py": 2,
     "apps/migration_cloud/profiler.py": 23,
