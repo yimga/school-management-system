@@ -49,6 +49,11 @@ print("1" if getattr(settings, "USE_DJANGO_TENANTS", False) else "0")
 PY
 )"
 if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
+  # Both branches announce themselves. A silent skip is how "were migrations
+  # applied?" became unanswerable from outside the box: SKIP_DB_MIGRATIONS is a
+  # dashboard env var, so it appears in no committed file, and the old code just
+  # fell through the if with nothing logged.
+  echo "[predeploy] SKIP_DB_MIGRATIONS=${SKIP_DB_MIGRATIONS:-0} -> RUNNING database migrations"
   if [[ "${TENANT_MODE}" == "1" ]]; then
     run "${PYTHON_BIN}" manage.py migrate_schemas --shared --noinput
     # Create any missing tenant schemas (Clients created in migrations may not have schema yet)
@@ -83,6 +88,13 @@ if [[ "${SKIP_DB_MIGRATIONS:-0}" != "1" ]]; then
       run "${PYTHON_BIN}" manage.py verify_all_migrations_applied || true
     fi
   fi
+else
+  echo "[predeploy] SKIP_DB_MIGRATIONS=${SKIP_DB_MIGRATIONS:-0} -> SKIPPING database migrations"
+  echo "[predeploy] WARNING: schema and data migrations were NOT applied for this deploy."
+  # Say what is actually true of the database rather than only what was asked for.
+  # Advisory (|| true): this branch exists for deliberate skips, so it must report
+  # the drift without failing a deploy the operator chose.
+  run "${PYTHON_BIN}" manage.py verify_all_migrations_applied || true
 fi
 
 # (TENANT_MODE remains set for use below when re-running tenant migrations before import_ui_config)

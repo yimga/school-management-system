@@ -641,6 +641,45 @@ def csrf_token_refresh(request):
     return _emit(request)
 
 
+def _migration_state():
+    """Is the database actually current, and was it allowed to be?
+
+    ``SKIP_DB_MIGRATIONS=1`` short-circuits the whole migrate block in
+    ``scripts/release/render_predeploy.sh``. It is a dashboard environment
+    variable, so it appears in no committed file, and a deploy that skipped its
+    migrations was indistinguishable from one that ran them -- the question
+    "did migration X actually apply in production?" could not be answered from
+    outside the box at all.
+
+    Two facts, because the flag alone is not the answer. ``skip_db_migrations``
+    is what was ASKED for; ``unapplied_count`` is what is TRUE of the database
+    right now. A skipped deploy on an already-current database is harmless, and
+    a deploy that ran migrations can still leave drift -- only the second field
+    distinguishes those.
+
+    Loads the migration graph, so it is deliberately NOT on the default health
+    path that load balancers poll. See ``healthz`` (``?deep=1``).
+    """
+    from django.db import DEFAULT_DB_ALIAS, connections
+    from django.db.migrations.executor import MigrationExecutor
+
+    state = {
+        "skip_db_migrations": os.environ.get("SKIP_DB_MIGRATIONS", "0"),
+    }
+    try:
+        executor = MigrationExecutor(connections[DEFAULT_DB_ALIAS])
+        plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
+    except (DatabaseError, ValueError, TypeError, KeyError) as exc:
+        state["error"] = str(exc)
+        return state
+    state["unapplied_count"] = len(plan)
+    state["applied_ok"] = not plan
+    # Named, capped: an operator needs to know WHICH migration is missing, and an
+    # unbounded list on a health endpoint is its own problem.
+    state["unapplied"] = ["%s.%s" % (m.app_label, m.name) for m, _ in plan[:20]]
+    return state
+
+
 def healthz(request):
     """Internal health check including DB + cache connectivity (RBAC/API-key protected)."""
     try:
@@ -681,6 +720,11 @@ def healthz(request):
         "celery_beat": beat_result,
         "celery_queue_depth": queue_depth_result,
     }
+    # Opt-in: loading the migration graph is too costly for the path a load
+    # balancer polls, but an operator needs it to answer "did migrations run?".
+    if request.GET.get("deep") == "1":
+        payload["migrations"] = _migration_state()
+
     if _healthz_configured_deps_failed(
         cache_result, broker_result, workers_result, beat_result
     ):
