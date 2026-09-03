@@ -480,7 +480,7 @@ def notify_parent_report_blocked_by_debt(
     cache_key = f"{prefix}:report_block_sms:{student.id}:{getattr(academic_year, 'id', academic_year)}"
     if cache.get(cache_key):
         return False
-    guardians = StudentGuardian.objects.filter(student=student).select_related(
+    guardians = StudentGuardian.objects.filter(student=student).select_related(  # tenant-isolation-allow: bound to one student row passed in by the school-scoped caller (reviewed 2026-09-03)
         "guardian_user"
     )
     phone = None

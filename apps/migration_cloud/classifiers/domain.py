@@ -75,6 +75,24 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
         return _fallback("no_headers")
 
     ranked = _score_domains(normalized_headers)
+    sample_rows = _build_sample_rows(cols)
+    bundle = getattr(artifact, "bundle", None)
+    school = getattr(bundle, "school", None)
+    if school is None and bundle is not None:
+        school_id = getattr(bundle, "school_id", None)
+        if school_id:
+            from apps.schools.models import School
+
+            school = School.objects.filter(pk=school_id).first()
+    if school is not None:
+        from apps.migration_cloud.ingestion_lexicon import apply_catalog_shape_adjustments
+
+        ranked = apply_catalog_shape_adjustments(
+            ranked,
+            normalized_headers=normalized_headers,
+            sample_rows=sample_rows,
+            school=school,
+        )
     top = ranked[0] if ranked else None
     threshold = float(mc_defaults.get("migration_cloud.classifier.domain_min_confidence"))
     filename = getattr(artifact, "filename", "") or ""

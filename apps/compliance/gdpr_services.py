@@ -280,7 +280,7 @@ def gdpr_scrub_student(
         )
 
         if StudentGuardian:
-            StudentGuardian.objects.filter(student_id=student_id).update(
+            StudentGuardian.objects.filter(student_id=student_id).update(  # tenant-isolation-allow: GDPR erasure bound to one student row (reviewed 2026-09-03)
                 phone="",
                 email="",
                 whatsapp_number="",
@@ -508,7 +508,7 @@ def export_student_data_portability(
 
     guardians_payload: list[dict[str, Any]] = []
     if StudentGuardian:
-        guardians = StudentGuardian.objects.filter(
+        guardians = StudentGuardian.objects.filter(  # tenant-isolation-allow: GDPR export bound to one student row (reviewed 2026-09-03)
             student_id=student_id
         ).select_related("guardian_user")
         for guardian in guardians:

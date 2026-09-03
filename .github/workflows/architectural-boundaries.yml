@@ -724,6 +724,14 @@ jobs:
             python scripts/verify_tier1_academic_people_platform_contract.py
           }
 
+          u_global_country_ingestion_coverage() {
+            python scripts/verify_global_country_ingestion_coverage.py
+          }
+
+          u_ingestion_lexicon_offline_wiring() {
+            python scripts/verify_ingestion_lexicon_offline_wiring.py
+          }
+
           u_template_tag_loads() {
             python scripts/verify_template_tag_loads.py --compare
           }
@@ -943,6 +951,8 @@ jobs:
           run_unit u_include_with_default_context_var "|default/slice/add missing_var (VariableDoesNotExist 500)"
           run_unit u_nav_engine_coverage "Nav Engine coverage (static catalog + projector wiring)"
           run_unit u_tier1_academic_people_platform_contract "Tier-1 academic/people platform contract (import + UI + sync)"
+          run_unit u_global_country_ingestion_coverage "249-country ingestion lexicon manifest coverage"
+          run_unit u_ingestion_lexicon_offline_wiring "Ingestion lexicon offline client wiring"
           run_unit u_template_tag_loads "Template custom tag {% load %} integrity"
           run_unit u_inline_style_off_token "Apple HIG: inline styles off the token system"
           run_unit u_inline_event_handlers "CSP enforce seal: no inline on*= event handlers"

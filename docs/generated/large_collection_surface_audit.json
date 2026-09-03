@@ -1,16 +1,18 @@
 {
   "by_surface": {
-    "shared": 3,
-    "tenant": 2
+    "shared": 2,
+    "tenant": 1
   },
-  "finding_count": 5,
+  "finding_count": 3,
   "findings": [
     {
+      "bound_declaration_reason": null,
       "collection": "caseload",
       "columns": 8,
       "file": "templates/staff/counselor_caseload.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
+      "has_real_pagination": false,
       "line": 52,
       "loop": "for c in caseload",
       "reasons": [
@@ -30,11 +32,13 @@
       "surface": "shared"
     },
     {
+      "bound_declaration_reason": null,
       "collection": "conflicts",
       "columns": 6,
       "file": "templates/siteconfig/sync_conflicts.html",
       "has_paginate_scroll_policy": false,
       "has_pagination": true,
+      "has_real_pagination": true,
       "line": 62,
       "loop": "for c in conflicts",
       "reasons": [
@@ -52,11 +56,13 @@
       "surface": "tenant"
     },
     {
+      "bound_declaration_reason": null,
       "collection": "artifact_rows",
       "columns": 5,
       "file": "templates/migration_cloud/connector/bundle_review.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
+      "has_real_pagination": false,
       "line": 445,
       "loop": "for row in artifact_rows",
       "reasons": [
@@ -71,59 +77,19 @@
       "row_inputs": 2,
       "score": 3,
       "surface": "shared"
-    },
-    {
-      "collection": "rows",
-      "columns": 6,
-      "file": "templates/sync_engine/super/fleet_console.html",
-      "has_paginate_scroll_policy": false,
-      "has_pagination": false,
-      "line": 63,
-      "loop": "for row in rows",
-      "reasons": [
-        "6 columns",
-        "no pagination or paginate scroll policy found"
-      ],
-      "recommendations": [
-        "Add pagination or virtualization for large collections."
-      ],
-      "row_actions": 1,
-      "row_forms": 0,
-      "row_inputs": 0,
-      "score": 3,
-      "surface": "shared"
-    },
-    {
-      "collection": "recent_batches",
-      "columns": 7,
-      "file": "templates/reports/bulk_console.html",
-      "has_paginate_scroll_policy": false,
-      "has_pagination": false,
-      "line": 145,
-      "loop": "for b in recent_batches",
-      "reasons": [
-        "7 columns",
-        "no pagination or paginate scroll policy found"
-      ],
-      "recommendations": [
-        "Add pagination or virtualization for large collections."
-      ],
-      "row_actions": 0,
-      "row_forms": 0,
-      "row_inputs": 0,
-      "score": 3,
-      "surface": "tenant"
     }
   ],
-  "generated_at": "2026-09-03T07:26:14Z",
+  "generated_at": "2026-09-03T11:38:07Z",
   "remediation_status": "PARTIAL",
   "top_findings": [
     {
+      "bound_declaration_reason": null,
       "collection": "caseload",
       "columns": 8,
       "file": "templates/staff/counselor_caseload.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
+      "has_real_pagination": false,
       "line": 52,
       "loop": "for c in caseload",
       "reasons": [
@@ -143,11 +109,13 @@
       "surface": "shared"
     },
     {
+      "bound_declaration_reason": null,
       "collection": "conflicts",
       "columns": 6,
       "file": "templates/siteconfig/sync_conflicts.html",
       "has_paginate_scroll_policy": false,
       "has_pagination": true,
+      "has_real_pagination": true,
       "line": 62,
       "loop": "for c in conflicts",
       "reasons": [
@@ -165,11 +133,13 @@
       "surface": "tenant"
     },
     {
+      "bound_declaration_reason": null,
       "collection": "artifact_rows",
       "columns": 5,
       "file": "templates/migration_cloud/connector/bundle_review.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
+      "has_real_pagination": false,
       "line": 445,
       "loop": "for row in artifact_rows",
       "reasons": [
@@ -184,48 +154,6 @@
       "row_inputs": 2,
       "score": 3,
       "surface": "shared"
-    },
-    {
-      "collection": "rows",
-      "columns": 6,
-      "file": "templates/sync_engine/super/fleet_console.html",
-      "has_paginate_scroll_policy": false,
-      "has_pagination": false,
-      "line": 63,
-      "loop": "for row in rows",
-      "reasons": [
-        "6 columns",
-        "no pagination or paginate scroll policy found"
-      ],
-      "recommendations": [
-        "Add pagination or virtualization for large collections."
-      ],
-      "row_actions": 1,
-      "row_forms": 0,
-      "row_inputs": 0,
-      "score": 3,
-      "surface": "shared"
-    },
-    {
-      "collection": "recent_batches",
-      "columns": 7,
-      "file": "templates/reports/bulk_console.html",
-      "has_paginate_scroll_policy": false,
-      "has_pagination": false,
-      "line": 145,
-      "loop": "for b in recent_batches",
-      "reasons": [
-        "7 columns",
-        "no pagination or paginate scroll policy found"
-      ],
-      "recommendations": [
-        "Add pagination or virtualization for large collections."
-      ],
-      "row_actions": 0,
-      "row_forms": 0,
-      "row_inputs": 0,
-      "score": 3,
-      "surface": "tenant"
     }
   ]
 }

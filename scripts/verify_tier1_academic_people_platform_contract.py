@@ -180,6 +180,47 @@ _CONTRACT: tuple[tuple[str, str, tuple[str, ...]], ...] = (
             "promote_staff_roles",
         ),
     ),
+    # --- Cameroon TVET blueprint bridge (Specialty=Filière, Subject=Matière, coef) ---
+    (
+        "Ingestion.lexicon.module",
+        "apps/migration_cloud/ingestion_lexicon.py",
+        ("resolve_school_ingestion_lexicon", "compile_offline_ingestion_manifest"),
+    ),
+    (
+        "Ingestion.catalog_shape.classifier",
+        "apps/migration_cloud/classifiers/domain.py",
+        ("apply_catalog_shape_adjustments",),
+    ),
+    (
+        "SpecialtySubject.coef.lander",
+        "apps/migration_cloud/landers/academics_lander.py",
+        ("_link_subject_curriculum", "SpecialtySubject"),
+    ),
+    (
+        "Specialty.lander.subject_guard",
+        "apps/migration_cloud/landers/specialty_lander.py",
+        ("row_looks_like_subject_catalog_entry",),
+    ),
+    (
+        "Offline.ingestion_manifest.config",
+        "apps/siteconfig/platform_surface_config.py",
+        ("ingestionManifest", "_ingestion_manifest_for_request"),
+    ),
+    (
+        "Offline.ingestion_lexicon.client",
+        "static/js/rmc-offline-ingestion-lexicon.js",
+        ("rmcOfflineIngestionLexicon", "ingestion_lexicon"),
+    ),
+    (
+        "Staff.specialty.resolve",
+        "apps/migration_cloud/landers/staff_lander.py",
+        ("_resolve_staff_department", "imported_specialty"),
+    ),
+    (
+        "SpecialtySubject.sync_rail",
+        "apps/api/sync_services.py",
+        ('("specialty_subject", "academics", "SpecialtySubject")',),
+    ),
 )
 
 

@@ -81,7 +81,7 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
             pass
         from apps.people.models import StudentGuardian
 
-        links = StudentGuardian.objects.filter(guardian_user=obj).select_related(
+        links = StudentGuardian.objects.filter(guardian_user=obj).select_related(  # tenant-isolation-allow: operator admin panel listing one user's links (reviewed 2026-09-03)
             "student"
         )[:50]
         if not links:

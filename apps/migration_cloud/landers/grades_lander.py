@@ -46,6 +46,7 @@ from ._helpers import (
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     resolve_student,
@@ -128,10 +129,19 @@ class GradesLander(Lander):
         resolver = _TargetGraphResolver(school=ctx.school)
 
         for row in canonical_rows:
-            external_id = (row.get("student_external_id") or "").strip()
-            term_label = (row.get("term") or "").strip()
+            row = normalize_canonical_row("grades", row, ctx)
+            external_id = (
+                row.get("student_external_id") or row.get("external_id") or ""
+            ).strip()
+            term_label = (
+                row.get("term") or row.get("trimestre") or row.get("semester") or ""
+            ).strip()
             subject_label = (
-                row.get("subject_code") or row.get("subject") or ""
+                row.get("subject_code")
+                or row.get("subject")
+                or row.get("subject_name")
+                or row.get("title")
+                or ""
             ).strip()
             components = {
                 f: coerce_decimal(row.get(f))
@@ -394,9 +404,20 @@ class GradesLander(Lander):
         student_lookup = student_lookup_field(student_fields)
 
         for row in canonical_rows:
-            external_id = (row.get("student_external_id") or "").strip()
-            term = (row.get("term") or "").strip()
-            subject = (row.get("subject_code") or row.get("subject") or "").strip()
+            row = normalize_canonical_row("grades", row, ctx)
+            external_id = (
+                row.get("student_external_id") or row.get("external_id") or ""
+            ).strip()
+            term = (
+                row.get("term") or row.get("trimestre") or row.get("semester") or ""
+            ).strip()
+            subject = (
+                row.get("subject_code")
+                or row.get("subject")
+                or row.get("subject_name")
+                or row.get("title")
+                or ""
+            ).strip()
             score = coerce_decimal(row.get("score"))
             letter = (row.get("grade_letter") or "").strip()
             if not (external_id or student_name_from_row(row)) or not term or (score is None and not letter):

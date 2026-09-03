@@ -28,6 +28,7 @@ from ._helpers import (
     filter_to_model_fields,
     map_enrollment_status,
     model_field_names,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_row_error,
     resolve_student,
@@ -62,7 +63,10 @@ class EnrollmentLander(Lander):
         student_lookup = student_lookup_field(student_fields)
 
         for row in canonical_rows:
-            external_id = (row.get("student_external_id") or "").strip()
+            row = normalize_canonical_row("enrollment", row, ctx)
+            external_id = (
+                row.get("student_external_id") or row.get("external_id") or ""
+            ).strip()
             if not (external_id or student_name_from_row(row)):
                 record_row_error(
                     result,

@@ -172,7 +172,7 @@ def build_student_one_record_data(
             from apps.communication.models import Message
 
             gids = list(
-                StudentGuardian.objects.filter(student_id=sid)
+                StudentGuardian.objects.filter(student_id=sid)  # tenant-isolation-allow: bound to one student row already resolved in this school (reviewed 2026-09-03)
                 .exclude(guardian_user_id__isnull=True)
                 .values_list("guardian_user_id", flat=True)
             )

@@ -131,5 +131,8 @@ class TheStructuralReportIsTrueOfAnyDeploymentTests(SimpleTestCase):
         for key in ("registered_entities", "tenant_scoped_models", "models_not_on_rail",
                     "entities", "protected", "insert_held", "unclassified"):
             self.assertIn(key, payload)
-        self.assertEqual(payload["insert_held"], ["teacher"])
+        # student_guardian joined teacher on 2026-09-03: the link names a login
+        # and grants access to a child's records, so creation stays an identity
+        # decision while contact edits converge.
+        self.assertEqual(payload["insert_held"], ["student_guardian", "teacher"])
         self.assertEqual(payload["unclassified"], [])

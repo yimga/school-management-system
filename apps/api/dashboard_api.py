@@ -239,7 +239,7 @@ class ParentDashboardAPI(View):
             from apps.finance.models import Invoice, Payment
 
             # Get parent's children
-            children = StudentGuardian.objects.filter(
+            children = StudentGuardian.objects.filter(  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
                 guardian_user=request.user,
                 student__is_active=True,
                 can_view_results=True,
@@ -250,7 +250,7 @@ class ParentDashboardAPI(View):
             flags = get_effective_flags(request)
             require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
 
-            finance_children = StudentGuardian.objects.filter(
+            finance_children = StudentGuardian.objects.filter(  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
                 guardian_user=request.user,
                 student__is_active=True,
                 can_view_finance=True,

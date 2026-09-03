@@ -97,7 +97,7 @@ def _finance_access_state(user, request: HttpRequest | None = None) -> dict:
     from apps.people.models import StudentGuardian
 
     flags = _backend_flags(request)
-    guardian_qs = StudentGuardian.objects.filter(guardian_user=user)
+    guardian_qs = StudentGuardian.objects.filter(guardian_user=user)  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
     finance_qs = (
         _guardian_finance_qs(user)
         if getattr(user, "is_authenticated", False)

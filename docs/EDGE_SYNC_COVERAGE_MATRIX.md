@@ -13,12 +13,12 @@ The edge appliance replicates **about 4.6%** of the tenant model surface.
 
 | | |
 |---|---|
-| Entities on the delta rail | **19** |
-| …of which are tenant business models | **15** |
+| Entities on the delta rail | **21** |
+| …of which are tenant business models | **17** (``incident`` and ``student_guardian`` joined 2026-09-03) |
 | …of which are the rail's OWN config (`sync_engine.SyncSchedule`, `sync_engine.SyncPolicy`, a SHARED app) | **2** |
 | …of which are the school-defined custom-field EAV pair (`metadata.DynamicFieldDefinition`, `metadata.DynamicFieldValue`, a SHARED app; added 2026-09-02) | **2** |
 | Models across the 15 apps in `TENANT_APPS` | **326** |
-| Coverage | **15 / 326 = 4.6%** |
+| Coverage | **17 / 326 = 5.2%** |
 
 So *"the school keeps working offline"* means, precisely: **attendance, marks, the
 academic backbone, the staff roster, and read-only invoices.** A box cannot send a
@@ -121,7 +121,7 @@ somebody writing "must not ride" and then wiring it.
 | `student360` | 1 | 0 | 0 | 1 | — nothing — |
 | `athletics` | 16 | 0 | 0 | 16 | — nothing — |
 | `studio_os` | 1 | 0 | 0 | 1 | — nothing — |
-| **total** | **326** | **15** | **2** | **309** | **4.6%** |
+| **total** | **326** | **17** | **2** | **307** | **5.2%** |
 
 Plus four rail entities in SHARED apps, reported separately so business
 coverage is not overstated: `sync_schedule` and `sync_policy` (`sync_engine` —

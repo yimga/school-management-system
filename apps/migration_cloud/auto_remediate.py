@@ -150,6 +150,49 @@ def _artifact_for_auto_replay(bundle, record) -> Any:
     return bundle.artifacts.filter(quarantined=False).order_by("pk").first()
 
 
+def _transformer_options_from_bundle(bundle) -> dict[str, Any]:
+    summary = getattr(bundle, "mapping_summary", None) or {}
+    prefs = summary.get("transform_prefs") or {}
+    return prefs if isinstance(prefs, dict) else {}
+
+
+def _attempt_land_row_on_domain(
+    *,
+    bundle,
+    record,
+    source_row: dict[str, Any],
+    domain: str,
+    dry_run: bool = False,
+) -> tuple[bool, str]:
+    """Try landing one held row on a specific domain lander."""
+    from apps.migration_cloud.landers.base import get_lander
+    from apps.migration_cloud.orchestrator import _run_lander_under_schema
+
+    lander = get_lander(domain) or get_lander("custom_fields")
+    if lander is None:
+        return False, f"no lander for domain {domain!r}"
+
+    artifact = _artifact_for_auto_replay(bundle, record)
+    if artifact is None:
+        return False, "bundle has no artifact for replay context"
+
+    try:
+        result = _run_lander_under_schema(
+            lander=lander,
+            rows_iter=iter([source_row]),
+            bundle=bundle,
+            artifact=artifact,
+            dry_run=dry_run,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}"
+
+    if result.quarantined or result.errors:
+        err = result.errors[0] if result.errors else "lander quarantined row"
+        return False, str(err)
+    return True, ""
+
+
 def _attempt_land_quarantine_row(
     *,
     bundle,
@@ -249,7 +292,14 @@ def auto_enrich_and_replay_missing_required(bundle, *, user=None) -> dict[str, A
             skipped += 1
             continue
 
-        new_row, evidence = enrich_missing_required_row(rec.domain, source_row)
+        opts = _transformer_options_from_bundle(bundle)
+        school = getattr(bundle, "school", None)
+        new_row, evidence = enrich_missing_required_row(
+            rec.domain,
+            source_row,
+            school=school,
+            transformer_options=opts,
+        )
         if not evidence:
             skipped += 1
             continue
@@ -283,6 +333,99 @@ def auto_enrich_and_replay_missing_required(bundle, *, user=None) -> dict[str, A
     }
 
 
+def _row_is_misrouted_subject_catalog(
+    *,
+    domain: str,
+    source_row: dict | None,
+    message: str = "",
+) -> bool:
+    from apps.migration_cloud.ingestion_lexicon import row_looks_like_subject_catalog_entry
+
+    if not isinstance(source_row, dict):
+        return False
+    msg = (message or "").lower()
+    if str(domain or "").strip().lower() == "specialties":
+        return row_looks_like_subject_catalog_entry(source_row)
+    return "subject catalog entry" in msg and row_looks_like_subject_catalog_entry(source_row)
+
+
+def auto_reroute_misclassified_catalog_rows(bundle, *, user=None) -> dict[str, Any]:
+    """Replay subject-shaped rows held on the specialties domain via academics."""
+    from apps.automation.quarantine_services import mark_repaired
+
+    qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
+        issue_class="lander_error"
+    )
+    replayed = 0
+    failed = 0
+    errors: list[str] = []
+
+    for rec in qs.iterator():
+        payload = rec.payload if isinstance(rec.payload, dict) else {}
+        source_row = _source_row_from_payload(payload)
+        message = str(payload.get("error") or payload.get("message") or "")
+        if not _row_is_misrouted_subject_catalog(
+            domain=str(rec.domain or ""),
+            source_row=source_row,
+            message=message,
+        ):
+            continue
+
+        ok, err = _attempt_land_row_on_domain(
+            bundle=bundle,
+            record=rec,
+            source_row=source_row,
+            domain="academics",
+        )
+        if not ok:
+            failed += 1
+            if err and len(errors) < 10:
+                errors.append(f"record {rec.pk}: {err}")
+            continue
+
+        mark_repaired(
+            rec,
+            {
+                "auto_rerouted": True,
+                "auto_catalog_reroute": True,
+                "note": "Auto-routed subject catalog row from specialties to academics",
+                "source_row": source_row,
+                "by": getattr(user, "pk", None),
+            },
+        )
+        replayed += 1
+
+    return {"replayed": replayed, "failed": failed, "errors": errors}
+
+
+def auto_repair_inverted_catalog(bundle, *, user=None) -> dict[str, Any]:
+    """Remove phantom specialty/department rows that duplicate real subjects."""
+    school = getattr(bundle, "school", None)
+    if not school:
+        return {"skipped": True, "reason": "no_school"}
+    from .catalog_repair import (
+        auto_repair_inverted_catalog_for_school,
+        school_wants_catalog_autorepair,
+    )
+
+    if not school_wants_catalog_autorepair(school):
+        return {"skipped": True, "reason": "not_tvet_school"}
+
+    outcome = auto_repair_inverted_catalog_for_school(school, dry_run=False)
+    plan = outcome.get("plan") or {}
+    if not plan.get("actionable"):
+        return {"skipped": True, "reason": "no_phantoms", "plan": plan}
+
+    summary = dict(getattr(bundle, "mapping_summary", None) or {})
+    summary["catalog_repair"] = {
+        **outcome,
+        "by": getattr(user, "pk", None),
+    }
+    bundle.mapping_summary = summary
+    bundle.save(update_fields=["mapping_summary", "updated_at"])
+    return outcome
+
+
 def _sum_auto_resolved(results: dict[str, Any]) -> int:
     return (
         int(results.get("informational_dismissed") or 0)
@@ -290,6 +433,8 @@ def _sum_auto_resolved(results: dict[str, Any]) -> int:
         + int(results.get("fragment_dismissed") or 0)
         + int(results.get("invalid_ref_replayed") or 0)
         + int(results.get("missing_required_replayed") or 0)
+        + int(results.get("catalog_rerouted") or 0)
+        + int(results.get("catalog_phantoms_removed") or 0)
     )
 
 
@@ -566,8 +711,29 @@ def auto_remediate_on_review_open(
 
     invalid = auto_replay_invalid_ref_holds(bundle, user=user)
     enrich = auto_enrich_and_replay_missing_required(bundle, user=user)
+    reroute = auto_reroute_misclassified_catalog_rows(bundle, user=user)
     results["invalid_ref_replayed"] = int(invalid.get("replayed") or 0)
     results["missing_required_replayed"] = int(enrich.get("replayed") or 0)
+    results["catalog_rerouted"] = int(reroute.get("replayed") or 0)
+
+    catalog_fix = auto_repair_inverted_catalog(bundle, user=user)
+    if catalog_fix.get("applied"):
+        results["catalog_phantoms_removed"] = int(
+            catalog_fix.get("phantom_specialties_removed") or 0
+        ) + int(catalog_fix.get("phantom_departments_removed") or 0)
+        results["catalog_repair"] = catalog_fix
+        post_invalid = auto_replay_invalid_ref_holds(bundle, user=user)
+        post_enrich = auto_enrich_and_replay_missing_required(bundle, user=user)
+        results["invalid_ref_replayed"] = int(results["invalid_ref_replayed"]) + int(
+            post_invalid.get("replayed") or 0
+        )
+        results["missing_required_replayed"] = int(
+            results["missing_required_replayed"]
+        ) + int(post_enrich.get("replayed") or 0)
+        results["post_catalog_replay"] = {
+            "invalid_ref": post_invalid,
+            "enrich": post_enrich,
+        }
 
     pdf_final = auto_dismiss_pdf_noise_holds(bundle, user=user)
     frag_final = auto_dismiss_unstructured_fragments(bundle, user=user)
@@ -600,9 +766,15 @@ def auto_remediate_after_apply(bundle, *, user=None) -> dict[str, Any]:
     for pass_num in range(1, MAX_AUTO_REMEDIATE_PASSES + 1):
         invalid = auto_replay_invalid_ref_holds(bundle, user=user)
         enrich = auto_enrich_and_replay_missing_required(bundle, user=user)
+        reroute = auto_reroute_misclassified_catalog_rows(bundle, user=user)
         results[f"invalid_ref_pass_{pass_num}"] = invalid
         results[f"enrich_pass_{pass_num}"] = enrich
-        if int(invalid.get("replayed") or 0) + int(enrich.get("replayed") or 0) == 0:
+        results[f"catalog_reroute_pass_{pass_num}"] = reroute
+        if (
+            int(invalid.get("replayed") or 0)
+            + int(enrich.get("replayed") or 0)
+            + int(reroute.get("replayed") or 0)
+        ) == 0:
             break
 
     # Aggregate replay counts for UX + audit
@@ -614,8 +786,32 @@ def auto_remediate_after_apply(bundle, *, user=None) -> dict[str, Any]:
         int((results.get(f"enrich_pass_{n}") or {}).get("replayed") or 0)
         for n in range(1, MAX_AUTO_REMEDIATE_PASSES + 1)
     )
+    reroute_total = sum(
+        int((results.get(f"catalog_reroute_pass_{n}") or {}).get("replayed") or 0)
+        for n in range(1, MAX_AUTO_REMEDIATE_PASSES + 1)
+    )
     results["invalid_ref_replayed"] = invalid_total
     results["missing_required_replayed"] = enrich_total
+    results["catalog_rerouted"] = reroute_total
+
+    catalog_fix = auto_repair_inverted_catalog(bundle, user=user)
+    if catalog_fix.get("applied"):
+        results["catalog_phantoms_removed"] = int(
+            catalog_fix.get("phantom_specialties_removed") or 0
+        ) + int(catalog_fix.get("phantom_departments_removed") or 0)
+        results["catalog_repair"] = catalog_fix
+        post_invalid = auto_replay_invalid_ref_holds(bundle, user=user)
+        post_enrich = auto_enrich_and_replay_missing_required(bundle, user=user)
+        results["invalid_ref_replayed"] = int(results["invalid_ref_replayed"]) + int(
+            post_invalid.get("replayed") or 0
+        )
+        results["missing_required_replayed"] = int(
+            results["missing_required_replayed"]
+        ) + int(post_enrich.get("replayed") or 0)
+        results["post_catalog_replay"] = {
+            "invalid_ref": post_invalid,
+            "enrich": post_enrich,
+        }
 
     # Final PDF noise sweep (rows exposed by failed enrich attempts)
     pdf_final = auto_dismiss_pdf_noise_holds(bundle, user=user)
@@ -683,6 +879,7 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
         issue_class = str(rec.issue_class or "")
         domain = str(rec.domain or "")
         reason_source = str(payload.get("reason_source") or "fallback")
+        message = str(payload.get("error") or payload.get("message") or "")
 
         outcome, rule, detail = _preview_one(
             issue_class=issue_class,
@@ -690,6 +887,8 @@ def preview_autopilot_decisions(bundle) -> dict[str, Any]:
             source_row=source_row,
             artifact=artifact,
             reason_source=reason_source,
+            bundle=bundle,
+            message=message,
         )
 
         counts[outcome] += 1
@@ -749,8 +948,14 @@ def _preview_one(
     source_row: dict,
     artifact: str,
     reason_source: str,
+    bundle=None,
+    message: str = "",
 ) -> tuple[str, str, str]:
     """Mirror of the rule order in ``auto_remediate_on_review_open``. Read-only."""
+    school = getattr(bundle, "school", None) if bundle is not None else None
+    transformer_options = (
+        _transformer_options_from_bundle(bundle) if bundle is not None else None
+    )
     if issue_class in QUARANTINE_NO_ACTION_CLASSES:
         if reason_source != "declared":
             return (
@@ -766,7 +971,12 @@ def _preview_one(
             return "auto_close", "pdf_noise", "PDF line with no importable identity"
         if row_is_unstructured_text_fragment(source_row, artifact=artifact):
             return "auto_close", "fragment", "PDF text fragment, not a record"
-        _, evidence = enrich_missing_required_row(domain, source_row)
+        _, evidence = enrich_missing_required_row(
+            domain,
+            source_row,
+            school=school,
+            transformer_options=transformer_options,
+        )
         if evidence:
             return (
                 "auto_replay",
@@ -774,6 +984,16 @@ def _preview_one(
                 "defensible default available: " + "; ".join(evidence),
             )
         return "needs_person", "none", "required field missing with nothing to infer it from"
+
+    if issue_class == "lander_error":
+        if _row_is_misrouted_subject_catalog(
+            domain=domain, source_row=source_row, message=message
+        ):
+            return (
+                "auto_replay",
+                "catalog_reroute",
+                "subject catalog row mis-tagged as specialties; replay via academics",
+            )
 
     if issue_class == "invalid_ref":
         if source_row:

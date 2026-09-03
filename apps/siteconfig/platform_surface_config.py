@@ -371,7 +371,23 @@ def resolve_sms_offline_config(
         "walStreamEnabled": _wal_stream_client_enabled(),
         "sseStreamsEnabled": _sse_streams_client_enabled(),
         "webServerMode": resolve_web_server_mode(),
+        "ingestionManifest": _ingestion_manifest_for_request(request),
     }
+
+
+def _ingestion_manifest_for_request(request) -> dict[str, Any]:
+    """Country blueprint lexicon for offline Migration Cloud preflight."""
+    school = getattr(request, "school", None)
+    if school is None:
+        return {}
+    try:
+        from apps.migration_cloud.ingestion_lexicon import (
+            compile_offline_ingestion_manifest_for_school,
+        )
+
+        return compile_offline_ingestion_manifest_for_school(school)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return {}
 
 
 def wal_tenant_hash_for_request(request) -> str:

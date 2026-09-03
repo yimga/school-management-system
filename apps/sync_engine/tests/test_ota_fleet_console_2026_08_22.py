@@ -19,12 +19,16 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
 from apps.sync_engine.models_fleet import EdgeFleetState
 from apps.sync_engine.models_rollout import EdgeRolloutPolicy, ManifestRelease, RolloutRing
-from apps.sync_engine.views_fleet_console import _state_for
+from apps.sync_engine.views_fleet_console import (
+    FLEET_PAGE_SIZE,
+    _state_for,
+    edge_fleet_console,
+)
 
 HASH_A = "a" * 64
 HASH_B = "b" * 64
@@ -246,3 +250,98 @@ class FilterTests(TestCase):
             "the filter does not check the requested state against the known set, so "
             "?state=faild would return an empty table that reads as a healthy fleet",
         )
+
+
+class RenderIsBoundedTests(TestCase):
+    """The table must not grow with the fleet.
+
+    `audit_large_collection_surfaces` found this page rendering every school into one
+    table, and the page's own comments talk about "3 failed across 300 schools" -- so
+    the fleet it is built for is far larger than a screen.
+
+    The bound is only half of it. A page that quietly stops at fifty schools is worse
+    than a long one, because an operator reading it has no way to know the fifty-first
+    exists. So these tests pin BOTH halves: page one is bounded, and the rows past it
+    are still reachable, with the active filter carried across.
+
+    Asserted on the context the view builds rather than on rendered HTML: the numbers
+    are what changed, and a template assertion would pass or fail on chrome that has
+    nothing to do with the bound.
+    """
+
+    OVERFLOW = 7
+
+    def setUp(self):
+        super().setUp()
+        from apps.schools.models import School
+
+        # Named to sort AFTER anything the seeded catalogue already holds, so page one
+        # is deterministic without assuming how many schools ship with the test DB.
+        self.names = [
+            "ZZ Fleet Box %03d" % i for i in range(FLEET_PAGE_SIZE + self.OVERFLOW)
+        ]
+        for index, name in enumerate(self.names):
+            # `slug` is unique with no default and nothing in save() derives it, so
+            # every School created without one carries "" and the SECOND insert
+            # collides. The module helper above gets away with it by creating
+            # exactly one school per test.
+            School.objects.create(name=name, slug="zz-fleet-box-%03d" % index)
+
+    def _context(self, query=""):
+        from unittest import mock
+
+        from django.http import HttpResponse
+
+        request = RequestFactory().get("/super/edge-fleet/" + query)
+        with mock.patch(
+            "apps.sync_engine.views_fleet_console.render",
+            return_value=HttpResponse(""),
+        ) as fake_render:
+            edge_fleet_console.__wrapped__(request)
+        return fake_render.call_args[0][2]
+
+    def test_page_one_is_bounded_to_one_page(self):
+        context = self._context()
+        self.assertEqual(
+            len(context["rows"]),
+            FLEET_PAGE_SIZE,
+            "the console rendered %d rows on page one; the table is still unbounded"
+            % len(context["rows"]),
+        )
+
+    def test_the_caption_still_counts_the_whole_fleet(self):
+        """`total` feeds "N school(s)". Paging it would make the caption a lie."""
+        context = self._context()
+        self.assertGreaterEqual(context["total"], len(self.names))
+        self.assertEqual(context["total"], context["page_obj"].paginator.count)
+
+    def test_the_schools_past_page_one_are_still_reachable(self):
+        # get_page clamps out-of-range, so this is "the last page" without the test
+        # having to know how many schools the seeded catalogue contributes.
+        context = self._context("?page=9999")
+        rendered = {str(row["school"]) for row in context["rows"]}
+        self.assertIn(
+            self.names[-1],
+            rendered,
+            "the last school in the fleet is on no page at all -- the bound is "
+            "dropping schools rather than paging them",
+        )
+
+    def test_paging_inside_a_filter_stays_inside_that_filter(self):
+        """A box with no fleet state has never checked in, so this filter keeps them all."""
+        context = self._context("?state=never&page=2")
+        self.assertEqual(context["active_filter"], "never")
+        self.assertTrue(
+            all(row["state"] == "never" for row in context["rows"]),
+            "page two of a filtered fleet leaked rows from outside the filter",
+        )
+
+    def test_a_junk_page_number_does_not_empty_the_table(self):
+        """`?page=` is user input, and an empty table reads as a healthy fleet."""
+        for junk in ("0", "-3", "abc", "99999"):
+            with self.subTest(page=junk):
+                context = self._context("?page=%s" % junk)
+                self.assertTrue(
+                    context["rows"],
+                    "?page=%s emptied the console" % junk,
+                )

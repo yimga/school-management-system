@@ -100,7 +100,7 @@ def _get_guardian_student(
     request: HttpRequest, student_id: int
 ) -> StudentProfile | None:
     link = (
-        StudentGuardian.objects.filter(
+        StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship check on one (user, student) pair (reviewed 2026-09-03)
             guardian_user=request.user,
             student_id=student_id,
             can_view_results=True,

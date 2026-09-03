@@ -34,6 +34,7 @@ from ._helpers import (
     explicit_conflict_resolution_for,
     get_or_create_named,
     model_field_names,
+    persist_dfv_extras,
     record_id_mapping,
     record_row_error,
     record_row_note,
@@ -62,6 +63,110 @@ def _resolve_subject_category(raw: object) -> str | None:
         return None
     compact = re.sub(r"[^a-z]+", "", token)
     return _CATEGORY_ALIASES.get(token) or _CATEGORY_ALIASES.get(compact)
+
+
+
+def _resolve_row_coefficient(row: dict[str, Any], *, category: str | None) -> Any:
+    """Francophone ``coef`` belongs on SpecialtySubject, not Subject.credits."""
+    explicit = row.get("coefficient") or row.get("coef")
+    if explicit not in (None, ""):
+        return coerce_decimal(explicit)
+    credits = row.get("credits")
+    if credits not in (None, "") and category:
+        return coerce_decimal(credits)
+    return coerce_decimal(credits) if credits not in (None, "") else None
+
+
+def _link_subject_curriculum(
+    *,
+    ctx: LanderContext,
+    result: LanderResult,
+    subject,
+    row: dict[str, Any],
+    category: str | None,
+    coefficient,
+) -> None:
+    """Upsert ``SpecialtySubject`` rows (track ↔ matière + coef)."""
+    try:
+        from apps.academics.models import Specialty, SpecialtySubject
+    except ImportError:
+        return
+
+    from apps.migration_cloud.curriculum_link_heuristics import (
+        is_general_subject_name,
+        specialty_codes_for_subject,
+    )
+    from apps.migration_cloud.ingestion_lexicon import resolve_school_ingestion_lexicon
+
+    lexicon = resolve_school_ingestion_lexicon(ctx.school)
+    coef = coefficient
+    if coef is None and category:
+        if category == "GENERAL":
+            coef = lexicon.default_general_coef
+        elif category == "PROFESSIONAL":
+            coef = lexicon.default_professional_coef
+
+    specialty_name = (
+        row.get("specialty")
+        or row.get("filiere")
+        or row.get("specialty_name")
+        or row.get("speciality")
+        or ""
+    ).strip()
+
+    specialties: list = []
+    if specialty_name:
+        specialties = list(
+            Specialty.objects.filter(school=ctx.school, name__iexact=specialty_name)
+        )
+        if not specialties:
+            record_row_note(
+                result,
+                f"academics: specialty {specialty_name!r} not found for {subject.name!r}",
+            )
+            return
+    elif category == "GENERAL" or is_general_subject_name(subject.name, category):
+        specialties = list(Specialty.objects.filter(school=ctx.school))
+    elif category == "PROFESSIONAL":
+        codes = list(
+            Specialty.objects.filter(school=ctx.school).values_list("code", flat=True)
+        )
+        matched_codes = specialty_codes_for_subject(subject.name, codes)
+        if matched_codes:
+            specialties = list(
+                Specialty.objects.filter(school=ctx.school, code__in=matched_codes)
+            )
+        if not specialties:
+            record_row_note(
+                result,
+                f"academics: professional subject {subject.name!r} has no specialty link yet",
+            )
+            return
+    else:
+        return
+
+    is_core = category != "GENERAL" if category else True
+    for sp in specialties:
+        link, created = SpecialtySubject.objects.get_or_create(
+            specialty=sp,
+            subject=subject,
+            school=ctx.school,
+            defaults={
+                "coefficient": coef if coef is not None else 1,
+                "is_core": is_core,
+            },
+        )
+        updates: list[str] = []
+        if coef is not None and link.coefficient != coef:
+            link.coefficient = coef
+            updates.append("coefficient")
+        if link.is_core != is_core:
+            link.is_core = is_core
+            updates.append("is_core")
+        if updates:
+            link.save(update_fields=updates)
+        if created:
+            result.created += 0  # curriculum links are not primary entity counts
 
 
 def _resolve_category(raw, Subject):
@@ -157,8 +262,17 @@ class AcademicsLander(Lander):
                     if "category" in subject_fields
                     else None
                 )
+                coefficient = _resolve_row_coefficient(row, category=category)
                 create_kwargs: dict[str, Any] = {}
-                if credits is not None and "credits" in subject_fields:
+                # Credits column is higher-ed semantics; francophone coef maps to curriculum.
+                credits = coerce_decimal(row.get("credits"))
+                if (
+                    credits is not None
+                    and "credits" in subject_fields
+                    and not category
+                    and not row.get("coef")
+                    and not row.get("coefficient")
+                ):
                     create_kwargs["credits"] = credits
                 if category is not None and "category" in subject_fields:
                     create_kwargs["category"] = category
@@ -211,7 +325,14 @@ class AcademicsLander(Lander):
                     trimmed = code[:30]  # magic-number-allow: Subject.code max_length
                     if trimmed and obj.code != trimmed:
                         updates["code"] = trimmed
-                if credits is not None and "credits" in subject_fields and obj.credits != credits:
+                if (
+                    credits is not None
+                    and "credits" in subject_fields
+                    and not category
+                    and not row.get("coef")
+                    and not row.get("coefficient")
+                    and obj.credits != credits
+                ):
                     updates["credits"] = credits
                 if updates:
                     for field, value in updates.items():
@@ -231,6 +352,25 @@ class AcademicsLander(Lander):
                         " the model default (value preserved in custom fields)",
                     )
                 record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="academics")
+                persist_dfv_extras(
+                    ctx=ctx,
+                    entity_type="subject",
+                    entity_id=obj.pk,
+                    extras={
+                        "description": (row.get("description") or "").strip(),
+                        "fr_title": (row.get("fr_title") or "").strip(),
+                        "source_coef": str(row.get("coef") or row.get("coefficient") or ""),
+                    },
+                    result=result,
+                )
+                _link_subject_curriculum(
+                    ctx=ctx,
+                    result=result,
+                    subject=obj,
+                    row=row,
+                    category=category,
+                    coefficient=coefficient,
+                )
             except Exception as exc:  # noqa: BLE001
                 record_row_error(
                     result,

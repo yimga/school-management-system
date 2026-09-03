@@ -384,7 +384,7 @@ def parent_can_access_student(request, student_id: int) -> bool:
     # Any user with a guardian link to this student (and can_view_results) can access
     from apps.people.models import StudentGuardian
 
-    return StudentGuardian.objects.filter(
+    return StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship check on one (user, student) pair (reviewed 2026-09-03)
         guardian_user=user,
         student_id=student_id,
         can_view_results=True,

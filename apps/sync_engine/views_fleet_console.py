@@ -26,6 +26,7 @@ and this page's job is to be the thing you read BEFORE you decide.
 """
 from __future__ import annotations
 
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -36,6 +37,10 @@ from apps.schools.control_plane import require_control_plane_access
 # Generous on purpose: an edge box is expected to be offline, and a page that cries about
 # every school with a bad afternoon is a page nobody reads.
 _QUIET_AFTER_HOURS = 24  # magic-number-allow: hours of silence before a box reads as quiet
+
+# Large enough that a pilot fleet still renders as one page and nothing changes for
+# them, small enough that a 300-box fleet is not one 300-row table.
+FLEET_PAGE_SIZE = 50  # magic-number-allow: rows per page on the fleet console
 
 
 def _state_for(row, ring, paused, allowed, reason, operator_hash, now):
@@ -127,6 +132,17 @@ def edge_fleet_console(request, **kwargs):
     if wanted in counts:
         rows = [r for r in rows if r["state"] == wanted]
 
+    # A fleet console is expected to run to hundreds of boxes -- the comment above
+    # talks about "3 failed across 300 schools", and every one of them was being
+    # rendered into a single table. The tiles stay fleet-wide so their counts keep
+    # meaning what they say, `total` stays the count of the FILTERED set so the
+    # caption is still true, and only the rendered rows are bounded. The active
+    # filter rides along on the page links: paging inside "failed" must not
+    # silently drop back to every school.
+    total = len(rows)
+    paginator = Paginator(rows, FLEET_PAGE_SIZE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     release = ManifestRelease.objects.filter(manifest_hash=operator_hash).first() if operator_hash else None
     context = {
         "page_title": _("Edge fleet — releases"),
@@ -136,9 +152,11 @@ def edge_fleet_console(request, **kwargs):
         "operator_channel": str(manifest.get("channel") or ""),
         "released_rings": (release.rings if release else default_release_rings()),
         "release_is_explicit": release is not None,
-        "rows": rows,
+        "rows": page_obj.object_list,
+        "page_obj": page_obj,
+        "paginator": paginator,
         "counts": counts,
-        "total": len(rows),
+        "total": total,
         "fleet_total": sum(counts.values()),
         "quiet_after_hours": _QUIET_AFTER_HOURS,
     }

@@ -111,7 +111,7 @@ def demo_sandbox_banner(request):
             from apps.people.models import StudentGuardian
 
             link = (
-                StudentGuardian.objects.filter(
+                StudentGuardian.objects.filter(  # tenant-isolation-allow: the signed-in guardian's own links; guardian_user is the identity anchor (reviewed 2026-09-03)
                     guardian_user=user, can_view_results=True
                 )
                 .order_by("id")

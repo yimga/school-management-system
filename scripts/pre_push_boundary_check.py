@@ -190,6 +190,11 @@ GATES: list[tuple[str, list[str]]] = [
     # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
     # a dict that discards one of its own entries is never what was meant.
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
+    # Every ISO country must compile an offline ingestion manifest (249 × 2 profiles).
+    ("global-country-ingestion-coverage", ["verify_global_country_ingestion_coverage.py"]),
+    # Portal config + client JS + IndexedDB must carry ingestion lexicon for local-first MC upload.
+    ("ingestion-lexicon-offline-wiring", ["verify_ingestion_lexicon_offline_wiring.py"]),
+    ("global-platform-country-readiness", ["verify_global_platform_country_readiness.py", "--skip-django"]),
     # An admin registered on a site no urlconf mounts is a page nobody can open.
     ("admin-unmounted-site", ["scan_admin_registered_on_unmounted_site.py", "--compare"]),
     # A raw cursor.execute() outside set_rls_school_id() reads past the row policies
@@ -467,6 +472,9 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # only shrink: a NEW dead path fails, and so does an entry that has started to
     # resolve, which stops the list decaying into a number nobody rereads.
     ("companion-server-contract", ["verify_companion_server_contract.py"]),
+    # Country pack -> ingestion lexicon -> tenant offline manifest -> portal offline config.
+    ("global-local-first-ingestion-chain", ["verify_global_local_first_ingestion_chain.py"]),
+    ("global-platform-country-readiness-django", ["verify_global_platform_country_readiness.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
     # Its blind spot: a child table that reaches its school through a parent has
     # no `school` field, so the gate above cannot see it and truthfully says 0.

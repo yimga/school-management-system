@@ -300,7 +300,7 @@ def _apply_absence_justification_capture(
     student = StudentProfile.objects.filter(pk=student_id, school_id=school_id).first()
     if student is None:
         return {"ok": False, "error": "student not found for school"}
-    guards_child = StudentGuardian.objects.filter(
+    guards_child = StudentGuardian.objects.filter(  # tenant-isolation-allow: pair check behind the school-scoped student probe above (reviewed 2026-09-03)
         guardian_user_id=user_id, student_id=student_id
     ).exists()
     if not guards_child:

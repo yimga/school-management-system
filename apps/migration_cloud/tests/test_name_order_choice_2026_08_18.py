@@ -230,6 +230,17 @@ class NameOrderPreviewTests(TestCase):
             "last_first",
         )
 
+    def test_transform_prefs_action_persists_without_file_fields(self):
+        request = RequestFactory().post(
+            "/review/",
+            {"action": "save_transform_prefs", "name_order": "last_first"},
+        )
+        view = TenantMigrationReviewView()
+        self.assertEqual(view._apply_name_order(request, self.bundle), 1)
+        self.assertEqual(view._apply_column_overrides(request, self.bundle), 0)
+        self.bundle.refresh_from_db()
+        self.assertEqual(selected_name_order(self.bundle), "last_first")
+
 
 class NameOrderSurfaceContractTests(SimpleTestCase):
     def test_review_template_does_not_clip_radios_in_a_responsive_table(self):
@@ -245,6 +256,9 @@ class NameOrderSurfaceContractTests(SimpleTestCase):
         self.assertIn('class="rmc-name-order__option"', block)
         self.assertIn('class="rmc-name-order__control"', block)
         self.assertNotIn("form-check", block)
+        self.assertIn('data-rmc-transform-prefs-form="1"', html)
+        self.assertIn('value="save_transform_prefs"', html)
+        self.assertIn("Save name & date preferences", html)
         self.assertIn(".rmc-name-order__control > input[type=\"radio\"]", css)
         self.assertIn("appearance: none", css)
         self.assertIn("overflow: visible", css)

@@ -141,6 +141,22 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     # an unresolvable target is refused with `dfv_target_unresolved`, never guessed.
     # See _resolve_dfv_target.
     ("dynamic_field_value", "metadata", "DynamicFieldValue"),
+    # Slice 10 -- the two measured-stranded school-data domains (2026-09-03).
+    #
+    # behavior: an Incident recorded on a box (offline discipline logging is a
+    # primary use of the appliance) previously never reached the cloud, with no
+    # error, conflict or refusal. It rides two-way and is INSERTABLE across the
+    # rail: nothing on the row grants access or moves money, its nullable User
+    # FKs (created_by/resolved_by) are dropped by derivation as non-portable, and
+    # who-resolved-it stays a local audit detail while WHAT happened converges.
+    ("incident", "academics", "Incident"),
+    # guardians: the link row (relationship, phone, email, contact preferences)
+    # is school data and now converges two-way for rows that exist on both sides.
+    # CREATION stays held (_INSERT_HELD_ENTITIES): the row names an accounts.User
+    # and grants access to a child's records, and the rail must not mint either.
+    # can_view_finance / is_active / merged_into ride DOWN-ONLY -- authorization
+    # and merge-governance are the cloud's to grant, never a stale box's.
+    ("student_guardian", "people", "StudentGuardian"),
 ]
 
 # Entities that sync as UPDATES but whose offline-CREATED rows are refused outright.
@@ -161,6 +177,14 @@ _INSERT_HELD_ENTITIES: dict[str, str] = {
         "a teacher created on the cloud cannot be created on a box either, and no "
         "resync will change that. Move staff with the explicit operator step instead -- "
         "export_tenant_staff on the cloud, then import_tenant_staff on the box"
+    ),
+    "student_guardian": (
+        "a guardian link names an accounts.User and grants that person access to a "
+        "child's records; provisioning either is an authentication decision the sync "
+        "rail must not make. The refusal is symmetric (cloud-created links are not "
+        "created on a box either). Contact and preference edits to a link that already "
+        "exists on both sides converge normally; create guardians through the tenant's "
+        "own enrolment/activation flows on each deployment"
     ),
 }
 
@@ -220,6 +244,17 @@ _SYNC_FIELD_EXCLUDE_PER_ENTITY: dict[str, set] = {
 # an exclusion. Use it (rather than _SYNC_FIELD_EXCLUDE_PER_ENTITY) whenever the box needs
 # to READ the value to behave correctly offline.
 _DOWN_ONLY_FIELDS_PER_ENTITY: dict[str, set] = {
+    # Guardian authorization + merge governance. can_view_finance opens invoice
+    # visibility; is_active / merged_into_id are the duplicate-merge machinery
+    # (a stale box must not resurrect a retired duplicate or redirect a merge
+    # pointer). Contact fields (relationship, phone, email, receives_*) converge
+    # two-way -- correcting a parent's phone offline is the point of the rail.
+    "student_guardian": {
+        "can_view_finance",
+        "can_view_results",
+        "is_active",
+        "merged_into_id",
+    },
     "subject_assignment": {"coefficient"},
     "teacher": {
         # compensation

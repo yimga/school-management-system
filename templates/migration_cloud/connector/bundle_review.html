@@ -539,8 +539,14 @@ persistent data failure routes to correction rather than an endless retry.
         </tbody>
       </table>
     </div>
+    <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Save file & column settings" %}</button>
+  </form>
+  {% if name_order_preview or date_order_preview %}
+  <form method="post" action="{{ review_url }}" class="mt-4" data-rmc-transform-prefs-form="1">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_transform_prefs">
     {% if name_order_preview %}
-    <fieldset class="rmc-name-order mt-4" data-rmc-name-order>
+    <fieldset class="rmc-name-order" data-rmc-name-order>
       <legend class="h6">{% trans "How should combined names be split?" %}</legend>
       <p class="text-muted small">{% trans "Your file has one name column. Pick the reading that matches your records — the preview uses real names from your own upload, so you can confirm before importing." %}</p>
       <p class="rmc-name-order__cols" aria-hidden="true"><span>{% trans "Option" %}</span><span>{% trans "Preview from your file" %}</span></p>
@@ -612,8 +618,9 @@ persistent data failure routes to correction rather than an endless retry.
       </div>
     </fieldset>
     {% endif %}
-    <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Save changes" %}</button>
+    <button type="submit" class="rmc-btn rmc-btn--primary mt-3">{% trans "Save name & date preferences" %}</button>
   </form>
+  {% endif %}
   {% else %}
   <div class="rmc-empty mb-0" role="status">
     <p class="mb-2">{% trans "No files detected yet." %}</p>
@@ -682,13 +689,66 @@ persistent data failure routes to correction rather than an endless retry.
     </div>
   </div>
   {% endif %}
+  {# Catalog routing: subject vs specialty / filière mis-tag warnings before apply. #}
+  {% if live_import.catalog_routing %}
+  <div class="rmc-alert-banner {% if live_import.catalog_routing.blocking %}rmc-alert-banner--danger{% else %}rmc-alert-banner--warning{% endif %} mb-3" role="status" data-mc-catalog-routing>
+    <div class="rmc-alert-banner__body">
+      <p class="rmc-alert-banner__title mb-1">{{ live_import.catalog_routing.title }}</p>
+      <p class="rmc-alert-banner__message mb-2">{{ live_import.catalog_routing.message }}</p>
+      {% if live_import.catalog_routing.artifacts %}
+      <ul class="list-unstyled mb-0 small">
+        {% for row in live_import.catalog_routing.artifacts %}
+        <li class="mb-2">
+          <strong>{{ row.filename }}</strong>
+          {% if row.severity == "critical" %}<span class="rmc-badge rmc-badge--danger">{% trans "Critical" %}</span>{% endif %}
+          {% for msg in row.messages %}
+          <div class="text-muted">{{ msg }}</div>
+          {% endfor %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if live_import.catalog_routing.curriculum_links %}
+      <details class="mt-2 small">
+        <summary>{% trans "Curriculum link reasoning (sample rows)" %}</summary>
+        <ul class="mb-0 mt-2">
+          {% for link in live_import.catalog_routing.curriculum_links %}
+          <li>
+            <strong>{{ link.subject }}</strong>
+            {% if link.suggested_specialty_codes %}
+            → {% trans "likely filières" %}: {{ link.suggested_specialty_codes|join:", " }}
+            {% else %}
+            → {% trans "no matching filière code in this bundle" %}
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+      {% for msg in live_import.catalog_routing.bundle_warnings %}
+      <p class="small mb-0 mt-2">{{ msg }}</p>
+      {% endfor %}
+      {% if live_import.catalog_routing.blocking %}
+      <p class="small text-muted mt-2 mb-0">{% trans "Live import is blocked until you fix the record types or acknowledge below." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   <p class="text-muted small">{% trans "Preview first — nothing is written. Then confirm to import. Records that don't pass validation are held for review, never dropped." %}</p>
-  <form method="post" action="{{ apply_url }}" class="d-flex gap-2 flex-wrap">
+  <form method="post" action="{{ apply_url }}" class="d-flex flex-column gap-2">
     {% csrf_token %}
+    {% if live_import.catalog_routing.blocking %}
+    <label class="form-check small mb-1">
+      <input class="form-check-input" type="checkbox" name="catalog_routing_ack" value="1">
+      {% trans "I reviewed the catalog warnings and want to import anyway" %}
+    </label>
+    {% endif %}
+    <div class="d-flex gap-2 flex-wrap">
     <button type="submit" name="confirm" value="" class="btn btn-outline-primary">{% trans "Preview import (dry-run)" %}</button>
     <button type="submit" name="confirm" value="1" class="btn btn-primary" data-mc-live-import="1">{% trans "Import into my school" %}</button>
     <a class="btn btn-link" href="{{ upload_url }}">{% trans "Upload more files" %}</a>
     <a class="btn btn-link" href="{{ home_url }}">{% trans "Back to Migration Cloud" %}</a>
+    </div>
   </form>
 </section>
 {% endif %}

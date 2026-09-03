@@ -74060,3 +74060,54 @@ msgstr ""
 
 msgid "Verify imported catalog data before sync:"
 msgstr "Verify imported catalog data before sync:"
+
+msgid ""
+"A subject master list (Matières) is tagged as filières — the exact failure "
+"that creates phantom departments. Fix the tags below before importing."
+msgstr ""
+"A subject master list (Matières) is tagged as filières — the exact failure "
+"that creates phantom departments. Fix the tags below before importing."
+
+msgid "Check subject and specialty file tags"
+msgstr "Check subject and specialty file tags"
+
+msgid "Critical: fix subject/filière tags before import"
+msgstr "Critical: fix subject/filière tags before import"
+
+msgid "Curriculum link reasoning (sample rows)"
+msgstr "Curriculum link reasoning (sample rows)"
+
+msgid "I reviewed the catalog warnings and want to import anyway"
+msgstr "I reviewed the catalog warnings and want to import anyway"
+
+msgid ""
+"Live import is blocked until you fix the record types or acknowledge below."
+msgstr ""
+"Live import is blocked until you fix the record types or acknowledge below."
+
+msgid ""
+"One or more spreadsheets look like a subject or specialty catalog but are "
+"tagged with the wrong record type. Fix the tags below before importing — "
+"otherwise Matières can land as departments or filières."
+msgstr ""
+"One or more spreadsheets look like a subject or specialty catalog but are "
+"tagged with the wrong record type. Fix the tags below before importing — "
+"otherwise Matières can land as departments or filières."
+
+msgid "likely filières"
+msgstr "likely filières"
+
+msgid "no matching filière code in this bundle"
+msgstr "no matching filière code in this bundle"
+
+msgid "Fleet pagination"
+msgstr "Fleet pagination"
+
+msgid "Page {{ current }} of {{ pages }}"
+msgstr "Page {{ current }} of {{ pages }}"
+
+msgid "Save file & column settings"
+msgstr "Save file & column settings"
+
+msgid "Save name & date preferences"
+msgstr "Save name & date preferences"

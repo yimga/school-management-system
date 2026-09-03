@@ -216,6 +216,21 @@ def build_school_offline_manifest(school: Any) -> TenantManifest:
     except Exception:  # noqa: BLE001 - manifest must compile even if ops resolver fails
         logger.debug("operational context resolve failed", exc_info=True)
 
+    # Country-scoped Migration Cloud ingestion lexicon — same payload the portal
+    # emits as SMS_OFFLINE_CONFIG.ingestionManifest, persisted here so edge boxes
+    # and PWA clients that read offline_tenant_manifest get CSV preflight rules
+    # without a separate online round-trip.
+    try:
+        from apps.migration_cloud.ingestion_lexicon import (
+            compile_offline_ingestion_manifest_for_school,
+        )
+
+        operational_context["ingestion_lexicon"] = compile_offline_ingestion_manifest_for_school(
+            school
+        )
+    except Exception:  # noqa: BLE001 - lexicon is optional context; never break manifest
+        logger.debug("ingestion lexicon resolve failed for school", exc_info=True)
+
     return compile_manifest(
         tenant_id=tenant_id,
         routes_allowlist=list(_OFFLINE_ROUTES_ALLOWLIST),

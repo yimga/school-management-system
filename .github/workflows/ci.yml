@@ -133,6 +133,10 @@ jobs:
           python -m unittest scripts.tests.test_verify_companion_server_contract -v
       - name: Verify offline manifest taxonomy (operational_state always present)
         run: python scripts/verify_offline_manifest_taxonomy.py
+      - name: Verify global local-first ingestion chain (country -> lexicon -> manifest)
+        run: python scripts/verify_global_local_first_ingestion_chain.py
+      - name: Verify global platform country readiness (249 ISO structural + local-first)
+        run: python scripts/verify_global_platform_country_readiness.py
       - name: Verify tenant cannot reach operator routes (super-segment coverage)
         run: python scripts/verify_tenant_cannot_reach_operator_routes.py
       - name: Verify /super/ per-view platform-scope coverage

@@ -517,21 +517,37 @@
       var idem = 'mc-offline-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
       var labelEl = form.querySelector('[name="label"]');
       var label = labelEl ? String(labelEl.value || '') : '';
-      _stageMcBlobs(idem, files, { uploadUrl: form.action || '', label: label }).then(function () {
-        reportQueued(window.rmcOfflineEnqueue({
-          action_type: 'migration_cloud_upload',
-          payload: {
-            filenames: files.map(function (f) { return f.name; }),
-            sizes: files.map(function (f) { return f.size; }),
-            label: label,
-            client_offline_id: idem.slice(0, 64),
-            pending_local_blobs: true,
-          },
-          idempotency_key: idem.slice(0, 128),
-        }), 'Files saved on this device. They will upload when you reconnect.');
-      }).catch(function () {
-        toast('Could not store files offline on this device.', 'warning');
-      });
+
+      function stageAndEnqueue(preflightWarnings) {
+        _stageMcBlobs(idem, files, { uploadUrl: form.action || '', label: label }).then(function () {
+          reportQueued(window.rmcOfflineEnqueue({
+            action_type: 'migration_cloud_upload',
+            payload: {
+              filenames: files.map(function (f) { return f.name; }),
+              sizes: files.map(function (f) { return f.size; }),
+              label: label,
+              client_offline_id: idem.slice(0, 64),
+              pending_local_blobs: true,
+              ingestion_preflight: preflightWarnings || [],
+            },
+            idempotency_key: idem.slice(0, 128),
+          }), 'Files saved on this device. They will upload when you reconnect.');
+        }).catch(function () {
+          toast('Could not store files offline on this device.', 'warning');
+        });
+      }
+
+      if (window.rmcOfflineIngestionLexicon && typeof window.rmcOfflineIngestionLexicon.validateOfflineMigrationFiles === 'function') {
+        window.rmcOfflineIngestionLexicon.validateOfflineMigrationFiles(files).then(function (results) {
+          var warnings = (results || []).filter(function (r) { return r.warning || r.looks_like_subject_catalog; });
+          if (warnings.length) {
+            toast('Offline preflight: subject/specialty catalog check — review filenames before sync.', 'warning');
+          }
+          stageAndEnqueue(warnings);
+        }).catch(function () { stageAndEnqueue([]); });
+        return;
+      }
+      stageAndEnqueue([]);
     });
   }
 
