@@ -306,7 +306,7 @@ def badge_verify(request: HttpRequest):
 @login_required
 def unified_calendar(request: HttpRequest):
     """Phase 9: Unified calendar – school events and grading deadlines for teachers and parents."""
-    year, _term = get_active_year_and_term()
+    year, _term = get_active_year_and_term(school=getattr(request, "school", None))
     events = _merged_upcoming_events(year, school=getattr(request, "school", None))
     role = get_user_role(request.user)
     return render(

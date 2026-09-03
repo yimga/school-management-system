@@ -1106,7 +1106,7 @@ def _build_report_context_for_pdf(style: ReportCardStyle, report_type: str, stud
     # config-resolver-allow: namespace passed to _build_style_metadata and stored in report context as SITE
     site = get_effective_site_settings(school=getattr(student, "school", None))
     metadata = _build_style_metadata(site)
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(student, "school", None))
     labels = resolve_report_labels(student=student)
     context = {
         "report_style": style,
@@ -1216,7 +1216,7 @@ def reportcard_style_preview(request, slug: str):
     style = get_object_or_404(ReportCardStyle, slug=slug)
     # config-resolver-allow: namespace passed to _build_style_metadata for preview rendering
     site = get_effective_site_settings(request=request)
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     student = _resolve_preview_student(request)
     metadata = _build_style_metadata(site)
 
@@ -1566,9 +1566,9 @@ def user_preferences(request):
     )
 
 
-def _get_classrooms_queryset():
+def _get_classrooms_queryset(school=None):
     """Classrooms for bulk letter dropdown; prefer active year."""
-    year, _ = get_active_year_and_term()
+    year, _ = get_active_year_and_term(school=school)
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     if year:
         return Classroom.objects.filter(academic_year=year).order_by("name")
@@ -1639,7 +1639,7 @@ def _bulk_letters_form_data(request):
 def bulk_letters(request):
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     """Generate one ODT letter per student in a classroom (mail-merge style). Requires Pandoc."""
-    classrooms = _get_classrooms_queryset()
+    classrooms = _get_classrooms_queryset(school=getattr(request, "school", None))
     student_counts = dict(
         # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         StudentProfile.objects.filter(classroom__in=classrooms)

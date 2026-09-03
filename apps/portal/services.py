@@ -382,7 +382,7 @@ def parent_dashboard_widget_data(
     if cached_data is not None:
         return cached_data
 
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=school)
 
     widget_data = {
         "attendance": _attendance_snapshot(students, year, term),
