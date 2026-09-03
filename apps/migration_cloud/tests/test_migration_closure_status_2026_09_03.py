@@ -107,3 +107,23 @@ class CatalogInversionReadinessBuilderTests(TestCase):
         readiness = _build_catalog_inversion_readiness(bundle)
         self.assertIsNotNone(readiness)
         self.assertIn("actionable", readiness)
+
+
+class MigrationClosureSummaryBuilderTests(TestCase):
+    def test_builds_playbook_summary(self):
+        from apps.migration_cloud.models import BundleStatus, IntakeMethod, MigrationBundle
+        from apps.migration_cloud.views_tenant_upload import _build_migration_closure_summary
+
+        school = _school("review-closure")
+        bundle = MigrationBundle.objects.create(
+            school=school,
+            label="applied",
+            intake_method=IntakeMethod.FILE_UPLOAD,
+            idempotency_key=f"key-{uuid.uuid4().hex}",
+            status=BundleStatus.APPLIED,
+            mapping_summary={"apply_totals": {"created": 1}},
+        )
+        summary = _build_migration_closure_summary(bundle)
+        self.assertIsNotNone(summary)
+        self.assertIn("playbook_ready", summary)
+        self.assertIn("held_rows_pending", summary)

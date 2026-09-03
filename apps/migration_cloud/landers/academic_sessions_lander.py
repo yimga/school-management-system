@@ -26,7 +26,14 @@ from __future__ import annotations
 import datetime as _dt
 from typing import Any, Iterator
 
-from ._helpers import coerce_date, model_field_names, maybe_stall_pulse, record_row_error, row_savepoint
+from ._helpers import (
+    coerce_date,
+    model_field_names,
+    maybe_stall_pulse,
+    normalize_canonical_row,
+    record_row_error,
+    row_savepoint,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
@@ -80,7 +87,10 @@ class AcademicSessionsLander(Lander):
             ) from exc
 
         result = LanderResult()
-        rows = list(canonical_rows)  # lander-stream-allow: two-pass-oneroster-session-parent-resolution
+        rows = [
+            normalize_canonical_row("academic_sessions", row, ctx)
+            for row in canonical_rows
+        ]  # lander-stream-allow: two-pass-oneroster-session-parent-resolution
         school = getattr(ctx, "school", None)
         year_fields = model_field_names(AcademicYear)
         term_fields = model_field_names(Term)

@@ -1,5 +1,35 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Academic sessions + compliance normalize (batch 1832 - 2026-09-03)
+
+**A. Scope:** Complete normalize-at-land for OneRoster academic session imports and compliance DFV preserves.
+
+**B. Shipped:** session/OneRoster enrich aliases; compliance category/subject/date aliases; normalize on `academic_sessions` + `compliance` landers.
+
+**C. Proof:** sqlite-memory **36/36 OK** (auto-repair + closure + orchestrator suites).
+
+**D. Deploy:** Re-import OneRoster bundles or replay quarantine for session/compliance held rows.
+
+## Slice - Transcripts/comms/fixtures normalize (batch 1831 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for transcript vault, historical message, and athletics fixture rows.
+
+**B. Shipped:** enrich aliases for transcripts/communications/athletics_fixtures; `normalize_canonical_row` on three landers.
+
+**C. Proof:** sqlite-memory auto-repair suite green (35 tests).
+
+**D. Deploy:** Re-run import or `remediate_quarantine_batch --apply` for held rows in these domains.
+
+## Slice - Catalog/scaffold normalize + playbook banner (batch 1830 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for transport/payroll/events/athletics/cafeteria/hostel catalog rows; Review & Import shows whether the five-step post-import playbook can run clean.
+
+**B. Shipped:** enrich aliases for seven scaffold domains; `normalize_canonical_row` on matching landers; `_build_migration_closure_summary` + playbook-ready banner on `bundle_review.html`.
+
+**C. Proof:** sqlite-memory **31/31 OK** (auto-repair + closure suites).
+
+**D. Deploy:** Re-open Review & Import after apply — green playbook banner means `migration_closure_status` reports ready; run `remediate_tenant_post_import --apply` if held rows or closure gaps remain.
+
 ## Slice - Health/library normalize + catalog panel + closure tail (batch 1829 - 2026-09-03)
 
 **A. Scope:** Quarantine burndown for health/library rows; Review & Import shows catalog inversion; post-import playbook ends with closure summary.

@@ -152,6 +152,22 @@ any locale can't break the inline script's string literals.
 </section>
 {% endif %}
 
+{% if migration_closure_summary %}
+<section class="rmc-card mb-4{% if migration_closure_summary.playbook_ready %} border-success{% else %} border-warning{% endif %}" aria-labelledby="mc-closure-summary-heading" id="mc-closure-summary">
+  <h2 id="mc-closure-summary-heading" class="h5">{% trans "Post-import playbook status" %}</h2>
+  {% if migration_closure_summary.playbook_ready %}
+  <p class="text-success mb-0">{% trans "All closure checks pass — catalog, teaching graph, people directory, finance, and quarantine are ready." %}</p>
+  {% else %}
+  <p class="text-warning mb-2">{% trans "Some closure steps still need attention. Run remediate_tenant_post_import or use the readiness panels below." %}</p>
+  <p class="small text-muted mb-0">
+    {% blocktrans with held=migration_closure_summary.held_rows_pending %}
+    {{ held }} held row(s) still pending in this bundle.
+    {% endblocktrans %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if catalog_inversion_readiness %}
 <section class="rmc-card mb-4" aria-labelledby="mc-catalog-inversion-heading" id="mc-catalog-inversion">
   <h2 id="mc-catalog-inversion-heading" class="h5">{% trans "Academic catalog readiness" %}</h2>

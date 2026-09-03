@@ -151,6 +151,70 @@ class EnrichMissingRequiredExpansionTests(SimpleTestCase):
         self.assertEqual(enriched["title"], "Physics Vol 1")
         self.assertEqual(enriched["isbn"], "9780123456789")
 
+    def test_transport_backfills_route_name(self):
+        row = {"bus_route": "Route 7"}
+        enriched, evidence = enrich_missing_required_row("transport", row)
+        self.assertEqual(enriched["route"], "Route 7")
+
+    def test_payroll_backfills_staff_and_period(self):
+        row = {"employee_id": "T-9", "period": "2025-09", "gross": "1000"}
+        enriched, evidence = enrich_missing_required_row("payroll", row)
+        self.assertEqual(enriched["staff_external_id"], "T-9")
+        self.assertEqual(enriched["pay_period"], "2025-09")
+        self.assertEqual(enriched["gross_amount"], "1000")
+
+    def test_events_backfills_title_and_start(self):
+        row = {"event_name": "Sports Day", "start_date": "2026-04-10"}
+        enriched, evidence = enrich_missing_required_row("events", row)
+        self.assertEqual(enriched["title"], "Sports Day")
+        self.assertEqual(enriched["starts_at"], "2026-04-10")
+
+    def test_athletics_teams_backfills_squad_fields(self):
+        row = {"sport_name": "Football", "season_name": "2025 Fall", "squad_name": "1st XI"}
+        enriched, evidence = enrich_missing_required_row("athletics_teams", row)
+        self.assertEqual(enriched["sport"], "Football")
+        self.assertEqual(enriched["team_name"], "1st XI")
+
+    def test_transcripts_backfills_year_and_grade(self):
+        row = {"pupil_id": "S-1", "school_year": "2025-2026", "grade": "A"}
+        enriched, evidence = enrich_missing_required_row("transcripts", row)
+        self.assertEqual(enriched["academic_year"], "2025-2026")
+        self.assertEqual(enriched["final_grade"], "A")
+
+    def test_communications_backfills_recipient_and_body(self):
+        row = {"to_id": "PS-9", "message": "Permission slip due Friday."}
+        enriched, evidence = enrich_missing_required_row("communications", row)
+        self.assertEqual(enriched["recipient_external_id"], "PS-9")
+        self.assertEqual(enriched["body"], "Permission slip due Friday.")
+
+    def test_athletics_fixtures_backfills_match_fields(self):
+        row = {"team": "1st XI", "opponent": "St Mary's", "match_date": "2026-04-10T15:00:00"}
+        enriched, evidence = enrich_missing_required_row("athletics_fixtures", row)
+        self.assertEqual(enriched["team_name"], "1st XI")
+        self.assertEqual(enriched["opponent_name"], "St Mary's")
+        self.assertEqual(enriched["scheduled_start"], "2026-04-10T15:00:00")
+
+    def test_academic_sessions_backfills_oneroster_aliases(self):
+        row = {
+            "title": "Fall 2025",
+            "type": "term",
+            "startDate": "2025-09-01",
+            "sourcedId": "term-1",
+            "parentSourcedId": "year-1",
+        }
+        enriched, evidence = enrich_missing_required_row("academic_sessions", row)
+        self.assertEqual(enriched["session_title"], "Fall 2025")
+        self.assertEqual(enriched["session_type"], "term")
+        self.assertEqual(enriched["session_start"], "2025-09-01")
+        self.assertEqual(enriched["session_external_id"], "term-1")
+
+    def test_compliance_backfills_category_and_subject(self):
+        row = {"check_type": "immunization", "student_external_id": "PS-2", "due": "2026-04-30"}
+        enriched, evidence = enrich_missing_required_row("compliance", row)
+        self.assertEqual(enriched["category"], "immunization")
+        self.assertEqual(enriched["subject_external_id"], "PS-2")
+        self.assertEqual(enriched["due_date"], "2026-04-30")
+
 
 class PreviewLanderErrorEnrichTests(SimpleTestCase):
     def test_lander_error_with_enrich_evidence_is_auto_replay(self):

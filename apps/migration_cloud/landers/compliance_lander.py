@@ -29,6 +29,7 @@ from typing import Any, Iterator
 
 from ._helpers import (
     coerce_date,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_row_error,
 )
@@ -50,6 +51,7 @@ class ComplianceLander(Lander):
     ) -> LanderResult:
         result = LanderResult()
         for row in canonical_rows:
+            row = normalize_canonical_row("compliance", row, ctx)
             category = (row.get("category") or row.get("check_type") or "").strip()
             if not category:
                 record_row_error(

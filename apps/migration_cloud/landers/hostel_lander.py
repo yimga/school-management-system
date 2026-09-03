@@ -25,6 +25,7 @@ from ._helpers import (
     coerce_int,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
 )
@@ -76,6 +77,7 @@ class HostelLander(Lander):
         hostel_cache: dict[str, Any] = {}
 
         for row in canonical_rows:
+            row = normalize_canonical_row("hostel", row, ctx)
             hostel_name = (row.get("hostel") or row.get("hostel_name") or "Main Hostel").strip()
             room_name = (row.get("room") or row.get("room_name") or row.get("name") or "").strip()
             if not room_name:

@@ -1362,6 +1362,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "finance_ledger_readiness": None,
             "people_directory_readiness": None,
             "catalog_inversion_readiness": None,
+            "migration_closure_summary": None,
             "importing": False,
             "import_flight": {"in_flight": False, "phase": "", "stuck": False},
             "live_import": {},
@@ -1522,6 +1523,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "finance_ledger_readiness": _build_finance_ledger_readiness(bundle),
             "people_directory_readiness": _build_people_directory_readiness(bundle),
             "catalog_inversion_readiness": _build_catalog_inversion_readiness(bundle),
+            "migration_closure_summary": _build_migration_closure_summary(bundle),
             # Live import/repair state: the review page shows a polling progress
             # card and hides the write affordances while an apply is in flight,
             # then reveals the outcome (last_import) once it settles.
@@ -1728,6 +1730,37 @@ def _build_catalog_inversion_readiness(bundle):
     except Exception:  # noqa: BLE001 — panel must never break review
         logger.debug(
             "tenant review: catalog inversion readiness failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        return None
+
+
+def _build_migration_closure_summary(bundle):
+    """Compact playbook-ready signal for post-import review."""
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return None
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        if not totals and getattr(bundle, "status", "") not in (
+            BundleStatus.APPLIED,
+            BundleStatus.RECONCILED,
+        ):
+            return None
+        from apps.migration_cloud.closure_status import build_migration_closure_report
+
+        report = build_migration_closure_report(school, bundle=bundle)
+        quarantine = report.get("quarantine") or {}
+        return {
+            "playbook_ready": bool(report.get("playbook_ready")),
+            "held_rows_pending": int(quarantine.get("held_rows_pending") or 0),
+        }
+    except Exception:  # noqa: BLE001 — panel must never break review
+        logger.debug(
+            "tenant review: migration closure summary failed for %s",
             getattr(bundle, "pk", "?"),
             exc_info=True,
         )
