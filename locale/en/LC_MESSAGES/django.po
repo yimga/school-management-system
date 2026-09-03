@@ -74105,3 +74105,9 @@ msgstr "Fleet pagination"
 
 msgid "Page {{ current }} of {{ pages }}"
 msgstr "Page {{ current }} of {{ pages }}"
+
+msgid "Save file & column settings"
+msgstr "Save file & column settings"
+
+msgid "Save name & date preferences"
+msgstr "Save name & date preferences"

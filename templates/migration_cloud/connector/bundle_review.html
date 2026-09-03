@@ -539,8 +539,14 @@ persistent data failure routes to correction rather than an endless retry.
         </tbody>
       </table>
     </div>
+    <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Save file & column settings" %}</button>
+  </form>
+  {% if name_order_preview or date_order_preview %}
+  <form method="post" action="{{ review_url }}" class="mt-4" data-rmc-transform-prefs-form="1">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_transform_prefs">
     {% if name_order_preview %}
-    <fieldset class="rmc-name-order mt-4" data-rmc-name-order>
+    <fieldset class="rmc-name-order" data-rmc-name-order>
       <legend class="h6">{% trans "How should combined names be split?" %}</legend>
       <p class="text-muted small">{% trans "Your file has one name column. Pick the reading that matches your records — the preview uses real names from your own upload, so you can confirm before importing." %}</p>
       <p class="rmc-name-order__cols" aria-hidden="true"><span>{% trans "Option" %}</span><span>{% trans "Preview from your file" %}</span></p>
@@ -612,8 +618,9 @@ persistent data failure routes to correction rather than an endless retry.
       </div>
     </fieldset>
     {% endif %}
-    <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Save changes" %}</button>
+    <button type="submit" class="rmc-btn rmc-btn--primary mt-3">{% trans "Save name & date preferences" %}</button>
   </form>
+  {% endif %}
   {% else %}
   <div class="rmc-empty mb-0" role="status">
     <p class="mb-2">{% trans "No files detected yet." %}</p>

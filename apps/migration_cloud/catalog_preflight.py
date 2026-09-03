@@ -495,6 +495,32 @@ def artifact_catalog_hint(artifact: MigrationArtifact, *, school) -> str:
     return " ".join(finding.get("messages") or [])
 
 
+def catalog_hints_by_artifact_id(bundle: MigrationBundle) -> dict[int, str]:
+    """One-pass catalog hints for the review table (avoids N× preflight on GET).
+
+    ``build_context`` used to call ``artifact_catalog_hint`` per artifact, which
+    recomputed the full bundle catalog assessment on every row. On large uploads
+    that could exceed the HTTP timeout and surface as a 502 after save.
+    """
+    report = catalog_preflight_report(bundle)
+    by_artifact_id: dict[int, str] = {}
+    for row in report.get("artifacts") or []:
+        if not isinstance(row, dict):
+            continue
+        messages = row.get("messages") or []
+        if not messages:
+            continue
+        hint = " ".join(str(m) for m in messages if m)
+        if not hint:
+            continue
+        try:
+            artifact_id = int(row.get("artifact_id"))
+        except (TypeError, ValueError):
+            continue
+        by_artifact_id[artifact_id] = hint
+    return by_artifact_id
+
+
 def review_notice(bundle: MigrationBundle) -> dict[str, Any] | None:
     """Banner payload for Review & Import (JSON-safe)."""
     report = catalog_preflight_report(bundle)

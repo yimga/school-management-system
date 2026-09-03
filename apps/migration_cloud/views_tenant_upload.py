@@ -1174,12 +1174,27 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
 
     def get(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
-        return render(request, self.template_name, self.build_context(request, bundle))
+        try:
+            context = self.build_context(request, bundle)
+        except Exception:  # noqa: BLE001 — degrade rather than 502 the review page
+            logger.exception(
+                "mc tenant review: build_context failed for bundle %s", bundle.pk
+            )
+            messages.error(
+                request,
+                "We could not load every review detail. Refresh in a moment, or "
+                "contact support if this persists.",
+            )
+            context = self._build_context_degraded(request, bundle)
+        return render(request, self.template_name, context)
 
     @idempotent_post
     @safe_500
     def post(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
+        if request.POST.get("action") == "save_transform_prefs":
+            return self._post_save_transform_prefs(request, bundle)
+
         changed = 0
         for artifact in bundle.artifacts.all():
             field = f"assigned_domain_{artifact.pk}"
@@ -1215,6 +1230,20 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                 request,
                 f"Updated {mapping_changed} column mapping(s). Re-run the import "
                 "for the changes to take effect.",
+            )
+        else:
+            messages.info(request, "No changes to apply.")
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+    def _post_save_transform_prefs(self, request, bundle):
+        """Lightweight POST for name/date reading only — no file-table payload."""
+        mapping_changed = self._apply_name_order(request, bundle)
+        mapping_changed += self._apply_date_order(request, bundle)
+        if mapping_changed:
+            messages.success(
+                request,
+                "Saved your name and date reading preferences. Re-run the import "
+                "for the changes to take effect on student and staff names.",
             )
         else:
             messages.info(request, "No changes to apply.")
@@ -1314,6 +1343,71 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             bundle.save(update_fields=["mapping_summary", "updated_at"])
         return changed
 
+    def _build_context_degraded(self, request, bundle, apply_result=None) -> dict:
+        """Minimal review context when the full builder fails (never 502)."""
+        return {
+            "page_title": "Review & import",
+            "bundle": bundle,
+            "artifact_rows": [],
+            "domain_choices": canonical_domain_choices(),
+            "name_order_choices": NAME_ORDER_CHOICES,
+            "name_order_selected": selected_name_order(bundle),
+            "name_order_preview": [],
+            "date_order_choices": DATE_ORDER_CHOICES,
+            "date_order_selected": selected_date_order(bundle),
+            "date_order_preview": [],
+            "apply_result": apply_result,
+            "verification": None,
+            "importing": False,
+            "import_flight": {"in_flight": False, "phase": "", "stuck": False},
+            "live_import": {},
+            "last_import": None,
+            "repair": None,
+            "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
+            "held_review_url": _connector_reverse(
+                request, "bundle-held-review", bundle_id=bundle.pk
+            ),
+            "quarantine_resolve_url": _connector_reverse(
+                request, "bundle-quarantine-resolve", bundle_id=bundle.pk
+            ),
+            "quarantine_export_url": _connector_reverse(
+                request, "bundle-quarantine-export", bundle_id=bundle.pk
+            ),
+            "abandon_url": _connector_reverse(request, "bundle-abandon", bundle_id=bundle.pk),
+            "quarantine_pending": 0,
+            "quarantine_breakdown": [],
+            "held_preview_rows": [],
+            "apply_held_total": 0,
+            "quarantine_review_gap": 0,
+            "import_closure": None,
+            "reconciliation_status": getattr(bundle, "reconciliation_status", "") or "",
+            "financial_guardrail_variance": None,
+            "cutover_signoff_pending": False,
+            "rollback": None,
+            "rollback_url": _connector_reverse(request, "bundle-rollback", bundle_id=bundle.pk),
+            "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
+            "advance_error": (bundle.size_summary or {}).get("error") or "",
+            "detection_failed": bundle.status in _FAILED_STATUSES,
+            "detecting": _is_detecting(bundle),
+            "progress_url": _connector_reverse(request, "bundle-progress", bundle_id=bundle.pk),
+            "progress_stream_url": _connector_reverse(
+                request, "bundle-progress-stream", bundle_id=bundle.pk
+            ),
+            "archive_source_url": _connector_reverse(
+                request, "bundle-archive-source", bundle_id=bundle.pk
+            ),
+            "source_blobs_remaining": 0,
+            "source_archived": False,
+            "archive_eligible": False,
+            "upload_url": _connector_reverse(request, "upload"),
+            "review_url": _connector_reverse(request, "bundle-review", bundle_id=bundle.pk),
+            "apply_url": _connector_reverse(request, "bundle-apply", bundle_id=bundle.pk),
+            "activate_url": _connector_reverse(
+                request, "bundle-activate-people", bundle_id=bundle.pk
+            ),
+            "review_degraded": True,
+        }
+
     def build_context(self, request, bundle, apply_result=None):
         rows = []
         # The auto-mapping the pipeline already computed + persisted — the same
@@ -1321,20 +1415,23 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         # here lets a tenant admin review + correct a wrong column mapping before
         # import, instead of the auto-map being silent.
         per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
+        catalog_hints: dict[int, str] = {}
+        if bundle.school_id:
+            try:
+                from django.db import OperationalError, ProgrammingError
+
+                from .catalog_preflight import catalog_hints_by_artifact_id
+
+                catalog_hints = catalog_hints_by_artifact_id(bundle)
+            except (ImportError, AttributeError, TypeError, ValueError, ProgrammingError, OperationalError):
+                catalog_hints = {}
         for artifact in bundle.artifacts.all():
             candidates = artifact.inferred_domain if isinstance(artifact.inferred_domain, list) else []
             top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
             detected = (artifact.assigned_domain or top.get("domain", "") or "").strip()
             artifact_maps = per_artifact.get(artifact.path_within_bundle or "") or []
             mapping_rows = _column_mapping_rows(artifact_maps)
-            catalog_hint = ""
-            if bundle.school_id:
-                try:
-                    from .catalog_preflight import artifact_catalog_hint
-
-                    catalog_hint = artifact_catalog_hint(artifact, school=bundle.school)
-                except (ImportError, AttributeError, TypeError, ValueError):
-                    catalog_hint = ""
+            catalog_hint = catalog_hints.get(artifact.pk, "")
             row_hint = _row_hint(artifact)
             if catalog_hint and row_hint:
                 combined_hint = f"{catalog_hint} {row_hint}"
@@ -1364,23 +1461,33 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                 }
             )
         flight = _import_flight(bundle)
-        from .live_import_attention import compose_live_import
+        q_pending = 0
+        q_breakdown: list = []
+        held_preview_rows: list = []
+        live_import: dict = {}
+        try:
+            from .live_import_attention import compose_live_import
 
-        live_import = compose_live_import(
-            bundle,
-            snapshot=getattr(bundle, "progress_snapshot", None) or {},
-            flight=flight,
-        )
-        from .quarantine_resolution import (
-            pending_quarantine_count,
-            quarantine_breakdown,
-            quarantine_preview_rows,
-        )
+            live_import = compose_live_import(
+                bundle,
+                snapshot=getattr(bundle, "progress_snapshot", None) or {},
+                flight=flight,
+            )
+            from .quarantine_resolution import (
+                pending_quarantine_count,
+                quarantine_breakdown,
+                quarantine_preview_rows,
+            )
+
+            q_pending = pending_quarantine_count(bundle)
+            q_breakdown = quarantine_breakdown(bundle, pending_only=True) if q_pending else []
+            held_preview_rows = quarantine_preview_rows(bundle, limit=5) if q_pending else []
+        except Exception:  # noqa: BLE001 — live-import panel must not 502 review
+            logger.exception(
+                "mc tenant review: live import / quarantine summary failed for bundle %s",
+                bundle.pk,
+            )
         from .auto_remediate import import_closure_banner
-
-        q_pending = pending_quarantine_count(bundle)
-        q_breakdown = quarantine_breakdown(bundle, pending_only=True) if q_pending else []
-        held_preview_rows = quarantine_preview_rows(bundle, limit=5) if q_pending else []
         apply_held = int(
             ((bundle.mapping_summary or {}).get("apply_totals") or {}).get("quarantined") or 0
         )

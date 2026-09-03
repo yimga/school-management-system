@@ -66952,3 +66952,9 @@ msgstr ""
 
 msgid "Page {{ current }} of {{ pages }}"
 msgstr ""
+
+msgid "Save file & column settings"
+msgstr ""
+
+msgid "Save name & date preferences"
+msgstr ""

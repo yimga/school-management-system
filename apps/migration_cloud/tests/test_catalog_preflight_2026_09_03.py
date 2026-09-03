@@ -10,6 +10,7 @@ from apps.migration_cloud.catalog_preflight import (
     apply_blocked_by_catalog,
     artifact_catalog_hint,
     assess_bundle_catalog_routing,
+    catalog_hints_by_artifact_id,
     preflight_artifact_catalog,
     review_notice,
 )
@@ -199,3 +200,14 @@ class CatalogPreflightArtifactTests(TestCase):
         )
         hint = artifact_catalog_hint(art, school=self.school)
         self.assertIn("Matières", hint)
+
+    def test_catalog_hints_by_artifact_id_matches_single_pass_report(self):
+        art = self._artifact(
+            filename="subjects.xlsx",
+            domain="specialties",
+            headers=["TITLE", "CATEGORY", "COEF"],
+            rows=[("WORKSHOP", "Professional", "4")],
+        )
+        hints = catalog_hints_by_artifact_id(self.bundle)
+        self.assertIn(art.pk, hints)
+        self.assertIn("Matières", hints[art.pk])
