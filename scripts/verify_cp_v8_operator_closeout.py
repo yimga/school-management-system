@@ -72,9 +72,21 @@ def _excerpt(out: str) -> str:
         return "(child produced no output)"
     if len(out) <= MAX_REPORT_CHARS:
         return out
-    dropped = out.count("\n", MAX_REPORT_CHARS) + 1
+    # Cut on a LINE boundary. Slicing at the character limit leaves a partial
+    # final line in the kept text and counts that same line again among the
+    # suppressed, so kept + suppressed overshoots the true total by one -- the
+    # exact shape of the defect this function exists to prevent. Cutting on a
+    # newline makes the arithmetic a reader does actually work out.
+    cut = out.rfind("\n", 0, MAX_REPORT_CHARS)
+    if cut <= 0:  # a single enormous line; nothing to cut cleanly on
+        return (
+            out[:MAX_REPORT_CHARS]
+            + f"\n  ... truncated mid-line at {MAX_REPORT_CHARS} chars; "
+            "run this child directly for the full output"
+        )
+    dropped = out[cut:].count("\n")
     return (
-        out[:MAX_REPORT_CHARS]
+        out[:cut]
         + f"\n  ... {dropped} further line(s) suppressed at {MAX_REPORT_CHARS} chars; "
         "run this child directly for the full list"
     )
