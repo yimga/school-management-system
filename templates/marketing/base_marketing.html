@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n emit_once_tags %}
 <!DOCTYPE html>
 <html lang="{% if geo.locale %}{{ geo.locale }}{% else %}{{ request.LANGUAGE_CODE|default:'en' }}{% endif %}"
       dir="{% if geo.direction %}{{ geo.direction }}{% elif LANGUAGE_BIDI or is_rtl %}rtl{% else %}ltr{% endif %}"
@@ -109,7 +109,7 @@
   {% include 'components/back_to_top.html' %}
 
   {% include "partials/rmc_platform_chrome_scripts.html" %}
-  <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+  {% emit_once "js-page-fold-standards" %}<script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>{% endemit_once %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
