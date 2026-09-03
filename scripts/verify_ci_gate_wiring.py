@@ -426,6 +426,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # registry out of apps.api.sync_services), so it rides ci.yml::django-tests
     # rather than the deps-free boundary workflow.
     ("scripts/audit_rail_coverage.py", "ci.yml"),
+    # Added 2026-09-03. Ten child checks behind one gate that nothing ran, so
+    # every one of them was dark. It stayed unrunnable because its
+    # large_collection child could only pass at zero findings while the detector
+    # under it was crediting a section-navigator attribute as a row bound.
+    ("scripts/verify_cp_v8_operator_closeout.py", "architectural-boundaries.yml"),
 )
 
 

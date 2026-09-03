@@ -66611,3 +66611,73 @@ msgstr ""
 
 msgid "Save name & date preferences"
 msgstr ""
+
+msgid "Add teaching hints or run repair"
+msgstr ""
+
+msgid "Draft invoices with totals"
+msgstr ""
+
+msgid "Finance ledger readiness"
+msgstr ""
+
+msgid "Gradebook grid cells"
+msgstr ""
+
+msgid "Issued without ledger post"
+msgstr ""
+
+msgid "Ledger backfill needed"
+msgstr ""
+
+msgid "Ledger posts complete"
+msgstr ""
+
+msgid "No invisible draft fees"
+msgstr ""
+
+msgid "Ready for grade entry"
+msgstr ""
+
+msgid "Run repair or remediate_finance_ledger_closure"
+msgstr ""
+
+msgid "Run repair to provision the teaching grid"
+msgstr ""
+
+msgid "Select conflict: {{ entity }} {{ ident }}"
+msgstr ""
+
+msgid "Some timetable rows still need subject and teacher references."
+msgstr ""
+
+msgid "Students placed"
+msgstr ""
+
+msgid "Teacher portal links"
+msgstr ""
+
+msgid "Teachers can open their classes"
+msgstr ""
+
+msgid "Teaching graph readiness"
+msgstr ""
+
+msgid ""
+"Timetable: {{ materialized }} class slots materialized · {{ preserved }} "
+"preserved import rows"
+msgstr ""
+
+msgid ""
+"Whether grades, teacher portal, and timetable views can work from what this "
+"import landed."
+msgstr ""
+
+msgid ""
+"Whether imported fee rows are visible to the bursar (issued invoices, lines,"
+" and ledger posts)."
+msgstr ""
+
+msgid ""
+"{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
+msgstr ""
