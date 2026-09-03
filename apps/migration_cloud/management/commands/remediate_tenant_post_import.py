@@ -8,6 +8,8 @@ Order (each step is idempotent):
 4. ``remediate_finance_ledger_closure`` — issue imported fees + ledger posts
 5. ``remediate_quarantine_batch`` — zero-touch autopilot over held rows
 
+After the five steps, prints ``migration_closure_status`` as a closure summary.
+
 Typical production run::
 
     manage.py remediate_tenant_post_import --school gilead-tech --dry-run
@@ -113,6 +115,14 @@ class Command(BaseCommand):
                 stdout=self.stdout,
             )
             report["steps"].append("quarantine_apply")
+
+        self.stdout.write(f"\n=== Closure summary ===")
+        call_command(
+            "migration_closure_status",
+            school=school,
+            stdout=self.stdout,
+        )
+        report["steps"].append("closure_summary")
 
         if options["as_json"]:
             self.stdout.write(json.dumps(report, indent=2, sort_keys=True))

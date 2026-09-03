@@ -134,6 +134,23 @@ class EnrichMissingRequiredExpansionTests(SimpleTestCase):
         self.assertEqual(enriched["room"], "Block A / 12")
         self.assertIn("room←room_alias", evidence)
 
+    def test_health_backfills_student_date_and_category(self):
+        row = {
+            "pupil_id": "H-1",
+            "date": "2025-09-01",
+            "record_type": "immunization",
+        }
+        enriched, evidence = enrich_missing_required_row("health", row)
+        self.assertEqual(enriched["student_external_id"], "H-1")
+        self.assertEqual(enriched["record_date"], "2025-09-01")
+        self.assertEqual(enriched["category"], "immunization")
+
+    def test_library_backfills_title_and_isbn(self):
+        row = {"name": "Physics Vol 1", "barcode": "9780123456789"}
+        enriched, evidence = enrich_missing_required_row("library", row)
+        self.assertEqual(enriched["title"], "Physics Vol 1")
+        self.assertEqual(enriched["isbn"], "9780123456789")
+
 
 class PreviewLanderErrorEnrichTests(SimpleTestCase):
     def test_lander_error_with_enrich_evidence_is_auto_replay(self):

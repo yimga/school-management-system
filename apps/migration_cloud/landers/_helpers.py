@@ -1145,6 +1145,61 @@ def enrich_missing_required_row(
             enriched["end_time"] = end
             evidence.append("end_time←finish_alias")
 
+    elif domain_key == "health":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        record_date = str(
+            flat.get("record_date")
+            or flat.get("date")
+            or flat.get("visit_date")
+            or flat.get("event_date")
+            or ""
+        ).strip()
+        if record_date and not str(flat.get("record_date") or "").strip():
+            enriched["record_date"] = record_date
+            evidence.append("record_date←date_alias")
+        category = str(
+            flat.get("category")
+            or flat.get("record_type")
+            or flat.get("type")
+            or flat.get("event_type")
+            or ""
+        ).strip()
+        if category and not str(flat.get("category") or "").strip():
+            enriched["category"] = category
+            evidence.append("category←record_type_alias")
+
+    elif domain_key == "library":
+        title = str(
+            flat.get("title")
+            or flat.get("name")
+            or flat.get("book_title")
+            or flat.get("item_name")
+            or ""
+        ).strip()
+        if title and not str(flat.get("title") or "").strip():
+            enriched["title"] = title
+            evidence.append("title←name_alias")
+        isbn = str(
+            flat.get("isbn")
+            or flat.get("barcode")
+            or flat.get("isbn13")
+            or flat.get("isbn_13")
+            or ""
+        ).strip()
+        if isbn and not str(flat.get("isbn") or "").strip():
+            enriched["isbn"] = isbn
+            evidence.append("isbn←barcode_alias")
+        author = str(flat.get("author") or flat.get("author_name") or "").strip()
+        if author and not str(flat.get("author") or "").strip():
+            enriched["author"] = author
+            evidence.append("author←author_name")
+
     if not evidence:
         return row, []
     return enriched, evidence

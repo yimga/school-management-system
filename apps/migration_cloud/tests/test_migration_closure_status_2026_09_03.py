@@ -88,3 +88,22 @@ class PeopleDirectoryReadinessBuilderTests(TestCase):
             mapping_summary={"apply_totals": {"dry_run": True}},
         )
         self.assertIsNone(_build_people_directory_readiness(bundle))
+
+
+class CatalogInversionReadinessBuilderTests(TestCase):
+    def test_builds_for_applied_bundle(self):
+        from apps.migration_cloud.models import BundleStatus, IntakeMethod, MigrationBundle
+        from apps.migration_cloud.views_tenant_upload import _build_catalog_inversion_readiness
+
+        school = _school("review-catalog")
+        bundle = MigrationBundle.objects.create(
+            school=school,
+            label="applied",
+            intake_method=IntakeMethod.FILE_UPLOAD,
+            idempotency_key=f"key-{uuid.uuid4().hex}",
+            status=BundleStatus.APPLIED,
+            mapping_summary={"apply_totals": {"created": 1}},
+        )
+        readiness = _build_catalog_inversion_readiness(bundle)
+        self.assertIsNotNone(readiness)
+        self.assertIn("actionable", readiness)

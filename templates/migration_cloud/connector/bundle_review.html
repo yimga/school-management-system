@@ -152,6 +152,47 @@ any locale can't break the inline script's string literals.
 </section>
 {% endif %}
 
+{% if catalog_inversion_readiness %}
+<section class="rmc-card mb-4" aria-labelledby="mc-catalog-inversion-heading" id="mc-catalog-inversion">
+  <h2 id="mc-catalog-inversion-heading" class="h5">{% trans "Academic catalog readiness" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Whether subjects and specialties landed in the right catalog tables (common CM/TVET inversion)." %}</p>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Phantom specialties" %}</div>
+        <div class="h4 mb-0">{{ catalog_inversion_readiness.phantom_specialties }}</div>
+        <p class="small mb-0 mt-2{% if catalog_inversion_readiness.actionable %} text-warning{% else %} text-success{% endif %}">
+          {% if catalog_inversion_readiness.actionable %}
+          {% trans "Run remediate_inverted_academic_catalog" %}
+          {% else %}
+          {% trans "No subject↔specialty inversion detected" %}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Phantom departments" %}</div>
+        <div class="h4 mb-0">{{ catalog_inversion_readiness.phantom_departments }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Subjects promoted from departments" %}</div>
+        <div class="h4 mb-0">{{ catalog_inversion_readiness.subjects_promoted }}</div>
+      </div>
+    </div>
+  </div>
+  {% if catalog_inversion_readiness.sample_phantoms %}
+  <p class="small text-muted mt-3 mb-0">
+    {% blocktrans with names=catalog_inversion_readiness.sample_phantoms|join:", " %}
+    Sample phantom specialty names: {{ names }}
+    {% endblocktrans %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if teaching_graph_readiness %}
 <section class="rmc-card mb-4" aria-labelledby="mc-teaching-graph-heading" id="mc-teaching-graph">
   <h2 id="mc-teaching-graph-heading" class="h5">{% trans "Teaching graph readiness" %}</h2>

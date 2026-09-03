@@ -80,12 +80,14 @@ class RemediateTenantPostImportOrchestratorTests(TestCase):
                 "remediate_people_directory",
                 "remediate_finance_ledger_closure",
                 "preview_quarantine_autopilot",
+                "migration_closure_status",
             ],
         )
         rendered = out.getvalue()
         self.assertIn("1/5 academic catalog", rendered)
         self.assertIn("3/5 people directory", rendered)
         self.assertIn("5/5 quarantine autopilot", rendered)
+        self.assertIn("Closure summary", rendered)
 
     def test_apply_chains_quarantine_batch(self):
         school = _school("orch-apply")
@@ -106,5 +108,6 @@ class RemediateTenantPostImportOrchestratorTests(TestCase):
                 max_sweeps=3,
             )
 
-        self.assertEqual(calls[-1], "remediate_quarantine_batch")
-        self.assertEqual(len(calls), 5)
+        self.assertEqual(calls[-2], "remediate_quarantine_batch")
+        self.assertEqual(calls[-1], "migration_closure_status")
+        self.assertEqual(len(calls), 6)

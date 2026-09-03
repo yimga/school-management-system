@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Health/library normalize + catalog panel + closure tail (batch 1829 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for health/library rows; Review & Import shows catalog inversion; post-import playbook ends with closure summary.
+
+**B. Shipped:** health/library enrich + normalize-at-land; `catalog_inversion_readiness` panel; orchestrator calls `migration_closure_status` after step 5.
+
+**C. Proof:** sqlite-memory **30/30 OK**.
+
+**D. Deploy:** `remediate_tenant_post_import --apply` now prints closure summary automatically; Review & Import shows four readiness panels (catalog, teaching, people, finance).
+
 ## Slice - People directory readiness panel (batch 1828 - 2026-09-03)
 
 **A. Scope:** Tenant Review & Import UX parity — people directory closure visible next to teaching graph and finance.
