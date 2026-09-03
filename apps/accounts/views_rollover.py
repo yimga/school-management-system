@@ -118,7 +118,7 @@ def _clone_year_school(request):
     return getattr(request, "school", None) or getattr(request.user, "school", None)
 
 
-def _clone_year_queryset(request):
+def _scoped_year_queryset(request):
     """Academic years this operator may pick, newest first.
 
     Previously ``AcademicYear.objects.all()``. A tenant SCHEMA can hold several
@@ -126,6 +126,11 @@ def _clone_year_queryset(request):
     unfiltered read let one campus see - and clone into - another's years. Scoping
     here also turns the ``get_object_or_404`` below into an ownership check rather
     than a bare id lookup, closing the matching POST-side IDOR.
+
+    Named ``_clone_year_queryset`` until 2026-09-03, when the rollover views were
+    found to have kept the very hole this docstring describes closing. Cloning a
+    year copies structure; rollover MOVES students between years and graduates
+    them, so the path left open was the one that writes. Both use it now.
     """
     school = _clone_year_school(request)
     qs = AcademicYear.objects.all()
@@ -204,7 +209,7 @@ def clone_year_setup(request):
     """
 
     def _render(extra=None):
-        ctx = _clone_year_context(list(_clone_year_queryset(request)))
+        ctx = _clone_year_context(list(_scoped_year_queryset(request)))
         ctx.update(extra or {})
         return render(request, "accounts/clone_year_setup.html", ctx)
 
@@ -230,7 +235,7 @@ def clone_year_setup(request):
         )
         return _render()
 
-    scoped = _clone_year_queryset(request)
+    scoped = _scoped_year_queryset(request)
     source_year = get_object_or_404(scoped, id=source_id)
     target_year = get_object_or_404(scoped, id=target_id)
     try:
@@ -266,7 +271,7 @@ def _create_clone_target_year(request, _render):
         messages.error(request, _("Give the new academic year a name."))
         return _render()
 
-    years = list(_clone_year_queryset(request))
+    years = list(_scoped_year_queryset(request))
     newest = years[0] if years else None
     start_date = (request.POST.get("new_year_start") or "").strip()
     end_date = (request.POST.get("new_year_end") or "").strip()
@@ -280,7 +285,7 @@ def _create_clone_target_year(request, _render):
         )
         return _render()
 
-    if _clone_year_queryset(request).filter(name=name).exists():
+    if _scoped_year_queryset(request).filter(name=name).exists():
         messages.error(
             request,
             _("An academic year named %(name)s already exists.") % {"name": name},
@@ -333,9 +338,8 @@ def rollover_year(request):
     Year-end rollover: move students from source year to target year and assign next classroom.
     Uses promotion status to suggest next class; operator can override per student.
     Optionally lock the source year after rollover.
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     """
-    years = list(AcademicYear.objects.all().order_by("-start_date"))
+    years = list(_scoped_year_queryset(request))
     if request.method == "POST":
         # "Back up now" affordance — trigger the M28 tenant DR snapshot for this
         # school so the pre-rollover backup gate below is satisfied, then return
@@ -388,8 +392,9 @@ def rollover_year(request):
             messages.error(request, "Please select both source and target year.")
             return render(request, "accounts/rollover_year.html", {"years": years})
 
-        source_year = get_object_or_404(AcademicYear, id=source_id)
-        target_year = get_object_or_404(AcademicYear, id=target_id)
+        scoped_years = _scoped_year_queryset(request)
+        source_year = get_object_or_404(scoped_years, id=source_id)
+        target_year = get_object_or_404(scoped_years, id=target_id)
         if getattr(source_year, "is_locked", False):
             messages.error(
                 request,
@@ -433,16 +438,14 @@ def rollover_year(request):
                             "year_close_dry_run": scorecard,
                         },
                     )
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
         target_classrooms = list(
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+            # tenant-isolation-allow: bounded-by-school-scoped-academic-year
             Classroom.objects.filter(academic_year=target_year).order_by("name")
         )
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         target_classrooms_by_id = {c.id: c for c in target_classrooms}
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: bounded-by-school-scoped-academic-year
         students = list(
             StudentProfile.objects.filter(
                 academic_year=source_year, is_active=True
@@ -684,19 +687,16 @@ def rollover_year(request):
         "checklist": [],
         "block_promotion_if_outstanding_returns": False,
         "carry_forward_arrears_on_rollover": False,
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     }
     if source_id and target_id:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        source_year = AcademicYear.objects.filter(id=source_id).first()
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        target_year = AcademicYear.objects.filter(id=target_id).first()
+        scoped_years = _scoped_year_queryset(request)
+        source_year = scoped_years.filter(id=source_id).first()
+        target_year = scoped_years.filter(id=target_id).first()
         if source_year and target_year:
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             context["source_year"] = source_year
             context["target_year"] = target_year
             target_classrooms_list = list(
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+                # tenant-isolation-allow: bounded-by-school-scoped-academic-year
                 Classroom.objects.filter(academic_year=target_year).order_by("name")
             )
             context["target_classrooms"] = target_classrooms_list
@@ -710,14 +710,11 @@ def rollover_year(request):
                 {
                     "label": "Final grades entered and reports finalized (manual check)",
                     "ok": None,
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 },
             ]
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             promotion_map = {}
             try:
                 from apps.academics.models import ClassroomPromotionMapping
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
                 for m in ClassroomPromotionMapping.objects.filter(
                     source_year=source_year, target_year=target_year
@@ -738,22 +735,19 @@ def rollover_year(request):
                     "accounts rollover_year: ClassroomPromotionMapping query failed",
                     school_id=school_id,
                     extra={
-                        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                         "view": "rollover_year",
                         "source_year_id": source_year.id,
                         "target_year_id": target_year.id,
-                        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                         "error": str(e),
                     },
                 )
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+            # tenant-isolation-allow: bounded-by-school-scoped-academic-year
             terms = list(
                 Term.objects.filter(academic_year=source_year).order_by(
-                    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                     "position", "start_date"
                 )
             )
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+            # tenant-isolation-allow: bounded-by-school-scoped-academic-year
             students = StudentProfile.objects.filter(
                 academic_year=source_year, is_active=True
             ).select_related("classroom")
@@ -781,19 +775,16 @@ def rollover_year(request):
             )
             for s in students:
                 annual_avg = _annual_average_for_student(s, terms) if terms else None
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 promo = (
                     get_promotion_status(s, source_year, annual_avg)
-                    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                     if annual_avg is not None
                     else "NO_DATA"
                 )
                 suggested = None
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 if s.classroom_id and promotion_map:
                     suggested = promotion_map.get(s.classroom_id)
                 if not suggested and s.classroom:
-                    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+                    # tenant-isolation-allow: bounded-by-school-scoped-academic-year
                     suggested = Classroom.objects.filter(
                         academic_year=target_year, name=s.classroom.name
                     ).first()
@@ -847,10 +838,9 @@ def rollover_proposal_detail(request, proposal_id):
     school = getattr(request, "school", None)
     if not school or proposal.school_id != school.pk:
         from django.http import HttpResponseForbidden
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
         return HttpResponseForbidden()
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    # tenant-isolation-allow: bounded-by-the-school-guarded-proposal-it-reads-from
     target_classrooms = list(
         Classroom.objects.filter(academic_year=proposal.target_year).order_by("name")
     )
@@ -981,8 +971,13 @@ def rollover_prepare(request):
     if not source_id or not target_id:
         messages.error(request, "Select source and target year.")
         return redirect("accounts:rollover_year")
-    source_year = get_object_or_404(AcademicYear, id=source_id)
-    target_year = get_object_or_404(AcademicYear, id=target_id)
+    # Scoping the queryset makes each lookup below an OWNERSHIP check rather than
+    # a bare id lookup. Without it this view stamps the REQUESTING school onto a
+    # proposal built from another school's years, and rollover_proposal_detail's
+    # `proposal.school_id != school.pk` guard then passes, because the stamp is ours.
+    scoped_years = _scoped_year_queryset(request)
+    source_year = get_object_or_404(scoped_years, id=source_id)
+    target_year = get_object_or_404(scoped_years, id=target_id)
     school = getattr(request, "school", None)
     school_id = school.pk if school else None
     if not school_id:
