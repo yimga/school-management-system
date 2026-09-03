@@ -120,7 +120,7 @@ def employer_student_transcript(request: HttpRequest, placement_id: int):
     from apps.academics.services import get_active_year_and_term
     from apps.reports.services import annual_report_context
 
-    active_year, _ = get_active_year_and_term()
+    active_year, _ = get_active_year_and_term(school=getattr(request, "school", None))
     year = active_year or (
         student.academic_year if getattr(student, "academic_year_id", None) else None
     )

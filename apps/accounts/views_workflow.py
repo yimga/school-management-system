@@ -71,11 +71,10 @@ def _workflow_progress(year):
     if not year:
         return {}
     try:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: bounded-by-school-scoped-active-year
         classrooms = Classroom.objects.filter(academic_year=year).count()
         students = StudentProfile.objects.filter(
             academic_year=year, is_active=True
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         ).count()
         school_id = getattr(year, "school_id", None)
         if school_id:
@@ -628,7 +627,7 @@ def workflow_center(request):
             return early
     # config-resolver-allow: namespace passed to template context ('site') plus site.pk reads for admin URLs
     site = get_effective_site_settings(request=request)
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     progress = _workflow_progress(year)
 
     try:
@@ -1125,7 +1124,7 @@ def academic_rules(request):
 
     # config-resolver-allow: namespace passed to template context ('site')
     site = get_effective_site_settings(request=request)
-    year, _term_unused = get_active_year_and_term()
+    year, _term_unused = get_active_year_and_term(school=getattr(request, "school", None))
     rules = []
     if year:
         rules = list(

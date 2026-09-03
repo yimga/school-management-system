@@ -405,7 +405,7 @@ def parent_workflow_center(request: HttpRequest):
         "finance_overdue": finance_overdue,
     }
 
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
 
     return render(
         request,
@@ -493,7 +493,7 @@ def child_digital_id(request: HttpRequest, student_id: int):
 @parent_portal_required
 @role_required(User.Role.PARENT)
 def portal_stats(request: HttpRequest):
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
@@ -661,7 +661,7 @@ def parent_attendance_discipline(request: HttpRequest):
 @role_required(User.Role.PARENT)
 @audit_pii_view(model_name="StudentProfile", object_id_kwarg="student_id", sensitivity="HIGH", reason="Parent viewing child results")
 def parent_child_results(request: HttpRequest, student_id: int):
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 

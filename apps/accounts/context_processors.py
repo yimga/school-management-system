@@ -257,7 +257,7 @@ def dashboard_context(request):
                 from apps.academics.services import get_active_year_and_term
 # tenant-isolation-allow: context-scoped-via-request-school-membership
 
-                active_year, _active_term = get_active_year_and_term()
+                active_year, _active_term = get_active_year_and_term(school=getattr(request, "school", None))
 
                 # tenant-isolation-allow: context-scoped-via-request-school-membership
                 assignments = TeacherAssignment.objects.filter(

@@ -235,7 +235,7 @@ def run_pre_migration_validation(
         from apps.people.models import StudentProfile
         from apps.academics.services import get_active_year_and_term
 
-        active_year, _ = get_active_year_and_term()
+        active_year, _ = get_active_year_and_term(school=school)
         if not active_year:
             for idx in range(1, len(transformed_rows) + 1):
                 issues["invalid_refs"].append(
@@ -404,7 +404,7 @@ def run_dry_run(
         from apps.academics.services import get_active_year_and_term
         from apps.evals.importers import dry_run_grade_import
 
-        active_year, _ = get_active_year_and_term()
+        active_year, _ = get_active_year_and_term(school=school)
         if not active_year:
             scorecard = {
                 "created": 0,

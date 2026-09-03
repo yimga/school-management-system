@@ -152,7 +152,7 @@ class TeacherDashboardAPI(View):
                     status=404,
                 )
 
-            active_year, _active_term = get_active_year_and_term()
+            active_year, _active_term = get_active_year_and_term(school=getattr(request, "school", None))
             # tenant-isolation-allow: view-scoped-via-request-school
             assignments = TeacherAssignment.objects.filter(
                 teacher=teacher,

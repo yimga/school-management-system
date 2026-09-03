@@ -46,7 +46,7 @@ def compute_ca_marks_for_candidate(
     if not term:
         from apps.academics.services import get_active_year_and_term
 
-        _, term = get_active_year_and_term()
+        _, term = get_active_year_and_term(school=getattr(candidate.session, "school", None))
         if not term:
             return {"error": "No active term"}
 
