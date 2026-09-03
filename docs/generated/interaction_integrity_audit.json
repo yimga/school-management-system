@@ -1,122 +1,121 @@
 {
-  "generated_at": "2026-08-28T08:39:10.073936+00:00",
-  "verdict": "INTERACTION_INTEGRITY_PASS",
-  "pass_count": 19,
   "fail_count": 0,
+  "pass_count": 19,
   "rows": [
     {
       "id": "1",
       "label": "Interaction guard on all five shells",
-      "status": "PASS",
-      "proof": "templates/control_plane_skeleton.html,templates/portal_base.html,templates/base.html,templates/marketing/base_marketing.html,templates/admin/base_site.html"
+      "proof": "templates/control_plane_skeleton.html,templates/portal_base.html,templates/base.html,templates/marketing/base_marketing.html,templates/admin/base_site.html",
+      "status": "PASS"
     },
     {
       "id": "2",
       "label": "Interaction guard module exists",
-      "status": "PASS",
-      "proof": "static/js/rmc-interaction-guard.js"
+      "proof": "static/js/rmc-interaction-guard.js",
+      "status": "PASS"
     },
     {
       "id": "3",
       "label": "Help center route + contracts",
-      "status": "PASS",
-      "proof": "feedback:help_center + tests"
+      "proof": "feedback:help_center + tests",
+      "status": "PASS"
     },
     {
       "id": "4",
       "label": "Permission matrix simulator + guarded JS",
-      "status": "PASS",
-      "proof": "permission_matrix_simulator"
+      "proof": "permission_matrix_simulator",
+      "status": "PASS"
     },
     {
       "id": "5",
       "label": "User dropdown logout link",
-      "status": "PASS",
-      "proof": "user_dropdown.html"
+      "proof": "user_dropdown.html",
+      "status": "PASS"
     },
     {
       "id": "6",
       "label": "User dropdown scrollable menu (logout reachable)",
-      "status": "PASS",
-      "proof": "portal-ui-components.css"
+      "proof": "portal-ui-components.css",
+      "status": "PASS"
     },
     {
       "id": "7",
       "label": "Marketing proof interaction guard",
-      "status": "PASS",
-      "proof": "mkt-proof-interactions.js"
+      "proof": "mkt-proof-interactions.js",
+      "status": "PASS"
     },
     {
       "id": "8",
       "label": "HTTP error surface templates (401\u2013503 + offline)",
-      "status": "PASS",
-      "proof": "12"
+      "proof": "12",
+      "status": "PASS"
     },
     {
       "id": "9",
       "label": "handler503 wired in urlconf",
-      "status": "PASS",
-      "proof": "config/urls.py"
+      "proof": "config/urls.py",
+      "status": "PASS"
     },
     {
       "id": "10",
       "label": "No dead href=# in user dropdown",
-      "status": "PASS",
-      "proof": "user_dropdown.html scan"
+      "proof": "user_dropdown.html scan",
+      "status": "PASS"
     },
     {
       "id": "11",
       "label": "Manager header account menu gate",
-      "status": "PASS",
-      "proof": "middleware + manager_help_center + CSS + operator_account_render"
+      "proof": "middleware + manager_help_center + CSS + operator_account_render",
+      "status": "PASS"
     },
     {
       "id": "12",
       "label": "Manager /admin/ delegates footer to the control-plane workbench",
-      "status": "PASS",
-      "proof": "templates/admin/base.html + admin_workbench_footer.html + base_site.html"
+      "proof": "templates/admin/base.html + admin_workbench_footer.html + base_site.html",
+      "status": "PASS"
     },
     {
       "id": "13",
       "label": "Tenant urlconf handler503 wired",
-      "status": "PASS",
-      "proof": "config/tenant_urls.py"
+      "proof": "config/tenant_urls.py",
+      "status": "PASS"
     },
     {
       "id": "14",
       "label": "No dead href=# in operator shell chrome",
-      "status": "PASS",
-      "proof": "scan_operator_shell_dead_hrefs: 0 finding(s) (baseline 0)"
+      "proof": "scan_operator_shell_dead_hrefs: 0 finding(s) (baseline 0)",
+      "status": "PASS"
     },
     {
       "id": "15",
       "label": "Vitest interaction-integrity suite present",
-      "status": "PASS",
-      "proof": "tests/interaction-integrity.test.tsx"
+      "proof": "tests/interaction-integrity.test.tsx",
+      "status": "PASS"
     },
     {
       "id": "16",
       "label": "Tenant urlconf mounts feedback (Help Center on subdomain)",
-      "status": "PASS",
-      "proof": "tenant_urls + school_finder_bento"
-    },
-    {
-      "id": "18",
-      "label": "_pages/ interaction audit green",
-      "status": "PASS",
-      "proof": "PAGES_INTERACTION_AUDIT_PASS files=175 issues=0"
-    },
-    {
-      "id": "19",
-      "label": "React mount bundles + API fetch URLs",
-      "status": "PASS",
-      "proof": "REACT_MOUNT_FETCH_PASS mounts=3 errors=0"
+      "proof": "tenant_urls + school_finder_bento",
+      "status": "PASS"
     },
     {
       "id": "17",
       "label": "Contract tests green",
-      "status": "PASS",
-      "proof": "fast: =- server_name=- \ndef process_webhook_deliveries_task(batch_size=0):\n    return 1\n\n...................\n----------------------------------------------------------------------\nRan 26 tests in 1.959s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: ran=26 result=OK | feedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)",
+      "status": "PASS"
+    },
+    {
+      "id": "18",
+      "label": "_pages/ interaction audit green",
+      "proof": "PAGES_INTERACTION_AUDIT_PASS files=175 issues=0",
+      "status": "PASS"
+    },
+    {
+      "id": "19",
+      "label": "React mount bundles + API fetch URLs",
+      "proof": "REACT_MOUNT_FETCH_PASS mounts=3 errors=0",
+      "status": "PASS"
     }
-  ]
+  ],
+  "verdict": "INTERACTION_INTEGRITY_PASS"
 }

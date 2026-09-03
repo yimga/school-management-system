@@ -101,18 +101,22 @@ def main() -> int:
         matrix_rows.append({"iso": iso, "readiness_status": status})
 
     out_path = ROOT / "docs" / "generated" / "tenant_customer_250_country_matrix.json"
-    out_path.write_text(
-        json.dumps(
-            {
-                "iso_count": len(matrix_rows),
-                "readiness_statuses": sorted(READINESS_STATUSES),
-                "rows": matrix_rows,
-            },
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
+    # write_bytes, not write_text: on Windows text mode translates "\n" to CRLF, and
+    # docs/generated/*.json is `eol=lf`, so every run left the path permanently dirty
+    # ("git diff-files" reports it modified even though the content is identical).
+    out_path.write_bytes(
+        (
+            json.dumps(
+                {
+                    "iso_count": len(matrix_rows),
+                    "readiness_statuses": sorted(READINESS_STATUSES),
+                    "rows": sorted(matrix_rows, key=lambda row: row["iso"]),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n"
+        ).encode("utf-8")
     )
 
     repo_ready = sum(1 for r in matrix_rows if r["readiness_status"] == "repo_ready")
