@@ -66,7 +66,12 @@ def evaluate_staleness(jobs, *, now=None, grace_factor=None) -> list[JobHealth]:
         job_name           (str)
         interval_seconds   (int)
         last_success_epoch (float | None)   last successful run, epoch seconds
-        watched_for_seconds(float | None)   how long a heartbeat row has existed
+        watched_for_seconds(float | None)   how long we have been in a position to
+                                            NOTICE this job: the age of its own
+                                            heartbeat row, or -- for a job that has
+                                            never run and so has no row -- the age of
+                                            the oldest row we hold. None means we
+                                            have observed nothing at all yet.
     Returns one ``JobHealth`` per job.
     """
     if now is None:
@@ -97,8 +102,10 @@ def evaluate_staleness(jobs, *, now=None, grace_factor=None) -> list[JobHealth]:
             continue
 
         # Never succeeded (no last_success). Only stale once we have been WATCHING
-        # (the heartbeat row has existed) longer than the threshold — so a fresh
-        # deploy with an empty table does NOT immediately false-alarm.
+        # longer than the threshold — so a fresh deploy with an empty table does
+        # NOT immediately false-alarm. A job with no heartbeat row of its OWN still
+        # gets a value here, because "never ran once" is precisely the failure this
+        # monitor exists to catch; run_health_monitor supplies it.
         watched = j.get("watched_for_seconds")
         is_stale = watched is not None and watched > threshold
         findings.append(
@@ -249,11 +256,41 @@ def run_health_monitor(*, grace_factor=None) -> list[JobHealth]:
         # tenant-isolation-allow: platform-level scheduler heartbeat, not tenant-scoped
         heartbeats = {h.job_name: h for h in ScheduledJobHeartbeat.objects.all()}
 
+        # HOW LONG HAVE WE BEEN ABLE TO NOTICE? A heartbeat row is written when a job
+        # RUNS, so a job that has never run once has no row at all -- and
+        # ``watched_for_seconds`` was therefore None for exactly the jobs most worth
+        # alerting on. ``evaluate_staleness`` reads None as "not watched long enough to
+        # judge" and returns healthy, so a never-triggered job stayed invisible FOREVER,
+        # while the same rule correctly caught a job that ran and then stopped.
+        #
+        # MEASURED on the live cloud, 2026-09-01: 34 jobs registered, 8 heartbeat rows,
+        # all 8 auto-eligible. The 26 cron-only jobs -- outbound SMS/push drain, event
+        # outbox, webhook deliveries, payment reminders, billing lifecycle, DR snapshots
+        # -- had never run once, because nothing invokes the full-registry path on that
+        # deployment. This monitor ran on the hour, every hour, and logged "health OK".
+        #
+        # The oldest heartbeat is the earliest moment we can prove this install was
+        # recording runs at all, so it is the honest answer to "how long have we been in
+        # a position to notice this job's absence?" -- which is the question the
+        # never-succeeded arm of the rule is really asking. Using it keeps the guard
+        # that arm exists for: a genuinely fresh deploy has no heartbeats yet, so this
+        # stays None and nothing false-alarms.
+        observing_since = None
+        created_stamps = [
+            h.created_at.timestamp()
+            for h in heartbeats.values()
+            if h.created_at is not None
+        ]
+        if created_stamps:
+            observing_since = now - min(created_stamps)
+
         jobs = []
         for name, row in registry.items():
             hb = heartbeats.get(name)
             last_success_epoch = None
-            watched_for = None
+            # A registered job with no row of its own has been absent for the whole
+            # time we have been observing -- NOT for an unknown duration.
+            watched_for = observing_since
             if hb is not None:
                 if hb.last_success_at is not None:
                     last_success_epoch = hb.last_success_at.timestamp()
@@ -321,3 +358,194 @@ def run_health_monitor(*, grace_factor=None) -> list[JobHealth]:
         except Exception:  # noqa: BLE001 — recovery is best-effort; never crash the monitor
             logger.exception("auto-recovery selection failed")
     return findings
+
+
+# ---------------------------------------------------------------------------
+# EXECUTION EVIDENCE  (added 2026-09-02)
+#
+# WHY A SECOND SURFACE. ``run_health_monitor`` answers "is anything overdue?" and
+# it answers it destructively: when a job is stale it SPAWNS RECOVERY THREADS, so
+# it cannot be used as the "did the trigger work?" report -- reading it changes
+# what it measures. It also collapses two different failures into one word: a job
+# that was NEVER INVOKED and a job that was invoked and CRASHED both come back
+# ``never_succeeded``, because both have ``last_success_at IS NULL``.
+#
+# That distinction is the whole question after a cron trigger fires. A 200 from
+# ``/api/internal/cron/run/`` proves an HTTP request was served; it does not prove
+# a single job ran, and with ``{"background": true}`` the 202 is returned BEFORE
+# any job starts. Worse, the GET status surface reads the cache ``last_run``, and
+# ``periodic._claim`` writes ``last_run`` BEFORE calling the job -- so a job that
+# raised on its first statement still reports a fresh ``last_run_epoch`` and
+# ``due_now: false``. Every cache-based signal available to an operator is
+# green-on-failure by construction.
+#
+# ``ScheduledJobHeartbeat`` is the only durable record of an actual outcome, and
+# nothing joined it against the REGISTRY. The Django admin lists heartbeat rows,
+# so a job with no row is simply absent from the page -- which is why 26 jobs that
+# had never run once were invisible on a screen built to show job health.
+#
+# The join is a pure function so the verdict rule is unit-testable with no DB.
+# ---------------------------------------------------------------------------
+
+#: A registered job with no heartbeat row at all: nothing has ever invoked it.
+VERDICT_NEVER_INVOKED = "never_invoked"
+#: Invoked at least once, but has never recorded a success (it is crashing).
+VERDICT_FAILING = "failing"
+#: Succeeded, but not recently enough for its interval.
+VERDICT_STALE = "stale"
+#: Succeeded within its interval + grace.
+VERDICT_OK = "ok"
+
+#: Verdicts that mean "this job is not actually running". Callers use this rather
+#: than re-listing the strings, so a new verdict cannot be silently treated as OK.
+UNHEALTHY_VERDICTS = (VERDICT_NEVER_INVOKED, VERDICT_FAILING, VERDICT_STALE)
+
+
+def build_execution_evidence(registry_rows, heartbeat_rows, *, now=None, grace_factor=None):
+    """PURE join of the job registry against durable heartbeats. No DB / cache.
+
+    ``registry_rows``  -- dicts as returned by ``periodic.registry_status()``
+                          (keys used: ``job``, ``interval_seconds``, ``auto_eligible``).
+    ``heartbeat_rows`` -- dicts keyed by job name with the ``ScheduledJobHeartbeat``
+                          fields already converted to epoch floats:
+                          ``last_started_epoch``, ``last_success_epoch``,
+                          ``last_status``, ``last_duration_ms``,
+                          ``consecutive_failures``, ``last_error``.
+
+    Returns one evidence dict per REGISTERED job -- including the jobs with no
+    heartbeat row, which is the entire point: a job that has never run is exactly
+    the row that a heartbeat-table listing cannot show you.
+    """
+    if now is None:
+        now = time.time()
+    if grace_factor is None:
+        grace_factor = DEFAULT_STALE_GRACE_FACTOR
+
+    out = []
+    for row in registry_rows:
+        name = row["job"]
+        interval = int(row["interval_seconds"])
+        auto_eligible = bool(row.get("auto_eligible", True))
+        threshold = staleness_threshold_seconds(interval, grace_factor)
+        hb = (heartbeat_rows or {}).get(name)
+
+        last_started = hb.get("last_started_epoch") if hb else None
+        last_success = hb.get("last_success_epoch") if hb else None
+        since_success = (
+            float(now) - float(last_success) if last_success is not None else None
+        )
+
+        if hb is None:
+            verdict = VERDICT_NEVER_INVOKED
+        elif last_success is None:
+            verdict = VERDICT_FAILING
+        elif since_success is not None and since_success > threshold:
+            verdict = VERDICT_STALE
+        else:
+            verdict = VERDICT_OK
+
+        out.append(
+            {
+                "job": name,
+                "interval_seconds": interval,
+                "auto_eligible": auto_eligible,
+                # How this job is REACHED. The distinction matters when reading the
+                # report: a cron_only job that is never_invoked means the external
+                # trigger is not wired, not that the job is broken.
+                "trigger": "health_tick" if auto_eligible else "cron_only",
+                "ever_invoked": hb is not None,
+                "ever_succeeded": last_success is not None,
+                "last_status": (hb.get("last_status") or "") if hb else "",
+                "last_started_epoch": last_started,
+                "last_success_epoch": last_success,
+                "seconds_since_success": since_success,
+                "last_duration_ms": hb.get("last_duration_ms") if hb else None,
+                "consecutive_failures": int((hb.get("consecutive_failures") or 0) if hb else 0),
+                "last_error": (hb.get("last_error") or "") if hb else "",
+                "threshold_seconds": threshold,
+                "verdict": verdict,
+            }
+        )
+    return out
+
+
+def summarize_execution_evidence(evidence):
+    """PURE roll-up of :func:`build_execution_evidence` output.
+
+    ``healthy`` counts only ``ok``; every other verdict is a job an operator has to
+    look at. ``cron_only_never_invoked`` is broken out because it is the specific
+    shape of "the external trigger is not wired on this deployment".
+    """
+    rows = list(evidence)
+    by_verdict = {}
+    for r in rows:
+        by_verdict[r["verdict"]] = by_verdict.get(r["verdict"], 0) + 1
+    cron_only = [r for r in rows if not r["auto_eligible"]]
+    return {
+        "total": len(rows),
+        "healthy": by_verdict.get(VERDICT_OK, 0),
+        "unhealthy": sum(by_verdict.get(v, 0) for v in UNHEALTHY_VERDICTS),
+        "never_invoked": by_verdict.get(VERDICT_NEVER_INVOKED, 0),
+        "failing": by_verdict.get(VERDICT_FAILING, 0),
+        "stale": by_verdict.get(VERDICT_STALE, 0),
+        "cron_only_total": len(cron_only),
+        "cron_only_never_invoked": sum(
+            1 for r in cron_only if r["verdict"] == VERDICT_NEVER_INVOKED
+        ),
+        "by_verdict": by_verdict,
+    }
+
+
+def heartbeat_rows_by_job():
+    """Read every durable heartbeat into plain dicts (epoch floats). READ-ONLY.
+
+    Deliberately does not touch the cache, does not write, and does not trigger
+    recovery -- so it is safe to call from a status endpoint on any deployment.
+    """
+    from apps.platform_runtime.models_scheduling import ScheduledJobHeartbeat
+
+    rows = {}
+    # tenant-isolation-allow: platform-level scheduler heartbeat, not tenant-scoped
+    for h in ScheduledJobHeartbeat.objects.all():
+        rows[h.job_name] = {
+            "last_started_epoch": (
+                h.last_started_at.timestamp() if h.last_started_at is not None else None
+            ),
+            "last_success_epoch": (
+                h.last_success_at.timestamp() if h.last_success_at is not None else None
+            ),
+            "last_status": h.last_status,
+            "last_duration_ms": h.last_duration_ms,
+            "consecutive_failures": h.consecutive_failures,
+            "last_error": h.last_error,
+        }
+    return rows
+
+
+def job_execution_evidence(*, now=None, grace_factor=None):
+    """DB-backed evidence for every REGISTERED job. Read-only; never raises.
+
+    Returns ``(evidence_rows, summary)``. On any failure it returns
+    ``([], {...})`` rather than raising -- it is called from a machine endpoint
+    that must not 500 while an operator is trying to find out what is wrong.
+    """
+    # Narrow on purpose. The only honest failures here are "the database cannot
+    # answer" (table absent mid-deploy, connection down) and "the module is not
+    # importable yet" during a partial rollout. django.db.Error is the common base
+    # of BOTH DatabaseError and InterfaceError -- InterfaceError is NOT a subclass
+    # of DatabaseError, so catching DatabaseError alone would miss a dropped
+    # connection. Anything else raising here is a real bug and must surface.
+    from django.db import Error as _DatabaseLayerError
+
+    try:
+        from apps.platform_runtime import periodic
+
+        registry_rows = periodic.registry_status()
+        heartbeats = heartbeat_rows_by_job()
+        evidence = build_execution_evidence(
+            registry_rows, heartbeats, now=now, grace_factor=grace_factor
+        )
+        return evidence, summarize_execution_evidence(evidence)
+    except (_DatabaseLayerError, ImportError):
+        logger.exception("job_execution_evidence failed")
+        return [], summarize_execution_evidence([])

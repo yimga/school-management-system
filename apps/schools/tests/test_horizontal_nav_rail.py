@@ -17,8 +17,13 @@ from apps.schools.super_admin_paired_surfaces import (
     _operator_spine_link_is_active,
     build_operator_surface_spine,
 )
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 ROOT = Path(__file__).resolve().parents[3]
+
+ADMIN_BASE_SITE = ROOT / "templates/admin/base_site.html"
+PRIMARY_NAV = ROOT / "templates/partials/control_plane_primary_nav.html"
+OPERATOR_STRIP = ROOT / "templates/components/rmc_operator_surface_strip.html"
 
 
 class HorizontalNavRailSpineActiveTests(SimpleTestCase):
@@ -84,20 +89,34 @@ class HorizontalNavRailTemplateContractTests(SimpleTestCase):
         for rel in shells:
             text = (ROOT / rel).read_text(encoding="utf-8")
             self.assertIn("rmc-horizontal-nav-rail.css", text, rel)
+        # The stylesheet name is a {% static %} ARGUMENT -- not emitted text, and
+        # none of these four shells renders standalone -- so no parse and no
+        # render can see it, and the reads above stay. The adjacent claim a parse
+        # CAN settle, on admin/base_site.html specifically, is that the shell
+        # still mounts the header this stylesheet exists to lay out. Commenting
+        # that include out leaves every string above intact and takes the rail
+        # off the tenant /admin/ shell entirely.
+        assert_wires(self, ADMIN_BASE_SITE, "components/admin_nav_bridge.html")
 
     def test_primary_nav_uses_rail_class(self):
         text = (ROOT / "templates/partials/control_plane_primary_nav.html").read_text(
             encoding="utf-8"
         )
+        # The assertNotIn is an absence over bytes and stays a read. The rail
+        # class has to be ON the nav element, which is the engine's question.
         self.assertIn("rmc-horizontal-nav-rail", text)
+        assert_markup(self, PRIMARY_NAV, "rmc-horizontal-nav-rail")
         self.assertNotIn("flex-wrap align-items-center", text)
 
     def test_workspace_strip_spine_items_marked(self):
-        text = (ROOT / "templates/components/rmc_operator_surface_strip.html").read_text(
-            encoding="utf-8"
+        # "marked" means the classes are on the emitted elements; a class that
+        # only exists in the file marks nothing. Both go through the engine.
+        assert_markup(
+            self,
+            OPERATOR_STRIP,
+            "rmc-operator-workspace-nav__spine-item",
+            "rmc-horizontal-nav-rail--secondary",
         )
-        self.assertIn("rmc-operator-workspace-nav__spine-item", text)
-        self.assertIn("rmc-horizontal-nav-rail--secondary", text)
 
 
 class RailProximityRevealContractTests(SimpleTestCase):

@@ -34,16 +34,44 @@ body.marketing-surface .btn.btn-outline-secondary:focus-visible {
   color: #ffffff !important; /* off-token-allow: hex-literal-decorative */
 }
 
-body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand),
+/* The exclusion list must name every button-shaped anchor, otherwise this
+   generic link colour outranks the component's own on-surface ink. It already
+   did exactly that to the featured pricing CTA: #0645ad on the dark
+   --mkt-edt-ink pill, 2.03:1. The same four exclusions are carried by the
+   sibling rule in static/css/platform-high-end.css -- keep the two in sync. */
+body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-surface-anchor),
 body.marketing-surface .link-primary {
   color: #0645ad; /* off-token-allow: hex-literal-decorative */
 }
 
-body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):hover,
-body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):focus-visible,
+/* Opt-out marker for an anchor that paints its OWN surface (a chip, a tile, a
+   card). The rule above is for prose links; on a self-coloured anchor it wins
+   on specificity and replaces the ink the component chose for its background —
+   which put #0645AD on the #32394A platform handoff chips at 1.35:1. Add this
+   class rather than growing the :not() list one component at a time. */
+body.marketing-surface a.mkt-surface-anchor {
+  text-decoration: none;
+}
+
+body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-surface-anchor):hover,
+body.marketing-surface a:not(.btn):not(.nav-link):not(.dropdown-item):not(.navbar-brand):not(.mkt-edt-cta):not(.mkt-edt-plan__cta):not(.mkt-v3-cta):not(.mkt-v3-cta--ghost):not(.mkt-surface-anchor):focus-visible,
 body.marketing-surface .link-primary:hover,
 body.marketing-surface .link-primary:focus-visible {
   color: #042f78; /* off-token-allow: hex-literal-decorative */
+}
+
+/* Bootstrap's .link-secondary resolves to #6c757d, which measures 4.02:1 on
+   the editorial soft cream #F2EDE4 -- under AA -- and only just over it on the
+   other marketing grounds (4.39 on #FAF7F2, 4.51 on #FFFAF0), so it fails
+   wherever a section uses the soft tint. Found by Lighthouse on
+   /education-operating-system/, a page neither axe spec was scanning; the axe
+   sweep now covers it too. One step darker in the same Bootstrap grey ramp
+   gives 5.66 / 6.18 / 6.60 / 6.35. !important is required, not decorative:
+   Bootstrap ships `.link-secondary { color: ... !important }`, so nothing
+   without it can win however specific. */
+body.marketing-surface .link-secondary,
+body.marketing-surface a.link-secondary {
+  color: #565e64 !important; /* off-token-allow: hex-literal-decorative */
 }
 
 /* On the home lane the editorial CTAs all render on the indigo accent
@@ -73,11 +101,18 @@ body.marketing-surface .btn.btn-primary:focus-visible {
   color: #ffffff !important; /* off-token-allow: hex-literal-decorative */
 }
 
+/* A flat dark ink cannot be right for every lane: the CTA background is the
+   lane accent, and on the default terracotta (--mkt-edt-accent #C2410C) dark
+   ink measures 3.47:1. Every file that redefines --mkt-edt-accent also
+   redefines --mkt-edt-on-accent beside it (tokens-editorial.css,
+   tokens-schoolhouse.css), so deferring to that pair is correct for every
+   lane: #FAF7F2 on #C2410C is 4.85:1. The literal stays as the fallback for a
+   surface that somehow defines neither. */
 body.marketing-surface a.mkt-edt-cta,
 body.marketing-surface .mkt-edt-cta,
 body.marketing-surface a.mkt-v3-cta,
 body.marketing-surface .mkt-v3-cta {
-  color: #1a1612 !important; /* off-token-allow: hex-literal-decorative */
+  color: var(--mkt-edt-on-accent, #1a1612) !important; /* off-token-allow: hex-literal-decorative */
 }
 
 body.marketing-surface a.mkt-edt-cta:hover,
@@ -88,7 +123,7 @@ body.marketing-surface a.mkt-v3-cta:hover,
 body.marketing-surface .mkt-v3-cta:hover,
 body.marketing-surface a.mkt-v3-cta:focus-visible,
 body.marketing-surface .mkt-v3-cta:focus-visible {
-  color: #1a1612 !important; /* off-token-allow: hex-literal-decorative */
+  color: var(--mkt-edt-on-accent, #1a1612) !important; /* off-token-allow: hex-literal-decorative */
 }
 
 body.marketing-surface .btn-light,

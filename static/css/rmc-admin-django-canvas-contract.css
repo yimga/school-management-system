@@ -4593,3 +4593,26 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-
  * only so the class is DEFINED, not a dead reference, for
  * scripts/scan_undefined_css_classes.py. */
 .rmc-admin-submit-surface { --rmc-admin-submit-surface: 1; }
+
+/* Inline formset PROTOTYPE row must stay hidden.
+   Django hides `.empty-form` in contrib/admin/static/admin/css/forms.css,
+   but a rendered admin page here links 79 stylesheets and NOT ONE is
+   admin/css/* -- and the table-integrity rules above then force every
+   tbody/tr to table display with !important, resurrecting the row.
+   Measured 2026-08-31 on finance.FeePlan, finance.SuspensePayment and
+   schoolops.Route: the `__prefix__` template row painted as a real row
+   with 5-10 live inputs at full size (144x39px), and axe flagged its
+   selects as unnamed controls because they ARE real controls. A user sees
+   a phantom fillable line at the bottom of every tabular inline.
+   Specificity is deliberate: CDP showed the winning rule at (0,6,3)
+   !important, so these repeat its selector plus the row class to reach
+   (0,7,3). A plain `.empty-form { display: none }` cannot win and was
+   measured doing nothing. Unfold wraps the row in <tbody class="template">,
+   so both the tbody and the tr are covered, as are pages that never gain
+   the runtime `unfold` / `.inline-group` hooks. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody.template,
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table tr.empty-form,
+[data-rmc-shell-root="django-admin"] table > tbody.template,
+[data-rmc-shell-root="django-admin"] table > :is(tbody, tfoot) > tr.empty-form {
+  display: none !important;
+}

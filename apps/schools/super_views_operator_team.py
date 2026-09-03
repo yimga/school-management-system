@@ -173,6 +173,44 @@ def super_operator_team_detail(request, user_id: int):
     detail_url = reverse("super:operator_team_detail", args=[user.pk])
     return_url = mutation_return_url(request, roster_url, list_url=roster_url)
     detail_return_url = mutation_return_url(request, detail_url, list_url=detail_url)
+    # A temporary password issued by super_operator_team_reset_password is handed
+    # over HERE, on a response that actually renders it (the control-plane chrome
+    # consumes ``messages``), so the framework stores nothing: no ``messages``
+    # cookie, no django_session row. Popped, so a refresh cannot show it twice.
+    from apps.accounts.views_tenant_identity import (
+        CREDENTIAL_MISSED,
+        pop_one_time_credential,
+    )
+
+    handover = pop_one_time_credential(request, user.pk)
+    one_time_credential = handover if isinstance(handover, dict) else None
+    if one_time_credential:
+        messages.success(
+            request,
+            _(
+                "Temporary password for %(user)s: %(pw)s — shown once, hand it over "
+                "securely."
+            )
+            % {
+                "user": one_time_credential["username"],
+                "pw": one_time_credential["password"],
+            },
+        )
+    elif handover == CREDENTIAL_MISSED:
+        # Say the miss plainly. A blank where a password was reads as "the reset
+        # failed" and sends the operator hunting for the password in a log it was
+        # never written to. This notice carries the USERNAME only -- never the
+        # credential it is reporting the loss of.
+        messages.warning(
+            request,
+            _(
+                "The temporary password for %(user)s was issued but can no longer "
+                "be displayed — it is shown once and is stored nowhere, not even in "
+                "the logs. Their old password no longer works, so reset the "
+                "password again to issue one you can hand over."
+            )
+            % {"user": user.get_username()},
+        )
     return render(
         request,
         "schools/super_operator_team_detail.html",
@@ -182,6 +220,7 @@ def super_operator_team_detail(request, user_id: int):
             "return_url": return_url,
             "detail_return_url": detail_return_url,
             "operator_user": user,
+            "one_time_credential": one_time_credential,
             "profile": profile,
             "scopes": scopes,
             "sessions": sessions,
@@ -396,6 +435,7 @@ def super_operator_team_reset_password(request, user_id: int):
     """
     from apps.accounts.credential_reset import set_temporary_password
     from apps.accounts.mfa_device_trust import revoke_device_trust
+    from apps.accounts.views_tenant_identity import stash_one_time_credential
 
     User = get_user_model()
     user = get_object_or_404(User, pk=user_id)
@@ -422,13 +462,25 @@ def super_operator_team_reset_password(request, user_id: int):
         object_repr=user.get_username(),
         new_values={"password_reset": True, "reactivated": reactivated},
     )
+    # The cleartext goes into a one-shot server-side slot, NOT into a message: a
+    # message added here would ride the redirect below and be persisted by
+    # FallbackStorage into the signed-but-unencrypted ``messages`` cookie (and
+    # into django_session on overflow). The detail page pops it and renders it
+    # once. Same contract as the tenant twin tenant_identity_reset_password.
+    stash_one_time_credential(
+        request,
+        user.pk,
+        username=user.get_username(),
+        password=temp_password,
+    )
     messages.success(
         request,
         _(
-            "Temporary password for %(user)s: %(pw)s — hand it over securely. They "
-            "must set a new password (and re-verify MFA) at next sign-in."
+            "Password reset for %(user)s — the one-time temporary password is shown "
+            "once below. They must set a new password (and re-verify MFA) at next "
+            "sign-in."
         )
-        % {"user": user.get_username(), "pw": temp_password},
+        % {"user": user.get_username()},
     )
     if reactivated:
         messages.info(

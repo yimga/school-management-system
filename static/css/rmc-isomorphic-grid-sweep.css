@@ -167,7 +167,13 @@ html:not([data-rmc-shell="off"]) body.admin-manager-shell[data-rmc-cp-scroll="ca
   max-width: 100%;
 }
 
-[data-rmc-isomorphic-template] .btn:not(.rmc-btn-wrap):not(.btn-link):not(.dropdown-toggle),
+/* .rmc-info-tag__btn is exempt for the same reason .btn-link and
+   .dropdown-toggle are: it is not a text button. It holds one icon glyph and
+   no label, so there is nothing for this clamp to ellipsize -- but the
+   `overflow: hidden` DID clip the invisible 24x24 touch region that
+   rmc-class-grammar.css gives it, measured 2026-08-31 with CDP
+   (elementFromPoint hit the <h1>, not the button, at all four corners). */
+[data-rmc-isomorphic-template] .btn:not(.rmc-btn-wrap):not(.btn-link):not(.dropdown-toggle):not(.rmc-info-tag__btn),
 [data-rmc-isomorphic-template] .cp-primary-nav__pill,
 [data-rmc-isomorphic-template] .tp-primary-nav__pill {
   overflow: hidden;

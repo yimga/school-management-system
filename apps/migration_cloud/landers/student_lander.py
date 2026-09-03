@@ -23,6 +23,7 @@ from ._helpers import (
     record_row_error,
     record_row_note,
     row_savepoint,
+    save_scoped,
     split_name_for,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -248,15 +249,25 @@ class StudentLander(Lander):
                         continue
                     # Update in place when we recovered via admission_number or a
                     # fuzzy name+DOB match rather than the primary lookup field.
+                    written: list[str] = []
                     for k, v in apply_defaults.items():
                         setattr(existing_obj, k, v)
+                        written.append(k)
                     if lookup_field in model_fields and not fuzzy_linked:
                         setattr(existing_obj, lookup_field, external_id)
+                        written.append(lookup_field)
                     # Per-row savepoint: students land in an EARLIER wave of the same
                     # forced-atomic finance transaction, so a bad student row must roll
                     # back only itself — not poison the whole apply (see _helpers.row_savepoint).
+                    #
+                    # save_scoped, NOT save(): this is the ONLY update path a student
+                    # takes, and a bare save() rewrote all ~35 columns from the snapshot
+                    # read above. Every column this file did not mention was re-asserted
+                    # from stale memory, reverting whatever the alumni artifact running
+                    # BESIDE it in wave 1 (parallel thread, own connection) had already
+                    # committed. The lander then reported the row as a clean update.
                     with row_savepoint():
-                        existing_obj.save()
+                        save_scoped(existing_obj, written)
                     obj, created = existing_obj, False
                     if fuzzy_linked:
                         _record_fuzzy_link(ctx, existing_obj, external_id, fuzzy_score, row)
@@ -390,7 +401,10 @@ def _link_student_specialty(obj, row: dict[str, Any], ctx, model_fields, result)
     try:
         with row_savepoint():
             obj.specialty = spec
-            obj.save(update_fields=["specialty"])
+            # save_scoped: setting the third of academic_year/specialty/classroom makes
+            # the model mint an admission_number inside save(); a bare
+            # update_fields=["specialty"] computed it and dropped it on the floor.
+            save_scoped(obj, ["specialty"])
     except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
         pass
 
@@ -418,7 +432,8 @@ def _resolve_or_create_classroom(school, label: str, student):
     """Reuse-or-create a school-scoped ``Classroom`` named after the roster's
     class/form label. Its two required PROTECT FKs are supplied: the school's
     academic year (default 2025/2026, created only if none exists) and the
-    student's specialty department (else General). The globally-unique code is
+    student's specialty department (else General). ``Classroom.code`` is unique
+    per (school, code) (``uniq_classroom_school_code``); the school-scoped code is
     minted UUID-safe via ``mint_scoped_code``. Returns the classroom or ``None``
     when a required FK cannot be resolved."""
     from apps.academics.models import Classroom
@@ -459,9 +474,11 @@ def _link_student_classroom(obj, row: dict[str, Any], ctx, model_fields, result)
     ``StudentProfile.classroom`` is a nullable compat-projection FK (the SOT is
     ``Enrollment``, but ``current_classroom`` falls back to it), so setting it +
     ``academic_year`` places the student without constructing a full Enrollment
-    row. A FULL ``save()`` is used because setting all three of
-    academic_year/specialty/classroom triggers the model's admission-number
-    auto-generation, whose output must persist."""
+    row. The write goes through ``save_scoped`` rather than a FULL ``save()``:
+    the full save was here so the admission-number auto-generation that setting
+    all three of academic_year/specialty/classroom triggers would persist, and
+    save_scoped carries that output (and search_index) without also re-asserting
+    every other column from a stale in-memory snapshot."""
     ref = (row.get("grade_level") or row.get("classroom") or "").strip()
     if not ref:
         return
@@ -486,7 +503,7 @@ def _link_student_classroom(obj, row: dict[str, Any], ctx, model_fields, result)
             obj.classroom = classroom
             if "academic_year" in model_fields and getattr(obj, "academic_year_id", None) is None:
                 obj.academic_year = classroom.academic_year
-            obj.save()  # full save: admission_number/student_code/search_index persist
+            save_scoped(obj, ["classroom", "academic_year"])
     except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
         pass
 
@@ -652,7 +669,10 @@ def _sweep_custom_attributes(obj, row: dict[str, Any], model_fields, result) -> 
             return
         with row_savepoint():
             obj.custom_attributes = current
-            obj.save(update_fields=["custom_attributes"])
+            # save_scoped: custom_attributes feed the dynamic-field map that
+            # build_student_search_index folds in, so a bare
+            # update_fields=["custom_attributes"] left every swept column unsearchable.
+            save_scoped(obj, ["custom_attributes"])
     except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
         if result is not None:
             record_row_note(

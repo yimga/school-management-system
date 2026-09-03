@@ -28,6 +28,8 @@ from pathlib import Path
 from django.test import SimpleTestCase
 from django.urls import NoReverseMatch, reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 BASE_URLCONF = "config.urls"
 TENANT_URLCONF = "config.tenant_urls"
 
@@ -161,11 +163,18 @@ class CertificationTemplateGuardsEmptyUrlsTests(SimpleTestCase):
     def test_admin_buttons_are_wrapped_in_existence_checks(self):
         from django.conf import settings
 
-        markup = (
+        cert_home = (
             Path(settings.BASE_DIR)
             / "templates"
             / "accounts"
             / "certification_home.html"
-        ).read_text(encoding="utf8")
+        )
+        markup = cert_home.read_text(encoding="utf8")
+        # Both guards are {% if %} conditions -- template CODE, which no parse and
+        # no render of the file can see, so both stay source reads.
         self.assertIn("{% if admin_year_url %}", markup)
         self.assertIn("{% if admin_session_url %}", markup)
+        # A guard around markup that no longer renders guards nothing. Both admin
+        # buttons carry title="Configuration Engine", which IS emitted text, so
+        # this asserts the buttons the guards protect are actually on the page.
+        assert_markup(self, cert_home, 'title="Configuration Engine"')

@@ -7,18 +7,39 @@ on:
   pull_request:
     branches: [main, improvements]
 
+# Added 2026-08-31. Without a concurrency group a superseded run bills in
+# full, and this repo takes hundreds of commits a week. Cancelling an
+# obsolete run removes no enforcement -- the tip of the branch still runs
+# every job. Same group/cancel pair peers already use in
+# django-tests-postgres.yml and tenants-rls.yml.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   django-tests:
     runs-on: ubuntu-latest
+    # Was unbounded, so a hung step billed until GitHub's 6-hour default.
+    # This job is a gate runner (the suite lives in django-tests.yml); its
+    # scanners are minutes, not hours.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install dependencies
+        # Was `pip install -r requirements.txt 2>/dev/null || pip install
+        # django djangorestframework`. If the real install failed for ANY
+        # reason the job continued on a 2-package environment instead of the
+        # 68 in requirements.txt, and `2>/dev/null` deleted the reason. Every
+        # other workflow in this repo (30+ jobs) already does the bare
+        # install; this file was the only exception, and the fallback was
+        # never a documented workaround -- it arrived with the file in
+        # 2b07bfff4 and no commit has ever justified it.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt 2>/dev/null || pip install django djangorestframework
+          pip install -r requirements.txt
       - name: Run Django checks
         run: python manage.py check
       - name: Verify get_model registry integrity
@@ -93,14 +114,21 @@ jobs:
         run: python scripts/audit_url_kwarg_contract.py
       - name: Shell chrome cross-host {% url %} contract
         run: python scripts/audit_shell_url_namespace_contract.py
+      - name: Lander write targets match what the landers actually write
+        run: python scripts/audit_lander_write_reachability.py --check-declaration
+      - name: Prove the write-reachability resolver can report a non-zero answer
+        run: python scripts/audit_lander_write_reachability.py --self-test
       - name: Single migration leaf per app (a merge can create two silently)
         run: python scripts/verify_single_migration_leaf.py
       - name: blank+unique text fields (optional exactly once)
         run: python scripts/scan_blank_unique_text_fields.py
+      - name: Companion siblings must call server paths that exist
+        run: python scripts/verify_companion_server_contract.py
       - name: Unit tests for the two field/migration shape gates
         run: |
           python -m unittest scripts.tests.test_scan_blank_unique_text_fields -v
           python -m unittest scripts.tests.test_verify_single_migration_leaf -v
+          python -m unittest scripts.tests.test_verify_companion_server_contract -v
       - name: Verify offline manifest taxonomy (operational_state always present)
         run: python scripts/verify_offline_manifest_taxonomy.py
       - name: Verify tenant cannot reach operator routes (super-segment coverage)
@@ -126,8 +154,22 @@ jobs:
         # Catalog ids reverse on tenant + manager urlconfs; static wiring is
         # also gated in architectural-boundaries.yml.
         run: python scripts/verify_nav_engine_coverage.py
-      - name: Run Django tests
-        run: python manage.py test --noinput -v 0
+      # The `Run Django tests` step was REMOVED on 2026-08-31. It ran
+      # `python manage.py test --noinput -v 0` -- a BARE label set, which
+      # sends Django's unittest loader discovering from '.'. That reaches
+      # emis/tests (a bare `tests` package under a non-app root) and raises
+      # ImportError at DISCOVERY, before a single test runs. Proven at
+      # 366609085 by building the suite both ways: bare crashes with
+      # "'tests' module incorrectly imported from .../emis/tests"; the
+      # scoped labels collect 21,327 tests. Broken since emis/tests landed
+      # on 2026-05-29 -- so this step's last useful run was in May.
+      #
+      # The suite itself is NOT lost: django-tests.yml runs the working,
+      # scoped form on the same push/PR triggers, and this change adds the
+      # `improvements` branch there, which only ci.yml used to name. That
+      # branch gets a real suite run for the first time. Restoring a second
+      # full run here would duplicate a 110-minute job on every push, which
+      # is the cost problem this repo already has.
 
   # The a11y-lighthouse job was REMOVED on 2026-08-22. All three of its steps
   # carried continue-on-error, and none of them could have reported a failure
@@ -154,15 +196,22 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install Python deps
+        # Same mask as the django-tests job above, one package narrower:
+        # the fallback installed Django ALONE. Playwright's smoke E2E then
+        # booted a server missing DRF and ~67 other pins, and the only
+        # record of why was sent to /dev/null.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt 2>/dev/null || pip install django
+          pip install -r requirements.txt
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci 2>/dev/null || npm install
+      # `npm ci 2>/dev/null || npm install` hid the one thing `npm ci`
+      # exists to report: package.json drifting from package-lock.json.
+      # package-lock.json is tracked, and 33 other jobs run bare `npm ci`.
+      - run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
       - name: Migrate

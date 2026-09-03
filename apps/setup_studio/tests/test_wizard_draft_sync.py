@@ -9,6 +9,13 @@ from django.urls import reverse
 from apps.schools.models import School
 from apps.setup_studio import wizard_state_resolver
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_loads_static,
+    assert_markup,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -22,6 +29,11 @@ class WizardDraftSyncWiringTests(SimpleTestCase):
             text = (ROOT / rel).read_text(encoding="utf-8")
             self.assertIn("data-rmc-wizard-draft-sync-url", text)
             self.assertIn("rmc-wizard-delta-sync.js", text)
+        for _rel in ("templates/setup_studio/tenant_wizard.html",
+                     "templates/setup_studio/operator_wizard.html"):
+            with self.subTest(template=_rel):
+                assert_markup(self, _TN_ROOT / _rel, "data-rmc-wizard-draft-sync-url")
+                assert_loads_static(self, _TN_ROOT / _rel, "js/rmc-wizard-delta-sync.js")
 
     def test_delta_sync_script_posts_json(self):
         js = (ROOT / "static/js/rmc-wizard-delta-sync.js").read_text(encoding="utf-8")

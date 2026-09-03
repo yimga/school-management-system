@@ -1,6 +1,18 @@
 """
 Admin interfaces for FAQ and Knowledge Base system
 Includes approval workflow for user-contributed content
+NOTE (2026-08-31): this module is imported by NOTHING, so none of the code
+below runs in the product. It is kept because it is the reference
+implementation the KB ODT round trip verifies against --
+scripts/verify_kb_odt_round_trip.py and scripts/verify_help_center_tiers.py
+read this file as TEXT and assert on its fieldsets and actions.
+
+The bare @admin.register(Model) decorators were removed: they named no site,
+so they targeted Django's default admin.site, which no urlconf in this repo
+mounts. The live registrations for these models are in apps/portal/admin.py
+via register_tenant_admin. Do not re-add a decorator here; if this module is
+ever imported, a decorator would also collide with admin.py's registration.
+
 """
 
 from django.contrib import admin
@@ -16,11 +28,9 @@ from .models_kb import (
     KBArticleAttachment,
     KBComment,
     UserContribution,
-    HostedOfficeDocument,
 )
 
 
-@admin.register(FAQCategory)
 class FAQCategoryAdmin(admin.ModelAdmin):
     list_display = [
         "name",
@@ -41,7 +51,6 @@ class FAQCategoryAdmin(admin.ModelAdmin):
     faq_count.short_description = _("Published FAQs")
 
 
-@admin.register(FAQ)
 class FAQAdmin(admin.ModelAdmin):
     list_display = [
         "question_short",
@@ -133,7 +142,6 @@ class FAQAdmin(admin.ModelAdmin):
     feature_faqs.short_description = _("Feature selected FAQs")
 
 
-@admin.register(KBCategory)
 class KBCategoryAdmin(admin.ModelAdmin):
     list_display = [
         "name",
@@ -162,7 +170,6 @@ class KBArticleAttachmentInline(admin.TabularInline):
     readonly_fields = ["file_size"]
 
 
-@admin.register(KBArticle)
 class KBArticleAdmin(admin.ModelAdmin):
     list_display = [
         "title_short",
@@ -339,7 +346,6 @@ class KBArticleAdmin(admin.ModelAdmin):
     regenerate_odt_files.short_description = _("Regenerate ODT from article content")
 
 
-@admin.register(KBArticleAttachment)
 class KBArticleAttachmentAdmin(admin.ModelAdmin):
     list_display = [
         "title",
@@ -363,7 +369,6 @@ class KBArticleAttachmentAdmin(admin.ModelAdmin):
     file_size_display.short_description = _("File Size")
 
 
-@admin.register(KBComment)
 class KBCommentAdmin(admin.ModelAdmin):
     list_display = [
         "comment_short",
@@ -397,7 +402,6 @@ class KBCommentAdmin(admin.ModelAdmin):
     mark_helpful.short_description = _("Mark as helpful")
 
 
-@admin.register(UserContribution)
 class UserContributionAdmin(admin.ModelAdmin):
     list_display = ["user", "contribution_type", "points", "description", "created_at"]
     list_filter = ["contribution_type", "created_at"]
@@ -417,9 +421,3 @@ class UserContributionAdmin(admin.ModelAdmin):
         return False
 
 
-@admin.register(HostedOfficeDocument)
-class HostedOfficeDocumentAdmin(admin.ModelAdmin):
-    list_display = ["title", "help_audience", "school", "updated_at", "created_by"]
-    list_filter = ["help_audience", "school", "updated_at"]
-    search_fields = ["title", "file"]
-    readonly_fields = ["created_at", "updated_at"]

@@ -7,6 +7,13 @@ from pathlib import Path
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_loads_static,
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 REPO = Path(__file__).resolve().parents[3]
 
 
@@ -16,6 +23,12 @@ class OneRecordScrollTemplateTests(SimpleTestCase):
         self.assertIn("_one_record_scroll.html", text)
         self.assertIn("mkt-one-record-scroll.js", text)
         self.assertIn("mkt-one-record-scroll.css", text)
+        # All three needles survive a commented-out homepage. Ask the engine:
+        # the include is a node and the two assets are {% static %} tags.
+        assert_wires(self, _TN_ROOT / "templates/marketing/homepage.html",
+                     "_one_record_scroll.html")
+        assert_loads_static(self, _TN_ROOT / "templates/marketing/homepage.html",
+                            "mkt-one-record-scroll.js", "mkt-one-record-scroll.css")
 
     def test_one_record_scroll_partial_has_six_chapters(self):
         text = (

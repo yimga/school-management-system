@@ -20,6 +20,7 @@ import sys
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 
 def _read(path: pathlib.Path) -> str:
@@ -30,7 +31,11 @@ def _read(path: pathlib.Path) -> str:
 
 
 def check_partial_hooks() -> list[str]:
-    partial = REPO_ROOT / "templates" / "studio_os" / "partials" / "cockpit_copilot_rail.html"
+    # Was studio_os/partials/cockpit_copilot_rail.html, retired 2026-09-02 with
+    # its stylesheet: its only include sat inside the {% if False %} retired
+    # cockpit block, so these hooks were being asserted on markup that never
+    # rendered. The LIVE rail carries all three.
+    partial = REPO_ROOT / "templates" / "partials" / "cockpit" / "_ai_copilot_rail.html"
     text = _read(partial)
     if not text:
         return [f"missing: {partial}"]
@@ -47,16 +52,55 @@ def check_partial_hooks() -> list[str]:
     return findings
 
 
+LIVE_RAIL_PARTIAL = "partials/cockpit/_ai_copilot_rail.html"
+LIVE_RAIL_RULE = "rmc-copilot-rail__insights-list"
+RAIL_SHELLS = ("templates/portal_base.html", "templates/control_plane_skeleton.html")
+
+
+def _check_live_rail_rule_delivered() -> list[str]:
+    """The one rule the LIVE rail partial needs must reach every shell that renders it."""
+    import shell_css_contract as scc
+
+    findings: list[str] = []
+    rendering = [s for s in RAIL_SHELLS if scc.renders(s, LIVE_RAIL_PARTIAL)]
+    if not rendering:
+        # A zero here would otherwise pass vacuously: no shell, no requirement.
+        return [
+            "no shell renders %s -- the live co-pilot rail is unwired" % LIVE_RAIL_PARTIAL
+        ]
+    for shell_rel in rendering:
+        delivered = False
+        for name, _provider in scc.linked_stylesheet_sources(shell_rel).items():
+            src = REPO_ROOT / "static" / "css" / name
+            if src.is_file() and ("." + LIVE_RAIL_RULE) in _read(src):
+                delivered = True
+                break
+        if not delivered:
+            findings.append(
+                "%s: renders %s but no stylesheet it loads defines .%s"
+                % (shell_rel, LIVE_RAIL_PARTIAL, LIVE_RAIL_RULE)
+            )
+    return findings
+
+
 def check_shell_wires_assets() -> list[str]:
     shell = REPO_ROOT / "templates" / "studio_os" / "shell.html"
     text = _read(shell)
     if not text:
         return [f"missing: {shell}"]
     findings: list[str] = []
-    if "rmc-copilot-rail.css" not in text:
-        findings.append(
-            f"{shell.relative_to(REPO_ROOT)}: rmc-copilot-rail.css not loaded"
-        )
+    # Was: `if "rmc-copilot-rail.css" not in text`. That asserted a FILENAME
+    # against studio_os/shell.html, and it had been red for months because
+    # nothing loaded that file anywhere. Deleting the demand would have been
+    # wrong too -- the question is whether the rule is DELIVERED, not whether
+    # a name appears. Of the 18 selectors rmc-copilot-rail.css defined, 15 were
+    # used only by studio_os/partials/cockpit_copilot_rail.html, whose sole
+    # include sits inside the {% if False %} at studio_os/shell.html:87 (the
+    # retired v3.53 Mission Cockpit chrome, kept unreachable on purpose). One
+    # selector had a LIVE consumer, so it moved to rmc-cp-200x.css and the file
+    # was deleted. This now checks the surviving contract: every shell that
+    # actually renders the live rail partial must be delivered that rule.
+    findings.extend(_check_live_rail_rule_delivered())
     if "rmc-copilot-rail.js" not in text:
         findings.append(
             f"{shell.relative_to(REPO_ROOT)}: rmc-copilot-rail.js not loaded"
@@ -154,7 +198,6 @@ def check_send_urls_in_template() -> list[str]:
     findings: list[str] = []
     for rel in (
         "templates/partials/cockpit/_ai_copilot_rail.html",
-        "templates/studio_os/partials/cockpit_copilot_rail.html",
     ):
         path = REPO_ROOT / rel
         text = _read(path)

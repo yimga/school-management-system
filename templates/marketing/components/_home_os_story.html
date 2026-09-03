@@ -1,5 +1,10 @@
 {% load i18n static %}
-<section class="mkt-edt-section mkt-v3-section mkt-v3-os-story mkt-v3-os-story--edge rmc-reveal" aria-labelledby="os-story-headline" data-mkt-reveal data-mkt-section="os-story">
+{% comment %}aria-label, not aria-labelledby: this section's <h2> repeats the
+   hero <h1> verbatim, so labelling from it gave two landmarks the same
+   accessible name (axe landmark-unique) and made landmark navigation
+   useless. Named from its own eyebrow instead; the visible copy is
+   unchanged.{% endcomment %}
+<section class="mkt-edt-section mkt-v3-section mkt-v3-os-story mkt-v3-os-story--edge rmc-reveal" aria-label="{% trans 'Education operating system' %}" data-mkt-reveal data-mkt-section="os-story">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="mkt-edt-container mkt-edt-container--edge">
     <header>

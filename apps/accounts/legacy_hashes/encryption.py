@@ -285,6 +285,30 @@ class EncryptedJSONField(models.JSONField):
     def from_db_value(self, value: Any, expression, connection) -> Any:
         if value is None or value == "" or value == "{}":
             return {} if value in (None, "", "{}") else value
+        # The column holds a JSON *string* wrapping our TEXT, not the TEXT.
+        # JSONField.get_db_prep_value runs the prepared value through
+        # connection.ops.adapt_json_value (json.dumps), and that is not
+        # incidental: the column is created with CHECK (JSON_VALID(...)), and
+        # raw Fernet ciphertext is not valid JSON. So the quoting is
+        # load-bearing on write -- removing it raises IntegrityError, measured
+        # -- and the read side is what has to undo it. It never did.
+        # Decrypting the QUOTED form always failed; json.loads then succeeded
+        # on it, and the caller was handed the ciphertext as a plain str.
+        #
+        # Visible as legacy_hash_params returning '{}' rather than {}. The
+        # half that matters is invisible: auth_backends_legacy passes this
+        # field to verify_legacy_hash as the algorithm's salt/iteration
+        # parameters, so a user carried over by the migration cloud could not
+        # authenticate with their old password at all.
+        if value[:1] == '"':
+            try:
+                unwrapped = json.loads(value)
+            except (ValueError, TypeError):
+                unwrapped = None
+            if isinstance(unwrapped, str):
+                value = unwrapped
+                if value in ("", "{}"):
+                    return {}
         try:
             plaintext = _get_fernet().decrypt(value.encode("utf-8")).decode("utf-8")
         except Exception:  # noqa: BLE001 - InvalidToken/TypeError

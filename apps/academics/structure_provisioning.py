@@ -34,7 +34,7 @@ def ensure_general_department(school):
     Idempotent and the SOLE creator of the default department. The academic-
     structure provisioner and the Phase-B classroom seeder both need a home
     department; before this they each created their OWN "General" dept with a
-    different globally-unique code (``GEN-<id8>`` vs ``<slug>-GEN``), leaving
+    different school-namespaced code (``GEN-<id8>`` vs ``<slug>-GEN``), leaving
     every freshly provisioned tenant with two identically-named departments.
     Resolves by canonical code, then adopts any pre-existing same-named
     department (tenants seeded before this fix), else creates one.
@@ -88,10 +88,13 @@ def ensure_general_specialty(school):
     teaching grid was unbuildable — a day-1 teacher opened the classroom dropdown
     and saw nothing, with no error to explain why.
 
-    ``Specialty.code`` is GLOBALLY unique (max_length=30), NOT unique-per-school,
-    so the code MUST be namespaced by school id — exactly the trap documented on
-    ``Classroom.code`` below, where two schools sharing a pack school_type
-    collided and the SECOND school's provisioning died on a UNIQUE violation.
+    ``Specialty.code`` is unique per ``(school, code)``
+    (``uniq_specialty_school_code``, academics migration 0085); it was GLOBALLY
+    unique when this was written, which is why two schools sharing a pack
+    school_type collided and the SECOND school's provisioning died on a UNIQUE
+    violation. The code stays namespaced by school id anyway: the lookups here
+    are school-scoped, and a per-school code is what an admin reading two
+    tenants' catalogs side by side expects.
     Mirrors ``ensure_general_department``: resolve by canonical code, adopt any
     pre-existing same-named row, else create.
     """
@@ -654,12 +657,15 @@ def provision_academic_structure_for_school(
 
             if st.get("primary_sector") in ("secondary", "middle", "k12"):
                 class_label = f"{label} — Group A"
-                # Classroom.code is GLOBALLY unique (max_length=30), so the seed
-                # code MUST be namespaced by school id — otherwise two schools
-                # sharing a pack school_type (e.g. two US "high" schools) generate
-                # the same code and the SECOND school's provisioning dies with a
-                # UNIQUE collision (the "provisioning fails for the next school"
-                # bug). Mirrors the school-scoped dept_code above.
+                # Classroom.code is unique per (school, code)
+                # (``uniq_classroom_school_code``, academics migration 0085); it
+                # was GLOBALLY unique when this was written, which is why two
+                # schools sharing a pack school_type (e.g. two US "high" schools)
+                # generated the same code and the SECOND school's provisioning
+                # died with a UNIQUE collision (the "provisioning fails for the
+                # next school" bug). The code stays namespaced by school id: the
+                # lookup below is school-scoped, and a per-school code keeps two
+                # tenants' catalogs readable side by side. Mirrors dept_code.
                 sid = str(getattr(school, "id", "")).replace("-", "")[:8]
                 prefix = resolve_provision_seed_inputs(school).code_prefix
                 room_stem = (
@@ -993,10 +999,12 @@ def seed_country_trades(school) -> dict[str, Any]:
 
     Gated to vocational schools only. Skipped when the school already has a real
     (non-"General") specialty — an uploaded trade list always wins.
-    ``Department.code`` and ``Specialty.code`` are GLOBALLY unique, so both codes
-    are namespaced by school id AND index (never the truncated name — a long name
-    truncated to 30 chars collapses distinct codes to one and collides on the next
-    UUID school). Idempotent + admin-editable."""
+    ``Department.code`` and ``Specialty.code`` are unique per ``(school, code)``
+    (``uniq_department_school_code`` / ``uniq_specialty_school_code``), so a code
+    only has to be unique WITHIN this school — but it is namespaced by school id
+    AND index anyway (never the truncated name: a long name truncated to 30 chars
+    collapses distinct codes to one, which collides inside a single school).
+    Idempotent + admin-editable."""
     if school is None:
         return {"created_specialties": 0, "skipped": "no_school"}
     if not _is_vocational_school(school):
@@ -1017,11 +1025,13 @@ def seed_country_trades(school) -> dict[str, Any]:
     if not catalog:
         return {"created_specialties": 0, "skipped": "no_catalog"}
 
-    # 12 hex chars (48 bits) of the UUID, not 8 — Department.code/Specialty.code
-    # are GLOBALLY unique, and an 8-hex (32-bit) prefix has a non-trivial
-    # birthday-collision chance across tens of thousands of tenants. Codes stay
-    # well under 30 chars (index part FIRST so a [:30] truncation can't collapse
-    # two distinct codes onto one).
+    # 12 hex chars (48 bits) of the UUID, not 8. Department.code/Specialty.code
+    # are unique per (school, code), so this prefix is no longer load-bearing for
+    # correctness — it is kept because a readable per-school namespace is worth
+    # more than four characters, and an 8-hex (32-bit) prefix had a non-trivial
+    # birthday-collision chance across tens of thousands of tenants back when the
+    # column WAS global. Codes stay well under 30 chars (index part FIRST so a
+    # [:30] truncation can't collapse two distinct codes onto one).
     sid = str(getattr(school, "id", "")).replace("-", "")[:12]
     created_depts = 0
     created_specs = 0

@@ -73393,3 +73393,648 @@ msgstr ""
 
 msgid "…and {{ extra }} more"
 msgstr "…and {{ extra }} more"
+
+msgid "%(model)s history"
+msgstr "%(model)s history"
+
+msgid ""
+"%(pdf)s PDF lines skipped; %(replay)s rows auto-imported after references or"
+" missing fields were resolved."
+msgstr ""
+"%(pdf)s PDF lines skipped; %(replay)s rows auto-imported after references or"
+" missing fields were resolved."
+
+msgid ""
+"<strong>{{ counter }}</strong> row needs your decision. Autopilot runs when "
+"you open this page — PDF stat lines close automatically. {% plural %} "
+"<strong>{{ counter }}</strong> rows need your decision. Autopilot runs when "
+"you open this page — PDF stat lines close automatically."
+msgstr ""
+"<strong>{{ counter }}</strong> row needs your decision. Autopilot runs when "
+"you open this page — PDF stat lines close automatically. {% plural %} "
+"<strong>{{ counter }}</strong> rows need your decision. Autopilot runs when "
+"you open this page — PDF stat lines close automatically."
+
+msgid "Accept & re-import"
+msgstr "Accept & re-import"
+
+msgid "Accept edits"
+msgstr "Accept edits"
+
+msgid ""
+"Add expected invoice count and total before cutover, or re-import with "
+"guardrails on the intake form."
+msgstr ""
+"Add expected invoice count and total before cutover, or re-import with "
+"guardrails on the intake form."
+
+msgid "Admin command palette"
+msgstr "Admin command palette"
+
+msgid "Admin work areas"
+msgstr "Admin work areas"
+
+msgid "All Django models"
+msgstr "All Django models"
+
+msgid "All operator destinations"
+msgstr "All operator destinations"
+
+msgid "Anomalies + held rows for {{ name }}."
+msgstr "Anomalies + held rows for {{ name }}."
+
+msgid "Applications and models"
+msgstr "Applications and models"
+
+msgid "Autopilot closed {{ count }} row(s) automatically."
+msgstr "Autopilot closed {{ count }} row(s) automatically."
+
+msgid ""
+"Autopilot will close safe rows first, then skip anything still pending. "
+"Continue?"
+msgstr ""
+"Autopilot will close safe rows first, then skip anything still pending. "
+"Continue?"
+
+msgid "Awaiting cutover sign-off"
+msgstr "Awaiting cutover sign-off"
+
+msgid "Back to %(model)s"
+msgstr "Back to %(model)s"
+
+msgid "Back to record"
+msgstr "Back to record"
+
+msgid "Bulk actions & export"
+msgstr "Bulk actions & export"
+
+msgid "Change %(model)s"
+msgstr "Change %(model)s"
+
+msgid "Choose a ticket type."
+msgstr "Choose a ticket type."
+
+msgid ""
+"Confirm or edit them before cutover sign-off — inferred totals match "
+"observed counts but are not a substitute for source-provided control "
+"figures."
+msgstr ""
+"Confirm or edit them before cutover sign-off — inferred totals match "
+"observed counts but are not a substitute for source-provided control "
+"figures."
+
+msgid "Contact your operator"
+msgstr "Contact your operator"
+
+msgid "Control totals were inferred from what landed."
+msgstr "Control totals were inferred from what landed."
+
+msgid "Cutover sign-off is still required."
+msgstr "Cutover sign-off is still required."
+
+msgid "Delete %(model)s"
+msgstr "Delete %(model)s"
+
+msgid "Delete selected %(model)s"
+msgstr "Delete selected %(model)s"
+
+msgid "Deploy proof — Admin OS v23.0 on operator /admin/"
+msgstr "Deploy proof — Admin OS v23.0 on operator /admin/"
+
+msgid "Deploy proof — Admin OS v23.0 on tenant /admin/"
+msgstr "Deploy proof — Admin OS v23.0 on tenant /admin/"
+
+msgid "Dismiss recommendation"
+msgstr "Dismiss recommendation"
+
+msgid "Django models"
+msgstr "Django models"
+
+msgid "Drift & log"
+msgstr "Drift & log"
+
+msgid "Expected payroll gross total"
+msgstr "Expected payroll gross total"
+
+msgid "Expected payroll net total"
+msgstr "Expected payroll net total"
+
+msgid "Expected payroll rows"
+msgstr "Expected payroll rows"
+
+msgid ""
+"Expected totals from your operator compared with what this import actually "
+"landed. Repair cannot bypass a failed money check — fix the source export or"
+" expected totals, then re-import."
+msgstr ""
+"Expected totals from your operator compared with what this import actually "
+"landed. Repair cannot bypass a failed money check — fix the source export or"
+" expected totals, then re-import."
+
+msgid ""
+"Export CSV or fix the source file, then re-import — rows without durable "
+"records cannot be replayed."
+msgstr ""
+"Export CSV or fix the source file, then re-import — rows without durable "
+"records cannot be replayed."
+
+msgid "Finance landed without verified control totals."
+msgstr "Finance landed without verified control totals."
+
+msgid "Financial control totals"
+msgstr "Financial control totals"
+
+msgid "Financial control totals — variance detected"
+msgstr "Financial control totals — variance detected"
+
+msgid "Find a page, record or action"
+msgstr "Find a page, record or action"
+
+msgid ""
+"Held rows and control totals must be resolved before this bundle can close "
+"the migration runbook."
+msgstr ""
+"Held rows and control totals must be resolved before this bundle can close "
+"the migration runbook."
+
+msgid "Import closed"
+msgstr "Import closed"
+
+msgid "Import closed — %(count)s auto-resolved (PDF lines skipped)"
+msgstr "Import closed — %(count)s auto-resolved (PDF lines skipped)"
+
+msgid "Import closed — no rows awaiting review"
+msgstr "Import closed — no rows awaiting review"
+
+msgid "Import closure"
+msgstr "Import closure"
+
+msgid "Import log & reconciliation drift"
+msgstr "Import log & reconciliation drift"
+
+msgid "Included {{ pdf }} PDF/stat lines that were not importable records."
+msgstr "Included {{ pdf }} PDF/stat lines that were not importable records."
+
+msgid "Issue Remediator — Awaiting cutover sign-off"
+msgstr "Issue Remediator — Awaiting cutover sign-off"
+
+msgid "Mapping intel"
+msgstr "Mapping intel"
+
+msgid "Mapping intelligence"
+msgstr "Mapping intelligence"
+
+msgid "Mismatch"
+msgstr "Mismatch"
+
+msgid "Move"
+msgstr "Move"
+
+msgid "Move pin down"
+msgstr "Move pin down"
+
+msgid "Move pin up"
+msgstr "Move pin up"
+
+msgid "Navigation changed in another tab; rebasing"
+msgstr "Navigation changed in another tab; rebasing"
+
+msgid "Navigation could not be saved"
+msgstr "Navigation could not be saved"
+
+msgid "No permitted destinations match your search."
+msgstr "No permitted destinations match your search."
+
+msgid "No pilot evidence recorded yet."
+msgstr "No pilot evidence recorded yet."
+
+msgid "No sponsor commitments configured."
+msgstr "No sponsor commitments configured."
+
+msgid ""
+"Non-standard columns import as tracked custom fields — nothing is dropped."
+msgstr ""
+"Non-standard columns import as tracked custom fields — nothing is dropped."
+
+msgid "North star"
+msgstr "North star"
+
+msgid ""
+"Nothing is waiting on you — mapping intel and drift are below if you want to"
+" inspect them."
+msgstr ""
+"Nothing is waiting on you — mapping intel and drift are below if you want to"
+" inspect them."
+
+msgid "Observed"
+msgstr "Observed"
+
+msgid "Offline changes queued"
+msgstr "Offline changes queued"
+
+msgid "Open admin navigation"
+msgstr "Open admin navigation"
+
+msgid ""
+"PDF and stat-sheet lines were skipped — they were not importable records."
+msgstr ""
+"PDF and stat-sheet lines were skipped — they were not importable records."
+
+msgid "PDF lines auto-closable"
+msgstr "PDF lines auto-closable"
+
+msgid "Permission-aware pages, records and actions"
+msgstr "Permission-aware pages, records and actions"
+
+msgid "Pilot scorecard could not be read."
+msgstr "Pilot scorecard could not be read."
+
+msgid "Pinned is full (%(limit)s)."
+msgstr "Pinned is full (%(limit)s)."
+
+msgid "Remove pin"
+msgstr "Remove pin"
+
+msgid "Reset navigation"
+msgstr "Reset navigation"
+
+msgid ""
+"Reset your navigation preferences for this admin workspace? No records or "
+"permissions will be changed."
+msgstr ""
+"Reset your navigation preferences for this admin workspace? No records or "
+"permissions will be changed."
+
+msgid "Resets this workspace only; records and permissions stay unchanged."
+msgstr "Resets this workspace only; records and permissions stay unchanged."
+
+msgid "Review control totals"
+msgstr "Review control totals"
+
+msgid "Review sections"
+msgstr "Review sections"
+
+msgid "Run autopilot"
+msgstr "Run autopilot"
+
+msgid "Run autopilot (close {{ n }} PDF lines)"
+msgstr "Run autopilot (close {{ n }} PDF lines)"
+
+msgid ""
+"Run autopilot now? PDF lines and replayable rows close without manual "
+"review."
+msgstr ""
+"Run autopilot now? PDF lines and replayable rows close without manual "
+"review."
+
+msgid "Saving navigation"
+msgstr "Saving navigation"
+
+msgid "Search pages, records and actions…"
+msgstr "Search pages, records and actions…"
+
+msgid "Skip (waive)"
+msgstr "Skip (waive)"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Some held rows could not be stored for review."
+msgstr "Some held rows could not be stored for review."
+
+msgid "Staff id / employee number"
+msgstr "Staff id / employee number"
+
+msgid "Staff name"
+msgstr "Staff name"
+
+msgid "Subject / course code"
+msgstr "Subject / course code"
+
+msgid "Subject / course name"
+msgstr "Subject / course name"
+
+msgid "Technical reason"
+msgstr "Technical reason"
+
+msgid ""
+"This bundle is your school's live cutover import. Domain sign-off on the "
+"operator cutover runbook is still pending — your operator must record sign-"
+"off before the migration is fully sealed."
+msgstr ""
+"This bundle is your school's live cutover import. Domain sign-off on the "
+"operator cutover runbook is still pending — your operator must record sign-"
+"off before the migration is fully sealed."
+
+msgid "This page"
+msgstr "This page"
+
+msgid "Unpin this page"
+msgstr "Unpin this page"
+
+msgid "Verdict"
+msgstr "Verdict"
+
+msgid "View import summary"
+msgstr "View import summary"
+
+msgid "Work areas"
+msgstr "Work areas"
+
+msgid "You do not have permission to view any Django models."
+msgstr "You do not have permission to view any Django models."
+
+msgid ""
+"Your place is held, but we could not raise the invoice automatically — "
+"please contact the school office to pay."
+msgstr ""
+"Your place is held, but we could not raise the invoice automatically — "
+"please contact the school office to pay."
+
+msgid ""
+"Your school's live cutover bundle is imported, but domain sign-off on the "
+"operator cutover runbook is still pending. Your operator must record sign-"
+"off before this migration is fully sealed."
+msgstr ""
+"Your school's live cutover bundle is imported, but domain sign-off on the "
+"operator cutover runbook is still pending. Your operator must record sign-"
+"off before this migration is fully sealed."
+
+msgid "awaiting review"
+msgstr "awaiting review"
+
+msgid "custom fields"
+msgstr "custom fields"
+
+msgid "date"
+msgstr "date"
+
+msgid "low-confidence"
+msgstr "low-confidence"
+
+msgid "time"
+msgstr "time"
+
+msgid "{{ counter }} needs a person{% plural %}{{ counter }} need a person"
+msgstr "{{ counter }} needs a person{% plural %}{{ counter }} need a person"
+
+msgid ""
+"{{ counter }} remaining step can finish itself{% plural %}{{ counter }} "
+"remaining steps can finish themselves"
+msgstr ""
+"{{ counter }} remaining step can finish itself{% plural %}{{ counter }} "
+"remaining steps can finish themselves"
+
+msgid ""
+"{{ counter }} skipped on this host{% plural %}{{ counter }} skipped on this "
+"host"
+msgstr ""
+"{{ counter }} skipped on this host{% plural %}{{ counter }} skipped on this "
+"host"
+
+msgid ""
+"{{ counter }} step can only be checked on the box{% plural %}{{ counter }} "
+"steps can only be checked on the box"
+msgstr ""
+"{{ counter }} step can only be checked on the box{% plural %}{{ counter }} "
+"steps can only be checked on the box"
+
+msgid "{{ done }} of {{ total }} steps complete"
+msgstr "{{ done }} of {{ total }} steps complete"
+
+msgid "{{ done }} of {{ total }} steps complete ({{ pct }}%)"
+msgstr "{{ done }} of {{ total }} steps complete ({{ pct }}%)"
+
+msgid ""
+"{{ file }}: {{ held }} held, {{ recorded }} stored, {{ dropped }} not "
+"reviewable"
+msgstr ""
+"{{ file }}: {{ held }} held, {{ recorded }} stored, {{ dropped }} not "
+"reviewable"
+
+msgid "Not applied (attempts)"
+msgstr "Not applied (attempts)"
+
+msgid "Only the oldest are listed; the count above is the whole set."
+msgstr "Only the oldest are listed; the count above is the whole set."
+
+msgid ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and re-verify MFA) at next sign-in."
+msgstr ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and re-verify MFA) at next sign-in."
+
+msgid ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and set up MFA) at next sign-in."
+msgstr ""
+"Password reset for %(user)s — the one-time temporary password is shown once "
+"below. They must set a new password (and set up MFA) at next sign-in."
+
+msgid ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. This figure counts every "
+"ATTEMPT in the window, so one record refused on many cycles is counted many "
+"times; the work queue below lists the actual records and how long each has "
+"been stuck. They are retried automatically."
+msgstr ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. This figure counts every "
+"ATTEMPT in the window, so one record refused on many cycles is counted many "
+"times; the work queue below lists the actual records and how long each has "
+"been stuck. They are retried automatically."
+
+msgid "Sync controls"
+msgstr "Sync controls"
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — shown once, hand it over securely."
+msgstr ""
+"Temporary password for %(user)s: %(pw)s — shown once, hand it over securely."
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — shown once, share it securely."
+msgstr ""
+"Temporary password for %(user)s: %(pw)s — shown once, share it securely."
+
+msgid ""
+"The temporary password for %(user)s was issued but can no longer be "
+"displayed — it is shown once and is stored nowhere, not even in the logs. "
+"Their old password no longer works, so reset the password again to issue one"
+" you can hand over."
+msgstr ""
+"The temporary password for %(user)s was issued but can no longer be "
+"displayed — it is shown once and is stored nowhere, not even in the logs. "
+"Their old password no longer works, so reset the password again to issue one"
+" you can hand over."
+
+msgid ""
+"These are retried on every cycle. A record that stays here needs the thing "
+"it is waiting for — usually a parent record, or an entity the rail may not "
+"create at all."
+msgstr ""
+"These are retried on every cycle. A record that stays here needs the thing "
+"it is waiting for — usually a parent record, or an entity the rail may not "
+"create at all."
+
+msgid "oldest stuck for {{ since }}"
+msgstr "oldest stuck for {{ since }}"
+
+msgid "refused {{ attempts }} times in total"
+msgstr "refused {{ attempts }} times in total"
+
+msgid "stuck for {{ since }}"
+msgstr "stuck for {{ since }}"
+
+msgid "{{ n }} attempt{% plural %}{{ n }} attempts"
+msgstr "{{ n }} attempt{% plural %}{{ n }} attempts"
+
+msgid ""
+"{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be "
+"applied"
+msgstr ""
+"{{ n }} record cannot be applied{% plural %}{{ n }} records cannot be "
+"applied"
+
+msgid "%(label)s skip recorded on this host."
+msgstr "%(label)s skip recorded on this host."
+
+msgid ""
+"A campus that does not have an uplink, LAN DNS, USB/NAS, SIS files, or a "
+"logo can waive that matching line on this page with a written reason of at "
+"least 12 characters. Owner login and SECRET_KEY cannot be skipped."
+msgstr ""
+"A campus that does not have an uplink, LAN DNS, USB/NAS, SIS files, or a "
+"logo can waive that matching line on this page with a written reason of at "
+"least 12 characters. Owner login and SECRET_KEY cannot be skipped."
+
+msgid ""
+"A skip is already on file ({{ counter }} character).{% plural %}A skip is "
+"already on file ({{ counter }} characters)."
+msgstr ""
+"A skip is already on file ({{ counter }} character).{% plural %}A skip is "
+"already on file ({{ counter }} characters)."
+
+msgid ""
+"A skip is on file on this cloud tenant ({{ counter }} character).{% plural "
+"%}A skip is on file on this cloud tenant ({{ counter }} characters)."
+msgstr ""
+"A skip is on file on this cloud tenant ({{ counter }} character).{% plural "
+"%}A skip is on file on this cloud tenant ({{ counter }} characters)."
+
+msgid "Box backup skip recorded."
+msgstr "Box backup skip recorded."
+
+msgid "Copy skip command"
+msgstr "Copy skip command"
+
+msgid ""
+"Go-dark reads the box overlay, not this cloud school. Paste the skip command"
+" on the box too."
+msgstr ""
+"Go-dark reads the box overlay, not this cloud school. Paste the skip command"
+" on the box too."
+
+msgid ""
+"Go-dark reads the box overlay, not this cloud school. Paste this command on "
+"the box:"
+msgstr ""
+"Go-dark reads the box overlay, not this cloud school. Paste this command on "
+"the box:"
+
+msgid "Note skip on this cloud tenant"
+msgstr "Note skip on this cloud tenant"
+
+msgid "Skip reason was too short. Use at least 12 characters."
+msgstr "Skip reason was too short. Use at least 12 characters."
+
+msgid "Skip {{ label }} (reason, 12+ characters)"
+msgstr "Skip {{ label }} (reason, 12+ characters)"
+
+msgid ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, verified backup, and go-dark checklist must run on the edge box with:"
+msgstr ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, verified backup, and go-dark checklist must run on the edge box with:"
+
+msgid "This skip is evaluated on the cloud (this host)."
+msgstr "This skip is evaluated on the cloud (this host)."
+
+msgid ""
+"The cloud could not check whether this school already has a box, so pairing "
+"was refused rather than risk binding a second one. This is safe to retry."
+msgstr ""
+"The cloud could not check whether this school already has a box, so pairing "
+"was refused rather than risk binding a second one. This is safe to retry."
+
+msgid ""
+"This school already has a paired box, and only ONE box per school is "
+"supported. Release the existing one first — revoke its device under Devices "
+"in the operator console — then pair this box."
+msgstr ""
+"This school already has a paired box, and only ONE box per school is "
+"supported. Release the existing one first — revoke its device under Devices "
+"in the operator console — then pair this box."
+
+msgid ""
+"No timetable is published for the current term yet. When the admin publishes"
+" a schedule for {{ year_name }} – {{ term_label }}, your sessions will "
+"appear here."
+msgstr ""
+"No timetable is published for the current term yet. When the admin publishes"
+" a schedule for {{ year_name }} – {{ term_label }}, your sessions will "
+"appear here."
+
+msgid "Some of this import will stay on this appliance"
+msgstr "Some of this import will stay on this appliance"
+
+msgid ""
+"The sync rail could not be read on this box, so we cannot tell you which of "
+"these records would be able to reach the cloud. This is not a clean result "
+"-- it is a check that did not run."
+msgstr ""
+"The sync rail could not be read on this box, so we cannot tell you which of "
+"these records would be able to reach the cloud. This is not a clean result "
+"-- it is a check that did not run."
+
+msgid "This appliance could not check what it can sync"
+msgstr "This appliance could not check what it can sync"
+
+msgid ""
+"This deployment refuses imports whose appliance-only records nobody has "
+"accepted. Accept them to continue, or import this data on the cloud instead."
+msgstr ""
+"This deployment refuses imports whose appliance-only records nobody has "
+"accepted. Accept them to continue, or import this data on the cloud instead."
+
+msgid ""
+"at least {{ count }} row stays on this appliance{% plural %}at least {{ "
+"count }} rows stay on this appliance"
+msgstr ""
+"at least {{ count }} row stays on this appliance{% plural %}at least {{ "
+"count }} rows stay on this appliance"
+
+msgid ""
+"{{ count }} file could not be row-counted, so the figures above are a floor,"
+" not a total.{% plural %}{{ count }} files could not be row-counted, so the "
+"figures above are a floor, not a total."
+msgstr ""
+"{{ count }} file could not be row-counted, so the figures above are a floor,"
+" not a total.{% plural %}{{ count }} files could not be row-counted, so the "
+"figures above are a floor, not a total."
+
+msgid ""
+"{{ count }} row stays on this appliance{% plural %}{{ count }} rows stay on "
+"this appliance"
+msgstr ""
+"{{ count }} row stays on this appliance{% plural %}{{ count }} rows stay on "
+"this appliance"
+
+msgid ""
+"{{ count }} row syncs; only its unmapped columns stay here{% plural %}{{ "
+"count }} rows sync; only their unmapped columns stay here"
+msgstr ""
+"{{ count }} row syncs; only its unmapped columns stay here{% plural %}{{ "
+"count }} rows sync; only their unmapped columns stay here"

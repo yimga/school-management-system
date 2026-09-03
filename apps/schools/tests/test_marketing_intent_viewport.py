@@ -10,8 +10,12 @@ from django.test import SimpleTestCase
 
 from apps.schools.marketing_media_matrix import VALID_SANDBOX_MODULES
 from apps.schools.views_marketing_api import _validate_sandbox_payload
+from apps.siteconfig.tests._template_nodes import assert_wires
 
 REPO = Path(__file__).resolve().parents[3]
+
+BASE_MARKETING = REPO / "templates/marketing/base_marketing.html"
+HOMEPAGE = REPO / "templates/marketing/homepage.html"
 
 
 class MarketingIntentViewportTests(SimpleTestCase):
@@ -39,8 +43,22 @@ class MarketingIntentViewportTests(SimpleTestCase):
 
     def test_base_marketing_geo_lang_dir(self):
         base = (REPO / "templates/marketing/base_marketing.html").read_text(encoding="utf-8")
+        # geo.locale / geo.direction are context VARIABLES interpolated into the
+        # <html lang=...> and dir=... attributes: template code that no parse can
+        # see, and the shell does not render standalone (it needs SITE). Both
+        # therefore stay source reads.
         self.assertIn("geo.locale", base)
         self.assertIn("geo.direction", base)
+        # What the ENGINE can confirm about this shell: it really pulls in the
+        # internationalised SEO head that the geo context feeds, plus its own
+        # header and footer. A commented-out shell wires none of them.
+        assert_wires(
+            self,
+            BASE_MARKETING,
+            "marketing/partials/_intl_seo_head.html",
+            "marketing/marketing_header.html",
+            "marketing/marketing_footer.html",
+        )
 
     def test_sandbox_wizard_modules_match_backend(self):
         sovereign = (
@@ -75,7 +93,8 @@ class MarketingIntentViewportTests(SimpleTestCase):
         path = REPO / "templates/marketing/homepage.html"
         self.assertTrue(path.is_file())
         text = path.read_text(encoding="utf-8")
-        self.assertIn("_one_record_scroll.html", text)
+        assert_wires(self, HOMEPAGE, "_one_record_scroll.html")
+        # The script name is a {% static %} argument -- source read only.
         self.assertIn("mkt-one-record-scroll.js", text)
 
     def test_copy_registry_sa_arabic_headline(self):

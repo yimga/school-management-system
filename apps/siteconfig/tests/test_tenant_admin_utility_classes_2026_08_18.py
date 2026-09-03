@@ -44,6 +44,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 _BASE_SITE = Path("templates/admin/base_site.html")
 _ADMIN_BASE = Path("templates/admin/base.html")
 _UTILITIES = Path("templates/components/rmc_tenant_header_utilities.html")
@@ -332,22 +334,23 @@ class TenantAdminMarkupDependsOnThoseClassesTests(SimpleTestCase):
     """Proof the classes above are load-bearing, not incidental."""
 
     def test_admin_base_opens_with_a_visually_hidden_sentinel(self):
-        source = _ADMIN_BASE.read_text(encoding="utf-8")
-        self.assertIn(
-            "visually-hidden rmc-empty-state-sentinel",
-            source,
-            "the sentinel this module is about is gone — re-check the premise",
-        )
+        # Reading the source cannot tell a live sentinel from one parked inside
+        # {% comment %}, and a commented-out sentinel reserves no vertical space
+        # at all -- which would make this whole module's premise false while
+        # this test stayed green. So ask the engine what admin/base.html EMITS.
+        # If this fails, the sentinel this module is about is gone: re-check the
+        # premise rather than deleting the test.
+        assert_markup(self, _ADMIN_BASE, "visually-hidden rmc-empty-state-sentinel")
 
     def test_campus_switcher_starts_hidden_behind_d_none(self):
         source = _UTILITIES.read_text(encoding="utf-8")
-        self.assertIn(
-            'class="rmc-campus-switcher d-none"',
-            source,
-            "campus switcher no longer starts hidden — re-check the premise",
-        )
+        # "Loading schools" lives inside a {% trans %} msgid, which is template
+        # code: no parse and no render of the file can see it, so it stays a read.
         self.assertIn(
             "Loading schools",
             source,
-            "the placeholder this module is about is gone — re-check the premise",
+            "the placeholder this module is about is gone, re-check the premise",
         )
+        # The starts-hidden class pair IS markup, and the defect this module
+        # documents is precisely that it renders. Ask whether it is emitted.
+        assert_markup(self, _UTILITIES, 'class="rmc-campus-switcher d-none"')

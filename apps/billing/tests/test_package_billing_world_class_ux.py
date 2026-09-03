@@ -2,8 +2,11 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 ROOT = Path(__file__).resolve().parents[3]
+PRICING_PACKAGES = ROOT / "templates" / "marketing" / "pricing_packages.html"
 
 
 class PackageBillingWorldClassUXTests(SimpleTestCase):
@@ -25,6 +28,10 @@ class PackageBillingWorldClassUXTests(SimpleTestCase):
         self.assertIn("No fake live payments", text)
 
     def test_pricing_packages_show_billing_impact_preview(self):
-        text = (ROOT / "templates" / "marketing" / "pricing_packages.html").read_text(encoding="utf-8")
+        text = PRICING_PACKAGES.read_text(encoding="utf-8")
+        # The preview hook is markup a buyer either sees or does not; the honesty
+        # sentence sits inside {% trans %}, which a parse cannot see and this page
+        # cannot render standalone, so that one stays a read.
+        assert_markup(self, PRICING_PACKAGES, "data-world-class-billing-impact-preview")
         self.assertIn("data-world-class-billing-impact-preview", text)
         self.assertIn("Final billing requires contract", text)

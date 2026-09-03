@@ -74,12 +74,24 @@ logger = logging.getLogger(__name__)
 
 @require_permission("finance.view", "finance.manage")
 def payment_list(request: HttpRequest):
+    # profile is a ComplianceProfile (country_code, no school column), so
+    # filter(invoice__profile=...) alone bounds this to a COUNTRY.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    qs = Payment.objects.filter(invoice__profile=profile).select_related(
+    # Scoped through the INVOICE's school rather than Payment.school: both
+    # columns are nullable, but migration 0082 backfilled Invoice.school for
+    # every AR row with a student, and nothing backfilled Payment.school -- so
+    # keying on the payment's own column would hide a school's legacy receipts
+    # from its own list.
+    qs = Payment.objects.filter(
+        invoice__school=school, invoice__profile=profile
+    ).select_related(
         "invoice", "invoice__student", "invoice__academic_year"
     )
 
@@ -198,6 +210,14 @@ def cash_office_closure(request: HttpRequest):
     Daily cash closure: recomputes cash collected from completed CASH payments
     for the selected day; stores opening cash, deposited amount, physical cash, discrepancy.
     """
+    # This reconciles physical cash against recorded takings. Bounded only by
+    # ComplianceProfile it summed every co-located school's cash into this
+    # school's closure, and the discrepancy it reports is the number someone
+    # is held to.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -214,9 +234,8 @@ def cash_office_closure(request: HttpRequest):
     closure_date = initial_date
     if request.method == "POST" and form.is_valid():
         closure_date = form.cleaned_data["closure_date"]
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-
     cash_collected = Payment.objects.filter(
+        invoice__school=school,
         invoice__profile=profile,
         method=PaymentMethodCode.CASH,
         status="completed",
@@ -293,14 +312,24 @@ def split_allocation(request: HttpRequest):
     """
     from apps.people.models import StudentGuardian, StudentProfile
 
+    # AcademicYear.is_active is documented on the field itself as "exactly one
+    # should be active PER SCHOOL", so an unscoped is_active read does not return
+    # "the" active year -- it returns whichever school's year sorts first. On the
+    # cloud each tenant has its own schema and that is invisible; on an edge box
+    # every school shares one schema, so this page was liable to bill a student
+    # against another school's academic year. The school is what bounds it.
+    school = getattr(request, "school", None)
+    if not school:
+        return HttpResponseForbidden("Open from a school (tenant) workspace.")
+
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
 
     active_year = (
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+        AcademicYear.objects.filter(school=school, is_active=True)
+        .order_by("-start_date")
+        .first()
     )
     if not active_year:
         return render(
@@ -311,11 +340,9 @@ def split_allocation(request: HttpRequest):
                 "error": "No active academic year. Set an academic year as active first.",
             },
         )
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-
-    students = StudentProfile.objects.filter(academic_year=active_year).order_by(
-        "last_name", "first_name"
-    )
+    students = StudentProfile.objects.filter(
+        school=school, academic_year=active_year
+    ).order_by("last_name", "first_name")
     selected_student_id = (
         request.POST.get("student") or request.GET.get("student") or ""
     ).strip()
@@ -323,6 +350,7 @@ def split_allocation(request: HttpRequest):
     if selected_student_id.isdigit():
         guardians = StudentGuardian.objects.filter(
             student_id=int(selected_student_id),
+            student__school=school,
             student__academic_year=active_year,
             can_view_finance=True,
             guardian_user__is_active=True,
@@ -366,6 +394,7 @@ def split_allocation(request: HttpRequest):
 
         with transaction.atomic():
             invoice = Invoice.objects.create(
+                school=school,
                 profile=profile,
                 academic_year=active_year,
                 student=student,
@@ -388,6 +417,7 @@ def split_allocation(request: HttpRequest):
             if payer_allocations:
                 assign_invoice_payer_shares(invoice, payer_allocations, due_date=today)
             payment = Payment.objects.create(
+                school=school,
                 invoice=invoice,
                 student=student,
                 amount=total_amount,
@@ -1131,7 +1161,10 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         return HttpResponseBadRequest("Missing invoice_id.")
 
     try:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: primary-key lookup on an id the PAYMENT PROVIDER
+        # echoed back to us, in an unauthenticated webhook that has no tenant
+        # context to be scoped by - the request is authorised by signature, not by
+        # session. Reviewed 2026-09-02.
         invoice = Invoice.objects.get(id=invoice_id)
     except Invoice.DoesNotExist:
         _create_webhook_log(
@@ -1151,6 +1184,36 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
     # legitimate signed callback on an invoice with any reversed history was
     # rejected 400 "exceeds remaining balance 0" — and past the dead-letter
     # threshold the endpoint started acking 200 and dropping the money.
+    # Idempotency outranks amount validation. A redelivery of an event that
+    # already SETTLED this invoice has nothing left to allocate, so the
+    # validate_against_invoice call below computes remaining == 0 and answers
+    # HTTP 400 "exceeds remaining balance 0" -- a permanent 4xx that every PSP
+    # reads as "keep retrying", forever, for an event we already processed
+    # correctly. The dedup claim that WOULD have acked it 200 sits further
+    # down and is never reached on that path. So probe the bucket read-only
+    # here, before any amount arithmetic: when a terminal log already owns it
+    # this delivery is a replay, and the only correct answer is the duplicate
+    # ack. A first delivery owns no terminal row and is unaffected; the
+    # in-flight (PROCESSING) race is still resolved by claim_webhook_processing.
+    if dedup_reference:
+        from apps.finance.webhook_ingress import duplicate_webhook_response
+        from apps.finance.webhooks.idempotency import find_processed_duplicate
+
+        if find_processed_duplicate(provider_code, dedup_reference) is not None:
+            _create_webhook_log(
+                reference_id=reference_id,
+                signature_valid=True,
+                status=WebhookLog.Status.DUPLICATE,
+                response_status=200,
+                invoice=invoice,
+            )
+            logger.info(
+                "Duplicate webhook from %s: %s (already terminal; not re-validated)",
+                provider_slug,
+                dedup_reference,
+            )
+            return duplicate_webhook_response()
+
     invoice_paid = invoice.total_amount - invoice.computed_balance
     is_valid, error_msg = PaymentValidator.validate_against_invoice(
         Decimal(str(amount)),

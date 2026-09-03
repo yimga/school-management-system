@@ -151,6 +151,13 @@ def handover_csv_response(*, school, kind: str, users=None) -> HttpResponse:
     writer.writerows(rows)
     response = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    # The body is cleartext, single-use credentials for up to _HANDOVER_CAP
+    # accounts. HtmlNoCacheMiddleware only stamps text/html, so without these a
+    # text/csv download carries NO cache directives at all and can be written to
+    # the browser/proxy disk cache of a shared school machine.
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
     logger.info(
         "people_activation.handover school=%s kind=%s count=%s",
         getattr(school, "pk", None),

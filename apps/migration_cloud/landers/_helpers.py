@@ -116,6 +116,71 @@ def row_savepoint():
         yield
 
 
+# Columns a model REGENERATES inside its own ``save()`` instead of taking them
+# from the caller. On ``StudentProfile`` that is ``search_index`` (rebuilt from
+# name + codes + dynamic fields on EVERY save), the minted ``admission_number``
+# / ``student_code``, ``referral_code``, and the ``auto_now`` ``updated_at``.
+# Django writes ONLY the columns named in ``update_fields``, so a narrowed save
+# computes these and then throws them away: a roster name correction left the
+# pupil unfindable under their corrected name, and a specialty link minted an
+# admission number that never reached the row. Any narrowed write carries them.
+_DERIVED_ON_SAVE_FIELDS = (
+    "search_index",
+    "admission_number",
+    "student_code",
+    "referral_code",
+    "updated_at",
+)
+
+
+def save_scoped(obj, fields) -> None:
+    """``obj.save()`` narrowed to the columns this source row actually supplied.
+
+    A bare ``save()`` rewrites EVERY column from the in-memory snapshot the
+    lander read earlier in the row, so anything committed to that row in the
+    meantime is silently reverted -- including the columns the source file never
+    mentioned. That window is not theoretical: apply runs the artifacts of one
+    wave in PARALLEL threads on separate connections
+    (``orchestrator._run_waves``), and wave 1 holds ``students`` AND ``alumni``,
+    which upsert the same ``StudentProfile`` rows.
+
+    Narrowing is not a lock. Two writers that both supply the SAME field still
+    race on it, and nothing here can order them -- the canonical row carries no
+    version, epoch or source timestamp to compare (see the students ontology
+    entry). What narrowing removes is the blast radius: the ~30 untouched
+    columns a full save was re-asserting from a stale snapshot.
+
+    ``_DERIVED_ON_SAVE_FIELDS`` ride along so narrowing never silently drops a
+    value the model generated for itself. Falls back to a full save on an
+    unsaved instance or a model whose ``_meta`` cannot be read, so this is safe
+    on every tenant model shape a lander meets.
+    """
+    try:
+        concrete: set[str] = set()
+        for f in obj._meta.local_concrete_fields:
+            concrete.add(f.name)
+            concrete.add(f.attname)
+        concrete -= {obj._meta.pk.name, obj._meta.pk.attname}
+    except (AttributeError, TypeError):
+        # The block above only walks ``_meta``: an object with no ``_meta``, a
+        # ``_meta`` with no ``local_concrete_fields``, or a model whose ``pk`` is
+        # None all surface as AttributeError, and a non-iterable
+        # ``local_concrete_fields`` as TypeError. That IS "unknown model shape";
+        # anything else raised here is a bug in this function and must not be paid
+        # for with a silent full save that rewrites ~30 stale columns.
+        obj.save()
+        return
+    if getattr(obj, "pk", None) is None:
+        obj.save()
+        return
+    scoped = {f for f in fields if f in concrete}
+    scoped.update(f for f in _DERIVED_ON_SAVE_FIELDS if f in concrete)
+    if not scoped:
+        obj.save()
+        return
+    obj.save(update_fields=sorted(scoped))
+
+
 _EXTERNAL_ID_CANDIDATES = ("external_id", "sis_external_id", "source_id", "admission_number")
 
 
@@ -124,6 +189,48 @@ def student_lookup_field(available: set[str]) -> str:
         if c in available:
             return c
     return "admission_number"
+
+
+# Every column a pupil's source id may actually have LANDED in. ``student_code``
+# is here and NOT in ``_EXTERNAL_ID_CANDIDATES`` on purpose: the students lander
+# prefers ``student_code`` as its upsert key (student_lander._lookup_field), so a
+# roster whose source id differs from its admission number -- the normal case,
+# not the edge case -- lands the id in ``student_code`` while ``admission_number``
+# holds the school's own number. Every history lander then asked for the id under
+# ``admission_number``, missed, and quarantined the row as "no pupil carries the
+# id" for a pupil that had just landed in the same bundle.
+#
+# The repair is a WIDENING, never a reordering. ``student_lookup_field`` still
+# answers with exactly the column it answered with before -- 13 landers and
+# ``verification.py`` read that answer -- and that column is still tried FIRST.
+# ``student_code`` is appended LAST so it can only ever be reached where the
+# caller would otherwise have fallen through to name matching or quarantined.
+#
+# Order is load-bearing because NOTHING constrains these columns against each
+# other. StudentProfile.Meta carries three INDEPENDENT partial unique indexes
+# (school+client_offline_id, school+student_code, school+admission_no), so one
+# pupil's student_code may legally equal a DIFFERENT pupil's admission number.
+# Trying the caller's own column first means such a clash resolves to the same
+# pupil it resolves to today: this widening cannot introduce a wrong match, and
+# it does not pretend to cure the pre-existing one.
+_STUDENT_IDENTITY_LOOKUP_FIELDS = _EXTERNAL_ID_CANDIDATES + ("student_code",)
+
+
+def student_identity_fields(available, *, primary: str = "") -> tuple[str, ...]:
+    """Identity columns to try when resolving a pupil by source id, in order.
+
+    ``primary`` -- the caller's own ``student_lookup_field`` answer -- is tried
+    first and unchanged, so every row that resolves today resolves to the same
+    pupil. The rest are additive fallbacks. Only columns the model actually
+    carries are returned, so this stays schema-tolerant.
+    """
+    ordered: list[str] = []
+    if primary and primary in available:
+        ordered.append(primary)
+    for c in _STUDENT_IDENTITY_LOOKUP_FIELDS:
+        if c in available and c not in ordered:
+            ordered.append(c)
+    return tuple(ordered)
 
 
 def staff_lookup_field(available: set[str]) -> str:
@@ -316,9 +423,15 @@ def resolve_student(
 
     external_id = str(external_id or "").strip()
     if external_id:
-        found = qs.filter(**{lookup_field: external_id}).first()
-        if found is not None:
-            return found
+        # The caller's own column first (unchanged), then the other columns a
+        # source id can have landed in -- above all ``student_code``, which is
+        # what the students lander upserts on. See _STUDENT_IDENTITY_LOOKUP_FIELDS.
+        for field in student_identity_fields(
+            model_field_names(student_model), primary=lookup_field
+        ):
+            found = qs.filter(**{field: external_id}).first()
+            if found is not None:
+                return found
 
     name = student_name_from_row(row)
     if not name:
@@ -1205,9 +1318,10 @@ def upsert_with_conflict_detection(
 # --- Structure provisioning helpers (shared with structure_lander) ----------
 # The SPLIT scaffold lander (``structure_lander``) pioneered these; factored
 # here so the ``sections``/``staff``/``academics`` landers provision required
-# FK parents the SAME safe way (reuse-by-(school,name), mint a target-scoped
-# GLOBALLY-unique code, never reuse the source's code — which on single-schema
-# would collide with / resolve ANOTHER school's row).
+# FK parents the SAME safe way (reuse-by-(school,name), mint a code scoped to the
+# TARGET school, never reuse the source's — which carries the source system's
+# namespace into the target's catalog and, anywhere a ``code`` lookup is not
+# school-scoped, resolves ANOTHER school's row).
 
 
 def _slug_upper(value: str, width: int = 8) -> str:
@@ -1220,31 +1334,52 @@ def _scope_token(school) -> str:
     ``School.pk`` is a 36-char UUID on this platform, so a bare ``{prefix}{pk}``
     already exceeds the 30-char ``code`` column — the ``[:30]`` truncation then
     drops the NAME entirely and every minted code collapses to one value, so the
-    2nd..Nth provisioned Department/Specialty/Classroom all collide on the
-    ``unique=True`` code and quarantine (0 land past the first). Hash a long id
-    down to 6 hex chars; keep a short integer pk verbatim so existing
-    integer-pk deployments' codes are unchanged.
+    2nd..Nth provisioned Department/Specialty/Classroom -- all in the SAME school
+    -- collide on the per-``(school, code)`` unique code and quarantine (0 land
+    past the first). Hash a long id down to 6 hex chars; keep a short integer pk
+    verbatim so existing integer-pk deployments' codes are unchanged.
     """
     sid = str(getattr(school, "pk", "") or "0")
     if len(sid) > 8:  # magic-number-allow: short-integer-pk-threshold (UUIDs are 36)
-        return hashlib.sha1(sid.encode("utf-8")).hexdigest()[:6]
+        # Shortens a long pk into a stable 6-hex code. The docstring above
+        # promises existing deployments' codes are unchanged, so the digest
+        # is a contract: usedforsecurity=False satisfies B324 without
+        # touching a single output byte.
+        return hashlib.sha1(
+            sid.encode("utf-8"), usedforsecurity=False
+        ).hexdigest()[:6]
     return sid
 
 
 def mint_scoped_code(*, prefix: str, name: str, school, model, code_field: str = "code") -> str:
-    """A fresh, GLOBALLY-unique code for a provisioned structure row.
+    """A fresh code for a provisioned structure row, scoped to the target school.
 
-    ``Department``/``Specialty``/``Classroom.code`` are ``unique=True`` platform-
-    wide, so the source's code MUST NOT be reused (it would collide or, worse,
-    resolve the SOURCE school's row). Deterministic per (school, name) for stable
+    ``Department.code`` (``uniq_department_school_code``, academics migration
+    0076) and ``Specialty.code``/``Classroom.code``
+    (``uniq_specialty_school_code``/``uniq_classroom_school_code``, migration
+    0085) are unique per ``(school, code)`` — NOT platform-wide. The source's
+    code is still not reused: it carries the source system's namespace into the
+    target's catalog, and anywhere a ``code`` lookup is not school-scoped it
+    resolves the SOURCE school's row. Deterministic per (school, name) for stable
     re-runs, with a hash fallback if the short form ever collides. The school
     token is length-bounded (:func:`_scope_token`) so the NAME always survives
     the 30-char cap even when ``School.pk`` is a UUID.
+
+    The freshness probe below is deliberately left unscoped, and that is safe
+    rather than an oversight. ``candidate`` always embeds THIS school's own
+    :func:`_scope_token`, so a row belonging to another school can only match it
+    by a 6-hex SHA-1 collision on the school pk — a hit therefore all but always
+    means this school already holds the candidate, which is exactly the question
+    being asked. And the probe has no veto: both branches return a string, so an
+    unscoped (strictly wider) probe can only ever append a hash suffix, never
+    block a create. Scoping it would be equally correct and is the safer default
+    for new code; it is left alone here because changing it would change minted
+    codes on re-run for no behavioural gain.
     """
     sid = _scope_token(school)
     base = _slug_upper(name)
     candidate = f"{prefix}{sid}-{base}"[:30]  # magic-number-allow: code column max_length=30
-    if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: code is a GLOBALLY-unique column; global existence check is intentional
+    if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: freshness-probe-for-a-candidate-that-already-embeds-this-schools-scope-token; a cross-school hit needs a sha1 collision on the school pk, and a hit can only append a suffix, never block a create
         return candidate
     digest = hashlib.sha256(f"{sid}:{prefix}:{name}".encode("utf-8")).hexdigest()[:6]
     return f"{prefix}{sid}-{base[:4]}-{digest}"[:30]  # magic-number-allow: code column max_length=30

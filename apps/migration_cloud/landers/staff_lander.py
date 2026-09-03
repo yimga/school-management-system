@@ -33,6 +33,11 @@ from __future__ import annotations
 import re
 from typing import Any, Iterator
 
+# Module scope, not lazy: this class is named in ``except`` tuples that guard lazy
+# model imports, and a class imported inside the same ``try`` would be unbound at
+# the moment the tuple is evaluated.
+from django.db import DatabaseError
+
 from ._helpers import (
     derive_external_id,
     detect_and_register_assets,
@@ -56,8 +61,10 @@ from .base import Lander, LanderContext, LanderError, LanderResult, register
 # scan_role_strings.py enforces that the token comes from here or User.Role.
 from apps.platform_runtime.role_registry import ROLE_TEACHER
 from apps.migration_cloud.staff_role_map import (
+    ROLE_FORBIDDEN,
     apply_imported_staff_role,
     resolve_staff_role,
+    unresolvable_staff_role,
 )
 from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
@@ -165,8 +172,22 @@ class StaffLander(Lander):
         # registry constant if a swapped user model has no Role enum. Mirrors
         # guardian_lander's hasattr idiom -- neither branch inlines the token.
         default_staff_role = User.Role.TEACHER if hasattr(User, "Role") else ROLE_TEACHER
+        # Role-decision tally. Every row lands in EXACTLY ONE bucket and the
+        # buckets sum to rows_total -- a partial tally would be worse than none
+        # here, because a row that took the default and a row whose label we
+        # actually read otherwise wear the same shape from the outside.
+        role_tally = {
+            "role_mapped": 0,
+            "role_defaulted_blank": 0,
+            "role_held_unmapped": 0,
+            "role_held_forbidden": 0,
+            "role_skipped_non_staff": 0,
+            "role_not_evaluated": 0,
+        }
+        rows_total = 0
 
         for row in canonical_rows:
+            rows_total += 1
             external_id = (
                 row.get("staff_external_id")
                 or row.get("external_id")
@@ -198,6 +219,9 @@ class StaffLander(Lander):
                     prefix="auto-staff",
                 )
             if not external_id or not (first_name or last_name or user_ref or email):
+                # Rejected before the role cell is read -- no role decision was
+                # made, which is its own answer and needs its own bucket.
+                role_tally["role_not_evaluated"] += 1
                 record_row_error(
                     result,
                     row,
@@ -213,11 +237,49 @@ class StaffLander(Lander):
             role_label = _staff_field_from_row(row, "role")
             role_raw = role_label.strip().lower()
             if role_raw in _NON_STAFF_ROLES:
+                role_tally["role_skipped_non_staff"] += 1
                 result.skipped += 1
+                continue
+            # Deny-All on a privilege we could not read. A label that mapped
+            # to nothing used to collapse onto default_staff_role (TEACHER),
+            # and TEACHER is NOT inert: the post_save in apps/accounts/
+            # signals.py attaches the TEACHER AccessRole, whose seeded codes
+            # include attendance.manage and grades.enter. So a 'Canteen
+            # Vendor' or 'Bus Driver' row was provisioned as a school-wide
+            # attendance and grade-audit reader -- and is_staff_setup_role
+            # then let them activate that account themselves. Hold the row:
+            # no user, no membership, no profile. record_row_error keeps the
+            # source row so it replays once someone maps the label, and the
+            # loop continues, so one unreadable title cannot stall an import.
+            role_problem = unresolvable_staff_role(role_label)
+            if role_problem is not None:
+                role_tally[
+                    "role_held_forbidden"
+                    if role_problem == ROLE_FORBIDDEN
+                    else "role_held_unmapped"
+                ] += 1
+                record_row_error(
+                    result,
+                    row,
+                    f"staff {external_id}: source role {role_label!r} is not a"
+                    f" role this system can grant ({role_problem}); held for"
+                    " review rather than provisioned with default access",
+                    reason_code=INVALID_REF,
+                    field="role",
+                )
                 continue
             staff_role = resolve_staff_role(
                 role_label, default=default_staff_role
             )
+            # A BLANK role cell keeps flowing to the caller's default, on
+            # purpose: holding a payroll export that simply has no role column
+            # would be worse than the disease. But the default is TEACHER and
+            # TEACHER is a privilege grant, so a 400-row role-less sheet mints
+            # 400 teachers with nothing on screen saying so. Count it.
+            if role_label.strip():
+                role_tally["role_mapped"] += 1
+            else:
+                role_tally["role_defaulted_blank"] += 1
 
             if ctx.dry_run:
                 result.created += 1
@@ -264,7 +326,10 @@ class StaffLander(Lander):
 
                 # Optional Department FK (SET_NULL) — reuse an existing one by
                 # (school, name); mint a target-scoped code on create so we never
-                # reuse the source's globally-unique department code.
+                # reuse the source's department code. ``Department.code`` is
+                # unique per (school, code) (``uniq_department_school_code``),
+                # so reusing it would not raise — it would silently import the
+                # source system's namespace into this tenant's catalog.
                 department = None
                 dept_name = _staff_field_from_row(row, "department")
                 if dept_name and "department" in model_fields:
@@ -339,6 +404,12 @@ class StaffLander(Lander):
                     f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}",
                     reason_code=LANDER_ERROR,
                 )
+        _record_staff_role_disposition(
+            ctx,
+            role_tally,
+            rows_total=rows_total,
+            default_token=str(default_staff_role),
+        )
         return result
 
 
@@ -505,6 +576,71 @@ def _record_staff_dedup_link(ctx, user, external_id: str, email: str) -> None:
         bundle.mapping_summary = summary
         bundle.save(update_fields=["mapping_summary"])
     except Exception:  # noqa: BLE001
+        return
+
+
+def _record_staff_role_disposition(
+    ctx, tally: dict[str, int], *, rows_total: int, default_token: str
+) -> None:
+    """Publish the role-decision tally onto the bundle's mapping_summary.
+
+    A blank role cell still flows to the caller's default -- that behaviour is
+    deliberate. What was missing is that it was SILENT: the default is TEACHER,
+    TEACHER is a privilege grant (see the deny-all note in the land loop), so a
+    role-less payroll import mints teachers at scale with nothing saying so.
+    ``role_defaulted_blank`` is that number.
+
+    The tally CLOSES. Every row is in exactly one bucket and the buckets sum to
+    ``rows_total``; ``balanced`` publishes whether they actually did, so a new
+    exit path added later without a bucket shows up as a stated discrepancy
+    instead of quietly shrinking a number someone is trusting.
+
+    Best-effort; a reporting write never breaks a lander.
+    """
+    bundle_id = getattr(ctx, "bundle_id", None)
+    if bundle_id is None or rows_total <= 0:
+        return
+    try:
+        from apps.migration_cloud.models import MigrationBundle
+
+        bundle = MigrationBundle.objects.filter(pk=bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
+    except (ImportError, DatabaseError, TypeError, ValueError):
+        # Exhaustive for these two statements: the models module may be absent
+        # (ImportError); the bundle table may be missing or unreachable
+        # (DatabaseError, which covers Operational/Programming/Interface); and a
+        # ``bundle_id`` that is not a valid pk makes Django's IntegerField raise
+        # TypeError/ValueError. A typo in this function is NOT in that list.
+        return
+    if bundle is None:
+        return
+    try:
+        summary = dict(bundle.mapping_summary or {})
+        merged = dict(tally)
+        merged["rows_total"] = rows_total
+        prior = summary.get("staff_role_disposition")
+        if isinstance(prior, dict):
+            # A bundle can land staff across several artifacts. Accumulate so
+            # the published number is the BUNDLE's, not the last artifact's.
+            for key in list(merged):
+                was = prior.get(key)
+                if isinstance(was, int) and not isinstance(was, bool):
+                    merged[key] += was
+        counted = sum(merged[key] for key in tally)
+        merged["default_token"] = default_token
+        merged["balanced"] = counted == merged["rows_total"]
+        if not merged["balanced"]:
+            merged["unaccounted"] = merged["rows_total"] - counted
+        summary["staff_role_disposition"] = merged
+        bundle.mapping_summary = summary
+        bundle.save(update_fields=["mapping_summary"])
+    except (DatabaseError, TypeError, ValueError):
+        # The block does exactly three kinds of thing. ``dict(...)`` over a JSON
+        # column whose stored value is not a mapping raises TypeError/ValueError;
+        # the arithmetic runs only on isinstance-checked ints, so TypeError is its
+        # worst case; the write raises DatabaseError. Losing the disposition is
+        # survivable -- the staff rows already landed -- but losing a NameError
+        # here is not, because this reporting write is the only thing that says a
+        # role-less payroll import minted teachers at scale.
         return
 
 

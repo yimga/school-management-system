@@ -8,6 +8,13 @@ re-provisioned as a DUPLICATE account (or, with no email at all, quarantined and
 lost). This adds a phone-first second-chance to the resolution ladder
 (username → email → EXACT phone + matching name → provision).
 
+A row that reaches the final rung with NO email is no longer lost either: it
+provisions an account on a reserved, undeliverable ``@unclaimed.invalid``
+address minted from a STABLE school+phone+name seed. That seed is what keeps
+the no-email path inside this file’s contract — it is resolved before
+provisioning, so a re-apply or a sibling row reuses the one account instead
+of minting a duplicate.
+
 Safety is the point — a shared household phone (mum + dad on one number) can
 never wrong-merge two guardians: the name score must clear the floor AND exactly
 one distinct user may match.
@@ -21,10 +28,11 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
+from apps.accounts.email_delivery_policy import is_deliverable_email
 from apps.migration_cloud.landers.guardian_lander import GuardianLander
 from apps.migration_cloud.tests.test_landers_fk_resolution import _GraphFixtureMixin
 from apps.people.models import StudentGuardian, StudentProfile
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
 
@@ -75,11 +83,38 @@ class GuardianPhoneDedupTests(_Base):
         self.assertEqual(link_b.guardian_user_id, link_a.guardian_user_id)
         self.assertEqual(len(self._distinct_guardian_users()), 1)
 
-    def test_no_email_no_phone_still_quarantines(self):
-        r = self._land(self._row("ADM-gp-2"))  # no email, no phone, no ref
-        self.assertEqual(r.quarantined, 1)
-        self.assertIn("no email", r.errors[0])
-        self.assertFalse(StudentGuardian.objects.exists())
+    def test_no_email_no_phone_provisions_one_unclaimed_account_not_duplicates(self):
+        """With nothing to dedup ON, the STABLE synthetic address does the job.
+
+        A guardian carrying only a name matches no rung — not ref, not email,
+        not phone — so the ladder provisions. It used to quarantine, which lost
+        the parent; it now mints an undeliverable ``@unclaimed.invalid``
+        address derived from a school+phone+name seed. Because that seed is
+        stable AND resolved before provisioning, this path still honours the
+        promise the whole file exists for: the SAME guardian is never
+        re-provisioned as a duplicate. A re-applied bundle and a second
+        SIBLING row must both land on the ONE account.
+        """
+        first = self._land(self._row("ADM-gp-1"))
+        self.assertEqual(first.quarantined, 0, first.errors)
+        self.assertEqual(first.created, 1)
+        # Re-apply the SAME row: it must resolve back, not re-provision.
+        again = self._land(self._row("ADM-gp-1"))
+        self.assertEqual(again.quarantined, 0, again.errors)
+        self.assertEqual(again.created, 0)
+        self.assertEqual(len(self._distinct_guardian_users()), 1)
+        # Now the SIBLING row for that same guardian.
+        sibling = self._land(self._row("ADM-gp-2"))
+        self.assertEqual(sibling.quarantined, 0, sibling.errors)
+        self.assertEqual(sibling.created, 1)  # a new LINK, not a new user
+        self.assertEqual(len(self._distinct_guardian_users()), 1)
+        self.assertEqual(StudentGuardian.objects.count(), 2)
+        user = StudentGuardian.objects.first().guardian_user
+        self.assertTrue(user.email.endswith("@unclaimed.invalid"), user.email)
+        self.assertFalse(is_deliverable_email(user.email))
+        self.assertFalse(user.has_usable_password())
+        # No second account hiding behind a suffixed username.
+        self.assertEqual(User.objects.filter(email__iexact=user.email).count(), 1)
 
     def test_shared_phone_different_name_provisions_separately(self):
         # Mum, then dad on the SAME household phone — different names must NOT
@@ -117,7 +152,16 @@ class GuardianPhoneDedupTests(_Base):
         self.assertEqual(link_b.guardian_user_id, target.pk)
 
     def test_phone_dedup_is_school_scoped(self):
-        # A guardian with the same phone in ANOTHER school must never be matched.
+        """A phone held by ANOTHER school’s guardian must never match.
+
+        ``User`` is a SHARED public-schema table, so an unscoped phone rung
+        would bind school B’s guardian account into school A’s directory
+        (and, via ``ensure_school_membership``, into A’s parent roster). The
+        refusal used to be observable as a quarantine; the ladder now falls
+        through to provisioning instead, so the contract is asserted where it
+        actually lives: the foreign account is NOT linked here, gains NO
+        membership here, and a SEPARATE account is minted for this school.
+        """
         other = School.objects.create(name="Other", slug="other-gp", subdomain="other-gp")
         other_student = StudentProfile.objects.create(
             school=other, first_name="X", last_name="Y", admission_number="OTH-1"
@@ -125,10 +169,21 @@ class GuardianPhoneDedupTests(_Base):
         other_user = User.objects.create_user(username="otherguardian", first_name="Ama", last_name="Mensah")
         StudentGuardian.objects.create(student=other_student, guardian_user=other_user,
                                        phone="+237600001", relationship="MOTHER")
-        # Land in self.school with that phone + no email → cross-tenant match is
-        # refused, so it falls through to the (no-email) quarantine.
+        # Land in self.school with that phone + no email: the cross-tenant
+        # match is refused, so it falls through to unclaimed provisioning.
         r = self._land(self._row("ADM-gp-2", phone="+237600001"))
-        self.assertEqual(r.quarantined, 1, r.errors)
+        self.assertEqual(r.quarantined, 0, r.errors)
+        link = StudentGuardian.objects.get(student=self.student_b)
+        self.assertNotEqual(link.guardian_user_id, other_user.pk)
+        self.assertTrue(link.guardian_user.email.endswith("@unclaimed.invalid"))
+        # The other tenant’s account gained nothing in this school.
         self.assertFalse(
-            StudentGuardian.objects.filter(student=self.student_b).exists()
+            SchoolMembership.objects.filter(
+                user=other_user, school=self.school
+            ).exists()
+        )
+        self.assertFalse(
+            StudentGuardian.objects.filter(
+                guardian_user=other_user, student__school=self.school
+            ).exists()
         )

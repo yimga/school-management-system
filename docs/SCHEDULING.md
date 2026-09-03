@@ -37,14 +37,148 @@ workers runs it per interval.
 
 ### 2. Secured endpoint + free external scheduler
 
-`POST /api/internal/cron/run/`, authed by the `INTERNAL_CRON_TOKEN` shared secret
-(constant-time compared; endpoint returns 404 when the token is unset/short).
+**This endpoint is the ONLY trigger for the 26 `auto_eligible=False` jobs.** The
+`/health/` tick deliberately runs `auto_only=True`, so heavy / financial /
+tenant-fan-out work never touches the request-serving thread. Measured by running
+`registry_status()` on 2026-09-02: **34 registered, 8 auto-eligible, 26 cron-only.**
 
-- Body `{}` → run all **due** jobs. `{"job":"<name>"}` → one job.
-  `{"force":true}` → run even if not due. `{"background":true}` → 202 + run in a
-  thread (for long jobs).
-- `GET` the same URL → registry status (intervals, last run, due-now) for
-  monitoring.
+#### Verified contract
+
+Every row below was verified by executing the route, not by reading it; the
+assertions live in
+`apps/platform_runtime/tests/test_cron_trigger_reachability_2026_09_02.py`.
+
+| Property | Value |
+|---|---|
+| Path | `/api/internal/cron/run/` |
+| Methods | `GET` (status, read-only) and `POST` (run). Anything else -> **405** |
+| Auth header | `Authorization: Bearer <secret>` — also accepts `Authorization: Token <secret>`, a bare `Authorization: <secret>`, the header `X-Cron-Key: <secret>`, or `{"token": "..."}` in the POST body |
+| Secret | `INTERNAL_CRON_TOKEN`, **minimum 16 characters** (`MIN_TOKEN_LEN`), constant-time compared |
+| Token unset or < 16 chars | **404** — deliberately indistinguishable from "no such URL" |
+| Missing / wrong token | **403** |
+| Rate limit | **30 requests / 60s per client IP**, then **429** (fails open if the cache is down) |
+| Body > 4096 bytes | **413**. Malformed JSON -> **400** |
+| `POST {}` | run every **due** job, synchronously -> **200** `{"status":"ok","results":[...]}` |
+| `POST {"job":"<name>"}` | run just that job |
+| `POST {"force":true}` | run even if not due (also **rebases** the schedule) |
+| `POST {"background":true}` | **202** `{"status":"accepted"}` — returned **before any job starts** |
+| `GET` | **200** `{"jobs":[...], "evidence":[...], "summary":{...}}` |
+
+#### Which hosts serve it
+
+`UrlConfSwitcherMiddleware` picks the urlconf from the `Host` header, and the
+route is now mounted from one shared list (`config/internal_machine_urls.py`) that
+**every** deployment-served urlconf splats — `config.urls`, `config.manager_urls`,
+`config.public_urls`, `config.tenant_urls`, `config.api_urls`.
+
+> Before 2026-09-02 it was declared inline in `config/urls.py` and
+> `config/manager_urls.py` only. Every sovereign box routes to
+> `config.tenant_urls`, so on a box this endpoint returned **404 — and 404 is also
+> what an unset token returns**, so the outage read as a missing secret and was
+> never diagnosed. If you are hitting a revision older than this fix, use the
+> **manager** host, or use `manage.py run_periodic_jobs` (below), which never
+> depended on the URL layer.
+
+#### Runbook — CLOUD (Render)
+
+The token is minted by Render (`generateValue: true` in `render.yaml`); read it
+from the service's Environment tab. **Fill in line 1, then paste the rest as one
+block.**
+
+```bash
+CRON_HOST=https://manager.runmycampus.com
+```
+
+```bash
+# Prompts for the secret; it is not echoed and never enters shell history.
+read -rsp 'INTERNAL_CRON_TOKEN: ' CRON_TOKEN; echo
+CRON_URL="$CRON_HOST/api/internal/cron/run/"
+
+# BEFORE — durable evidence. Read-only: no jobs run, no recovery threads spawned.
+curl -sS -H "Authorization: Bearer $CRON_TOKEN" "$CRON_URL" \
+  | python -c 'import json,sys; print(json.load(sys.stdin)["summary"])'
+
+# TRIGGER — every due job, in a background thread (202 returns immediately).
+curl -sS -i -X POST -H "Authorization: Bearer $CRON_TOKEN" \
+  -H 'Content-Type: application/json' -d '{"background": true}' "$CRON_URL"
+
+# AFTER — re-read the evidence. cron_only_never_invoked must fall to 0.
+curl -sS -H "Authorization: Bearer $CRON_TOKEN" "$CRON_URL" \
+  | python -c 'import json,sys; print(json.load(sys.stdin)["summary"])'
+```
+
+A **manual one-shot** needs no token at all — run it in the Render Shell:
+
+```bash
+python manage.py run_periodic_jobs
+python manage.py report_scheduled_job_evidence --cron-only
+```
+
+For the **recurring** trigger, point a free pinger (cron-job.org / UptimeRobot) at
+`$CRON_URL` with the `Authorization: Bearer` header and body `{"background":true}`
+every 5 minutes. Stay under 30 requests/minute per source IP or it 429s.
+
+#### Runbook — BOX (self-host Docker Compose)
+
+`RMC_DIR` is the directory holding `docker-compose.yml` on that box; this file
+cannot know it, so set it yourself on line 1, then paste the rest as one block.
+
+```bash
+RMC_DIR=
+```
+
+```bash
+cd "${RMC_DIR:?fill in the RMC_DIR= line above before pasting this block}" || exit 1
+
+# BEFORE
+docker compose exec -T web python manage.py report_scheduled_job_evidence --cron-only
+
+# TRIGGER — the complete beat-less rail, in the web container.
+docker compose exec -T web python manage.py run_periodic_jobs
+
+# AFTER — non-zero exit if any job did not succeed in the last 15 minutes.
+docker compose exec -T web python manage.py report_scheduled_job_evidence \
+  --cron-only --fail-unless-succeeded-within 900
+```
+
+Make it recurring. Still inside that directory, run this to PRINT the exact
+crontab line with the real path already substituted, then paste its output into
+`crontab -e`:
+
+```bash
+echo "*/5 * * * * cd $PWD && docker compose exec -T web python manage.py run_periodic_jobs >> /var/log/rmc-periodic.log 2>&1"
+```
+
+#### Proving it ran
+
+A 200 does not mean a job ran, and a 202 is returned *before* any job starts. The
+cache-based `jobs` block cannot help either: `periodic._claim()` writes `last_run`
+**before** calling the job, so a job that raised on its first statement still
+reports a fresh `last_run_epoch` and `due_now: false`, and the cache is wiped on
+every deploy.
+
+Use the durable evidence instead — `ScheduledJobHeartbeat` joined against the
+registry, so **every registered job gets a row even when it has never run** (the
+Django admin lists heartbeat rows, which is why 26 never-run jobs were invisible
+there):
+
+```bash
+python manage.py report_scheduled_job_evidence                    # all jobs
+python manage.py report_scheduled_job_evidence --cron-only        # the 26
+python manage.py report_scheduled_job_evidence --json             # machine-readable
+python manage.py report_scheduled_job_evidence --fail-on-never-invoked
+python manage.py report_scheduled_job_evidence --fail-unless-succeeded-within 900
+```
+
+Verdicts: `ok` | `stale` (succeeded, but too long ago) | `failing` (invoked, never
+succeeded — read `last_error`) | `never_invoked` (**nothing triggers it on this
+deployment**). The last two are different diagnoses that the older
+`monitor_scheduled_job_health` reports identically, because both have
+`last_success_at IS NULL`.
+
+`report_scheduled_job_evidence` is strictly read-only — unlike
+`monitor_scheduled_job_health`, which spawns auto-recovery threads for stale jobs
+and so cannot be used as an unbiased "did the trigger work?" check.
 
 The **free, zero-infra** path is a third-party pinger (cron-job.org / UptimeRobot)
 that POSTs this endpoint with the `INTERNAL_CRON_TOKEN` Bearer header on a schedule

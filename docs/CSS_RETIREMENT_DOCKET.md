@@ -8703,3 +8703,27 @@ A final audit caught a critical latent bug + three cleanups, all closed before d
 Closed the one genuine mockup-vs-live gap from the tenant-shell 100X audit: the parent role-home (`templates/parent/_rmc_dh_family_home.html`) rendered a bespoke `.rmc-preview-live-snapshot-grid` / `.rmc-preview-live-snapshot-card` block instead of the canonical premium `.rmc-dh-tiles` KPI row that admin/teacher/student already use. Replaced it with a 4-tile `rmc_dh_tile.html` row (Attendance / Balance due / Average / Messages), all fed from already-in-context vars (`attendance_pct`, `finance_balance`, `widget_data.performance.average`, `unread_messages_aggregate`) — finance + results tiles gated on `can_view_finance` / `can_view_results` + data presence (no fabricated values). The `#rmc-parent-today` section anchor moved onto the tile row so the "Today" jump-nav link still resolves; "Next event" is already covered by the "Upcoming at school" section.
 
 **Retired (zero references confirmed platform-wide):** `.rmc-preview-live-snapshot-grid`, `.rmc-preview-live-snapshot-card`, `.rmc-preview-live-snapshot-card strong` (3 rules, ~24 lines) from `static/css/rmc-tenant-preview-live-bridge.css`. They were used only by the parent snapshot block that this change removed. Template-only + CSS-retire; no migration, no new class names (so undefined-css/off-token/theme-locked gates unaffected); `audit_template_render_safety` clean.
+
+## 2026-09-02 — `rmc-copilot-rail.css` retired
+
+`static/css/rmc-copilot-rail.css` was loaded by **no** shell and by no bundle. It
+defined 18 selectors:
+
+* **15** were used only by `templates/studio_os/partials/cockpit_copilot_rail.html`,
+  whose sole `{% include %}` sat inside the retired v3.53 Mission Cockpit block in
+  `studio_os/shell.html` — unreachable on purpose. That partial is retired with the
+  stylesheet; the other two partials in that block keep their CSS and are untouched.
+* **2** (`__insight`, `__insight--empty`) are also defined in `rmc-cp-200x.css`.
+* **1**, `.rmc-copilot-rail__insights-list`, had a LIVE consumer —
+  `templates/partials/cockpit/_ai_copilot_rail.html`, which renders on `portal_base`
+  and `control_plane_skeleton`. It moved to `rmc-cp-200x.css`, which reaches both
+  (bundled for the portal shell, linked directly on the control plane). Until then
+  that rule reached nobody, so the insight items lost their 6px flex gap on both
+  shells — the list already carries Bootstrap `list-unstyled mb-0`, so the symptom
+  was spacing, not bullets.
+
+`scripts/verify_copilot_rail_contract.py` asserted `"rmc-copilot-rail.css" in
+studio_os/shell.html` and had been red for months. It now asserts the surviving
+contract: every shell that actually RENDERS the live rail partial must be delivered
+that rule, resolved through `scripts/shell_css_contract.py` so a bundle counts and an
+`{% if False %}` does not.

@@ -21,12 +21,17 @@ from django.test import SimpleTestCase
 from apps.setup_studio import wizard_categories, wizard_engine
 from apps.setup_studio.wizard_analytics import build_wizard_search_index
 from apps.setup_studio.wizard_labels import humanize_wizard_token
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
 
 # tests/ -> setup_studio/ -> apps/ -> <repo root: school-management-system/>
 _HERE = Path(__file__).resolve()
 _REPO_ROOT = _HERE.parents[3]
 _APP_ROOT = _REPO_ROOT / "apps" / "setup_studio"
 _TEMPLATES = _REPO_ROOT / "templates" / "setup_studio"
+
+_TENANT_WIZARD_INDEX = _TEMPLATES / "tenant_wizard_index.html"
+_OPERATOR_WIZARD_INDEX = _TEMPLATES / "operator_wizard_index.html"
+_TENANT_WIZARD = _TEMPLATES / "tenant_wizard.html"
 
 
 class CompletionBannerHumanizationTests(SimpleTestCase):
@@ -41,6 +46,13 @@ class CompletionBannerHumanizationTests(SimpleTestCase):
         self.assertIn(
             "just_completed_wizard_key|humanize_wizard_token",
             tpl,
+        )
+        # Both of those are template CODE -- a {% blocktrans with %} argument and
+        # a filter expression -- so no parse and no render can see either and the
+        # reads stay. What a read cannot tell is whether the banner is still on
+        # the page at all, so assert the banner element is really EMITTED.
+        assert_markup(
+            self, _TENANT_WIZARD_INDEX, "rmc-wizard-completion-banner__title"
         )
 
     def test_view_passes_label_not_raw_key_to_banner(self):
@@ -395,17 +407,20 @@ class BespokeIndexSurfaceTests(SimpleTestCase):
 
     def test_tenant_index_uses_lifecycle_stages_and_status_cards(self):
         tpl = (_TEMPLATES / "tenant_wizard_index.html").read_text(encoding="utf-8")
-        self.assertIn("rmc-wz-stages", tpl)
-        self.assertIn("rmc-wz-hero", tpl)
+        # These three carry a {{ variable }} or a {% static %} argument, so none of
+        # them is emitted text and only the source read can see them.
         self.assertIn('data-rmc-wz-status="{{ card.status }}"', tpl)
         self.assertIn("rmc-wizard-engine.css", tpl)
         # Inline progress is a plain CSS custom-property number (token-gate safe).
         self.assertIn("--rmc-wz-pct:{{ stage.progress.pct }}", tpl)
+        # The two grammar hooks ARE plain markup: ask the engine if they are emitted.
+        assert_markup(self, _TENANT_WIZARD_INDEX, "rmc-wz-stages", "rmc-wz-hero")
 
     def test_operator_index_also_adopts_the_bespoke_grammar(self):
         tpl = (_TEMPLATES / "operator_wizard_index.html").read_text(encoding="utf-8")
-        self.assertIn("rmc-wz-stages", tpl)
+        # The stylesheet is a {% static %} argument, invisible to a parse.
         self.assertIn("rmc-wizard-engine.css", tpl)
+        assert_markup(self, _OPERATOR_WIZARD_INDEX, "rmc-wz-stages", "rmc-wz-hero")
 
     def test_engine_stylesheet_defines_the_namespace(self):
         css = (
@@ -421,21 +436,46 @@ class BespokeIndexSurfaceTests(SimpleTestCase):
         tpl = (_TEMPLATES / "tenant_wizard_index.html").read_text(encoding="utf-8")
         self.assertIn("{% block extrastyle %}", tpl)
         self.assertNotIn("{% block extra_head %}", tpl)
+        # A block NAME is template code, so those two stay reads. But extrastyle
+        # is portal_base's block: stop extending portal_base and the block goes
+        # inert with the source unchanged -- and a parse CAN see an {% extends %}.
+        assert_wires(self, _TENANT_WIZARD_INDEX, "portal_base.html")
 
     def test_step_run_template_also_uses_the_real_css_block(self):
         tpl = (_TEMPLATES / "tenant_wizard.html").read_text(encoding="utf-8")
         self.assertIn("{% block extrastyle %}", tpl)
         self.assertNotIn("{% block extra_head %}", tpl)
+        assert_wires(self, _TENANT_WIZARD, "portal_base.html")
 
 
-class OffcanvasDoublingGuardTests(SimpleTestCase):
-    def test_mobile_offcanvas_is_hidden_on_large_screens(self):
-        portal_base = (
-            _REPO_ROOT / "templates" / "portal_base.html"
-        ).read_text(encoding="utf-8")
-        # The offcanvas sidebar carries d-lg-none so it cannot render inline
-        # under the desktop sidebar (the "doubled nav" artifact).
+# --------------------------------------------------------------------------
+# Rendered-output replacements (2026-09-01).
+#
+# scripts/verify_test_asserts_behaviour.py measured the source checks these
+# replace as VACUOUS: each still passed with the template it named made to
+# render nothing, while every string it asserts stayed in the file's bytes.
+#
+# They are TestCase, not SimpleTestCase, and that is not an oversight. The
+# shells query the database while rendering (a context processor does), so a
+# SimpleTestCase raises DatabaseOperationForbidden -- measured, not assumed.
+# The consequence is deliberate and worth knowing: the harness only measures
+# DB-free tests, so a test fixed this way leaves its scope rather than
+# flipping to SOUND inside it.
+# --------------------------------------------------------------------------
+
+from django.test import TestCase  # noqa: E402
+
+from apps.siteconfig.tests._shell_render import (  # noqa: E402
+    TENANT_URLCONF,
+    render_shell,
+)
+
+
+class OffcanvasRendersHiddenOnDesktopTests(TestCase):
+    def test_the_offcanvas_sidebar_carries_d_lg_none_on_the_page(self):
+        # Without d-lg-none the offcanvas renders inline under the desktop
+        # sidebar -- the "doubled nav" artifact.
         self.assertIn(
             'class="offcanvas offcanvas-start d-lg-none"',
-            portal_base,
+            render_shell("portal_base.html", urlconf=TENANT_URLCONF, host_kind="tenant"),
         )

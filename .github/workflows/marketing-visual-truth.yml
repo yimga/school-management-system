@@ -54,9 +54,14 @@ jobs:
         run: node node_modules/playwright/cli.js install --with-deps chromium
 
       - name: Migrate and seed admin
+        # `|| true` on the seed step let the visual-truth Playwright run
+        # below start with no admin account. ensure_superuser is
+        # idempotent, so the mask never covered a re-run -- only a real
+        # failure, which would have surfaced as confusing login errors
+        # inside the browser lane instead of here.
         run: |
           python manage.py migrate --noinput
-          python manage.py ensure_superuser --password VisualQaPass123! --no-input || true
+          python manage.py ensure_superuser --password VisualQaPass123! --no-input
 
       - name: Axe CI readiness
         run: python scripts/verify_marketing_axe_ci_ready.py

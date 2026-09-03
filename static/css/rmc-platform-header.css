@@ -6,6 +6,18 @@
 :root {
   --rmc-brand-navy: #002147;
   --rmc-brand-gold: #d4af37;
+  /* Gold that is legible as TEXT on a light surface. Same hue (45.9deg) and
+     saturation (64.6%) as --rmc-brand-gold; lightness 52.4% -> 30%. Measured
+     WCAG 2.1 contrast: 5.11:1 on the marketing cream #FAF7F2, 5.46:1 on
+     #FFFFFF, 4.69:1 on #F2EDE4 -- AA (4.5:1) on every light marketing
+     surface. --rmc-brand-gold itself is 1.97:1 on that cream, below even the
+     3:1 large-text floor, so it can only be used on dark chrome (8.48:1 on the
+     marketing dark #1A1715, 7.63:1 on --rmc-brand-navy). */
+  --rmc-brand-gold-ink: #7e671b;
+  /* Surface-resolved gold for wordmark TEXT. Dark chrome (templates/base.html
+     .navbar-dark, .cp-navbar) is the historic default, so this resolves to the
+     bright gold; light surfaces re-point it below. */
+  --rmc-brand-gold-text: var(--rmc-brand-gold);
   --rmc-manager-header-height: calc(64px * 1.1); /* v4.01.43 +10% platform header band */
   --rmc-platform-header-pad-x: 1.25rem;
   --rmc-header-control-height: 2.375rem;
@@ -381,8 +393,22 @@
   color: var(--rmc-brand-navy, #002147);
 }
 
+/* The editorial marketing surface paints on cream, where the bright gold
+   fails contrast; resolve gold text to the ink variant there. Dark marketing
+   (data-resolved-theme="dark", body #1A1715) goes back to the bright gold.
+   [data-mkt-edition] sits on BOTH <html> and <body>, so the dark override has
+   to name both to beat the body-level declaration. */
+[data-mkt-edition] {
+  --rmc-brand-gold-text: var(--rmc-brand-gold-ink);
+}
+
+html[data-resolved-theme="dark"][data-mkt-edition],
+html[data-resolved-theme="dark"] [data-mkt-edition] {
+  --rmc-brand-gold-text: var(--rmc-brand-gold);
+}
+
 .rmc-brand-word--gold {
-  color: var(--rmc-brand-gold, #d4af37);
+  color: var(--rmc-brand-gold-text, var(--rmc-brand-gold, #d4af37));
 }
 
 .cp-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy,
@@ -407,7 +433,7 @@
 }
 
 .mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--gold {
-  color: var(--rmc-brand-gold);
+  color: var(--rmc-brand-gold-text);
 }
 
 html[data-resolved-theme="dark"] .mkt-navbar .rmc-brand-mark__title--platform .rmc-brand-word--navy {

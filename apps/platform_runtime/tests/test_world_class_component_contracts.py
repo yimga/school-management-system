@@ -3,9 +3,13 @@ from pathlib import Path
 from django.template.loader import get_template
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 ROOT = Path(__file__).resolve().parents[3]
 COMPONENTS = ROOT / "templates" / "components"
+GUIDED_STEPPER = COMPONENTS / "world_class_guided_stepper.html"
+CANONICAL_EMPTY_STATE = COMPONENTS / "rmc_empty_state.html"
 
 
 class WorldClassComponentContractTests(SimpleTestCase):
@@ -34,6 +38,23 @@ class WorldClassComponentContractTests(SimpleTestCase):
         # (primary_url/secondary_url asserted by apps/siteconfig test_empty_intelligence).
         hero = (COMPONENTS / "world_class_page_hero.html").read_text(encoding="utf-8")
         action_rail = (COMPONENTS / "world_class_action_rail.html").read_text(encoding="utf-8")
+        # The two slot markers are attributes that must be on the emitted
+        # elements -- a slot that exists only in the file holds nothing.
+        assert_markup(
+            self,
+            COMPONENTS / "world_class_page_hero.html",
+            "data-world-class-primary-action-slot",
+        )
+        assert_markup(
+            self,
+            COMPONENTS / "world_class_action_rail.html",
+            "data-world-class-primary-action-slot",
+        )
+        # primary_url / secondary_url are CONTEXT VARIABLE names, which no parse
+        # and no render can see, so those two stay reads. The claim the engine
+        # can settle on the canonical empty state is that it still emits the
+        # actions row those variables fill.
+        assert_markup(self, CANONICAL_EMPTY_STATE, "rmc-empty__actions")
         self.assertIn("data-world-class-primary-action-slot", hero)
         self.assertIn("data-world-class-primary-action-slot", action_rail)
         canonical = (COMPONENTS / "rmc_empty_state.html").read_text(encoding="utf-8")
@@ -53,6 +74,12 @@ class WorldClassComponentContractTests(SimpleTestCase):
         hero = (COMPONENTS / "world_class_page_hero.html").read_text(encoding="utf-8")
         stepper = (COMPONENTS / "world_class_guided_stepper.html").read_text(encoding="utf-8")
         meter = (COMPONENTS / "world_class_readiness_meter.html").read_text(encoding="utf-8")
+        # An accessible name only helps if it is actually on the element, so
+        # the three template halves go through the engine; the two CSS needles
+        # below stay file reads, since a stylesheet has no template to parse.
+        assert_markup(self, COMPONENTS / "world_class_page_hero.html", "aria-labelledby")
+        assert_markup(self, GUIDED_STEPPER, "aria-label")
+        assert_markup(self, COMPONENTS / "world_class_readiness_meter.html", 'role="meter"')
         self.assertIn("aria-labelledby", hero)
         self.assertIn("aria-label", stepper)
         self.assertIn('role="meter"', meter)

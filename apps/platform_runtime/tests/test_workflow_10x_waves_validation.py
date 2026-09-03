@@ -8,7 +8,12 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
+
+TOOLS_TRAY_STACK = REPO_ROOT / "templates/partials/rmc_tools_tray_context_stack.html"
+CP_SKELETON = REPO_ROOT / "templates/control_plane_skeleton.html"
 
 WAVE10X_URLS = (
     "platform_runtime:workflow_progress_flight_deck",
@@ -82,13 +87,32 @@ class Workflow10xWaveShellTests(SimpleTestCase):
         # portal_base. Assert it ships in that stack.
         stack = (REPO_ROOT / "templates/partials/rmc_tools_tray_context_stack.html").read_text(encoding="utf-8")
         self.assertIn("rmc_workflow_tenant_trust_strip.html", stack)
+        # Ask the ENGINE, not the bytes: the stack must really {% include %} the
+        # strip. This is the template the vacuity harness binds this case to.
+        assert_wires(self, TOOLS_TRAY_STACK, "rmc_workflow_tenant_trust_strip.html")
         backend = (REPO_ROOT / "templates/backend_base.html").read_text(encoding="utf-8")
+        # NOTE (2026-09-01): backend_base.html is 14 lines, and the ONLY
+        # occurrence of this name in it is prose inside a {% comment %} block
+        # (line 12). The assertion below therefore proves nothing today: the file
+        # is already in the state the vacuity harness has to simulate. It is left
+        # exactly as it is on purpose -- whether backend_base should include the
+        # stack, or whether this half should assert the RENDERED shell instead,
+        # is a template/behaviour decision, not a test-soundness one.
         self.assertIn("rmc_tools_tray_context_stack.html", backend)
 
     def test_control_plane_includes_progress_and_copilot(self):
         text = (REPO_ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
+        # Both names are {% static %} ARGUMENTS and the skeleton does not render
+        # standalone, so these two have to stay source reads.
         self.assertIn("rmc-workflow-progress.js", text)
         self.assertIn("rmc-copilot-context-lens.js", text)
+        # What the engine CAN confirm about the skeleton itself: it wires the
+        # copilot rail, and it emits the workflow-progress and copilot hooks that
+        # those two scripts bind to.
+        assert_wires(self, CP_SKELETON, "cockpit/_ai_copilot_rail.html")
+        assert_markup(
+            self, CP_SKELETON, "data-rmc-wfp-autopopup", "rmc-copilot-mobile-fab"
+        )
 
     def test_flight_deck_in_super_operational_frames(self):
         from apps.platform_runtime.super_operational_frames import WORKFLOW_FLIGHT_DECK_NAV

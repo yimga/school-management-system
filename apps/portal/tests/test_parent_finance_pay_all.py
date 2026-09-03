@@ -20,6 +20,7 @@ from apps.academics.models import AcademicYear, Classroom, Department, Specialty
 from apps.finance.models import Invoice, ParentWallet
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.schools.models import School, SchoolMembership
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 
 class ParentFinancePayAllRouteTests(SimpleTestCase):
@@ -42,6 +43,8 @@ class ParentFinancePayAllRouteTests(SimpleTestCase):
 
 
 _TEMPLATES = Path(__file__).resolve().parents[3] / "templates" / "parent"
+_FINANCE = _TEMPLATES / "finance.html"
+_PAY_ALL_CONFIRM = _TEMPLATES / "finance_pay_all_confirm.html"
 
 _LITE_MIDDLEWARE = tuple(
     m
@@ -60,12 +63,21 @@ _SKIP_WINDOWS_SQLITE = unittest.skipIf(
 class ParentFinancePayAllContractTests(SimpleTestCase):
     def test_finance_template_pay_all_hero(self):
         body = (_TEMPLATES / "finance.html").read_text(encoding="utf-8")
+        # The heading is a {% trans %} msgid -- template code, invisible to both a
+        # parse and a render of the file, so it stays a source read.
         self.assertIn("Pay all open balances", body)
-        self.assertIn('data-rmc-pay-all-hero="1"', body)
+        # The hero hook is markup. Reading it cannot tell a rendered hero from one
+        # moved inside {% comment %}, so ask the engine what finance.html EMITS.
+        assert_markup(self, _FINANCE, 'data-rmc-pay-all-hero="1"')
 
     def test_confirm_template_regional_guidance(self):
         body = (_TEMPLATES / "finance_pay_all_confirm.html").read_text(encoding="utf-8")
+        # Also a {% trans %} msgid, so the read stays.
         self.assertIn("Regional payment guidance", body)
+        # data-rmc-regional-payment-hint sits on the very banner that carries that
+        # string, and it IS emitted text -- so this asserts the guidance block is
+        # on the page rather than merely spelled somewhere in the file.
+        assert_markup(self, _PAY_ALL_CONFIRM, 'data-rmc-regional-payment-hint="1"')
 
     @patch("apps.portal.views_parent_finance.transaction.atomic")
     @patch("apps.portal.views_parent_finance.dispatch_payment_received_intent")

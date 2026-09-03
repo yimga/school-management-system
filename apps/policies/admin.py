@@ -45,7 +45,7 @@ class TenantBlueprintAdmin(admin.ModelAdmin):
     raw_id_fields = ("school", "active_bundle", "applied_pack")
 
 
-@admin.register(BlueprintPack)
+@admin.register(BlueprintPack, site=platform_admin_site)
 class BlueprintPackAdmin(admin.ModelAdmin):
     list_display = (
         "slug",

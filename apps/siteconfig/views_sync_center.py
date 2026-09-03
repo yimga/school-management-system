@@ -13,6 +13,7 @@ import logging
 
 from django.http import JsonResponse
 from django.utils.timezone import now as dj_timezone_now
+from django.db import DatabaseError
 
 _logger = logging.getLogger(__name__)
 
@@ -395,6 +396,13 @@ def sync_center_pair_deny(request):
 
 def _pairing_error_message(result: dict) -> str:
     """Say what went wrong in words an administrator can act on."""
+    # Function-local, like every other pairing_service import in this module (the
+    # service pulls in models_pairing at import time).
+    from apps.sync_engine.pairing_service import (
+        ALREADY_PAIRED,
+        BINDING_CHECK_UNAVAILABLE,
+    )
+
     error = result.get("error") or ""
     if error == "unknown_code":
         return _("That pairing code does not match any request. Check the box's screen.")
@@ -411,6 +419,28 @@ def _pairing_error_message(result: dict) -> str:
         )
     if error.startswith("not_pending"):
         return _("That request has already been handled.")
+    # One box per school (G5). `pairing_service.adoption_conflict` refuses with this
+    # code AND ships the sentence that names the release action -- revoke the bound
+    # device in the operator console -- so use it rather than a generic line. Without
+    # this branch the refusal fell through to "could not be updated", which tells an
+    # administrator nothing and is the exact "diagnosis four days late" failure the
+    # pairing flow was built to remove. The fallback is written out in full because a
+    # message the service could not build is precisely when the operator needs one.
+    if error == ALREADY_PAIRED:
+        return result.get("message") or _(
+            "This school already has a paired box, and only ONE box per school is "
+            "supported. Release the existing one first — revoke its device under "
+            "Devices in the operator console — then pair this box."
+        )
+    # Fails CLOSED upstream: the binding could not be read, so pairing was refused
+    # rather than risk a second box. Say that it is safe to retry, or the operator
+    # reads a refusal as a permanent verdict.
+    if error == BINDING_CHECK_UNAVAILABLE:
+        return result.get("message") or _(
+            "The cloud could not check whether this school already has a box, so "
+            "pairing was refused rather than risk binding a second one. This is "
+            "safe to retry."
+        )
     return _("The pairing request could not be updated.")
 
 
@@ -628,7 +658,7 @@ def _stuck_rows_context(school) -> dict:
         from apps.sync_engine.models import dead_letter_summary
 
         summary = dead_letter_summary(school, limit=_STUCK_ROW_LIMIT)
-    except Exception:  # noqa: BLE001 — the work queue must never break the page
+    except (ImportError, DatabaseError, ValueError, TypeError, LookupError):  # the work queue must never break the page
         _logger.debug("stuck-row work-queue context failed", exc_info=True)
         return empty
     return {
@@ -1230,7 +1260,7 @@ def sync_center_status(request):
             "by_reason": stuck["by_reason"],
             "truncated": stuck["truncated"],
         }
-    except Exception:  # noqa: BLE001
+    except (DatabaseError, ValueError, TypeError, LookupError):  # the stuck panel must never break the status endpoint
         pass
 
     return JsonResponse(payload)

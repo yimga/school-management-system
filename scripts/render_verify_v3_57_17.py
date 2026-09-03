@@ -215,7 +215,6 @@ MANAGER_CSS_LINKS = [
     "/static/css/manager-cockpit-v7.css",
     "/static/css/manager-control-plane.css",
     "/static/css/rmc-cp-200x.css",
-    "/static/css/rmc-copilot-rail.css",
     "/static/css/rmc-civic-footer.css",
     "/static/css/rmc-pagination-grammar.css",
 ]

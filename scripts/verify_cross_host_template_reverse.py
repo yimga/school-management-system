@@ -74,7 +74,9 @@ _HOST_GUARD_TOKENS = (
     "control_plane_shell",
 )
 
-_URL_RE = re.compile(r"""\{%\s*url\s+["']([a-zA-Z_][\w]*):([^"']+)["']([^%]*)%\}""")
+# Matches BOTH ``{% url 'ns:name' %}`` and ``{% url 'bare_name' %}``. The bare form
+# was invisible to this gate until 2026-08-31 -- see _flat_names above.
+_URL_RE = re.compile(r"""\{%\s*url\s+["'](\w[\w.\-]*(?::\w[\w.\-]*)*)["']([^%]*)%\}""")
 _TAG_RE = re.compile(r"\{%\s*(if|elif|else|endif)\b([^%]*)%\}", re.IGNORECASE)
 _CHILD_RE = re.compile(r"""\{%\s*(?:extends|include)\s+["']([^"']+\.html?)["']""")
 
@@ -83,11 +85,44 @@ _MAX_TEMPLATE_DEPTH = 12
 
 
 def _flat_namespaces(resolver) -> set[str]:
-    out: set[str] = set()
+    """Every namespace ``reverse()`` can actually resolve on this urlconf.
+
+    Both kinds count. ``namespace_dict`` holds INSTANCE namespaces; ``app_dict``
+    holds APPLICATION namespaces, and ``django.urls.reverse`` resolves an app
+    namespace to one of its instances (``reverse("admin:index")`` works even though
+    the tenant admin is mounted under the instance namespace ``tenant_admin``).
+    Reading only ``namespace_dict`` reported ``admin:*`` as missing from
+    ``config.tenant_urls``, where ``reverse("admin:index", urlconf=...)`` returns
+    ``/admin/`` --- three false findings that made the real ones easy to dismiss.
+    """
+    out: set[str] = set(getattr(resolver, "app_dict", {}))
     for ns, entry in getattr(resolver, "namespace_dict", {}).items():
         out.add(ns)
         sub = entry[1]
         out |= _flat_namespaces(sub)
+    return out
+
+
+def _flat_names(resolver) -> set[str]:
+    """Fully-qualified view names reversible on this urlconf.
+
+    Needed for the NAMESPACE-LESS half of this gate: ``{% url 'manager_help_center' %}``
+    carries no namespace at all, so the namespace test above can never see it, and
+    ``manager_help_center`` is mounted ONLY in ``config.manager_urls``. That exact tag
+    sat in ``accounts/partials/operator_documentation_body.html`` --- a body the
+    control-plane shell also renders on a ``local`` host (``config.urls``) --- and
+    turned ``/authentication/documentation/`` into a 500 there.
+    """
+    out: set[str] = set()
+
+    def descend(node, prefix: str = "") -> None:
+        for key in getattr(node, "reverse_dict", {}):
+            if isinstance(key, str):
+                out.add(prefix + key)
+        for ns, entry in getattr(node, "namespace_dict", {}).items():
+            descend(entry[1], prefix + ns + ":")
+
+    descend(resolver)
     return out
 
 
@@ -126,6 +161,43 @@ def _cbv_template_names(resolver) -> set[str]:
 # whose source can't be read is skipped (never a false finding).
 _FV_RENDER_TEMPLATE_ARG = {"render": 1, "TemplateResponse": 1}
 _FV_TEMPLATE_KWARGS = {"template_name", "template"}
+
+# Shell-dispatch keywords. RunMyCampus does not render most operator pages with a
+# literal render() -- the view names its BODY partial and hands it to a shell
+# helper (render_account_page / render_siteconfig_operator_page /
+# render_kb_if_operator), which then does
+# ``{% include operator_cp_body_template %}`` -- a VARIABLE include no template
+# walk can follow. Every such body was therefore invisible to this gate, and one
+# of them (accounts/partials/operator_documentation_body.html) carried a bare
+# {% url 'manager_help_center' %}: a 500 on every local/dev host, since
+# use_control_plane_shell() returns True for public_host_kind "local" too.
+#
+# A literal keyword in the view's OWN source is an exact view->template binding,
+# exactly like a CBV ``template_name``, so these are graded on the STRICT tier.
+#
+# Which HOSTS a body renders on is a property of the helper's own gate, not of
+# where the view is mounted, so it is DECLARED here per callee (same reasoning as
+# audit_shell_url_namespace_contract.SHELL_HOSTS) and then INTERSECTED with the
+# urlconfs that actually mount the view. A helper nobody classified is not
+# assumed -- it is skipped, so this can only ever be false-negative.
+_SHELL_BODY_KWARGS = {"body_template", "operator_body_template", "manager_body_template"}
+
+#: callee name -> urlconfs its body partial can render under.
+#: ``None`` means "no host gate at all -- wherever the view is mounted".
+_SHELL_BODY_CALLEES: dict[str, tuple[str, ...] | None] = {
+    # Gate: apps.schools.control_plane.use_control_plane_shell(request), which is
+    # True for public_host_kind in ("manager", "local") -- and a "local" host is
+    # routed to config.urls by UrlConfSwitcherMiddleware. That second host is the
+    # one everybody forgets, and it is where the documentation body 500'd.
+    "render_account_page": ("config.manager_urls", "config.urls"),
+    "render_siteconfig_operator_page": ("config.manager_urls", "config.urls"),
+    # Gate: apps.portal.kb_context.is_operator_help_request(request), which is
+    # ``request.urlconf == "config.manager_urls"`` -- manager host ONLY.
+    "render_kb_if_operator": ("config.manager_urls",),
+    "render_operator_kb_page": ("config.manager_urls",),
+    # No host gate: renders on whatever urlconf mounts the view.
+    "render_manager_report_page": None,
+}
 
 
 def _call_func_name(call: ast.Call) -> str | None:
@@ -183,8 +255,35 @@ def _fv_rendered_templates(source: str) -> set[str]:
     return out
 
 
-def _function_view_template_names(resolver) -> set[str]:
+def _shell_body_templates(source: str) -> dict[str, tuple[str, ...] | None]:
+    """{body template -> declared hosts} for classified shell-helper calls."""
+    out: dict[str, tuple[str, ...] | None] = {}
+    try:
+        tree = ast.parse(textwrap.dedent(source))
+    except (SyntaxError, ValueError):
+        return out
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        callee = _call_func_name(node)
+        if callee not in _SHELL_BODY_CALLEES:
+            continue
+        declared = _SHELL_BODY_CALLEES[callee]
+        for kw in node.keywords:
+            if kw.arg not in _SHELL_BODY_KWARGS:
+                continue
+            val = _str_literal(kw.value)
+            if val and _looks_like_template(val):
+                out[val] = declared
+    return out
+
+
+def _function_view_template_names(
+    resolver,
+) -> tuple[set[str], dict[str, tuple[str, ...] | None]]:
+    """(loose render() literals, strict shell-body kwargs -> declared hosts)."""
     out: set[str] = set()
+    shell: dict[str, tuple[str, ...] | None] = {}
     seen: set[int] = set()
     for cb in _walk_callbacks(resolver):
         if getattr(cb, "view_class", None) is not None:
@@ -197,7 +296,8 @@ def _function_view_template_names(resolver) -> set[str]:
         except (OSError, TypeError, ValueError):
             continue  # C funcs, dynamically-built views, unreadable source
         out |= _fv_rendered_templates(source)
-    return out
+        shell.update(_shell_body_templates(source))
+    return out, shell
 
 
 def _is_finding(is_cbv: bool, missing_on: set[str], hosts: set[str]) -> bool:
@@ -230,7 +330,12 @@ def _has_marker(lines: list[str], lineno: int) -> bool:
 
 
 def _unguarded_ns_refs(text: str) -> list[tuple[int, str, str]]:
-    """Return (lineno, namespace, name) for each UNGUARDED namespaced url ref."""
+    """Return (lineno, namespace, name) for each UNGUARDED url ref.
+
+    ``namespace`` is "" for a namespace-less name
+    (``{% url 'manager_help_center' %}``); the caller then tests the NAME against
+    the host's reversible-name set instead of testing the namespace.
+    """
     lines = text.splitlines()
     events = []
     for m in _TAG_RE.finditer(text):
@@ -239,9 +344,14 @@ def _unguarded_ns_refs(text: str) -> list[tuple[int, str, str]]:
         # `{% url 'ns:name' as var %}` cannot raise - URLNode re-raises only when
         # asvar is None; otherwise it sets the var to "". Flagging it would
         # penalise the very idiom this gate wants authors to adopt.
-        if re.search(r"\bas\s+\w+\s*$", m.group(3).strip()):
+        if re.search(r"\bas\s+\w+\s*$", m.group(2).strip()):
             continue
-        events.append((m.start(), "ref", m.group(1), m.group(2)))
+        view_name = m.group(1)
+        namespace, _, rest = view_name.partition(":")
+        if rest:
+            events.append((m.start(), "ref", namespace, rest))
+        else:
+            events.append((m.start(), "ref", "", view_name))
     events.sort(key=lambda e: e[0])
 
     stack: list[bool] = []  # each frame: is it host-guarded?
@@ -353,16 +463,21 @@ def _propagate_hosts(host_map: dict[str, set[str]]) -> None:
 
 def scan() -> list[dict]:
     per_host_ns: dict[str, set[str]] = {}
+    per_host_names: dict[str, set[str]] = {}
     per_host_cbv: dict[str, set[str]] = {}
     per_host_fv: dict[str, set[str]] = {}
+    per_host_shell: dict[str, dict[str, tuple[str, ...] | None]] = {}
     for uc in HOST_URLCONFS:
         try:
             resolver = get_resolver(uc)
         except Exception:  # noqa: BLE001 — a missing host urlconf is not this gate's job
             continue
         per_host_ns[uc] = _flat_namespaces(resolver)
+        per_host_names[uc] = _flat_names(resolver)
         per_host_cbv[uc] = _cbv_template_names(resolver)
-        per_host_fv[uc] = _function_view_template_names(resolver)
+        per_host_fv[uc], per_host_shell[uc] = _function_view_template_names(
+            resolver
+        )
 
     # Two INDEPENDENT maps: template -> hosts, by discovery kind. A CBV
     # template_name maps to hosts exactly; function-view discovery is looser. Each
@@ -370,19 +485,32 @@ def scan() -> list[dict]:
     # tier of the roots that actually reach it (see _propagate_hosts).
     cbv_hosts: dict[str, set[str]] = {}
     fv_hosts: dict[str, set[str]] = {}
+    shell_hosts: dict[str, set[str]] = {}
     for uc in per_host_ns:
         for name in per_host_cbv.get(uc, set()):
             cbv_hosts.setdefault(name, set()).add(uc)
         for name in per_host_fv.get(uc, set()):
             fv_hosts.setdefault(name, set()).add(uc)
+        for name, declared in per_host_shell.get(uc, {}).items():
+            # Mounted here, so this host counts -- but only if the helper's own
+            # gate can select this body on it.
+            if declared is None or uc in declared:
+                shell_hosts.setdefault(name, set()).add(uc)
+            else:
+                shell_hosts.setdefault(name, set())
 
-    root_templates = set(cbv_hosts) | set(fv_hosts)
+    root_templates = set(cbv_hosts) | set(fv_hosts) | set(shell_hosts)
     _propagate_hosts(cbv_hosts)
     _propagate_hosts(fv_hosts)
+    _propagate_hosts(shell_hosts)
 
     template_hosts: dict[str, set[str]] = {}
-    for name in set(cbv_hosts) | set(fv_hosts):
-        template_hosts[name] = cbv_hosts.get(name, set()) | fv_hosts.get(name, set())
+    for name in set(cbv_hosts) | set(fv_hosts) | set(shell_hosts):
+        template_hosts[name] = (
+            cbv_hosts.get(name, set())
+            | fv_hosts.get(name, set())
+            | shell_hosts.get(name, set())
+        )
 
     findings: list[dict] = []
     for name, hosts in sorted(template_hosts.items()):
@@ -407,12 +535,24 @@ def scan() -> list[dict]:
         # absent on EVERY host the page renders on: that is a guaranteed 500 wherever
         # it renders (the /help/ class), which verify_url_name_integrity misses
         # because it unions names across all hosts. This keeps the gate zero-FP.
-        strict_hosts = cbv_hosts.get(name, set())
+        strict_hosts = cbv_hosts.get(name, set()) | shell_hosts.get(name, set())
         rel = os.path.relpath(origin, REPO_ROOT).replace(os.sep, "/")
         for lineno, ns, ref_name in _unguarded_ns_refs(text):
-            missing_on = sorted(
-                uc for uc in hosts if ns not in per_host_ns.get(uc, set())
-            )
+            if ns:
+                missing_on = sorted(
+                    uc for uc in hosts if ns not in per_host_ns.get(uc, set())
+                )
+            else:
+                # Namespace-less name: the namespace test above is vacuous, so ask
+                # the only question that means anything -- is the NAME reversible
+                # on this host? manager_help_center is mounted in config.manager_urls
+                # and nowhere else; a bare tag for it in a body the control-plane
+                # shell also renders on a `local` host is a 500 on localhost.
+                missing_on = sorted(
+                    uc
+                    for uc in hosts
+                    if ref_name not in per_host_names.get(uc, set())
+                )
             missing_strict = {uc for uc in strict_hosts if uc in set(missing_on)}
             # Strict: a CBV template_name maps to hosts exactly, so absent on ANY
             # host it renders on is a real conditional 500. Loose: absent on EVERY
@@ -425,15 +565,17 @@ def scan() -> list[dict]:
                     "file": rel,
                     "line": lineno,
                     "template": name,
-                    "reverse": f"{ns}:{ref_name}",
+                    "reverse": f"{ns}:{ref_name}" if ns else ref_name,
                     "renders_on": sorted(hosts),
                     "missing_on": missing_on,
-                    "discovery": "cbv" if is_cbv else "function_view",
+                    "discovery": "exact" if is_cbv else "function_view",
                     "via": "root" if name in root_templates else "include_chain",
                     "reason": (
-                        f"'{ns}' is absent on {missing_on} but this template also "
-                        f"renders there; resolve the URL host-aware in the view "
-                        f"(pass it into context) or add {{# {MARKER}: <reason> #}}"
+                        f"{ns + ':' + ref_name if ns else ref_name} is not reversible "
+                        f"on {missing_on} but this template also renders there; "
+                        f"resolve the URL host-aware in the view (pass it into "
+                        f"context), use the `{{% url '...' as var %}}` form, or add "
+                        f"{{# {MARKER}: <reason> #}}"
                     ),
                 }
             )

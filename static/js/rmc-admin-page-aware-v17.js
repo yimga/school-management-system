@@ -55,8 +55,14 @@
   }
 
   function dedupeSidebar(root) {
-    var nav = root.querySelector("[data-rmc-shell-sidebar]") ||
-      root.querySelector(".rmc-app-shell__sidebar") ||
+    // NOT [data-rmc-shell-sidebar]: that is a shell-ROOT mode flag
+    // ("offcanvas"), set on .rmc-app-shell by _pages/rmc-app-shell.js, so it
+    // names the whole page. Selecting on it made this dedupe walk all 693
+    // anchors on the admin index and hide every catalog tile as a duplicate
+    // of an earlier link -- section headers over empty bodies, and on the
+    // app-index a card title plus its Changelist link (same href) both gone,
+    // while "+ Add" survived because its href differs.
+    var nav = root.querySelector(".rmc-app-shell__sidebar") ||
       root.querySelector("#nav-sidebar") ||
       root.querySelector("[data-rmc-sidebar]");
     if (!nav) return;
@@ -68,7 +74,11 @@
         key = (url.pathname.replace(/\/+$/, "") || "/") + url.search;
       } catch (ignore) { key = link.href; }
       if (!key || !seen[key]) { seen[key] = true; return; }
-      var item = link.closest("li") || link;
+      // Only ever hide a real nav ITEM. The old `|| link` fallback hid the
+      // ANCHOR when it had no list ancestor, which is every content link on
+      // the page -- a dedupe for a nav list must not touch main content.
+      var item = link.closest("li");
+      if (!item || !nav.contains(item)) return;
       item.hidden = true;
       item.dataset.rmcDuplicateNav = "1";
     });

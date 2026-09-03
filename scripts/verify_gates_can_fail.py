@@ -122,19 +122,53 @@ class Workspace:
         self.keep = keep
         self._created = False
 
+    @staticmethod
+    def _head(path: Path) -> str:
+        """The commit a checkout is actually on, or "" if it cannot be read."""
+        proc = subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+        )
+        return proc.stdout.strip() if proc.returncode == 0 else ""
+
     def __enter__(self) -> "Workspace":
         if self.path.exists() and (self.path / "manage.py").exists():
-            # Reuse: cheaper than a 20s checkout, but only once it is provably
-            # back at HEAD. A leftover mutation from a killed run would
-            # otherwise be read as a real defect by the next gate along.
+            # Reuse is cheaper than a 20s checkout, but only to the commit
+            # THIS repo is on. A bare ``git reset --hard`` resets to the
+            # WORKTREE's own HEAD, and a scratch worktree left behind by a
+            # killed run is still detached at the commit it was made for --
+            # so the next gate measured the PREVIOUS commit and printed a
+            # clean number for a tree that did not contain the change under
+            # test. Measured: a run reported 0 findings against a HEAD it
+            # had never checked out. Reset to an explicit sha, then prove it
+            # took; anything else falls through to a fresh checkout.
+            wanted = self._head(ROOT)
+            if wanted:
+                subprocess.run(
+                    [
+                        "git",
+                        "-C",
+                        str(self.path),
+                        "reset",
+                        "--hard",
+                        "--quiet",
+                        wanted,
+                    ],
+                    capture_output=True,
+                )
+                subprocess.run(
+                    ["git", "-C", str(self.path), "clean", "-fdq"],
+                    capture_output=True,
+                )
+                if self._head(self.path) == wanted:
+                    return self
+            # Could not read a sha, or the reset did not take. Rebuilding is
+            # slow; measuring the wrong commit is wrong.
             subprocess.run(
-                ["git", "-C", str(self.path), "reset", "--hard", "--quiet"],
+                ["git", "-C", str(ROOT), "worktree", "remove", "--force", str(self.path)],
                 capture_output=True,
             )
-            subprocess.run(
-                ["git", "-C", str(self.path), "clean", "-fdq"], capture_output=True
-            )
-            return self
         if self.path.exists():
             shutil.rmtree(self.path, ignore_errors=True)
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -157,7 +191,9 @@ class Workspace:
         return self
 
     def __exit__(self, *exc: object) -> None:
-        if self.keep or not self._created:
+        # A REUSED worktree is torn down too. Leaving it is what let a stale
+        # one survive from run to run in the first place.
+        if self.keep:
             return
         subprocess.run(
             ["git", "-C", str(ROOT), "worktree", "remove", "--force", str(self.path)],
@@ -496,6 +532,21 @@ MUTATIONS.update({
             b"    pass\n"
         ),
     ),
+    "rls-bypass": Mutation(
+        kind="create",
+        path=f"apps/schools/{_PROOF}_rls_bypass.py",
+        defect=(
+            "a raw cursor.execute() outside set_rls_school_id() - it reads past the "
+            "row policies that ARE the isolation mechanism on a single-schema edge box"
+        ),
+        content=(
+            b"from django.db import connection\n\n\n"
+            b"def gateproof_unscoped_read():\n"
+            b"    with connection.cursor() as cursor:\n"
+            b'        cursor.execute("SELECT id FROM people_student")\n'
+            b"        return cursor.fetchall()\n"
+        ),
+    ),
     # -- wiring / pipeline contracts -------------------------------------------
     "ota-pipeline-wiring": Mutation(
         kind="patch",
@@ -508,13 +559,6 @@ MUTATIONS.update({
         kind="delete",
         path="templates/portal_base.html",
         defect="the tenant shell the nav projector is wired into is gone",
-    ),
-    "tier1-academic-people-platform-contract": Mutation(
-        kind="patch",
-        path="apps/migration_cloud/landers/academics_lander.py",
-        defect="Subject.category import mapping removed — categories silently stop landing",
-        anchor=b"_resolve_subject_category",
-        replacement=b"_resolve_subject_category_removed",
     ),
     "control-plane-registry-drift": Mutation(
         kind="create",
@@ -712,6 +756,20 @@ MUTATIONS.update({
     ),
 })
 
+MUTATIONS["i18n-catalog-fresh-fast"] = Mutation(
+    kind="create",
+    path=f"templates/{_PROOF}_i18n_drift.html",
+    defect=(
+        "a translatable string wrapped in a template but never extracted into "
+        "locale/en/LC_MESSAGES/django.po - every locale renders it in English "
+        "and no translator is ever asked for it"
+    ),
+    content=(
+        b"{% load i18n %}"
+        b"<span>{% trans 'gateproof planted i18n drift 2026-08-31' %}</span>"
+    ),
+)
+
 MUTATIONS["gates-can-fail-coverage"] = Mutation(
     kind="patch",
     path="scripts/pre_push_boundary_check.py",
@@ -721,6 +779,148 @@ MUTATIONS["gates-can-fail-coverage"] = Mutation(
         b'GATES: list[tuple[str, list[str]]] = ['
         + chr(10).encode()
         + b'    ("gateproof-unproven-newcomer", ["verify_python_files_parse.py"]),'
+    ),
+)
+
+MUTATIONS["marketing-axe-ratchet-coverage"] = Mutation(
+    kind="patch",
+    path="scripts/run_marketing_axe_sweep.mjs",
+    defect=(
+        "a page quietly dropped from the axe sweep's PAGES list - the sweep "
+        "then reports the marketing surface CLEAN for the same reason a broken "
+        "detector does, and in CI the two are indistinguishable. This is not "
+        "hypothetical: the sweep was built against one spec's 15-path list and "
+        "reported zero while /platform/analytics/ and /platform/security/ were "
+        "failing color-contrast at 1.08:1 on both viewports"
+    ),
+    anchor=b'"/platform/security/",',
+    replacement=b"// gateproof: page removed from the sweep",
+)
+
+MUTATIONS["ci-shell-command-integrity"] = Mutation(
+    kind="create",
+    path=f"scripts/{_PROOF}_truncated.sh",
+    defect=(
+        "a backslash continuation followed by a blank line - the shell joins the "
+        "backslash with the EMPTY line, so the command ends there and every "
+        "remaining argument is parsed as its own command"
+    ),
+    # Trips both arms at once: the truncation, and the bare `manage.py test`
+    # the truncation leaves behind.
+    #
+    # ONE backslash byte, written as `\\` in a bytes literal. Two would be an
+    # ESCAPED backslash to the shell -- a literal character, not a line
+    # continuation -- so the planted file would carry no defect and the harness
+    # would report this gate DEAD when it is working perfectly.
+    content=(
+        b"#!/bin/sh" + chr(10).encode()
+        + b"python manage.py test \\" + chr(10).encode()
+        + chr(10).encode()
+        + b"    apps.schools.tests.test_gateproof" + chr(10).encode()
+    ),
+)
+
+MUTATIONS["test-host-fidelity"] = Mutation(
+    kind="create",
+    path=f"apps/schools/tests/{_PROOF}_host_fidelity.py",
+    defect=(
+        "a test that names config.tenant_urls and then issues a request with no "
+        "Host header - so it is served by config.urls, the DEVELOPER urlconf, which "
+        "mounts a superset of every tenant route; the test passes, request.school is "
+        "None, and a route deleted from the tenant urlconf stays green here while "
+        "every real school 404s"
+    ),
+    # The plant must use the shape the scanner cannot forgive: a host urlconf on the
+    # decorator, a real client request inside the decorated scope, and NO host
+    # anywhere in it. Deliberately not `reverse(urlconf=...)` and not a request
+    # carrying HTTP_HOST -- both are correct as written and are exactly what the
+    # scanner was taught to leave alone, so a plant using one would leave this gate
+    # looking dead when it is working.
+    content=(
+        b"from django.test import TestCase, override_settings" + chr(10).encode()
+        + chr(10).encode()
+        + chr(10).encode()
+        + b"@override_settings(ROOT_URLCONF=\"config.tenant_urls\")" + chr(10).encode()
+        + b"class PlantedHostFidelityTests(TestCase):" + chr(10).encode()
+        + b"    def test_reaches_the_tenant_surface(self):" + chr(10).encode()
+        + b"        self.client.get(\"/finance/reports/\")" + chr(10).encode()
+    ),
+)
+
+MUTATIONS["workflow-swallowed-exit-codes"] = Mutation(
+    kind="create",
+    path=f".github/workflows/{_PROOF}-swallowed-exit-code.yml",
+    defect=(
+        "a CI step whose LAST command ends in `|| echo` - the shell exits 0 "
+        "whatever the tool found, so the step, and every gate inside it, draws "
+        "a green check on a failure it has already seen. The shape that let "
+        "the help-center browser lane report success on every failure while a "
+        "comment directly above it declared the lane enforcing"
+    ),
+    # A whole workflow file rather than a patch: the gate enumerates with
+    # `git ls-files -- .github/workflows`, which the harness satisfies with
+    # `git add -N`, and a new file cannot go stale the way a byte anchor in
+    # someone else's workflow does.
+    #
+    # The swallow must be the LAST line. The gate deliberately does not flag a
+    # `|| true` that is followed by real work -- a cleanup before an `exit 1`,
+    # a readiness sentinel whose loop enforces -- so a plant that buried the
+    # swallow mid-block would report this gate DEAD while it is working
+    # exactly as designed.
+    content=(
+        b"name: gateproof swallowed exit code" + chr(10).encode()
+        + b"on:" + chr(10).encode()
+        + b"  workflow_dispatch: {}" + chr(10).encode()
+        + b"jobs:" + chr(10).encode()
+        + b"  proof:" + chr(10).encode()
+        + b"    runs-on: ubuntu-latest" + chr(10).encode()
+        + b"    steps:" + chr(10).encode()
+        + b"      - name: A gate that cannot report its own failure"
+        + chr(10).encode()
+        + b"        run: |" + chr(10).encode()
+        + b"          python scripts/some_gate.py "
+        + b'|| echo "skipped - run it locally"' + chr(10).encode()
+    ),
+)
+
+MUTATIONS["dangling-static-reference"] = Mutation(
+    kind="create",
+    path=f"static/css/{_PROOF}_dangling.css",
+    defect=(
+        "a stylesheet that asks for an asset nobody shipped - the storage subclass "
+        "forgives the unresolvable reference by design, so the deploy stays green "
+        "and the icon is simply absent for every user; this is the shape that put a "
+        "bootstrap-icons .woff fallback into production with only .woff2 vendored"
+    ),
+    # A .css file, a real url(), and a target that is neither a data: URI nor a
+    # .map -- the three shapes the scanner was taught NOT to forgive. A plant using
+    # a forgiven one (a url() call inside JavaScript, a nested url(%23n) in an
+    # inline SVG, a missing source map) would leave this gate looking dead when it
+    # is working exactly as designed. url() without quotes is valid CSS.
+    content=(
+        b"@font-face{font-family:GateProof;" + chr(10).encode()
+        + b"src:url(fonts/gateproof-never-shipped.woff2) format(woff2)}" + chr(10).encode()
+    ),
+)
+
+MUTATIONS["tenant-queryset-safety"] = Mutation(
+    kind="create",
+    path=f"apps/schools/{_PROOF}_unscoped_queryset.py",
+    defect=(
+        "a read of a tenant-owned model with no school bound to it - on the "
+        "shared-schema edge that returns every school's invoices, and the page "
+        "renders them without an error anywhere"
+    ),
+    # Invoice carries a school FK, so it is in the scanner's tenant-model set,
+    # and `status=` is a plain non-scoping kwarg. Deliberately NOT pk= or
+    # `__school`: those are the shapes the scanner was taught to forgive, so a
+    # plant using one would leave this gate looking dead when it is working.
+    content=(
+        b"from apps.finance.models import Invoice" + chr(10).encode()
+        + chr(10).encode()
+        + chr(10).encode()
+        + b"def every_tenants_open_invoices():" + chr(10).encode()
+        + b"    return list(Invoice.objects.filter(status=\"OPEN\"))" + chr(10).encode()
     ),
 )
 
@@ -770,6 +970,51 @@ MUTATIONS["edge-rail-coverage"] = Mutation(
     ),
 )
 
+MUTATIONS["lander-write-targets"] = Mutation(
+    kind="patch",
+    path="apps/migration_cloud/landers/write_targets.py",
+    defect=(
+        "the declared write-target table drifts away from what the landers actually "
+        "write - the edge pre-import guard then tells an operator an import is clean "
+        "while it lands rows on a model no rail carries"
+    ),
+    # Deleting a DECLARED model is the drift that matters and the one a reviewer
+    # would not notice: the resolver still finds schoolops.Route in transport_lander,
+    # the table no longer claims it, and the guard stops counting the bus roster as
+    # box-resident. The anchor is one line of a generated table, so it cannot go
+    # stale against someone else's edit the way a prose anchor would.
+    anchor=b'        "schoolops.Route",',
+    replacement=b'        # gate-proof: this line was removed to plant the drift',
+)
+
+MUTATIONS["companion-server-contract"] = Mutation(
+    kind="create",
+    # A sibling source file, not a test: the gate deliberately skips tests/, so a
+    # plant there would prove the opposite of what it looks like it proves.
+    path=f"companion-tauri/src/{_PROOF}_dead_path.ts",
+    defect=(
+        "a companion client calling a server path that resolves on no urlconf -- "
+        "the fetch 404s, the client swallows it, and the feature is simply dead"
+    ),
+    content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
+)
+
+MUTATIONS["theme-dual-plane-shell"] = Mutation(
+    kind="patch",
+    path="static/css/rmc-theme-experience-dual-plane.css",
+    defect=(
+        "the dual-plane stylesheet stops declaring which wave it belongs to, so "
+        "nothing can tell whether the shipped service-worker cache generation "
+        "still covers it and returning browsers keep the pre-wave sheet"
+    ),
+    # The banner FILENAME, not its version: a version anchor goes stale the next
+    # time the sheet is revised, and a mutation that no longer applies is a
+    # standing proof that quietly stops proving anything. The filename can only
+    # change in a rename, which also moves the gate's own MARKER constant.
+    anchor=b"rmc-theme-experience-dual-plane.css",
+    replacement=b"rmc-theme-experience-dual-plane-gateproof.css",
+)
+
 MUTATIONS["admin-autofill-coverage"] = Mutation(
     kind="patch",
     path="apps/siteconfig/admin_smart_initials.py",
@@ -812,6 +1057,7 @@ UNPROVEN: dict[str, str] = {
     "finance-payment-atomicity": "a hand-maintained list of four named mutators; its own docstring says it is not coverage of apps/finance",
     "unscoped-shared-tenant-admin": "needs a SHARED model registered on the tenant admin, which requires the admin registry to be loaded",
     "url-kwarg-contract": "needs a view AND an include(..., kwargs) pointing at it; the defect only exists once both sides are wired",
+    "test-asserts-behaviour": "this harness plants UNCOMMITTED files; the gate measures a git worktree created at HEAD, so a planted test is not in it. Proved by hand instead on 2026-09-01 with a committed vacuous test: the gate reported NEW vacuous test in a changed file and exited 1 -- see the commit that wired it",
 }
 
 

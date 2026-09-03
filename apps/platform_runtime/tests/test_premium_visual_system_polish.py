@@ -5,8 +5,11 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 
 ROOT = Path(__file__).resolve().parents[3]
+PAYMENT_READINESS = ROOT / "templates" / "finance" / "payment_readiness_dashboard.html"
 
 
 class PremiumVisualSystemPolishTests(SimpleTestCase):
@@ -65,6 +68,11 @@ class PremiumVisualSystemPolishTests(SimpleTestCase):
         payment_template = (
             ROOT / "templates" / "finance" / "payment_readiness_dashboard.html"
         ).read_text(encoding="utf-8")
+        # The rail state is printed to the operator inside a <code> element --
+        # that IS the honesty language, and it has to reach the page. The two
+        # lowercase sentences sit inside {% trans %} tags, which a parse cannot
+        # see and this dashboard cannot render standalone, so they stay reads.
+        assert_markup(self, PAYMENT_READINESS, "<code>external_required</code>")
         self.assertIn("external_required", payment_template)
         self.assertIn("missing credentials", payment_template.lower())
         self.assertIn("manual fallback", payment_template.lower())

@@ -10,20 +10,24 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_wires
+
 REPO = Path(__file__).resolve().parents[3]
 
 
 class MarketingGlocalComplianceTests(SimpleTestCase):
     def test_homepage_includes_four_personality_sections(self):
         landing = REPO / "templates" / "schools" / "marketing_landing_v2.html"
-        text = landing.read_text(encoding="utf-8")
-        for partial in (
-            "_sovereign_kernel.html",
-            "_clinical_ledger.html",
-            "_rugged_engine.html",
-            "_fluid_classroom.html",
-        ):
-            self.assertIn(partial, text)
+        # "Includes four personality sections" is four {% include %}s, and a
+        # filename left behind in a comment includes nothing. Ask the parser.
+        assert_wires(
+            self,
+            landing,
+            "marketing/partials/sections/_sovereign_kernel.html",
+            "marketing/partials/sections/_clinical_ledger.html",
+            "marketing/partials/sections/_rugged_engine.html",
+            "marketing/partials/sections/_fluid_classroom.html",
+        )
 
     def test_manifest_homepage_sections(self):
         manifest = json.loads(

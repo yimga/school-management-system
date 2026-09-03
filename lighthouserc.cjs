@@ -52,6 +52,28 @@ module.exports = {
     },
     assert: {
       assertions: {
+        // ACCESSIBILITY, at error level. This config is the one both
+        // lighthouse-ci.yml and lighthouse-ci-local.yml load, and until
+        // 2026-09-01 it asserted only performance and Core Web Vitals -- so
+        // every Lighthouse run CI has ever done was silent about
+        // accessibility, which is the one category Lighthouse is most reliable
+        // about. (lighthouserc.js, a DIFFERENT file, has always carried this
+        // assertion and is loaded by `npm run lighthouse` only.)
+        //
+        // Measured 2026-09-01 with Lighthouse 12.8.2 against a local
+        // runserver, one run per URL, mobile emulation, forced light scheme:
+        //   /marketing/                      100
+        //   /platform/                       100
+        //   /education-operating-system/      96 -> 100 after the
+        //                                    .link-secondary fix in
+        //                                    marketing-accessibility-hardening.css
+        //   /verify/                         100
+        //   /support/                        100
+        //   /authentication/login/           100
+        // 0.95 leaves a single-audit margin without being toothless: the two
+        // authenticated LHCI_AUTO_EXTRAS paths redirect to the login page,
+        // which itself measured 100.
+        "categories:accessibility": ["error", { minScore: 0.95 }],
         "categories:performance": [perfLevel, { minScore: perfMin }],
         // 12-pillar audit P1 — Core Web Vitals "good" thresholds per web.dev.
         // LCP good = 2500ms; the existing 4000/3500 budget stays as the warn

@@ -4666,3 +4666,23 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
 [data-rmc-copilot-rail][data-rmc-copilot-active-tab="context"] .lx-copilot__thread,
 [data-rmc-copilot-rail][data-rmc-copilot-active-tab="context"] .lx-copilot__input-wrap { display: none; }
 
+
+/* Adopted 2026-09-02 from static/css/rmc-copilot-rail.css, which was deleted.
+   That file defined 18 selectors; 15 were used ONLY by
+   templates/studio_os/partials/cockpit_copilot_rail.html, whose sole include
+   sits inside the {% if False %} block at studio_os/shell.html:87 -- the
+   retired v3.53 Mission Cockpit chrome, kept unreachable on purpose. This is
+   the one rule a LIVE template still needs: the insights list in
+   templates/partials/cockpit/_ai_copilot_rail.html, which renders on
+   portal_base and control_plane_skeleton. rmc-cp-200x.css reaches both
+   (bundled into portal-shell-enhanced.min.css for the portal shell, linked
+   directly on the control plane), so the rule is delivered where the file
+   never was -- nothing loaded rmc-copilot-rail.css at all. */
+.rmc-copilot-rail__insights-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

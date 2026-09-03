@@ -14,6 +14,9 @@ from apps.platform_runtime.offline_action_types import (
 )
 from apps.platform_runtime.offline_queue import _apply_migration_cloud_upload
 from apps.schools.models import School
+from apps.siteconfig.tests._template_nodes import assert_markup
+
+UPLOAD_TPL = Path("templates/migration_cloud/connector/upload.html")
 
 
 class MigrationCloudOfflineValidationTests(SimpleTestCase):
@@ -104,6 +107,10 @@ class MigrationCloudOfflineWiringMarkers(SimpleTestCase):
         tpl = Path("templates/migration_cloud/connector/upload.html").read_text(
             encoding="utf-8"
         )
+        # rmc-offline-portal-forms.js finds the form by querying for this
+        # attribute, so it has to be ON the emitted element; the two .js needles
+        # below are file reads because a script has no template to parse.
+        assert_markup(self, UPLOAD_TPL, 'data-rmc-offline-form="migration_cloud_upload"')
         self.assertIn('data-rmc-offline-form="migration_cloud_upload"', tpl)
         js = Path("static/js/rmc-offline-portal-forms.js").read_text(encoding="utf-8")
         self.assertIn("migration_cloud_upload", js)

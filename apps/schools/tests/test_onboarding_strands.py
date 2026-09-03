@@ -15,6 +15,7 @@ from apps.academics.structure_provisioning import (
     provision_academic_structure_for_school,
 )
 from apps.schools.models import School, SchoolProvisioningEvent
+from apps.test_utils.tenant_hosts import HOST_ROUTED_SETTINGS, public_client
 from apps.schools.onboarding_strands import (
     canonicalize_strand_code,
     namespaced_structure_code,
@@ -90,15 +91,23 @@ class SchoolSettingsSeedStrandTests(SimpleTestCase):
         self.assertIn("vocational_trade", loc["curriculum_tracks"])
 
 
+# ROOT_URLCONF makes reverse() produce the public-host path; the HOST is what makes
+# the REQUEST arrive there. UrlConfSwitcherMiddleware reads the Host header, so a
+# hostless request here would be served by config.urls -- the developer urlconf.
 _PUBLIC = dict(
     RATELIMIT_ENABLE=False,
     ROOT_URLCONF="config.public_urls",
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    **HOST_ROUTED_SETTINGS,
 )
 
 
 @override_settings(**_PUBLIC)
 class SignupOperationalStrandCaptureTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = public_client()
+
     def test_signup_persists_strands_prefix_and_rejects_unknown(self):
         resp = self.client.post(
             reverse("signup_school"),
@@ -355,6 +364,10 @@ class PendingProvisionProgressLogApiTests(TestCase):
 
 @override_settings(**_PUBLIC)
 class SignupDecisionsStrandPreviewTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = public_client()
+
     def test_decisions_preview_echoes_canonical_strands_and_drops_unknown(self):
         resp = self.client.get(
             reverse("signup_decisions_preview"),

@@ -25,6 +25,7 @@ from django.template.loader import render_to_string
 from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.schools.models import School
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PORTAL_BASE = os.path.normpath(
@@ -119,10 +120,15 @@ class TenantHeaderSearchWidthPinTests(SimpleTestCase):
     """The header search-width cap must ship in the inline critical pin (stale-cache proof)."""
 
     def test_search_width_cap_present_in_inline_pin(self):
-        with open(_PORTAL_BASE, encoding="utf-8") as fh:
-            src = fh.read()
-        self.assertIn("rmc-tenant-chrome-critical", src)
-        self.assertIn(".topbar-search.header-search-container", src)
-        # Operator-parity cap (rmc-platform-header.css:135/142).
-        self.assertIn("min(36rem,48vw)", src)
-        self.assertIn("40rem", src)
+        # This is an INLINE <style> pin, so every needle is literal text the
+        # shell has to emit into the document -- a width cap that lives only in
+        # the file caps nothing, and the tenant header search grows back.
+        assert_markup(
+            self,
+            _PORTAL_BASE,
+            "rmc-tenant-chrome-critical",
+            ".topbar-search.header-search-container",
+            # Operator-parity cap (rmc-platform-header.css:135/142).
+            "min(36rem,48vw)",
+            "40rem",
+        )

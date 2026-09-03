@@ -7,6 +7,8 @@ from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase, TestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 from apps.portal.tenant_experience_command import build_tenant_experience_command
 from apps.portal.context_processors import tenant_experience_command
 from apps.portal.tenant_role_home import (
@@ -22,6 +24,15 @@ from apps.portal.tenant_role_home import (
 from apps.accounts.models import User
 
 ROOT = Path(__file__).resolve().parents[3]
+
+PORTAL_BASE = ROOT / "templates/portal_base.html"
+HERO_GREETING = ROOT / "templates/partials/tenant/hero_greeting.html"
+COMMAND_STRIP = (
+    ROOT / "templates/partials/tenant/experience_command_strip.html"
+)
+PROFILE_PAGE = ROOT / "templates/accounts/profile.html"
+TEACHER_DASHBOARD = ROOT / "templates/teacher/dashboard.html"
+NEXT_ACTION_STRIP = ROOT / "templates/components/next_action_strip.html"
 
 
 class TenantRoleHomeHelperTests(TestCase):
@@ -212,6 +223,9 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         text = (ROOT / "templates/teacher/dashboard.html").read_text(encoding="utf-8")
         self.assertIn("teacher/_rmc_dh_teacher_home.html", text)
         self.assertIn('extends "portal_base.html"', text)
+        assert_wires(
+            self, TEACHER_DASHBOARD, "_rmc_dh_teacher_home.html", "portal_base.html"
+        )
 
     def test_backend_dashboard_has_hero_and_legacy_gate(self):
         text = (ROOT / "templates/accounts/backend_dashboard.html").read_text(
@@ -235,6 +249,10 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         self.assertIn("rmc-tp-pulse-sheet.js", text)
         self.assertNotIn('class="portal-chathead"', text)
         self.assertIn('include "components/rmc_tenant_header_utilities.html"', text)
+        assert_markup(
+            self, PORTAL_BASE, "data-rmc-tp-v3-role-home", "data-rmc-tp-v3-shell"
+        )
+        assert_wires(self, PORTAL_BASE, "rmc_tenant_header_utilities.html")
 
     def test_tenant_shell_covers_inner_portal_route(self):
         class _Match:
@@ -271,6 +289,7 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
         self.assertIn("tp_mission_strip.html", text)
         self.assertIn("namespace != 'studio_os'", text)
+        assert_wires(self, PORTAL_BASE, "tp_mission_strip.html")
 
     def test_tp_v3_includes_page_explain_strip(self):
         """v3 shells keep the compact page-explain bar (Core vs Context education)."""
@@ -280,12 +299,18 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         idx = text.find("rmc_page_explain_strip.html")
         window = text[max(0, idx - 180) : idx]
         self.assertNotIn("not tp_v3_tenant_shell", window)
+        assert_wires(self, PORTAL_BASE, "rmc_page_explain_strip.html")
 
     def test_tp_v3_suppresses_global_next_action_strip(self):
         text = (ROOT / "templates/components/next_action_strip.html").read_text(
             encoding="utf-8"
         )
         self.assertIn("not tp_v3_tenant_shell", text)
+        # The gate above is template CODE and no render can see it; what
+        # IS checkable is that the strip still emits its own surface.
+        assert_markup(
+            self, NEXT_ACTION_STRIP, 'data-rmc-next-action-strip="1"'
+        )
 
     def test_tp_v3_suppresses_legacy_chrome_bands(self):
         text = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
@@ -310,10 +335,20 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("data-rmc-tenant-experience-command", strip)
         self.assertIn("data-rmc-tenant-toolbelt", strip)
+        # Bound to the STRIP, so the sound assertion has to be about the
+        # strip -- one about hero_greeting would leave this vacuous.
+        assert_wires(self, HERO_GREETING, "experience_command_strip.html")
+        assert_markup(
+            self,
+            COMMAND_STRIP,
+            "data-rmc-tenant-experience-command",
+            "data-rmc-tenant-toolbelt",
+        )
 
     def test_profile_page_wires_tenant_experience_command_strip(self):
         text = (ROOT / "templates/accounts/profile.html").read_text(encoding="utf-8")
         self.assertIn("experience_command_strip.html", text)
+        assert_wires(self, PROFILE_PAGE, "experience_command_strip.html")
 
     def test_mission_strip_lives_in_dashboard_surface_not_header(self):
         portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")

@@ -10,11 +10,21 @@ portal access at the target. The lander now RESOLVES the guardian's user:
    platform identity, so the SAME account is re-linked at the target and the
    parent's portal access (scoped via ``StudentGuardian``) survives the move.
 2. ``email`` — an existing platform user with that email is re-linked.
-3. Provisioning — no matching user but an email is present: a PARENT-role
-   account is created with an UNUSABLE password (activation rides the
-   existing guardian-invite / password-reset flow — the lander never mints a
-   credential).
-4. Neither ref nor email → the row quarantines with a precise reason.
+3. EXACT phone + matching name (Tier 1c dedup) — the same guardian
+   re-appearing for a sibling under an absent/inconsistent email links to the
+   account already carrying that phone, guardrailed by a name-score floor and
+   a single-distinct-match rule so a shared household number never merges two
+   people. School-scoped.
+4. Provisioning — no matching user: a PARENT-role account is created with an
+   UNUSABLE password (activation rides the existing guardian-invite /
+   password-reset flow — the lander never mints a credential). When the row
+   carries no email, a reserved, UNDELIVERABLE ``@unclaimed.invalid`` address
+   is minted from a stable identity seed, so the guardian still reaches the
+   Guardians directory attached to the right student instead of being lost,
+   while remaining unable to log in or receive mail. That seed is resolved
+   before provisioning, so a re-apply or a sibling row reuses the account.
+5. No ref match, no phone match, no email AND no name → nothing identifies
+   the person, so the row quarantines with a precise reason.
 
 Canonical row shape::
 
@@ -43,7 +53,7 @@ import hashlib
 from typing import Any, Iterator
 
 from .base import Lander, LanderContext, LanderError, LanderResult, register
-from ._helpers import record_row_error
+from ._helpers import record_row_error, student_name_from_row
 from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
@@ -292,6 +302,18 @@ def _resolve_or_provision_user(
             f"{(first_name or '').casefold()}|{(last_name or '').casefold()}"
         )
         email = synthetic_unclaimed_email(seed)
+        # The seed is identity-derived (school + phone + name), so the SAME
+        # guardian always mints the SAME address. Resolve that address before
+        # provisioning: without this lookup a re-apply of the same bundle, or a
+        # second SIBLING row for the same guardian, mints a DUPLICATE unclaimed
+        # account (identical email, _free_username merely suffixing the
+        # username) plus a second StudentGuardian link -- the very duplicate
+        # this rung's stable seed exists to prevent. School-safe without a
+        # linkability check: the school pk is IN the seed, so a hit can only be
+        # an account this lander minted for THIS school.
+        existing = User.objects.filter(email__iexact=email).first()
+        if existing is not None:
+            return existing, ""
     if dry_run:
         return None, ""  # would provision — preview counts it as landable
     username = _free_username(User, email)

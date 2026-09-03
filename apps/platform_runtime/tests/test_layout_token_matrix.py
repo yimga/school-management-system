@@ -16,8 +16,12 @@ from apps.platform_runtime.layout_personality_matrix import (
 )
 from apps.platform_runtime.regional_surface_tokens import regional_surface_token
 from apps.platform_runtime.shell_contract import resolve_shell_dataclass
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 REPO = Path(__file__).resolve().parents[3]
+
+SHELL_HTML_ATTRS = REPO / "templates/partials/shell_rmc_registry_html_attrs.html"
+WIZARD_VIEWPORT = REPO / "templates/components/rmc_setup_wizard_viewport.html"
 
 
 class LayoutPersonalityMatrixTests(SimpleTestCase):
@@ -40,16 +44,29 @@ class LayoutPersonalityMatrixTests(SimpleTestCase):
         self.assertIn("Ofsted", out)
 
     def test_shell_html_attrs_include_personality_os(self):
-        partial = (REPO / "templates/partials/shell_rmc_registry_html_attrs.html").read_text(
-            encoding="utf-8"
+        # This partial exists only to EMIT attributes onto <html>. Reading its
+        # bytes cannot tell an emitted attribute from one inside {% comment %},
+        # and a commented-out one puts nothing on the element -- every selector
+        # and every bit of JS keyed to the personality would then miss.
+        assert_markup(
+            self,
+            SHELL_HTML_ATTRS,
+            "data-rmc-personality-os",
+            "data-rmc-iso-viewport-lock",
         )
-        self.assertIn("data-rmc-personality-os", partial)
-        self.assertIn("data-rmc-iso-viewport-lock", partial)
 
     def test_wizard_viewport_component_exists(self):
         path = REPO / "templates/components/rmc_setup_wizard_viewport.html"
         self.assertTrue(path.is_file())
         text = path.read_text(encoding="utf-8")
+        # is_file() only says the component is on disk. Whether it is a viewport
+        # is a question about what it emits, so the engine answers that half.
+        assert_markup(
+            self,
+            WIZARD_VIEWPORT,
+            "data-rmc-wizard-viewport",
+            "viewport-lock",
+        )
         self.assertIn("data-rmc-wizard-viewport", text)
         self.assertIn("viewport-lock", text)
 

@@ -14,7 +14,10 @@ from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 from django.urls import resolve, reverse
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 REPO = Path(settings.BASE_DIR)
+COMMAND_SURFACE = REPO / "templates/partials/tenant/setup_command_surface.html"
 
 
 class ChecklistFragmentEndpointTests(SimpleTestCase):
@@ -79,7 +82,21 @@ class SetupSurfaceWiresDrawerTests(SimpleTestCase):
             REPO / "templates/partials/tenant/setup_command_surface.html"
         ).read_text(encoding="utf-8")
         # Trigger is progressively enhanced but keeps a real href fallback.
+        # The trigger, the dialog it controls and the close affordance are all
+        # markup: rmc-activation-checklist-drawer.js finds them by querying the
+        # DOM, so an attribute that exists only in the file's bytes wires
+        # nothing. The engine answers for those five.
+        assert_markup(
+            self,
+            COMMAND_SURFACE,
+            'data-rmc-checklist-drawer="1"',
+            'aria-controls="rmc-activation-checklist-sheet"',
+            'id="rmc-activation-checklist-sheet"',
+            "rmc-sheet--side-end",
+            "data-rmc-sheet-close",
+        )
         self.assertIn('data-rmc-checklist-drawer="1"', src)
+        # A {% url %} argument -- template code no parse or render can see.
         self.assertIn("siteconfig:onboarding_fragment", src)
         self.assertIn('aria-controls="rmc-activation-checklist-sheet"', src)
         # The rmc-sheet side drawer + close affordance exist.
@@ -94,6 +111,15 @@ class SetupSurfaceWiresDrawerTests(SimpleTestCase):
             REPO / "templates/partials/tenant/setup_command_surface.html"
         ).read_text(encoding="utf-8")
         # Regression guard for cockpit item's real-button fix + no-JS navigation.
+        # The button class and its icon are emitted markup; the href assertion is
+        # about the {{ }} VARIABLE still being the target, which is template code
+        # a parse cannot see, so that one stays a read.
+        assert_markup(
+            self,
+            COMMAND_SURFACE,
+            'class="rmc-setup-surface__all"',
+            "bi-check2-square",
+        )
         self.assertIn('class="rmc-setup-surface__all"', src)
         self.assertIn('href="{{ rmc_setup_checklist_url }}"', src)
         self.assertIn("bi-check2-square", src)

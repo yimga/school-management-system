@@ -40,6 +40,28 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-09-02. Both wizard gates below existed, were correct, and were
+    # invoked by NOTHING -- verify_unified_wizard_framework.py was even named in
+    # this workflow's `paths:` filter, which triggers the job without running the
+    # gate. The spec-coverage one had been reporting 14 registered wizards missing
+    # from the Playwright spec into a log no run ever produced.
+    ("scripts/verify_wizard_playwright_spec_coverage.py", "architectural-boundaries.yml"),
+    ("scripts/verify_unified_wizard_framework.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. The four companion-* siblings are separate programs that
+    # talk to this server over HTTP, and nothing ever checked that the paths they
+    # hardcode exist. A resolve of every literal against all four urlconfs returned
+    # 404 for every one -- including /api/v1/auth/login/, so the shipped desktop app
+    # cannot complete step 1 of its own documented flow. Every client failure is
+    # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
+    # can see it.
+    ("scripts/verify_companion_server_contract.py", "ci.yml"),
+    # Added 2026-08-31. The marketing axe ratchet reports zero for two very
+    # different reasons -- the surface is clean, or the sweep is not looking at
+    # it -- and in CI those are indistinguishable. This coverage gate asserts
+    # the sweep's page list still covers every path the two marketing specs
+    # cover, that its baseline exists and is well-formed, and that a workflow
+    # actually invokes it.
+    ("scripts/verify_marketing_axe_ratchet_coverage.py", "architectural-boundaries.yml"),
     # Added 2026-08-22: a repeated key in a dict literal is silently collapsed by
     # Python -- last value wins, the earlier entry simply is not there. The
     # workflow registry declared parent-portal-pay-all twice and the surviving copy
@@ -48,6 +70,19 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # declared one template twice, and the shadowed entry's markers -- one of which
     # had genuinely regressed out of the template -- were never checked at all.
     ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. The pre-import guard on an edge appliance reads a TABLE of
+    # what each lander writes (it cannot AST-parse 35 modules before every apply, on
+    # a box that may be a Raspberry Pi). A table that stops matching the code turns
+    # the guard into a confident lie: a lander gains a model, the model is on no
+    # rail, and the operator is told the import is clean. This gate re-resolves the
+    # landers and fails on any difference in either direction.
+    ("scripts/audit_lander_write_reachability.py", "ci.yml"),
+    ("scripts/scan_ci_shell_command_integrity.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. A step ending in `|| true` / `|| echo` / carrying
+    # continue-on-error cannot report a failure, so every gate inside it is
+    # decorative. This gate is exactly the kind that gets quietly unwired,
+    # because unwiring it makes nothing go red.
+    ("scripts/scan_workflow_swallowed_exit_codes.py", "architectural-boundaries.yml"),
     ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
     # Added 2026-08-27, detector integrity. These three were each green for a
     # reason unrelated to the tree being clean, which is the worst state a gate
@@ -111,6 +146,18 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # the body had rendered. verify_url_name_integrity was green throughout, because the
     # name reverses -- just not on that host.
     ("scripts/audit_shell_url_namespace_contract.py", "ci.yml"),
+    # Its sibling, and the half audit_shell_url_namespace_contract cannot reach:
+    # that gate walks six DECLARED shells through LITERAL {% include %} edges, so a
+    # control-plane body arriving via {% include operator_cp_body_template %} -- a
+    # VARIABLE include -- is invisible to it, and its SHELL_HOSTS deliberately omits
+    # config.urls. Both holes were live on 2026-08-31:
+    # accounts/partials/operator_documentation_body.html reversed the manager-only
+    # name `manager_help_center` with no namespace at all, and
+    # use_control_plane_shell() serves that body on a `local` host too, so
+    # /authentication/documentation/ was a 500 on every dev machine. Wired into
+    # architectural-boundaries.yml the same day: its only previous home was
+    # ci.yml, which has started no job since 2026-08-15.
+    ("scripts/verify_cross_host_template_reverse.py", "architectural-boundaries.yml"),
     # Added 2026-08-21: `ink` and `midnight` both paired a navy ground with the WARM
     # surface ramp belonging to `steel`, so every form control on those themes rendered
     # brown inside a navy shell. Every contrast gate was green throughout -- the defect
@@ -245,6 +292,18 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/scan_visibility_anti_bleed.py", "architectural-boundaries.yml"),
     ("scripts/scan_money_float.py", "architectural-boundaries.yml"),
     ("scripts/scan_tenant_queryset_safety.py", "tenant-isolation-scan.yml"),
+    # Added 2026-09-02. Stdlib-only (ast + pathlib), so it rides the deps-free
+    # boundary workflow rather than ci.yml::django-tests.
+    ("scripts/scan_test_host_fidelity.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Stdlib-only (re + pathlib), so it rides the deps-free
+    # boundary workflow rather than ci.yml::django-tests.
+    ("scripts/scan_dangling_static_reference.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Rewritten the same day to stop pinning a frozen June
+    # service-worker literal -- which made it go red on EVERY cache bump and kept
+    # it red for three months -- and to assert instead that the shipped cache
+    # generation still covers the wave the stylesheet declares. Before this entry
+    # the only file in the repository that named it was itself.
+    ("scripts/verify_theme_experience_dual_plane_shell.py", "architectural-boundaries.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:
     # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
     # resolves) and SQLite cannot create tenant schemas — while production runs

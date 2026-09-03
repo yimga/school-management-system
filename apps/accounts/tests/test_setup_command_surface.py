@@ -14,6 +14,13 @@ from pathlib import Path
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_loads_static,
+    assert_wires,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 _ROOT = Path(__file__).resolve().parents[3]
 _PARTIAL = "partials/tenant/setup_command_surface.html"
 _CSS = _ROOT / "static" / "css" / "rmc-setup-surface.css"
@@ -186,6 +193,12 @@ class SetupCommandSurfaceContractTests(SimpleTestCase):
         html = _DASHBOARD.read_text(encoding="utf-8")
         self.assertIn("partials/tenant/setup_command_surface.html", html)
         self.assertIn("css/rmc-setup-surface.css", html)
+        # The include is a parse node and the stylesheet a {% static %}
+        # argument; neither survives the dashboard being emptied.
+        assert_wires(self, _TN_ROOT / "templates/accounts/backend_dashboard.html",
+                     "partials/tenant/setup_command_surface.html")
+        assert_loads_static(self, _TN_ROOT / "templates/accounts/backend_dashboard.html",
+                            "css/rmc-setup-surface.css")
 
     def test_classes_referenced_are_defined_in_css(self):
         html = render_to_string(

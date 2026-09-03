@@ -79,12 +79,21 @@ jobs:
         run: node node_modules/playwright/cli.js install --with-deps chromium
 
       - name: Migrate test DB + seed superuser + compile i18n
+        # All three commands used to end in `|| true`. That is the worst
+        # place in this workflow for a mask: it is SETUP. If seed_demo
+        # fails there is no demo-school and no teacher, and the RTL and
+        # 400%-zoom specs below then audit empty or anonymous pages and
+        # PASS -- an a11y green over a surface that was never rendered.
+        # ensure_superuser is idempotent by construction (it promotes an
+        # existing user and returns cleanly when one is already a
+        # superuser), so the mask was not protecting a re-run; it could
+        # only ever hide a genuine failure.
         run: |
           python manage.py migrate --noinput
-          python manage.py ensure_superuser --password A11yPass123! --no-input || true
-          python manage.py seed_demo || true
+          python manage.py ensure_superuser --password A11yPass123! --no-input
+          python manage.py seed_demo
           # Ensure ar locale .mo files are compiled so RTL switch returns ar HTML.
-          python manage.py sync_i18n_catalog --compile || true
+          python manage.py sync_i18n_catalog --compile
 
       - name: Map runmycampus.com to 127.0.0.1
         run: |

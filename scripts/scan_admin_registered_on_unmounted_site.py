@@ -27,21 +27,21 @@ reverses, and ``admin:`` names do reverse, against the site that is never served
 WHAT IT CHECKS
 --------------
 Every ``@admin.register(...)`` decorator and every ``<site>.register(...)`` call under
-``apps/**/admin.py`` (and ``apps/**/admin/*.py``) must target a site this repo actually
+``apps/**/*.py`` (excluding tests and migrations) must target a site this repo actually
 mounts. A decorator with no ``site=`` keyword targets the default; so does an explicit
 ``admin.site.register(...)``.
 
 The mounted-site names are DISCOVERED from ``config/*urls*.py`` rather than hardcoded,
 so mounting a third admin site does not silently make this gate wrong.
 
-RATCHET, NOT ZERO-TOLERANCE. The existing 26 are a burndown list, deliberately not
-"fixed" by this change: choosing between the tenant site and the operator site is a
-tenancy decision per model, and four of the eight apps involved are in NEITHER
-SHARED_APPS nor TENANT_APPS, so the answer is not derivable from the settings split.
-Putting a tenant-scoped model on the operator admin -- or the reverse -- is precisely
-the class of defect the tenant-admin scoping seal exists to prevent, so it is not a
-guess worth making in bulk. The baseline may only shrink; a NEW unmounted registration
-fails the gate.
+FLOOR, NOT A BACKLOG. The burndown reached zero on 2026-08-31 and the baseline may
+only shrink; a NEW unmounted registration fails the gate. The note this paragraph
+used to carry -- that placement was 'not derivable from the settings split' because
+four apps were in NEITHER SHARED_APPS nor TENANT_APPS -- was simply wrong. Those
+lists hold AppConfig dotted paths (apps.governance.apps.GovernanceConfig), so a
+bare-module-name membership test misses apps that are in fact there. Placement is
+derivable, and TenantAdminSite.register is fail-closed, so a misclassification
+renders an empty screen rather than leaking another tenant's rows.
 
 Stdlib only (ast + pathlib), so it runs in the deps-free boundary job.
 """
@@ -164,9 +164,17 @@ def scan_file(path: pathlib.Path, mounted: set[str], root: pathlib.Path = REPO_R
 
 def collect(apps_dir: pathlib.Path, mounted: set[str], root: pathlib.Path | None = None) -> list[dict]:
     out: list[dict] = []
-    for path in sorted(apps_dir.glob("*/admin.py")):
-        out.append(path)
-    for path in sorted(apps_dir.glob("*/admin/*.py")):
+    # EVERY module under apps/, not just admin.py and admin/*.py. Those two globs
+    # were the whole blind spot: apps/finance/payment_admin.py carried five bare
+    # registrations and apps/portal/admin_kb.py another eight, and this scanner
+    # reported a clean zero the entire time because it never opened either file.
+    # A registration is a registration wherever it is written.
+    for path in sorted(apps_dir.rglob("*.py")):
+        rel = path.as_posix()
+        if "/migrations/" in rel or "/tests/" in rel:
+            continue
+        if "register" not in path.read_text(encoding="utf-8", errors="ignore"):
+            continue  # cheap pre-filter; nothing here can register a model
         out.append(path)
     root = root if root is not None else apps_dir.parent
     findings: list[dict] = []

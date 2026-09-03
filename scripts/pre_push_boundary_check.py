@@ -127,7 +127,6 @@ GATES: list[tuple[str, list[str]]] = [
     ("include-with-default-context-var", ["scan_include_with_default_context_var.py", "--strict"]),
     ("eager-filter-arg-completion-static", ["verify_eager_filter_arg_completion.py", "--static-only"]),
     ("nav-engine-coverage-static", ["verify_nav_engine_coverage.py", "--static-only"]),
-    ("tier1-academic-people-platform-contract", ["verify_tier1_academic_people_platform_contract.py"]),
     ("report-entity-coverage", ["verify_report_entity_coverage.py"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
     # Approval HTML → live admin: fails if build lock / visible chip / grid drift.
@@ -167,6 +166,13 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
     # a word separator out of a token is the right answer.
     ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
+    # Rewritten 2026-09-02 to stop pinning a June service-worker literal and
+    # assert the property that literal was reaching for: the shipped CACHE_VERSION
+    # must be at least the wave the stylesheet's own banner declares, or returning
+    # browsers keep serving the cached pre-wave sheet. It has been green ever since
+    # -- and until now the only file in this repository that mentioned it was
+    # itself, which is the whole C tier in one gate. 1s, stdlib only.
+    ("theme-dual-plane-shell", ["verify_theme_experience_dual_plane_shell.py"]),
     # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
     # title — operators scrolled past empty rules to reach "Platform Command Center".
     ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),
@@ -178,6 +184,13 @@ GATES: list[tuple[str, list[str]]] = [
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
     # An admin registered on a site no urlconf mounts is a page nobody can open.
     ("admin-unmounted-site", ["scan_admin_registered_on_unmounted_site.py", "--compare"]),
+    # A raw cursor.execute() outside set_rls_school_id() reads past the row policies
+    # that ARE the isolation mechanism on a single-schema edge box. This scanner was
+    # CI-only, and with Actions billing down since 2026-08-15 it ran nowhere at all --
+    # two new bypasses had already landed unnoticed. Same reasoning as the two RLS
+    # gates below: the property is too important to be enforced only by a job that
+    # is not currently executing.
+    ("rls-bypass", ["scan_rls_bypass.py", "--compare"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists
@@ -219,6 +232,19 @@ GATES: list[tuple[str, list[str]]] = [
     # person choosing to run a 40-minute script. Added on measurement, not
     # instinct: 1s + 3s + 6s against a hook that already runs 45 gates.
     # verify_i18n_catalog_fresh is deliberately NOT here -- it costs ~7 min.
+    # Its FAST sibling is, since 2026-08-31. Same question, same corpus, same
+    # extractor functions (imported from apps/siteconfig/i18n_catalog_builder.py,
+    # not copied), and a byte-identical missing-msgid set -- asserted by
+    # apps/siteconfig/tests/test_i18n_fast_gate_parity.py. The minutes were never
+    # in the question: 16.9s of django.setup() for a scanner that imports nothing
+    # from Django, ast.parse over all 7,670 .py files when only 747 contain `_(`
+    # or `gettext` at all, and polib on a 2 MB catalog where a msgid-only scan of
+    # the same bytes answers in 0.06s. MEASURED on 2026-08-31: 170.5s -> 11.0s.
+    # It found 110 real gaps on main the day it was written (the slow gate had
+    # been red and unenforced since GitHub Actions stopped running on 08-15);
+    # those were closed by `manage.py sync_i18n_catalog --compile` in the same
+    # commit, so this lands GREEN against the pre-existing zero baseline.
+    ("i18n-catalog-fresh-fast", ["verify_i18n_catalog_fresh_fast.py", "--compare"]),
     #
     # A page that extends control_plane_base and joins neither PHASE7 nor the
     # exempt set. Mirrors architectural-boundaries `control-plane-registry-drift`.
@@ -245,6 +271,16 @@ GATES: list[tuple[str, list[str]]] = [
     # scan_rls_table_coverage had exactly that shape. This is the general form,
     # so the next scanner written that way is caught by structure.
     ("ratchet-baselines-present", ["verify_ratchet_baselines_present.py"]),
+    # The always-on half of the marketing axe ratchet. The ratchet itself needs
+    # a browser and ~3.5 min for 54 page-views, so it is a workflow
+    # (marketing-axe-ratchet.yml) and deliberately NOT run here -- nobody should
+    # wait that long on every push. This gate is stdlib-only and sub-second, and
+    # it guards the one thing the sweep cannot check about itself: that it still
+    # scans every marketing page. It was written because the sweep, built
+    # against one spec's 15-path list, reported the surface CLEAN while
+    # /platform/analytics/ and /platform/security/ were failing color-contrast
+    # at 1.08:1 -- pages the OTHER spec covered and this one did not.
+    ("marketing-axe-ratchet-coverage", ["verify_marketing_axe_ratchet_coverage.py"]),
     # An audit log that can be edited is not an audit log. The first version of
     # this guard matched the LAST TWO names of the attribute chain, so it only
     # saw a bare `AuditLog.objects.update()` -- a form that is not valid Django
@@ -287,11 +323,66 @@ GATES: list[tuple[str, list[str]]] = [
     # burndown is still ahead of its committed dates, which the count-based
     # gates cannot see.
     ("tenant-scoping-burndown", ["verify_tenant_scoping_burndown.py"]),
+    # An unscoped Model.objects query on a tenant-owned model. This existed but
+    # was never wired, because it read ONE call expression and so cried at four
+    # shapes that cannot cross a tenant (pk lookups, relation scopes, next-line
+    # narrowing, wrapper scoping) -- 36 findings against a zero baseline. A gate
+    # nobody can keep green gets abandoned, and an abandoned gate and a bypassed
+    # gate leave the same hole. Taught those four shapes (see the precision suite
+    # in apps/schools/tests/), the 18 survivors were read and marked, and it now
+    # exits 0 -- so it can hold the line instead of being ignored.
+    ("tenant-queryset-safety", ["scan_tenant_queryset_safety.py", "--compare"]),
+    # The sibling question to the one above: not "is this query scoped" but "did
+    # this test ever reach the surface it claims to test". ROOT_URLCONF does not
+    # choose the urlconf here -- UrlConfSwitcherMiddleware sets request.urlconf from
+    # the Host header -- so @override_settings(ROOT_URLCONF="config.tenant_urls") on
+    # a test that issues a hostless request is DISCARDED, and the request is served
+    # by config.urls, the developer urlconf, with request.school None. It does not
+    # fail; the developer urlconf mounts a superset of every production route, so it
+    # passes while proving nothing, and reads to a reviewer as proof of the opposite.
+    # Measured on a live request, not inferred (test_host_routing_contract_2026_09_02).
+    ("test-host-fidelity", ["scan_test_host_fidelity.py", "--compare"]),
+    # A stylesheet asking for an asset nobody shipped fails SILENTLY:
+    # ForgivingCompressedManifestStaticFilesStorage refuses to fail a deploy over
+    # an unresolvable reference, so the icon is simply absent for every user. The
+    # vendored bootstrap-icons CSS declared a .woff fallback that was never copied
+    # into static/ (2026-09-02); it hid among eight source-map misses printed at
+    # the same level. Zero-tolerance, no baseline -- the tree measured 0 on
+    # introduction (899 files, 9 dev-only .map, 0 gaps).
+    ("dangling-static-reference", ["scan_dangling_static_reference.py", "--compare"]),
     # Pins transaction.atomic on four named money mutators. Deliberately NARROW
     # -- it is a hand-maintained list, not coverage of apps/finance/, and its own
     # docstring says so at length. Wired because four enforced invariants beat
     # zero, and nothing invoked it before.
     ("finance-payment-atomicity", ["verify_finance_payment_atomicity.py"]),
+
+    # A CI command that cannot run what it names (2026-08-31). Two shapes,
+    # both invisible in review, both able to show a pipeline that executed
+    # nothing: a backslash continuation followed by a BLANK line (the shell
+    # joins the backslash with the empty line, so the command ends there),
+    # and a bare `manage.py test` (no discovery root -> ImportError at
+    # discovery, before any test runs). The first had silently disabled the
+    # Postgres proof for 24 test modules in django-tests-postgres.yml --
+    # booking, inventory, substitute matching, discipline routing, report-card
+    # e2e, DR restore, CRDT live-rail convergence, residency border-lock and
+    # five N+1 query-count suites. Wired on measurement: 780 ms.
+    ("ci-shell-command-integrity", ["scan_ci_shell_command_integrity.py"]),
+
+    # And the other half of the same question (2026-09-02): a step that
+    # runs the right command but cannot report that it failed. `pip-audit
+    # --strict || true` asks pip-audit to exit non-zero and throws that
+    # exit code away in the next token; the help-center browser lane
+    # printed a reassuring sentence on failure under a comment that
+    # declared it enforcing. Text scan over 65 workflow files, ~0.3s.
+    ("workflow-swallowed-exit-codes", ["scan_workflow_swallowed_exit_codes.py"]),
+
+    # A test that still passes once the behaviour it names is deleted
+    # (2026-09-01). Measured across the whole population: 143 of the 175
+    # measurable candidates are vacuous. --scope-changed bounds this to the
+    # test files the push touches, which is what keeps it near a second on
+    # a push that touches none; the unbounded --compare re-checks the whole
+    # baseline and belongs in a workflow, not here.
+    ("test-asserts-behaviour", ["verify_test_asserts_behaviour.py", "--compare", "--scope-changed"]),
 
     # A sovereign box replicates 15 of 326 tenant models. Most of that absence was
     # never a decision -- eleven tenant apps had zero entities on the rail and zero
@@ -341,6 +432,19 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # slugs (slugify returns "" for any script it cannot transliterate, so a school's
     # SECOND Arabic help article raised IntegrityError).
     ("blank-unique-text-fields", ["scan_blank_unique_text_fields.py"]),
+    # The edge pre-import guard answers "which of these rows can never leave this
+    # box" from a declared table, because it runs before the first write on hardware
+    # that cannot afford an AST pass. If the table stops matching the landers, the
+    # guard keeps answering -- confidently, and wrongly. Zero-baseline: a difference
+    # in either direction is a finding, and the fix is to regenerate the table.
+    ("lander-write-targets", ["audit_lander_write_reachability.py", "--check-declaration"]),
+    # The companion siblings are the only shipped code in this repo that is not
+    # served by this server -- they call it. Every RMC path they hardcode 404s on
+    # every urlconf, so both the desktop app and the Docker appliance die at their
+    # own step 1. Baselined with a written reason per path, and the baseline may
+    # only shrink: a NEW dead path fails, and so does an entry that has started to
+    # resolve, which stops the list decaying into a number nobody rereads.
+    ("companion-server-contract", ["verify_companion_server_contract.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
     # Its blind spot: a child table that reaches its school through a parent has
     # no `school` field, so the gate above cannot see it and truthfully says 0.

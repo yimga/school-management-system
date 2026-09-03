@@ -78,7 +78,15 @@ jobs:
         env:
           LHCI_URL: "http://127.0.0.1:8123/marketing/"
           LHCI_AUTO_EXTRAS: "1"
-        run: npx lhci autorun --config=./lighthouserc.cjs || echo "::warning::Lighthouse below warn budget — review report"
+        # No `|| echo ::warning::`. That mask discarded lhci's exit code, so this
+        # job reported success no matter what Lighthouse found -- the same
+        # shape as the a11y-lighthouse job deleted on 2026-08-22, whose steps
+        # named package.json scripts that do not exist and whose green
+        # therefore stood for nothing. The performance assertions in
+        # lighthouserc.cjs are already `warn` unless LHCI_STRICT_N10=1, so
+        # local boot noise still cannot fail this job; what CAN now fail it is
+        # the accessibility assertion, which is the point.
+        run: npx lhci autorun --config=./lighthouserc.cjs
 
       - name: Stop background Django
         if: always()

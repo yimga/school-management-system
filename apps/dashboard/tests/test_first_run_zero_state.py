@@ -12,6 +12,8 @@ from unittest import mock
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_wires
+
 from apps.dashboard import first_run_zero_state as frz
 from apps.dashboard.context_processors import first_run_zero_state as frz_ctx
 
@@ -157,6 +159,16 @@ class WiringTests(SimpleTestCase):
 
     def test_portal_base_renders_the_gated_card(self):
         tpl = (_REPO_ROOT / "templates" / "portal_base.html").read_text(encoding="utf-8")
-        self.assertIn("{% if first_run_zero_state %}", tpl)
+        # This pinned the WHOLE condition and went red the day the v3 tenant
+        # shell added a second clause. The contract is that the card is gated
+        # on the context variable at all, so match the opening of the tag and
+        # let further clauses be added without a false alarm.
+        self.assertIn("{% if first_run_zero_state", tpl)
         self.assertIn("first_run_zero_state.headline", tpl)
-        self.assertIn("components/rmc_empty_state.html", tpl)
+        # The include is proved as a parse node: the string above is still in
+        # the bytes of a template whose entire body is a comment.
+        assert_wires(
+            self,
+            _REPO_ROOT / "templates" / "portal_base.html",
+            "rmc_empty_state.html",
+        )

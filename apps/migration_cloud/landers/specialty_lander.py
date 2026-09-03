@@ -10,10 +10,14 @@ could never be placed on a specialty and the trade structure was lost.
 This lander lands each row into ``apps.academics.Specialty`` (create-if-missing,
 deduped by ``(school, name)``) and provisions its REQUIRED parent
 ``apps.academics.Department`` the same reuse-by-(school,name) way the structure
-lander does. ``Department.code`` / ``Specialty.code`` are GLOBALLY unique, so a
-minted target-scoped code is used when the source code is already taken (or
-absent); the human-meaningful source code (``EPS``) is kept when it is free and
-preserved in the DynamicFieldValue engine otherwise — no data loss.
+lander does. ``Department.code`` / ``Specialty.code`` are unique PER SCHOOL —
+``uniq_department_school_code`` (academics migration 0076) and
+``uniq_specialty_school_code`` (academics migration 0085) — NOT globally, so
+"already taken" is a question about THIS school and no other. A minted
+target-scoped code is used when the source code is taken inside this school (or
+absent); the human-meaningful source code (``EPS``) is kept when this school is
+free to use it and preserved in the DynamicFieldValue engine otherwise — no
+data loss.
 
 Canonical row shape::
 
@@ -132,11 +136,24 @@ class SpecialtyLander(Lander):
 
 
 def _pick_code(*, model, source_code: str, prefix: str, name: str, school) -> str:
-    """Keep the human-meaningful source code (``EPS``) when it is globally free;
-    otherwise mint a target-scoped globally-unique code so the ``unique=True``
-    column never collides with another school's row on a re-import / shared code."""
+    """Keep the human-meaningful source code (``EPS``) when THIS school is free to
+    use it; otherwise mint a target-scoped code.
+
+    Scoped to ``school`` because that is the constraint the database actually
+    holds: ``Department`` and ``Specialty`` declare
+    ``UniqueConstraint(fields=["school", "code"])`` — ``uniq_department_school_code``
+    (academics migration 0076) and ``uniq_specialty_school_code`` (academics
+    migration 0085) — not a global ``unique=True``. The unscoped check this
+    replaces asked a question the database does not ask, and it let ANY other
+    tenant's row veto this school's code: a school importing ``EPS`` after some
+    unrelated school had taken ``EPS`` silently received a minted ``SPC…`` code
+    instead, so one tenant's data changed another tenant's import result — under
+    a marker that told reviewers not to look. Narrowing the filter cannot
+    introduce a collision either: every code it now accepts is one the
+    ``(school, code)`` index accepts.
+    """
     sc = (source_code or "").strip()[:_CODE_MAX]
-    if sc and not model.objects.filter(code=sc).exists():  # tenant-isolation-allow: code is a GLOBALLY-unique column; global existence check is intentional
+    if sc and not model.objects.filter(school=school, code=sc).exists():
         return sc
     return mint_scoped_code(prefix=prefix, name=name, school=school, model=model)
 

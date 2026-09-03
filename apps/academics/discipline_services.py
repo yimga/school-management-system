@@ -19,6 +19,52 @@ _SEVERITY_POINTS = {
 _ESCALATION_THRESHOLD = 10
 
 
+class InvalidIncidentTransition(ValueError):
+    """Raised when a discipline incident is pushed along an illegal FSM edge."""
+
+
+def _incident_transitions() -> dict[str, frozenset[str]]:
+    """Legal edges of the incident lifecycle, keyed by CURRENT status.
+
+    Mirrors the shape ``apps.academics.lesson_homework_kernel`` already uses for
+    the lesson lifecycle, so discipline stops being the one domain whose "FSM"
+    was a pair of scattered inline ``!=`` guards.
+
+    ``RESOLVED`` is terminal. That is the edge that mattered: the escalation
+    guard below used to read ``status != REFERRED``, which is TRUE for a
+    RESOLVED incident -- so a closed case could be silently reopened to
+    REFERRED by any later routing call, putting the student back on the
+    counselor caseload with no audit trail and no error.
+    """
+    from apps.academics.models import Incident
+
+    return {
+        Incident.Status.OPEN: frozenset(
+            {Incident.Status.REFERRED, Incident.Status.RESOLVED}
+        ),
+        Incident.Status.REFERRED: frozenset({Incident.Status.RESOLVED}),
+        Incident.Status.RESOLVED: frozenset(),
+    }
+
+
+def can_transition_incident(current: str, target: str) -> bool:
+    """True when ``current -> target`` is a legal incident lifecycle edge."""
+    return target in _incident_transitions().get(current, frozenset())
+
+
+def assert_incident_transition(current: str, target: str) -> None:
+    """Refuse an illegal incident lifecycle edge.
+
+    Raises rather than returning a flag: an illegal transition is a bug in the
+    caller, and silently swallowing it is exactly how a resolved case came back
+    to life.
+    """
+    if not can_transition_incident(current, target):
+        raise InvalidIncidentTransition(
+            f"illegal discipline incident transition {current!r} -> {target!r}"
+        )
+
+
 def student_behavior_point_total(*, school, student) -> int:
     from apps.academics.models_discipline import BehaviorPointLedger
 
@@ -45,26 +91,47 @@ def process_incident_routing(*, incident: Any, recorded_by: Any | None = None) -
 
     severity = (incident.severity or Incident.Severity.MEDIUM).upper()
     delta = _SEVERITY_POINTS.get(severity, 3)
-    BehaviorPointLedger.objects.create(
+    # One accrual per incident. The ledger carries no unique constraint, and
+    # this producer is reachable more than once for the same row (a direct
+    # service call, an offline replay, a re-save that re-fires routing), so an
+    # unconditional create silently double-counts a student towards the
+    # escalation threshold. get_or_create keyed on the incident is the same
+    # shape RestorativeAction below already uses.
+    _ledger_row, points_accrued = BehaviorPointLedger.objects.get_or_create(
         school=school,
         student=student,
         incident=incident,
-        points=delta,
-        reason=f"Incident {incident.incident_type} ({severity})",
-        recorded_by=recorded_by,
+        defaults={
+            "points": delta,
+            "reason": f"Incident {incident.incident_type} ({severity})",
+            "recorded_by": recorded_by,
+        },
     )
+    if not points_accrued:
+        delta = 0
     total = student_behavior_point_total(school=school, student=student)
     escalated = False
-    if total >= _ESCALATION_THRESHOLD and incident.status != Incident.Status.REFERRED:
-        incident.status = Incident.Status.REFERRED
-        incident.save(update_fields=["status"])
-        escalated = True
-        logger.info(
-            "discipline_escalated incident_id=%s student_id=%s total_points=%s",
-            incident.pk,
-            student.pk,
-            total,
-        )
+    escalation_refused = False
+    if total >= _ESCALATION_THRESHOLD:
+        try:
+            assert_incident_transition(
+                incident.status, Incident.Status.REFERRED
+            )
+        except InvalidIncidentTransition:
+            # Already REFERRED (nothing to do) or terminal RESOLVED (must not
+            # be reopened). Routing runs from a post_save signal, so it reports
+            # the refusal instead of raising through an unrelated save.
+            escalation_refused = incident.status == Incident.Status.RESOLVED
+        else:
+            incident.status = Incident.Status.REFERRED
+            incident.save(update_fields=["status"])
+            escalated = True
+            logger.info(
+                "discipline_escalated incident_id=%s student_id=%s total_points=%s",
+                incident.pk,
+                student.pk,
+                total,
+            )
 
     restorative = None
     if severity in {Incident.Severity.MEDIUM, Incident.Severity.HIGH}:
@@ -100,6 +167,8 @@ def process_incident_routing(*, incident: Any, recorded_by: Any | None = None) -
         "points_added": delta,
         "total_points": total,
         "escalated": escalated,
+        "escalation_refused": escalation_refused,
+        "points_accrued": points_accrued,
         "restorative_action_id": getattr(restorative, "pk", None),
         "safeguarding_concern_id": safeguarding_concern_id,
     }

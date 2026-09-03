@@ -1,9 +1,23 @@
-"""Payment Admin Classes for Phase 2.0"""
+"""Payment admin classes (Phase 2.0).
+
+Until 2026-09-01 every class here registered with a bare ``@admin.register(Model)``,
+which names no site and therefore targeted Django's default ``admin.site`` -- a site
+no urlconf in this repo mounts. The module was also imported by nothing, so those
+registrations never even ran. Transaction, RefundRequest, PaymentReconciliation and
+PaymentAuditLog consequently had no admin screen anywhere, and
+RefundRequestAdmin.process_selected_refunds -- the only path that applies a refund to
+the ledger instead of just flipping a status -- was unreachable.
+
+They now register on the tenant site, and apps/finance/admin.py imports this module so
+the registrations execute. The duplicate PaymentAdmin that lived here was removed:
+Payment already has a live, current ModelAdmin in apps/finance/admin.py, and a second
+same-named class sitting next to live code only invites drift.
+"""
 
 from django.contrib import admin, messages
 from django.utils.html import format_html
+from config.admin import register_tenant_admin
 from apps.finance.models import (
-    Payment,
     Transaction,
     RefundRequest,
     PaymentReconciliation,
@@ -11,98 +25,6 @@ from apps.finance.models import (
 )
 
 
-@admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
-    """Admin for Payment model."""
-
-    list_display = (
-        "reference_number",
-        "student",
-        "amount_display",
-        "status_badge",
-        "payment_method",
-        "created_at",
-    )
-    list_filter = ("status", "purpose", "region", "payment_method", "created_at")
-    search_fields = (
-        "reference_number",
-        "student__user__username",
-        "student__admission_number",
-    )
-    readonly_fields = (
-        "id",
-        "gateway_transaction_id",
-        "created_at",
-        "initiated_at",
-        "completed_at",
-        "failed_at",
-        "gateway_response",
-    )
-    fieldsets = (
-        (
-            "Payment Info",
-            {
-                "fields": (
-                    "id",
-                    "reference_number",
-                    "student",
-                    "region",
-                    "payment_method",
-                )
-            },
-        ),
-        (
-            "Amount & Purpose",
-            {"fields": ("amount", "currency_code", "purpose", "description")},
-        ),
-        ("Status", {"fields": ("status", "status_reason", "processed_by")}),
-        (
-            "Gateway Info",
-            {
-                "fields": ("gateway_transaction_id", "gateway_response"),
-                "classes": ("collapse",),
-            },
-        ),
-        (
-            "Compliance",
-            {
-                "fields": ("compliance_checked", "compliance_issues"),
-                "classes": ("collapse",),
-            },
-        ),
-        (
-            "Timestamps",
-            {
-                "fields": ("created_at", "initiated_at", "completed_at", "failed_at"),
-                "classes": ("collapse",),
-            },
-        ),
-    )
-
-    def amount_display(self, obj):
-        return f"{obj.amount} {obj.currency_code}"
-
-    amount_display.short_description = "Amount"
-
-    def status_badge(self, obj):
-        colors = {
-            "pending": "#FFA500",
-            "processing": "#87CEEB",
-            "completed": "#90EE90",
-            "failed": "#FF6347",
-            "refunded": "#FFB6C1",
-            "cancelled": "#D3D3D3",
-        }
-        return format_html(
-            '<span style="background-color: {}; padding: 5px 10px; border-radius: 3px; color: white;">{}</span>',
-            colors.get(obj.status, "#808080"),
-            obj.get_status_display(),
-        )
-
-    status_badge.short_description = "Status"
-
-
-@admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     """Admin for Transaction model."""
 
@@ -134,7 +56,6 @@ class TransactionAdmin(admin.ModelAdmin):
     status_badge.short_description = "Status"
 
 
-@admin.register(RefundRequest)
 class RefundRequestAdmin(admin.ModelAdmin):
     """Admin for RefundRequest model."""
 
@@ -226,7 +147,6 @@ class RefundRequestAdmin(admin.ModelAdmin):
     status_badge.short_description = "Status"
 
 
-@admin.register(PaymentReconciliation)
 class PaymentReconciliationAdmin(admin.ModelAdmin):
     """Admin for PaymentReconciliation model."""
 
@@ -299,7 +219,6 @@ class PaymentReconciliationAdmin(admin.ModelAdmin):
     status_badge.short_description = "Status"
 
 
-@admin.register(PaymentAuditLog)
 class PaymentAuditLogAdmin(admin.ModelAdmin):
     """Admin for PaymentAuditLog model."""
 
@@ -329,3 +248,13 @@ class PaymentAuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+# apps.finance is in TENANT_APPS, so these tables live inside the tenant's own
+# schema under django-tenants and are confined by RLS in single-schema mode --
+# TenantAdminSite therefore needs no scoping mixin for them. This matches every
+# other finance registration in apps/finance/admin.py.
+register_tenant_admin(Transaction, TransactionAdmin)
+register_tenant_admin(RefundRequest, RefundRequestAdmin)
+register_tenant_admin(PaymentReconciliation, PaymentReconciliationAdmin)
+register_tenant_admin(PaymentAuditLog, PaymentAuditLogAdmin)

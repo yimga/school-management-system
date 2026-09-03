@@ -2615,6 +2615,37 @@
   vertical-align: baseline;
 }
 
+/* Touch hit area, WITHOUT moving a pixel.
+   Measured 2026-08-31 at 390x844 on operator-index and the billing
+   changelist: this button paints 14px wide by 36px tall, six per page.
+
+   It is NOT a WCAG 2.2 SC 2.5.8 failure. The glyph sits inline inside the
+   <h1> immediately after the heading text, which is precisely the
+   criterion's `inline` exception, so widening the GLYPH would push the
+   heading around to satisfy a rule that does not apply. The painted size is
+   therefore left alone and only the touch region grows -- 14px is still a
+   poor thing to hit with a thumb.
+
+   Empty content and no background keep the pseudo element invisible, and a
+   pseudo element of a button is part of that button for hit testing. The
+   expansion is centred, so it reaches about 5px each side: enough to clear
+   24px, not enough to steal a tap from the heading text. Verified with CDP
+   elementFromPoint at all four corners of the 24x24 box, and the <h1> box
+   was measured byte-identical before and after. */
+.rmc-info-tag__btn {
+  position: relative;
+}
+
+.rmc-info-tag__btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 24px);
+  height: max(100%, 24px);
+  transform: translate(-50%, -50%);
+}
+
 /* Exceptional fixed tip layer — never clipped by overflow:hidden ancestors */
 .rmc-info-tip-layer {
   position: fixed;

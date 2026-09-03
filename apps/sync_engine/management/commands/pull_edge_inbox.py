@@ -144,11 +144,73 @@ class Command(BaseCommand):
                 f"Pulled bundle failed verification: {result.get('errors')}. Cursor NOT advanced."
             )
 
+        # EVERY bucket, not a chosen six -- and the previous attempt at this line was
+        # still wrong, in a way worth recording because it is why nobody looked.
+        #
+        # It used to print six buckets and drop `deleted` and `skipped`, so a pull of
+        # 75,755 rows reported 75,709 applied and left 46 with no account anywhere. Two
+        # buckets were added and the comment then claimed the tally would "sum to
+        # `received`". It did not. Measured on a production appliance 2026-09-02, the
+        # same pull printed `deleted 0` and `skipped 0` with the 46 STILL in no bucket,
+        # `apply_deletes` answers 200 in three shapes and only one of them is counted:
+        # a row that was already gone, and a row the model soft-deleted, belonged
+        # nowhere. The claim was checked by a test that STUBBED `deleted=46` -- the
+        # number that would have made it close -- so the fiction passed and shipped.
+        #
+        # That mattered far more than an untidy line. Those 46 were the residue of a
+        # deletion that had ALREADY destroyed 13 teacher records on an earlier cycle,
+        # and `deleted 0` is precisely what a destructive bundle looked like on its way
+        # through. A wipe and a no-op wore the same shape. So: print every bucket, and
+        # then CHECK the arithmetic instead of asserting it in a comment.
         self.stdout.write(self.style.SUCCESS(
             f"Pulled {result['received']} row(s) -> applied {result['applied']}, "
             f"created {result['created']}, upserted {result['upserted']}, "
-            f"conflicts {result['conflicts']}, malformed {result['malformed']}."
+            f"deleted {result['deleted']}, "
+            f"already absent {result.get('already_absent', 0)}, "
+            f"soft-deleted {result.get('soft_deleted', 0)}, "
+            f"conflicts {result['conflicts']}, "
+            f"malformed {result['malformed']}, skipped {result['skipped']}."
         ))
+        # The buckets partition the bundle, so a remainder means a result shape nothing
+        # counts -- exactly the state this rail was in while it deleted teachers. Say so
+        # in the output an operator already reads, rather than leaving them to subtract.
+        unaccounted = int(result.get("unaccounted", 0) or 0)
+        if unaccounted:
+            self.stdout.write(self.style.WARNING(
+                f"  TALLY DOES NOT CLOSE: {unaccounted} of {result['received']} row(s) "
+                "are in no bucket. Some outcome is going unreported -- do not read this "
+                "pull as clean."
+            ))
+        # A SKIP is the one outcome with no other surface. A conflict is persisted and
+        # reviewable; a malformed row is a wire fault; a skip is simply a row the cloud
+        # sent and this box did not apply, recorded nowhere. ``apply_pulled_bundle`` has
+        # always returned the reasons -- ``tally_skipped_rows`` exists for exactly this
+        # -- and this command threw them away, which is why diagnosing 26 refused
+        # teachers meant rebuilding the call by hand in a shell to read a dict that the
+        # command had already computed and discarded.
+        skipped_reasons = result.get("skipped_reasons") or {}
+        if skipped_reasons:
+            self.stdout.write(self.style.WARNING(
+                "  NOT applied, by reason: "
+                + ", ".join(
+                    f"{reason} x{count}"
+                    for reason, count in sorted(skipped_reasons.items())
+                )
+            ))
+        # WHICH parent, not just how many. ``tally_skipped_rows`` keeps the model label
+        # for a missing_reference because the repair depends on it: a parent that rides
+        # the rail is cured by a full re-pull, and a parent that does not ride will not
+        # appear in this replay or any future one. Without the label the two cases are
+        # indistinguishable, and the operator re-downloads the whole corpus forever.
+        missing_parents = result.get("skipped_missing_parents") or {}
+        if missing_parents:
+            self.stdout.write(self.style.WARNING(
+                "  absent parent row(s): "
+                + ", ".join(
+                    f"{label} x{count}"
+                    for label, count in sorted(missing_parents.items())
+                )
+            ))
         # Advance the pull cursor ONLY on a successfully applied bundle. An empty pull
         # (no changes) has no high-water — leave the cursor where it is.
         if cursor_file and high_water:

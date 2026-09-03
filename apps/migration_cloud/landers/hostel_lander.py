@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
+from django.core.exceptions import FieldDoesNotExist
+
 from ._helpers import (
     coerce_int,
     filter_to_model_fields,
@@ -28,6 +30,25 @@ from ._helpers import (
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
+
+
+def _max_length(model, field: str) -> int | None:
+    """The column's OWN declared ``max_length`` — the only honest clip width.
+
+    This lander used to restate the widths as literals and they had drifted:
+    ``HostelRoom.name`` was clipped to 64 against a ``max_length=60`` column
+    and ``Hostel.name`` to 128 against 120. SQLite does not enforce
+    ``max_length``, so a name landing in the 61-64 (or 121-128) band stored
+    fine in dev and PostgreSQL refused it in production with ``value too long
+    for type character varying(60)`` — the row quarantined only on the engine
+    nobody tests against. Reading the width off ``_meta`` means the next
+    ``max_length`` change cannot reintroduce the drift. ``None`` (no declared
+    width, or the field is absent on this deploy) slices to the whole string.
+    """
+    try:
+        return model._meta.get_field(field).max_length
+    except FieldDoesNotExist:
+        return None
 
 
 class HostelLander(Lander):
@@ -49,6 +70,9 @@ class HostelLander(Lander):
         result = LanderResult()
         h_fields = model_field_names(Hostel)
         r_fields = model_field_names(HostelRoom)
+        # Clip widths come from the columns themselves, once per bundle.
+        h_name_cap = _max_length(Hostel, "name")
+        r_name_cap = _max_length(HostelRoom, "name")
         hostel_cache: dict[str, Any] = {}
 
         for row in canonical_rows:
@@ -66,11 +90,11 @@ class HostelLander(Lander):
             cache_key = f"{getattr(ctx.school, 'pk', '')}:{hostel_name.lower()}"
             hostel = hostel_cache.get(cache_key)
             if hostel is None:
-                hostel_defaults: dict[str, Any] = {"name": hostel_name[:128]}
+                hostel_defaults: dict[str, Any] = {"name": hostel_name[:h_name_cap]}
                 if "school" in h_fields and ctx.school is not None:
                     hostel_defaults["school"] = ctx.school
                 hostel_defaults = filter_to_model_fields(hostel_defaults, Hostel)
-                hostel_lookup: dict[str, Any] = {"name": hostel_name[:128]}
+                hostel_lookup: dict[str, Any] = {"name": hostel_name[:h_name_cap]}
                 if "school" in h_fields and ctx.school is not None:
                     hostel_lookup["school"] = ctx.school
                 if ctx.dry_run:
@@ -92,16 +116,21 @@ class HostelLander(Lander):
                         continue
                 hostel_cache[cache_key] = hostel
 
-            capacity = coerce_int(row.get("capacity")) or 1
+            # NOT ``or 1``: that folds an explicit 0 (and a blank, and an
+            # unparseable value) into 1, inventing a bed the source never
+            # declared. ``None`` is dropped by ``filter_to_model_fields``
+            # below, so a missing capacity takes the column default (1) on
+            # create and is left untouched on update; a real 0 survives.
+            capacity = coerce_int(row.get("capacity"))
             defaults: dict[str, Any] = {
-                "name": room_name[:64],
+                "name": room_name[:r_name_cap],
                 "capacity": capacity,
             }
             if "hostel" in r_fields and hostel is not None:
                 defaults["hostel"] = hostel
             defaults = filter_to_model_fields(defaults, HostelRoom)
 
-            lookup_kwargs: dict[str, Any] = {"name": room_name[:64]}
+            lookup_kwargs: dict[str, Any] = {"name": room_name[:r_name_cap]}
             if "hostel" in r_fields and hostel is not None:
                 lookup_kwargs["hostel"] = hostel
 

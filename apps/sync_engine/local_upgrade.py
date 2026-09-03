@@ -323,6 +323,7 @@ class LocalRuntimeUpgradeManager:
             try:
                 from apps.sync_engine.models import EdgeSyncRun
 
+                # tenant-isolation-allow: box upgrade drain: counts in-flight runs box-wide because the upgrade must wait for ALL of them; a count, never a read of tenant rows (reviewed 2026-09-01)
                 in_flight = EdgeSyncRun.objects.filter(finished_at__isnull=True).count()
             except Exception:  # noqa: BLE001 — a drain check must never abort an upgrade
                 in_flight = 0

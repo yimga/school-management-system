@@ -10,6 +10,11 @@ from django.urls import reverse
 from apps.accounts.views_passkey import passkey_login_options
 from apps.siteconfig.views_cockpit_health import _build_login_front_door_health
 from apps.communication.forms_announcements import AnnouncementCreateForm
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
+_BASE_DIR = Path(settings.BASE_DIR)
+LOGIN_TPL = _BASE_DIR / "templates/auth/login.html"
+LOGIN_CANVAS = _BASE_DIR / "templates/auth/partials/login_immersive_canvas.html"
 
 
 class LoginFrontDoorTwelveContractTests(SimpleTestCase):
@@ -62,10 +67,39 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
             "data-rmc-access-assistant",
         ):
             self.assertIn(marker, login)
+        # Nine of those twelve markers are attributes that must be ON the
+        # emitted elements -- the JS in rmc-auth-login-immersive.js finds the
+        # front door by querying for them, and an attribute that exists only in
+        # the file is found by nothing. The remaining three ("Verified school",
+        # "Why am I seeing this school?", "WCAG 2.2") are inside {% trans %}
+        # tags, which a parse cannot see and this template cannot render
+        # standalone, so those stay reads.
+        assert_markup(
+            self,
+            LOGIN_TPL,
+            "data-rmc-passkey-login",
+            "data-rmc-returning-user",
+            "data-rmc-returning-continue",
+            "data-rmc-role-methods",
+            "data-rmc-recovery-problem",
+            "data-rmc-front-door-contract",
+            "data-rmc-verified-host",
+            "data-rmc-assistant-ask",
+            "data-rmc-access-assistant",
+        )
         self.assertNotIn("QR badge", login)
         self.assertIn("applyRoleSurface", js)
         self.assertIn("has-returning", js)
         self.assertIn("data-rmc-i18n-continue-as", login)
+        # The immersive canvas carries its own share of the contract and the
+        # same argument applies to it: these are attributes the front-door JS
+        # queries for, so they have to be EMITTED, not merely present in a file.
+        assert_markup(
+            self,
+            LOGIN_CANVAS,
+            "data-rmc-local-state",
+            "data-rmc-sponsored-region",
+        )
         self.assertIn("data-rmc-local-state", canvas)
         self.assertIn("data-rmc-sponsored-region", canvas)
         self.assertIn("navigator.credentials.get", js)
@@ -116,6 +150,14 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         canvas = (base / "templates/auth/partials/login_immersive_canvas.html").read_text(encoding="utf-8")
         enrollment = (base / "static/js/rmc-offline-auth-enrollment.js").read_text(encoding="utf-8")
         unlock = (base / "static/js/rmc-offline-login-unlock.js").read_text(encoding="utf-8")
+        # Both .js names are {% static %} ARGUMENTS -- never emitted text, and
+        # neither shell renders standalone -- so those two stay reads. What a
+        # parse settles, on auth/login.html itself, is that the front door still
+        # mounts the immersive canvas, and that the canvas still emits the
+        # local-mode entry point the unlock flow is opened from. Comment either
+        # out and every string here survives while offline unlock is unreachable.
+        assert_wires(self, LOGIN_TPL, "auth/partials/login_immersive_canvas.html")
+        assert_markup(self, LOGIN_CANVAS, "data-rmc-local-mode-open")
         self.assertIn("rmc-offline-auth-enrollment.js", portal)
         self.assertIn("rmc-offline-login-unlock.js", login)
         self.assertIn("data-rmc-local-mode-open", canvas)

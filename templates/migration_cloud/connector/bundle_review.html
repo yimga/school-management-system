@@ -648,6 +648,40 @@ persistent data failure routes to correction rather than an endless retry.
       </p>
     </div>
   </div>
+  {# What this appliance cannot send on. Rendered beside the button, BEFORE the write. #}
+  {% if live_import.edge_stranding %}
+  <div class="rmc-alert-banner rmc-alert-banner--warning mb-3" role="status" data-mc-edge-stranding>
+    <div class="rmc-alert-banner__body">
+      <p class="rmc-alert-banner__title mb-1">{{ live_import.edge_stranding.title }}</p>
+      <p class="rmc-alert-banner__message mb-2">{{ live_import.edge_stranding.message }}</p>
+      {% if live_import.edge_stranding.domains %}
+      <ul class="list-unstyled mb-0 small">
+        {% for row in live_import.edge_stranding.domains %}
+        <li>
+          <strong>{{ row.domain }}</strong>
+          {% if row.nothing_reaches_cloud %}
+          {% if row.counts_are_complete %}
+          &mdash; {% blocktrans count count=row.rows %}{{ count }} row stays on this appliance{% plural %}{{ count }} rows stay on this appliance{% endblocktrans %}
+          {% else %}
+          &mdash; {% blocktrans count count=row.rows %}at least {{ count }} row stays on this appliance{% plural %}at least {{ count }} rows stay on this appliance{% endblocktrans %}
+          {% endif %}
+          {% else %}
+          &mdash; {% blocktrans count count=row.rows %}{{ count }} row syncs; only its unmapped columns stay here{% plural %}{{ count }} rows sync; only their unmapped columns stay here{% endblocktrans %}
+          {% endif %}
+          {% if row.acknowledged %}<span class="rmc-badge">{% trans "Accepted" %}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if not live_import.edge_stranding.counts_are_complete %}
+      <p class="small text-muted mt-2 mb-0">{% blocktrans count count=live_import.edge_stranding.artifacts_without_row_count %}{{ count }} file could not be row-counted, so the figures above are a floor, not a total.{% plural %}{{ count }} files could not be row-counted, so the figures above are a floor, not a total.{% endblocktrans %}</p>
+      {% endif %}
+      {% if live_import.edge_stranding.blocking %}
+      <p class="small text-muted mt-2 mb-0">{% trans "This deployment refuses imports whose appliance-only records nobody has accepted. Accept them to continue, or import this data on the cloud instead." %}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   <p class="text-muted small">{% trans "Preview first — nothing is written. Then confirm to import. Records that don't pass validation are held for review, never dropped." %}</p>
   <form method="post" action="{{ apply_url }}" class="d-flex gap-2 flex-wrap">
     {% csrf_token %}

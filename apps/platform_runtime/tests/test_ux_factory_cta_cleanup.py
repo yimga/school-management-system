@@ -6,6 +6,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup
+
 REPO = Path(__file__).resolve().parents[3]
 
 # Operational / command-center surfaces (Agent 4 scope); extend when adding centers.
@@ -55,6 +57,9 @@ class CtaCleanupTemplateAuditTests(SimpleTestCase):
             self.assertNotIn('action="#"', text, msg=rel)
             self.assertNotIn("javascript:void(0)", text, msg=rel)
             if rel.endswith("onboarding_what_next.html"):
-                self.assertIn("data-tour-trigger", text, msg=rel)
+                # A real CTA has to be ON the page; the negatives above are
+                # satisfied just as well by a template that renders nothing, so
+                # this half is asked of the engine.
+                assert_markup(self, path, "data-tour-trigger")
             if rel.endswith("teacher_bulk_capture_hub.html"):
                 self.assertIn("teacher_bulk_capture_hub", text, msg=rel)

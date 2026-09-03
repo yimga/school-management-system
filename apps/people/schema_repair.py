@@ -196,6 +196,7 @@ def ensure_people_merge_tombstone_columns() -> bool:
                     f"ALTER TABLE {q_table} ADD COLUMN IF NOT EXISTS {q_col} "
                     "boolean NOT NULL DEFAULT true;"
                 )
+                # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-drop-default
                 cursor.execute(
                     f"ALTER TABLE {q_table} ALTER COLUMN {q_col} DROP DEFAULT;"
                 )

@@ -61,7 +61,12 @@ def _staging_path(school_id, relative_path) -> str:
     root = getattr(settings, "MEDIA_ROOT", "") or os.path.join(
         str(getattr(settings, "BASE_DIR", ".")), "media"
     )
-    digest = hashlib.sha1(f"{school_id}|{relative_path}".encode("utf-8")).hexdigest()
+    # Same staging-name contract as apps/api/sync_files_api.py, on the
+    # other side of the rail: the two MUST agree byte-for-byte, so the
+    # flag (which changes no output) is the only safe way to satisfy B324.
+    digest = hashlib.sha1(
+        f"{school_id}|{relative_path}".encode("utf-8"), usedforsecurity=False
+    ).hexdigest()
     folder = os.path.join(str(root), _STAGING_DIR)
     os.makedirs(folder, exist_ok=True)
     return os.path.join(folder, f"{digest}.part")

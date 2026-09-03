@@ -21,6 +21,13 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/scan_test_host_fidelity.py"
+      - "scripts/scan_dangling_static_reference.py"
+      - "scripts/verify_theme_experience_dual_plane_shell.py"
+      - "static/css/rmc-theme-experience-dual-plane.css"
+      - "apps/test_utils/tenant_hosts.py"
+      - "scripts/scan_ci_shell_command_integrity.py"
+      - "scripts/scan_workflow_swallowed_exit_codes.py"
       - "scripts/scan_admin_registered_on_unmounted_site.py"
       - "scripts/lint_broad_except.py"
       - "scripts/allowlists/broad_except_allowlist.json"
@@ -125,6 +132,9 @@ on:
       - "scripts/scan_wizard_json_schema_drift.py"
       - "scripts/scan_wizard_class_grammar.py"
       - "scripts/verify_unified_wizard_framework.py"
+      - "scripts/verify_wizard_playwright_spec_coverage.py"
+      - "tests/e2e/unified-wizard-framework.spec.js"
+      - "tests/e2e/helpers/wizard-registry.js"
       - "apps/setup_studio/wizards/**/*.json"
       - "apps/setup_studio/wizard_*.py"
       - "apps/setup_studio/ai_prompts.py"
@@ -191,6 +201,10 @@ on:
       - "static/css/dark-mode-safety-net.css"
       - "static/js/theme-preference-bootstrap.js"
       - "apps/**/urls*.py"
+      - "config/*urls*.py"
+      - "scripts/verify_cross_host_template_reverse.py"
+      - "var/security-audit-baseline-cross-host-template-reverse.json"
+      - "templates/**/*.html"
       - ".github/workflows/architectural-boundaries.yml"
       - ".github/workflows/*.yml"
       - "scripts/verify_github_artifact_retention.py"
@@ -199,6 +213,15 @@ on:
 defaults:
   run:
     working-directory: .
+
+# Added 2026-08-31. Without a concurrency group a superseded run bills in
+# full, and this repo takes hundreds of commits a week. Cancelling an
+# obsolete run removes no enforcement -- the tip of the branch still runs
+# every job. Same group/cancel pair peers already use in
+# django-tests-postgres.yml and tenants-rls.yml.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # These two jobs were 108 separate jobs until 2026-08-23. Actions bills per
@@ -320,8 +343,44 @@ jobs:
           u_duplicate_dict_keys() {
             python scripts/scan_duplicate_dict_keys.py --strict
             python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
+          }
+
+          # A test naming config.tenant_urls that never sets a Host header is
+          # served by config.urls -- the developer urlconf, a superset -- so it
+          # passes while proving nothing about the surface it names.
+          u_test_host_fidelity() {
+            python scripts/scan_test_host_fidelity.py --compare
+            python -m unittest scripts.tests.test_scan_test_host_fidelity -v
+          }
+
+          # Split out of u_duplicate_dict_keys on 2026-08-31. It is an
+          # unrelated gate, and a unit body runs under `set -e`: a dict-key
+          # failure meant this scan never ran, and a failure it did report
+          # was announced under the dict-key label. One former job, one unit.
+          u_admin_unmounted_site() {
             python scripts/scan_admin_registered_on_unmounted_site.py --compare
             python -m unittest scripts.tests.test_scan_admin_registered_on_unmounted_site -v
+          }
+
+          # A shell line continuation followed by a BLANK line truncates the
+          # command; a bare `manage.py test` dies at Django discovery. Either
+          # way the step reports on work it never did.
+          u_ci_shell_command_integrity() {
+            python scripts/scan_ci_shell_command_integrity.py
+          }
+
+          # The sibling question. scan_ci_shell_command_integrity asks
+          # whether a CI command can RUN what it names; this asks whether
+          # the step can REPORT that it failed. A trailing `|| true` or
+          # `|| echo` pins the shell's exit status to 0, so every gate in
+          # that step draws a green check whatever it found. On
+          # 2026-09-02 that was true of the pip-audit CVE scan, the
+          # help-center browser lane (under a comment declaring it
+          # enforcing), the a11y seed step, and both release
+          # reproducibility proofs.
+          u_workflow_swallowed_exit_codes() {
+            python scripts/scan_workflow_swallowed_exit_codes.py
+            python -m unittest scripts.tests.test_scan_workflow_swallowed_exit_codes -v
           }
 
           u_operator_landing_header_order() {
@@ -406,6 +465,18 @@ jobs:
           # --compare gate has a baseline that exists AND that git tracks.
           u_ratchet_baselines_present() {
             python scripts/verify_ratchet_baselines_present.py
+          }
+
+          # The marketing axe ratchet reports zero for two different reasons --
+          # the surface is clean, or the sweep is not looking at it -- and in CI
+          # they are indistinguishable. The sweep was built against one spec's
+          # 15-path list and reported the marketing surface CLEAN while
+          # /platform/analytics/ and /platform/security/ were failing
+          # color-contrast at 1.08:1 on both viewports. Stdlib-only and
+          # sub-second; the browser sweep itself lives in
+          # marketing-axe-ratchet.yml because it costs ~3.5 min.
+          u_marketing_axe_ratchet_coverage() {
+            python scripts/verify_marketing_axe_ratchet_coverage.py
           }
 
           # The previous matcher only saw a bare AuditLog.objects.update(),
@@ -616,6 +687,14 @@ jobs:
             python scripts/scan_wizard_class_grammar.py
           }
 
+          u_wizard_framework_integrity() {
+            python scripts/verify_unified_wizard_framework.py
+          }
+
+          u_wizard_playwright_spec_coverage() {
+            python scripts/verify_wizard_playwright_spec_coverage.py
+          }
+
           u_canonical_headers_drift() {
             python scripts/scan_companion_canonical_headers_drift.py --strict
           }
@@ -755,6 +834,27 @@ jobs:
           run_unit u_ota_pipeline_wiring "The OTA pipeline is still connected end to end"
           run_unit u_raw_token_in_ui "No internal identifier is shown to a human as words"
           run_unit u_duplicate_dict_keys "No dict literal silently discards an entry"
+          run_unit u_test_host_fidelity "Tests reach the host urlconf they name"
+
+          # A referenced asset that was never shipped does not fail the deploy --
+          # the storage subclass forgives it by design. It is simply absent for
+          # every user, and the log line looks exactly like a source-map miss.
+          u_dangling_static_reference() {
+            python scripts/scan_dangling_static_reference.py --compare
+            python -m unittest scripts.tests.test_scan_dangling_static_reference -v
+          }
+
+          run_unit u_dangling_static_reference "Static references point at files that exist"
+
+          # The shipped service-worker cache generation must be at least the wave
+          # this stylesheet declares, or a returning browser keeps serving the
+          # cached pre-wave sheet. Until 2026-09-02 the gate pinned one June
+          # literal instead and had been red for three months; nothing ran it.
+          u_theme_dual_plane_shell() {
+            python scripts/verify_theme_experience_dual_plane_shell.py
+          }
+
+          run_unit u_theme_dual_plane_shell "Dual-plane sheet is covered by the shipped cache generation"
           run_unit u_operator_landing_header_order "Operator landing header precedes cockpit chrome"
           run_unit u_lander_row_streaming "Migration Cloud landers stream canonical rows"
           run_unit u_migration_apply_stall_contract "Migration apply stall detection contract"
@@ -810,6 +910,8 @@ jobs:
           run_unit u_hardcoded_client_fetch "Hardcoded client fetch paths (platform configurability cascade)"
           run_unit u_wizard_json_schema_drift "Unified Wizard Framework: JSON schema drift (baseline 0)"
           run_unit u_wizard_class_grammar "Unified Wizard Framework: .rmc-wizard-* class grammar (baseline 0)"
+          run_unit u_wizard_framework_integrity "Unified Wizard Framework: registry + resolver integrity"
+          run_unit u_wizard_playwright_spec_coverage "Unified Wizard Framework: Playwright spec derives from the registry"
           run_unit u_canonical_headers_drift "Companion canonical_headers.json drift vs Django SOT"
           run_unit u_template_render_safety "Template render-safety (leaks / unclosed tags / missing refs)"
           run_unit u_include_with_default_context_var "|default/slice/add missing_var (VariableDoesNotExist 500)"
@@ -837,6 +939,9 @@ jobs:
           run_unit u_orchestrator_prompt_pack "Orchestrator agent prompt pack completeness"
           run_unit u_broad_except_baseline "No new broad except in high-risk paths"
           run_unit u_control_plane_registry_drift "Every control-plane page is registered or exempt"
+          run_unit u_admin_unmounted_site "Every registered admin is mounted on a reachable site"
+          run_unit u_ci_shell_command_integrity "Every CI command can run what it names"
+          run_unit u_workflow_swallowed_exit_codes "Every CI step can report that it failed"
 
           if [ -n "$failed" ]; then
             echo ""
@@ -1079,6 +1184,21 @@ jobs:
             python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
           }
 
+          # Its only home was ci.yml::django-tests, and Actions has started no job
+          # on this repository since 2026-08-15, so today it is enforced by nobody.
+          # It costs 107.8s measured, which is why it is NOT in
+          # scripts/pre_push_boundary_check.py -- two minutes on every peer's push
+          # is a decision nobody made. Two minutes HERE is affordable: this
+          # workflow costs 2 jobs, fires on every push to main, and touches no
+          # developer's push time. Its own unit, not appended to a neighbour: a
+          # unit body runs under `set -e`, so a bundled gate can silently never
+          # run and a failure it does report is announced under someone else's
+          # label.
+          u_cross_host_template_reverse() {
+            python scripts/verify_cross_host_template_reverse.py --compare
+          }
+
+          run_unit u_cross_host_template_reverse "A template rendered on N hosts reverses no name absent from any of them"
           run_unit u_world_engine_i18n_ci "World Engine: i18n catalog freshness + compile"
           run_unit u_global_footprint_glocal_offline "Global Footprint + glocal + offline integration"
           run_unit u_global_governance_plan_completion "Global governance program closure (Phase 5 strict gate)"
@@ -1092,6 +1212,7 @@ jobs:
           run_unit u_platform_pillar_gates "Platform pillars: middleware order, tenant cache, list search"
           run_unit u_theme_visibility_platform "Theme visibility: shell wiring + main-content utility baseline"
           run_unit u_ratchet_baselines_present "Detector integrity: every --compare gate has a committed baseline"
+          run_unit u_marketing_axe_ratchet_coverage "Detector integrity: the marketing axe sweep still scans every marketing page"
           run_unit u_audit_log_append_only "Detector integrity: AuditLog is append-only outside a declared allowlist"
           run_unit u_sms_template_length "SMS bodies fit one carrier segment (reads the template catalog)"
           run_unit u_undefined_color_token_fallback "CSS: no colour declaration collapses on an undeclared token"

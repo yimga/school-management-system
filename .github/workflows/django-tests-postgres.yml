@@ -176,24 +176,17 @@ jobs:
         run: |
 
           python manage.py test \
-
             apps.schoolops.tests.test_resource_booking \
-
             apps.academics.tests.test_timetable_booking_integration \
-
             apps.schoolops.tests.test_inventory_movement \
-
             apps.schoolops.tests.test_substitute_market \
-
             apps.academics.tests.test_discipline_routing \
-
             apps.reports.tests.test_report_dynamic_fields \
             apps.reports.tests.test_report_card_e2e_flow \
             apps.reports.tests.test_report_card_e2e_seed \
             apps.reports.tests.test_report_hash_ledger \
             apps.reports.tests.test_year_end_report_archive \
             apps.reports.tests.test_compliance_residency_export_gate \
-
             apps.platform_runtime.tests.test_frontier_moat_runtime_proof \
             apps.platform_runtime.tests.test_offline_multiday_replay_simulation \
             apps.portal.tests.test_offline_authenticated_api_replay \
@@ -206,11 +199,8 @@ jobs:
             apps.portal.tests.test_query_counts_teacher_completion \
             apps.portal.tests.test_query_counts_attendance_rollcall \
             apps.compliance.tests.test_data_residency_border_lock \
-
             --settings=config.settings \
-
             --verbosity=2 \
-
             --noinput
 
 

@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Independent validation of batches 1817-1819 (batch 1820 - 2026-09-01)
+
+**A. Scope:** Validate the waiver slice by running its engines, per docs/EDGE_ONBOARDING_WAIVER_VALIDATION_BRIEF_2026_09_01.md. The brief's own instruction was that the engine wins over the brief, and that a hung run is not a green run.
+
+**B. What was already correct:** The 10-aspect catalog, the >=12-character floor (enforced centrally, after .strip(), so twelve spaces also fails), the overlay write as School.objects.filter(pk=...).update(settings=), compose mounting backupdata:/backups:ro on x-app and never backupkeys, every new operator string wrapped for translation, and both console buttons present. audit_edge_runbook --strict: 19 steps, 76 OK, 0 WARN, 0 FAIL. The eight named suites: 133/133 OK - the same number the batch claimed, but this time from a run that finished, under manage.py test rather than sqlite-memory. Full apps.lifecycle: 464/464 OK.
+
+**C. Gaps closed:** The shipped sovereign-only test proves a fully-waived campus goes GREEN with a real SECRET_KEY, which is the positive direction only. Disabling the SECRET_KEY branch of _validate_configure_box_env turns that same fully-waived suite green - so that single check is the only thing between a waived campus and a pass, and nothing was holding it. Two tests now do. must_record_on_box, which is what tells an operator that a cloud click does not clear go-dark, had no test; forced to a constant False, a box line would invite the skip onto the host go-dark never reads. Two more tests. All four verified red under their mutations and green restored.
+
+**D. Defect found by running the bypassed gate:** Two pairing-refusal strings were wrapped for translation and missing from all 20 catalogs, so a non-English operator console rendered them in English on the one screen that explains why pairing was refused. git log -S attributes both to this session's own commit 6bc5acdbb - not, as first recorded, to a peer.
+
+**E. Process:** Batch 1819 was pushed with core.hooksPath emptied because the pre-push hook "hung with no output". It was not hanging: Python block-buffers stdout when it is not a TTY, so a 68-gate run prints nothing until it exits. With -u the banner appears in under a second. An empty log is no evidence, which is the opposite of a pass. Full gate on the merged tree: 69 PASS, 0 FAIL.
+
+**F. Unproven, stated as such:** No live browser pass on /super/edge-onboarding/; the operator UI is proven by Django GET/POST only. Forced-RLS Postgres behaviour is read off migration SQL, not executed. The new meta-gate test-asserts-behaviour reported that no test file in this push was in its candidate population, so it measured nothing and claims nothing.
+
 ## Slice - Box-side skip CLI and overlay honesty (batch 1819 - 2026-09-01)
 
 **A. Scope:** Final end-to-end audit of per-aspect onboarding waivers. Dual-file loop: runbook engine + operator console. Stay off in-flight peer `sync_engine` / backup-script work.

@@ -18,7 +18,7 @@ from apps.observability import views as obs_views
 from apps.wal_stream.views_http import wal_websocket_http_stub
 from apps.observability.models import PlatformIncident
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
-from apps.platform_runtime.views_internal_cron import internal_cron_run
+from config.internal_machine_urls import INTERNAL_MACHINE_URLPATTERNS
 from apps.schools.models import School
 from apps.schools.marketing_views import marketing_page
 from apps.schools.provision_email_urls import build_public_site_url
@@ -890,14 +890,10 @@ urlpatterns = [
         "api/internal/metadata/",
         include(("apps.metadata.urls", "metadata"), namespace="metadata"),
     ),
-    path(  # rbac-allow: machine endpoint authed by INTERNAL_CRON_TOKEN shared secret (constant-time)
-        # A free external scheduler (cron-job.org / UptimeRobot) can POST here to
-        # tick the periodic-job registry. It lives in config.urls too, but prod
-        # manager traffic resolves config.manager_urls — so without this it 404s.
-        "api/internal/cron/run/",
-        internal_cron_run,
-        name="internal_cron_run",
-    ),
+    # Token-authed machine endpoints. Mounted from ONE shared list so a route
+    # cannot exist on some hosts and 404 on others -- see
+    # config/internal_machine_urls.py for the outage that caused.
+    *INTERNAL_MACHINE_URLPATTERNS,
     # rbac-allow: payment-processor-webhook-hmac-signature-verified-in-view
     path(
         "api/billing/processors/<str:processor_code>/webhook/",

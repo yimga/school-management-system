@@ -7,6 +7,7 @@ from apps.schools.onboarding_recommendations import (
     build_onboarding_recommendations,
     ensure_school_recommendations,
 )
+from apps.test_utils.tenant_hosts import HOST_ROUTED_SETTINGS, public_client
 
 
 class RecommendationRulesTests(SimpleTestCase):
@@ -146,8 +147,19 @@ class RecommendationGrandfatherTests(TestCase):
         )
 
 
-@override_settings(RATELIMIT_ENABLE=False, ROOT_URLCONF="config.public_urls", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+# ROOT_URLCONF makes reverse() produce the public-host path; the HOST is what makes
+# the REQUEST arrive there (UrlConfSwitcherMiddleware reads the Host header).
+@override_settings(
+    RATELIMIT_ENABLE=False,
+    ROOT_URLCONF="config.public_urls",
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    **HOST_ROUTED_SETTINGS,
+)
 class SignupRecommendationCaptureTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = public_client()
+
     def test_signup_persists_intent_and_recommendations(self):
         response = self.client.post(reverse("signup_school"), {
             "name": "Intent Academy", "slug": "intent-academy", "email": "owner@intent.test", "country_code": "CM",

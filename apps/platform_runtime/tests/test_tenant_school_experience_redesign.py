@@ -2,8 +2,15 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.tests._template_nodes import assert_markup, assert_wires
+
 
 ROOT = Path(__file__).resolve().parents[3]
+
+SCHOOL_CONFIG = (
+    ROOT / "templates" / "platform_runtime" / "school_configuration_center.html"
+)
+PACK_SETUP = ROOT / "templates" / "platform_runtime" / "tenant_pack_setup.html"
 
 
 class TenantSchoolExperienceRedesignTests(SimpleTestCase):
@@ -16,23 +23,36 @@ class TenantSchoolExperienceRedesignTests(SimpleTestCase):
         # per-section permission gate (tenant-safety), the mobile marker, and no
         # operator-plane leakage.
         text = (ROOT / "templates" / "platform_runtime" / "school_configuration_center.html").read_text(encoding="utf-8")
-        self.assertIn('data-apple-class-tenant-school-admin="1"', text)
-        self.assertIn("rmc_page_masthead.html", text)
+        assert_markup(
+            self,
+            SCHOOL_CONFIG,
+            'data-apple-class-tenant-school-admin="1"',
+            "data-school-configuration-section",
+            "data-world-class-mobile-layout",
+        )
+        assert_wires(self, SCHOOL_CONFIG, "rmc_page_masthead.html")
+        # can_access_permission is the per-section permission GATE: template
+        # code, which no parse and no render can see. It stays a source read.
         self.assertIn("can_access_permission", text)
-        self.assertIn("data-school-configuration-section", text)
-        self.assertIn("data-world-class-mobile-layout", text)
         self.assertNotIn("system_closure_map", text)
         self.assertNotIn("global registries", text.lower())
 
     def test_tenant_setup_surfaces_show_external_blockers_honestly(self):
         for name in ("tenant_blueprint_setup.html", "tenant_pack_setup.html"):
             with self.subTest(name=name):
-                text = (ROOT / "templates" / "platform_runtime" / name).read_text(encoding="utf-8")
-                self.assertIn("rmc_operational_center_frame.html", text)
-                self.assertIn('data-rmc-operational-workbench="1"', text)
+                path = ROOT / "templates" / "platform_runtime" / name
+                text = path.read_text(encoding="utf-8")
+                assert_wires(
+                    self,
+                    path,
+                    "rmc_operational_center_frame.html",
+                    "world_class_readiness_meter.html",
+                )
+                assert_markup(self, path, 'data-rmc-operational-workbench="1"')
+                # Loose case-folded copy checks over the whole source; only a
+                # source read can express them.
                 self.assertIn("external", text.lower())
                 self.assertIn("approval", text.lower())
-                self.assertIn("world_class_readiness_meter.html", text)
 
     def test_tenant_pack_setup_uses_the_approved_full_canvas_contract(self):
         template = (
@@ -42,9 +62,13 @@ class TenantSchoolExperienceRedesignTests(SimpleTestCase):
             encoding="utf-8"
         )
 
-        self.assertIn('data-rmc-full-canvas-catalog="tenant-pack"', template)
-        self.assertIn('data-rmc-genuine-pack-action="1"', template)
-        self.assertIn("components/pagination.html", template)
+        assert_markup(
+            self,
+            PACK_SETUP,
+            'data-rmc-full-canvas-catalog="tenant-pack"',
+            'data-rmc-genuine-pack-action="1"',
+        )
+        assert_wires(self, PACK_SETUP, "components/pagination.html")
         self.assertNotIn('class="panel', template)
         self.assertNotIn('class="grid', template)
         self.assertNotIn('class="card', template)
@@ -61,10 +85,10 @@ class TenantSchoolExperienceRedesignTests(SimpleTestCase):
             "super_support_live_console.html",
         ):
             with self.subTest(name=name):
-                text = (ROOT / "templates" / "schools" / name).read_text(
-                    encoding="utf-8"
-                )
-                self.assertIn("rmc_operational_center_frame.html", text)
+                path = ROOT / "templates" / "schools" / name
+                text = path.read_text(encoding="utf-8")
+                assert_wires(self, path, "rmc_operational_center_frame.html")
+                # A {% block %} NAME is template code; only a source read sees it.
                 self.assertIn("block cp_workspace_header", text)
                 self.assertNotIn("<h1", text.lower())
 
@@ -79,4 +103,4 @@ class TenantSchoolExperienceRedesignTests(SimpleTestCase):
             with self.subTest(path=path.relative_to(ROOT)):
                 text = path.read_text(encoding="utf-8")
                 self.assertNotIn("overflow: hidden", text)
-                self.assertIn("overflow-wrap: anywhere", text)
+                assert_markup(self, path, "overflow-wrap: anywhere")

@@ -1,7 +1,13 @@
 {% load i18n %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="mkt-v3-logo-carousel" data-mkt-horizontal-carousel tabindex="0" role="region" aria-label="{% trans 'Schools on RunMyCampus' %}">
-  <div class="mkt-v3-logo-carousel__track">
+{% comment %}tabindex sits on the TRACK, not the wrapper: the wrapper is
+   `overflow: hidden` and the track is the element with `overflow-x: auto`, so
+   focusing the wrapper gave a keyboard user a tab stop that could not scroll
+   anything (axe scrollable-region-focusable on the mobile home page). The
+   wrapper keeps role=region + the label so the focused scroller is announced
+   in context.{% endcomment %}
+<div class="mkt-v3-logo-carousel" data-mkt-horizontal-carousel role="region" aria-label="{% trans 'Schools on RunMyCampus' %}">
+  <div class="mkt-v3-logo-carousel__track" tabindex="0">
     {% for item in carousel_items %}
     <span class="mkt-v3-logo-carousel__item">{{ item }}</span>
     {% endfor %}

@@ -76,8 +76,18 @@ def iter_templates() -> list[Path]:
 MULTILINE_HASH = re.compile(r"\{#((?:(?!#\}).)*?\n(?:(?!#\}).)*?)#\}", re.DOTALL)
 
 
+# A <script type="application/json"> island is NOT inert: it is built with
+# {% if %} / {% url %} / {% trans %} and rendered by Django, so it IS
+# template territory. Masking it hid two multi-line {# #} comments inside
+# components/rmc_command_palette.html (2026-08-31) that this gate is written
+# to catch -- it reported 0 findings while they were live, and the resulting
+# malformed JSON silently emptied the command palette on every shell.
+# Executable JS stays masked: it legitimately carries `}}`, `${...}` and
+# Alpine `x-data="{...}"`, none of which are Django tokens.
 _SCRIPT_OR_STYLE = re.compile(
-    r"<(script|style)\b[^>]*>.*?</\1>",
+    r"<style\b[^>]*>.*?</style>"
+    r"|<script\b(?![^>]*\btype\s*=\s*[\"']application/(?:ld\+)?json[\"'])"
+    r"[^>]*>.*?</script>",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -92,6 +102,14 @@ def _strip_script_style(text: str) -> str:
         return re.sub(r"[^\n]", " ", m.group(0))
 
     return _SCRIPT_OR_STYLE.sub(repl, text)
+
+
+TAG_OR_COMMENT = re.compile(r"\{%.*?%\}|\{#.*?#\}", re.DOTALL)
+
+
+def _blank_keep_newlines(m: "re.Match[str]") -> str:
+    """Blank a match but keep its newlines, so line numbers stay true."""
+    return re.sub(r"[^\n]", " ", m.group(0))
 
 
 def find_token_leaks(text: str) -> list[tuple[int, str]]:
@@ -118,7 +136,12 @@ def find_token_leaks(text: str) -> list[tuple[int, str]]:
         issues.append((line, "orphan `#}` with no preceding `{#` on the same line"))
 
     # 3. Orphan {{ without }}, or }} without {{
-    masked2 = re.sub(r"\{\{.*?\}\}", " ", template_text, flags=re.DOTALL)
+    # Mask {% %} and {# #} FIRST. `{% endif %}}` is a tag plus a literal `}`
+    # closing a JSON object, and its last two characters read as an orphan
+    # `}}` to a scan that has not removed tags yet. Newlines are preserved so
+    # reported line numbers stay accurate.
+    tagless = TAG_OR_COMMENT.sub(_blank_keep_newlines, template_text)
+    masked2 = re.sub(r"\{\{.*?\}\}", " ", tagless, flags=re.DOTALL)
     for m in re.finditer(r"\{\{", masked2):
         line = masked2.count("\n", 0, m.start()) + 1
         issues.append((line, "orphan `{{` with no matching `}}`"))

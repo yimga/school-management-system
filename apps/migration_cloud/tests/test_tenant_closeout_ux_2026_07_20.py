@@ -23,6 +23,10 @@ from apps.migration_cloud.views_tenant_upload import (
     _row_hint,
 )
 from apps.schools.models import School, SchoolMembership
+from apps.siteconfig.tests._template_nodes import assert_markup
+
+_BUNDLE_REVIEW = Path("templates/migration_cloud/connector/bundle_review.html")
+_COMMAND_CENTER = Path("templates/migration_cloud/operator/command_center.html")
 
 
 class NextStepUrlTests(SimpleTestCase):
@@ -174,16 +178,31 @@ class TemplateCloseoutMarkers(SimpleTestCase):
         text = Path("templates/migration_cloud/connector/bundle_review.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("data-mc-retry-advance", text)
+        # "Detection needs another try" is a {% trans %} msgid; advance_error and
+        # quarantine_reason are {% if %} conditions and a {{ }} variable. All three
+        # are template CODE, so the source read is the only thing that can see them.
         self.assertIn("Detection needs another try", text)
         self.assertIn("advance_error", text)
         self.assertIn("quarantine_reason", text)
+        # The retry button's hook IS markup, so ask the engine whether the review
+        # template still EMITS it -- a {% comment %} keeps the bytes and drops the
+        # button.
+        assert_markup(self, _BUNDLE_REVIEW, "data-mc-retry-advance")
 
     def test_command_center_tip_mentions_inspect(self):
         text = Path("templates/migration_cloud/operator/command_center.html").read_text(
             encoding="utf-8"
         )
+        # The hint is a {% trans %} msgid captured "as page_tip_1" and handed to
+        # {% rmc_info_tag %}, so neither a parse nor a standalone render can reach
+        # the sentence itself -- that assertion has to stay a source read.
         self.assertIn("inspect_migration_tenant", text)
+        # What the read cannot tell is whether the command center still renders at
+        # all, which is exactly the state the vacuity harness plants. Its own page
+        # root class is emitted text, so assert that.
+        assert_markup(
+            self, _COMMAND_CENTER, "rmc-page--migration-cloud-command-center"
+        )
 
 
 class CatalogEntitlementCloseout(SimpleTestCase):

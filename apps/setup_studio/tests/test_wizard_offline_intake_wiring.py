@@ -5,9 +5,11 @@ from django.test import SimpleTestCase
 from apps.platform_runtime.offline_mode_bundle import (
     OFFLINE_MODE_BACKEND_FLAG_UPDATES,
 )
+from apps.siteconfig.tests._template_nodes import assert_markup
 
 
 ROOT = Path(__file__).resolve().parents[3]
+TENANT_WIZARD = Path(__file__).resolve().parents[3] / "templates/setup_studio/tenant_wizard.html"
 
 
 class WizardOfflineIntakeWiringTests(SimpleTestCase):
@@ -20,6 +22,10 @@ class WizardOfflineIntakeWiringTests(SimpleTestCase):
         template = (ROOT / "templates/setup_studio/tenant_wizard.html").read_text(
             encoding="utf-8"
         )
+        # rmc-wizard-offline-intake.js mounts by querying for this attribute, so
+        # it has to be on the emitted element; the two .js names below are
+        # {% static %} arguments and stay reads.
+        assert_markup(self, TENANT_WIZARD, "data-rmc-offline-intake")
         self.assertIn("data-rmc-offline-intake", template)
         self.assertIn("offline-crypto-wrapper.js", template)
         self.assertIn("rmc-wizard-offline-intake.js", template)

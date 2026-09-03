@@ -13,6 +13,12 @@ from apps.siteconfig.brand_guard_runtime import guard_brand_dict
 from apps.siteconfig.svg_sanitize import sanitize_svg_bytes
 from apps.schools.models import School
 
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+)
+
+_TN_ROOT = Path(__file__).resolve().parents[3]
+
 
 class SevenLayerCascadeDocumentationTests(SimpleTestCase):
     """Document 7-layer cascade files exist (RuntimeDefaults → CSS vars)."""
@@ -36,6 +42,9 @@ class SevenLayerCascadeDocumentationTests(SimpleTestCase):
         )
         self.assertIn("SITE.neutral_palette", meta)
         self.assertIn("rmc-aesthetic-profile", meta)
+        # SITE.neutral_palette is a {{ }} expression. The profile marker is markup.
+        assert_markup(self, _TN_ROOT / "templates/partials/rmc_theme_meta.html",
+                      "rmc-aesthetic-profile")
 
     def test_theme_bootstrap_never_writes_system_to_data_theme(self):
         root = Path(__file__).resolve().parents[3]

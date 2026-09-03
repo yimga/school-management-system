@@ -19,7 +19,14 @@ open door, even before the secret is provisioned.
       {"background": true}  fire-and-forget in a daemon thread, return 202
 
   GET /api/internal/cron/run/
-    → registry status (jobs, intervals, last_run, due_now) for monitoring.
+    → {"jobs": [...], "evidence": [...], "summary": {...}}
+      jobs     = cache schedule state (intervals, last_run, due_now)
+      evidence = DURABLE per-job heartbeat verdict, one row per REGISTERED job
+                 (ok | stale | failing | never_invoked). This is the field that
+                 proves a job RAN; ``jobs`` cannot, because last_run is written
+                 before the job is called and is wiped on deploy.
+      summary  = counts, incl. ``cron_only_never_invoked`` -- the number that is
+                 non-zero exactly when the external trigger is not wired.
 
 Every path converges on ``apps.platform_runtime.periodic`` — the SAME registry +
 per-job locking the in-process scheduler uses, so triggers can't double-fire.
@@ -138,7 +145,30 @@ def internal_cron_run(request):
     from apps.platform_runtime import periodic
 
     if request.method == "GET":
-        return JsonResponse({"jobs": periodic.registry_status()})
+        # TWO answers, because the first one is green-on-failure.
+        #
+        # ``jobs`` is the CACHE's schedule state -- what the dispatcher thinks is
+        # due. It cannot evidence execution: ``periodic._claim`` writes
+        # ``last_run`` BEFORE calling the job, so a job that raised on its first
+        # statement still reports a fresh ``last_run_epoch`` and ``due_now: false``.
+        # The cache is also wiped on every deploy.
+        #
+        # ``evidence`` is the DURABLE ScheduledJobHeartbeat record joined against
+        # the registry, so it reports one row per REGISTERED job -- including the
+        # ones with no heartbeat at all, which is precisely the population that
+        # was invisible while 26 cron-only jobs had never run once. It is the only
+        # field here that can answer "did the trigger actually work?", and it is
+        # read-only (no recovery threads, no cache writes), so polling it is safe.
+        from apps.platform_runtime.scheduled_job_health import job_execution_evidence
+
+        evidence, summary = job_execution_evidence()
+        return JsonResponse(
+            {
+                "jobs": periodic.registry_status(),
+                "evidence": evidence,
+                "summary": summary,
+            }
+        )
 
     # POST — parse optional directives from the already-read body.
     job = None

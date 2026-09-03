@@ -381,9 +381,13 @@ jobs:
           $tmp = Join-Path $env:RUNNER_TEMP "intoto-cmp"
           New-Item -ItemType Directory -Force -Path $tmp | Out-Null
           & gh run download $env:GITHUB_RUN_ID -n intoto-subject-windows -D $tmp
+          # Same defect the macOS job carried as `|| true`: the artifact is
+          # produced by a job this one `needs:`, so a failed download is a
+          # real fault, and exiting 0 on it made the release's only
+          # reproducibility proof unable to fail.
           if ($LASTEXITCODE -ne 0) {
-            Write-Warning "could not load first-build subject manifest; manual diff required"
-            exit 0
+            Write-Error "could not download first-build subject manifest; cannot verify reproducibility"
+            exit 1
           }
           $first = Get-Content -Raw -Path (Join-Path $tmp "windows-subject.json") | ConvertFrom-Json
           foreach ($s in $first) {

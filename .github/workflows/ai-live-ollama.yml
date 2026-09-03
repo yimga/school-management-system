@@ -67,7 +67,13 @@ jobs:
       - name: Live integration tests (no mocks)
         run: |
           mkdir -p .django_test_dbs
-          python manage.py test \
+          # `apps` is a DISCOVERY root, not a filter. Without it Django's
+          # unittest loader discovers from '.', reaches emis/tests and dies
+          # with ImportError before running anything -- --tag selects among
+          # tests that were already found, so it cannot rescue a bare run.
+          # tenants-rls.yml has carried this same `test apps --tag=` form
+          # since it hit the identical crash.
+          python manage.py test apps \
             --tag=ai_live_ollama \
             --settings=config.settings \
             --noinput \

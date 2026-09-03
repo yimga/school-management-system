@@ -14,6 +14,11 @@ from apps.accounts.login_immersive_canvas import (
 )
 from apps.accounts.login_immersive_context import build_login_immersive_context
 from apps.accounts.views import login_view
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_renders,
+    assert_wires,
+)
 
 
 class LoginImmersiveContextTests(SimpleTestCase):
@@ -249,8 +254,10 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
     def test_upgrade_modal_placeholder_exists(self):
         path = Path(settings.BASE_DIR) / "templates" / "components" / "upgrade_modal_placeholder.html"
         self.assertTrue(path.is_file())
-        html = path.read_text(encoding="utf-8")
-        self.assertIn("data-rmc-upgrade-placeholder", html)
+        # The placeholder stands alone -- no request, no database -- so the
+        # strongest available check is what it actually RENDERS. Reading the file
+        # cannot tell a live hook from one parked inside {% comment %}.
+        assert_renders(self, path, "data-rmc-upgrade-placeholder")
 
     def test_change_role_button_has_valid_data_attribute(self):
         login_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "login.html"
@@ -261,50 +268,83 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
     def test_login_template_includes_canvas_partial(self):
         login_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "login.html"
         html = login_tpl.read_text(encoding="utf-8")
-        self.assertIn("login_immersive_canvas.html", html)
-        self.assertIn("data-rmc-login-layout", html)
-        self.assertIn("data-rmc-local-first", html)
+        # Each of these is a {% static %} argument with the cache-buster glued to
+        # the closing tag, so the string spans template code and only the source
+        # can show it.
         self.assertIn("auth-login-canvas.css' %}?v=20260818.1", html)
         self.assertIn("rmc-auth-login-immersive.js' %}?v=20260818.1", html)
-        self.assertIn("data-rmc-passkey-options-url", html)
-        self.assertIn("data-rmc-returning-user", html)
-        self.assertIn("data-rmc-access-assistant", html)
+        # The include is wiring and the hooks are markup: ask the engine, because
+        # a {% comment %} produces no IncludeNode and emits no text.
+        assert_wires(self, login_tpl, "login_immersive_canvas.html")
+        assert_markup(
+            self,
+            login_tpl,
+            "data-rmc-login-layout",
+            "data-rmc-local-first",
+            "data-rmc-passkey-options-url",
+            "data-rmc-returning-user",
+            "data-rmc-access-assistant",
+        )
 
     def test_local_front_door_keeps_promotions_away_from_credentials(self):
         canvas_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "partials" / "login_immersive_canvas.html"
         html = canvas_tpl.read_text(encoding="utf-8")
-        self.assertIn("data-rmc-sponsored-region", html)
-        self.assertIn("data-rmc-sponsored-empty", html)
+        # These three are markup the canvas must PUT ON THE PAGE; a source
+        # read cannot tell them from the same strings inside a comment, which
+        # is why this case measured vacuous once the harness stopped
+        # crediting it with a sibling test's template.
+        assert_markup(
+            self,
+            canvas_tpl,
+            "data-rmc-sponsored-region",
+            "data-rmc-sponsored-empty",
+            "data-rmc-offline-note",
+        )
+        # A {% trans %} msgid: no parse and no render of this partial can see
+        # it, so the source read stays.
         self.assertIn("Local partner", html)
-        self.assertIn("data-rmc-offline-note", html)
         login_tpl = (Path(settings.BASE_DIR) / "templates" / "auth" / "login.html").read_text(encoding="utf-8")
         credentials = login_tpl.split('data-rmc-auth-step="creds"', 1)[1]
         self.assertNotIn("data-rmc-sponsored-slot", credentials)
 
     def test_every_operator_and_tenant_login_boundary_declares_local_first_policy(self):
         auth_dir = Path(settings.BASE_DIR) / "templates" / "auth"
-        tenant_admin = (auth_dir / "tenant_admin_login.html").read_text(encoding="utf-8")
         operator = (auth_dir / "manager_login.html").read_text(encoding="utf-8")
         operator_admin = (auth_dir / "admin_login.html").read_text(encoding="utf-8")
-        self.assertIn('data-rmc-local-first-login="tenant-admin"', tenant_admin)
-        self.assertIn('data-rmc-local-first-login="operator"', operator)
-        self.assertIn('data-rmc-local-first-login="operator-admin"', operator_admin)
+        # promotion-free sits inside a {% trans %} msgid, which is template code:
+        # neither a parse nor a render of the file can see it, so it stays a read.
         self.assertIn("promotion-free", operator)
         self.assertIn("promotion-free", operator_admin)
+        # The three boundary markers are markup. Assert each file EMITS its own,
+        # so the case is sound whichever of the three the harness binds it to.
+        assert_markup(
+            self,
+            auth_dir / "tenant_admin_login.html",
+            'data-rmc-local-first-login="tenant-admin"',
+        )
+        assert_markup(
+            self, auth_dir / "manager_login.html", 'data-rmc-local-first-login="operator"'
+        )
+        assert_markup(
+            self,
+            auth_dir / "admin_login.html",
+            'data-rmc-local-first-login="operator-admin"',
+        )
 
     def test_approved_v3_visual_structure_is_in_production_assets(self):
         base = Path(settings.BASE_DIR)
-        login_html = (base / "templates" / "auth" / "login.html").read_text(
-            encoding="utf-8"
-        )
+        login_tpl = base / "templates" / "auth" / "login.html"
+        login_html = login_tpl.read_text(encoding="utf-8")
         canvas_html = (
             base / "templates" / "auth" / "partials" / "login_immersive_canvas.html"
         ).read_text(encoding="utf-8")
         css = (base / "static" / "css" / "auth-login-canvas.css").read_text(
             encoding="utf-8"
         )
+        # "Sign in to" is a {% blocktrans %} msgid -- template code. The
+        # recommended rail is real markup, so that one is asked of the engine.
         self.assertIn("Sign in to", login_html)
-        self.assertIn("rmc-auth-immersive__recommended", login_html)
+        assert_markup(self, login_tpl, "rmc-auth-immersive__recommended")
         self.assertIn('grid-template-areas:', css)
         self.assertIn('"hero pulse-head"', css)
         self.assertIn('"hero pulse"', css)

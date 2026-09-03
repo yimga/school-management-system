@@ -1,20 +1,43 @@
 """Manager corporate footer + tenant portal chrome template contracts."""
 
+import re
 from pathlib import Path
 
 from django.test import SimpleTestCase
+
+from apps.siteconfig.tests._template_nodes import (
+    assert_markup,
+    assert_wires,
+    literal_text,
+)
+
+ROOT = Path(__file__).resolve().parents[3]
+
+SKELETON = ROOT / "templates/control_plane_skeleton.html"
+ADMIN_BASE = ROOT / "templates/admin/base.html"
+BASE_SITE = ROOT / "templates/admin/base_site.html"
+PORTAL_BASE = ROOT / "templates/portal_base.html"
+AI_CARD = ROOT / "templates/components/ai_guided_assistant_card.html"
+MANAGER_TOPBAR = ROOT / "templates/partials/manager_operator_topbar.html"
+EXPERIENCE_CANVAS = (
+    ROOT / "templates/studio_os/partials/workspace/experience_inpage_canvas.html"
+)
 
 
 class ManagerPortalChromeContractTests(SimpleTestCase):
     def test_control_plane_skeleton_wires_civic_operator_footer(self):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")
         self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
-        self.assertIn("rmc_operator_footer_civic.html", text)
-        self.assertIn("control_plane_unified_header.html", text)
+        assert_wires(
+            self,
+            SKELETON,
+            "rmc_operator_footer_civic.html",
+            "control_plane_unified_header.html",
+        )
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertIn("cp_shell_page", text)
         self.assertIn("cp_shell_footer", text)
-        self.assertIn("cp-shell-content--with-public-footer", text)
+        assert_markup(self, SKELETON, "cp-shell-content--with-public-footer")
         self.assertIn("rmc-footer-surfaces.css", text)
 
     def test_control_plane_base_uses_skeleton_shell_blocks(self):
@@ -35,8 +58,12 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         # in templates/admin/base.html).
         text = Path("templates/admin/base.html").read_text(encoding="utf-8")
         self.assertIn("is_manager_host", text)
-        self.assertIn("control_plane_unified_header.html", text)
-        self.assertIn("manager_cp_offcanvas.html", text)
+        assert_wires(
+            self,
+            ADMIN_BASE,
+            "control_plane_unified_header.html",
+            "manager_cp_offcanvas.html",
+        )
         self.assertNotIn("operator_path_banner.html", text)
         self.assertNotIn("rmc_operator_footer_civic.html", text)
         self.assertNotIn("admin_operator_steering_strip.html", text)
@@ -70,10 +97,22 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         # rmc-django-command-band (single band per the v15 Scan/Form archetype).
         self.assertIn("rmc-django-command-band", change_list)
         self.assertIn("rmc-django-command-band", change_form)
-        # Versioned admin-canvas cache-bust marker (bumped per admin-OS wave, e.g.
-        # 20260724-admin-os-v158); assert the stable admin-OS version prefix so a
-        # routine version bump doesn't trip this contract.
-        self.assertIn("admin-os-v", base_site)
+        # Versioned cache-bust marker. This asked for the literal prefix
+        # "admin-os-v" so a routine BUMP would not trip it -- and then the
+        # prefix itself was renamed (20260724-admin-os-v158 became
+        # 20260827-admin-navigation-v23), so the contract has been RED ever
+        # since while the cache-busting it stands for never stopped working.
+        #
+        # A prefix is not the stable part; the SHAPE is. Assert that the
+        # shell really emits a ?v= token and the build stamp, through the
+        # engine -- a base_site whose body is one {% comment %} emits neither.
+        emitted = literal_text(BASE_SITE)
+        self.assertTrue(
+            re.search(r"\?v=[0-9]{8}-[a-z0-9\-]+", emitted),
+            "manager admin shell must cache-bust its stylesheets with a "
+            "dated ?v= token; found none in the emitted markup",
+        )
+        self.assertIn('name="rmc-admin-approval-build"', emitted)
         self.assertIn('data-rmc-admin-surface="smart-form"', change_form)
         self.assertIn('data-rmc-admin-surface="smart-changelist"', change_list)
         self.assertIn("real-admin-canvas: terminal production contract", canvas_css)
@@ -100,18 +139,19 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertNotIn("marketing_footer.html", text)
         self.assertIn("PORTAL_FOOTER_PARTIAL", text)
         self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
-        self.assertIn("rmc_operator_footer_civic.html", text)
-        self.assertIn("control_plane_unified_header.html", text)
+        assert_wires(
+            self,
+            PORTAL_BASE,
+            "rmc_operator_footer_civic.html",
+            "control_plane_unified_header.html",
+        )
         self.assertIn("rmc-footer-surfaces.css", text)
         self.assertIn("rmc-civic-footer.css", text)
         self.assertIn("rmc-surface-overlay-guard.js", text)
         tenant_nav = Path("templates/partials/tenant_primary_nav.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn(
-            "help_contextual_drawer.html",
-            Path("templates/portal_base.html").read_text(encoding="utf-8"),
-        )
+        assert_wires(self, PORTAL_BASE, "help_contextual_drawer.html")
         self.assertNotIn("tp-primary-nav__item--help", tenant_nav)
 
     def test_control_plane_skeleton_document_scroll_contract(self):
@@ -129,17 +169,22 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
             encoding="utf-8"
         )
         self.assertIn("rmc-ai-guided-assistant-card", text)
+        assert_markup(self, AI_CARD, "rmc-ai-guided-assistant-card")
         self.assertNotIn('class="card ', text)
 
     def test_manager_topbar_uses_unified_control_row_toolbar(self):
         text = Path("templates/partials/manager_operator_topbar.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn('data-rmc-platform-header="manager"', text)
-        self.assertIn("rmc-platform-header__toolbar", text)
+        assert_markup(
+            self,
+            MANAGER_TOPBAR,
+            'data-rmc-platform-header="manager"',
+            "rmc-platform-header__toolbar",
+            "rmc-platform-header__command",
+            "rmc-platform-header__actions",
+        )
         self.assertIn('lockup_layout="inline"', text)
-        self.assertIn("rmc-platform-header__command", text)
-        self.assertIn("rmc-platform-header__actions", text)
 
     def test_studio_experience_real_canvas_contract_is_terminal(self):
         workspace_css = Path("static/css/studio-workspace.css").read_text(encoding="utf-8")
@@ -155,6 +200,17 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
 
         self.assertIn("experience_inpage_canvas.html", body)
         self.assertIn("suppress_theme_inline_preview=1", canvas)
+        assert_wires(
+            self,
+            EXPERIENCE_CANVAS,
+            "experience_live_preview_pane.html",
+            "experience_role_filmstrip.html",
+            "experience_compare_fold.html",
+            "theme_colors_content.html",
+        )
+        assert_markup(
+            self, EXPERIENCE_CANVAS, 'data-rmc-studio-experience-canvas="inpage"'
+        )
         self.assertIn("real-admin-canvas: Studio Experience production hardening", workspace_css)
         self.assertIn("real-admin-canvas: terminal Studio Experience fix", experience_css)
         self.assertIn(".theme-experience-grid", experience_css)

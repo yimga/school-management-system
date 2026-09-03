@@ -4203,6 +4203,38 @@ try:
     )
 except ValueError:
     RMC_SYNC_MAX_DELETES_PER_BUNDLE = 500
+# Proportional flood guard. The row-count cap above cannot tell a big school's routine
+# churn from a small school's extinction: 39 deletions are far under 500 AND are every
+# teacher a school has. This is the share of ONE entity's live rows a single bundle may
+# delete before that entity's deletions are refused as a batch. Per-tenant override:
+# School.settings["sync_max_delete_fraction_per_bundle"].
+try:
+    RMC_SYNC_MAX_DELETE_FRACTION_PER_BUNDLE = float(
+        os.getenv("RMC_SYNC_MAX_DELETE_FRACTION_PER_BUNDLE", "0.25")
+    )
+except ValueError:
+    RMC_SYNC_MAX_DELETE_FRACTION_PER_BUNDLE = 0.25
+# ...and the floor below which a fraction is not evidence of anything: deleting two of
+# three classrooms is an ordinary Tuesday and reads as 67% of the table. Per-tenant
+# override: School.settings["sync_delete_fraction_min_rows"].
+try:
+    RMC_SYNC_DELETE_FRACTION_MIN_ROWS = max(
+        1, int(os.getenv("RMC_SYNC_DELETE_FRACTION_MIN_ROWS", "10"))
+    )
+except ValueError:
+    RMC_SYNC_DELETE_FRACTION_MIN_ROWS = 10
+# Does this deployment DECLARE that its primary-key space is the far side's? Default NO,
+# and deliberately so: a box mints pks independently of the cloud (shared-DB + RLS vs
+# schema-per-tenant), so a deletion naming only a far-side pk can land on an unrelated
+# local row. A production appliance received 39 such teacher deletions in one 220ms sweep,
+# not one of them carrying an anchor. With this off, such a deletion is refused as
+# `delete_pk_not_provably_shared` unless this side's apply ledger shows the far side has
+# already addressed that exact pk here. Set it to 1
+# ONLY where the box really was restored as a verbatim pk-preserving clone.
+# See apps/sync_engine/delete_safety.py.
+RMC_SYNC_DELETE_TRUSTS_PEER_PKS = os.getenv(
+    "RMC_SYNC_DELETE_TRUSTS_PEER_PKS", "0"
+).strip().lower() in ("1", "true", "yes", "on")
 # How long a tombstone is kept. It only has to outlive the longest outage a peer can
 # have and still converge by replay; past that a full resync (which reconciles by
 # CONTENT, not by replaying history) is the correct repair anyway.

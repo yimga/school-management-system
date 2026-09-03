@@ -56,6 +56,7 @@ module.exports = defineConfig({
       testMatch: [
         '**/marketing-visual-engine.spec.js',
         '**/help-ai-center-a11y.spec.js',
+        '**/marketing-contrast-tokens.spec.js',
       ],
       use: {
         channel: 'chromium',
@@ -226,6 +227,7 @@ module.exports = defineConfig({
       testIgnore: [
         '**/marketing-visual-engine.spec.js',
         '**/help-ai-center-a11y.spec.js',
+        '**/marketing-contrast-tokens.spec.js',
         '**/parent-identity-cezgp-lane2.spec.js',
         '**/tablet-dashboard-visual.spec.js',
         '**/manager-bulk-confirm-dialog.spec.js',

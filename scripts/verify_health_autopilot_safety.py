@@ -28,6 +28,23 @@ MODULE = ROOT / "apps" / "platform_runtime" / "health_autopilot.py"
 # locked here too so the human-authorized one-shot apply can never silently become
 # unauthenticated, accept an arbitrary kind, or bypass the curated catalog.
 VIEW_MODULE = ROOT / "apps" / "platform_runtime" / "views_health_autopilot.py"
+CONTROL_PLANE_MODULE = ROOT / "apps" / "schools" / "control_plane.py"
+# Authorisation decorators that satisfy the write-endpoint gate. This asked for the
+# literal "staff_member_required" and went RED when the endpoint moved to
+# @require_control_plane_access -- which is STRICTLY STRONGER, not weaker:
+# user_has_control_plane_access() is documented as "intentionally narrower than
+# tenant staff access" and returns False for any user with a SchoolMembership,
+# where staff_member_required passes every tenant admin. A security gate that fails
+# because a guard got tighter teaches people to delete the gate.
+#
+# The names are re-checked below against control_plane.py, so this allowlist cannot
+# rot into naming a decorator that no longer exists -- which is how the pin failed
+# in the first place.
+PROJECT_AUTH_DECORATORS = (
+    "require_control_plane_access",
+    "require_super_access",
+)
+AUTH_DECORATORS = ("staff_member_required",) + PROJECT_AUTH_DECORATORS
 
 # Substrings that must never appear in the engine — these would mean it can destroy data,
 # bypass the ORM safety net, or rewrite credentials.
@@ -128,8 +145,11 @@ def main() -> int:
             errors.append("console write endpoint health_autopilot_apply is missing")
         else:
             preamble = view_src[max(0, idx - 300) : idx]
-            if "staff_member_required" not in preamble:
-                errors.append("health_autopilot_apply is not staff-gated (@staff_member_required)")
+            if not any(d in preamble for d in AUTH_DECORATORS):
+                errors.append(
+                    "health_autopilot_apply carries no authorisation decorator; "
+                    "expected one of " + ", ".join(AUTH_DECORATORS)
+                )
             if "require_POST" not in preamble:
                 errors.append("health_autopilot_apply is not POST-only (@require_POST)")
         if "apply_manual_remediation" not in view_src:
@@ -139,6 +159,21 @@ def main() -> int:
         for raw in ('POST.get("kind"', "POST.get('kind'"):
             if raw in view_src:
                 errors.append("console view must not accept a raw kind from the request (signal-only intake)")
+
+    # An allowlist that outlives its subjects goes on excusing decorators that no
+    # longer exist, and the endpoint could then be left with nothing at all.
+    try:
+        control_plane_src = CONTROL_PLANE_MODULE.read_text(encoding="utf-8")
+    except OSError as exc:
+        control_plane_src = ""
+        errors.append(f"could not read control_plane module: {type(exc).__name__}: {exc}")
+    if control_plane_src:
+        for decorator in PROJECT_AUTH_DECORATORS:
+            if f"def {decorator}(" not in control_plane_src:
+                errors.append(
+                    f"AUTH_DECORATORS names {decorator}, which no longer exists in "
+                    f"{CONTROL_PLANE_MODULE.name} -- the allowlist has rotted"
+                )
 
     if errors:
         print("HEALTH_AUTOPILOT_SAFETY_FAIL")

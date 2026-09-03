@@ -8,13 +8,21 @@ principal never received the dashboard that column asked for.
 Contract:
 * Known staff roles from ``User.Role`` are assigned on User + SchoolMembership.
 * SUPERADMIN / PARENT / STUDENT / EMPLOYER are never granted from a staff sheet.
-* Unknown labels fall back to TEACHER (the source string is still preserved).
+* A label we cannot map is NOT quietly granted a role. TEACHER is not an
+  inert token -- the ``post_save`` in ``apps.accounts.signals`` attaches the
+  TEACHER ``AccessRole``, whose migration-seeded codes include
+  ``attendance.manage`` and ``grades.enter`` -- so collapsing an unreadable
+  privilege onto it is privilege inflation. ``unresolvable_staff_role`` names
+  the problem and the staff lander HOLDS the row for review instead.
+* ``resolve_staff_role`` keeps its collapse-to-``default`` behaviour for the
+  backfill callers that depend on it (the source string is still preserved).
 * Activated accounts (usable password) keep their live role on re-import.
 """
 
 from __future__ import annotations
 
 import re
+from typing import Final
 
 from apps.platform_runtime.role_registry import ROLE_TEACHER, normalize_role
 
@@ -112,22 +120,70 @@ def _compact(raw: str) -> str:
     return "".join(_SPLIT_RE.split((raw or "").strip().lower()))
 
 
-def resolve_staff_role(raw: object, *, default: str | None = None) -> str:
-    """Return a safe ``User.Role`` token for a workbook/SIS role cell."""
-    fallback = default if default is not None else ROLE_TEACHER
+#: A non-empty label that matches no role and no alias. The sheet claimed a
+#: privilege this system cannot name, so nothing may be granted for it.
+ROLE_UNMAPPED: Final = "unmapped"
+
+#: A label naming a role a staff sheet may never grant (SUPERADMIN / PARENT /
+#: STUDENT / EMPLOYER). The claim is legible, and refused.
+ROLE_FORBIDDEN: Final = "forbidden"
+
+
+def _match_staff_role(raw: object) -> tuple[str | None, str | None]:
+    """Resolve a source role cell to ``(role, problem)``.
+
+    ``(None, None)``     the cell is blank. No privilege was claimed, so the
+                         caller's own ``default`` decides -- a payroll sheet
+                         with no role column is not a security event.
+    ``(role, None)``     the label names, or aliases onto, a grantable role.
+    ``(None, problem)``  the label cannot be honoured; ``problem`` is
+                         :data:`ROLE_FORBIDDEN` or :data:`ROLE_UNMAPPED`.
+
+    The single place the alias/allow/forbid decision is made, so
+    :func:`resolve_staff_role` and :func:`unresolvable_staff_role` can never
+    disagree about whether a label was understood.
+    """
     token = normalize_role(raw)
     if not token:
-        return fallback
-    allowed = _role_values()
+        return None, None
     forbidden = _forbidden_roles()
     if token in forbidden:
-        return fallback
+        return None, ROLE_FORBIDDEN
+    allowed = _role_values()
     if token in allowed:
-        return token
+        return token, None
     alias = _ALIAS_TO_ROLE_NAME.get(_compact(token))
     if alias and alias in allowed and alias not in forbidden:
-        return alias
-    return fallback
+        return alias, None
+    return None, ROLE_UNMAPPED
+
+
+def unresolvable_staff_role(raw: object) -> str | None:
+    """Why this source role cell cannot be honoured, or ``None`` if it can.
+
+    Ask this BEFORE :func:`resolve_staff_role` anywhere a role decides what a
+    provisioned account can reach. ``resolve_staff_role`` answers "what do I
+    write?" and always has an answer; this answers "did I understand the
+    source at all?", and a ``None`` here is the only thing that makes the
+    former's answer safe to act on.
+    """
+    return _match_staff_role(raw)[1]
+
+
+def resolve_staff_role(raw: object, *, default: str | None = None) -> str:
+    """Return a safe ``User.Role`` token for a workbook/SIS role cell.
+
+    Unchanged, deliberately: an unmapped or forbidden label still collapses to
+    ``default`` (TEACHER when the caller names none). The backfill callers in
+    this module rely on that -- ``promote_imported_staff_roles`` reads the
+    collapse as "nothing to promote" and leaves the account alone. A caller
+    that PROVISIONS access must not act on this answer without first asking
+    :func:`unresolvable_staff_role`.
+    """
+    role, _problem = _match_staff_role(raw)
+    if role is not None:
+        return role
+    return default if default is not None else ROLE_TEACHER
 
 
 def is_staff_setup_role(raw: object) -> bool:

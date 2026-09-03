@@ -20,6 +20,11 @@ from apps.analytics.models import InterventionLog
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.portal.views_teacher import counselor_caseload
 from apps.schools.models import School, SchoolMembership
+from apps.test_utils.tenant_hosts import (
+    HOST_ROUTED_SETTINGS,
+    tenant_client,
+    tenant_host,
+)
 
 User = get_user_model()
 
@@ -33,7 +38,7 @@ def _school(tag):
     )
 
 
-@override_settings(ROOT_URLCONF="config.tenant_urls")
+@override_settings(ROOT_URLCONF="config.tenant_urls", **HOST_ROUTED_SETTINGS)
 class MtssTierAndParentVisibilityTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -146,11 +151,13 @@ class MtssTierAndParentVisibilityTests(TestCase):
         self.assertIn("Tier 3", get_resp.content.decode())
 
     def test_parent_sees_notified_incidents_only(self):
-        client = Client()
+        # On the tenant host TenantMiddleware resolves the school from the subdomain,
+        # which is how a real parent's request binds it. Stamping session["school_id"]
+        # only worked because the default test host is classified local -- and that
+        # same classification meant the request was served by config.urls, not the
+        # tenant urlconf this class names.
+        client = tenant_client(tenant_host(self.school))
         client.force_login(self.parent)
-        session = client.session
-        session["school_id"] = str(self.school.id)
-        session.save()
         resp = client.get(reverse("portal:parent_attendance_discipline"))
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode()

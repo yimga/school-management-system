@@ -4,6 +4,8 @@ Metadata admin: DynamicField (15.2), state machine, catalog, glossary, config au
 
 from django.contrib import admin
 
+from config.admin import register_both, register_platform_admin
+
 from .models import (
     EntityState,
     FieldCatalogEntry,
@@ -45,7 +47,6 @@ class DynamicFieldValueAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(StateMachineDefinition)
 class StateMachineDefinitionAdmin(admin.ModelAdmin):
     list_display = ("code", "name", "entity_type", "school", "is_active", "updated_at")
     list_filter = ("entity_type", "is_active")
@@ -53,7 +54,6 @@ class StateMachineDefinitionAdmin(admin.ModelAdmin):
     raw_id_fields = ("school",)
 
 
-@admin.register(EntityState)
 class EntityStateAdmin(admin.ModelAdmin):
     list_display = (
         "definition",
@@ -87,7 +87,6 @@ class EntityCatalogEntryAdmin(admin.ModelAdmin):
     ordering = ("code",)
 
 
-@admin.register(FieldCatalogEntry)
 class FieldCatalogEntryAdmin(admin.ModelAdmin):
     list_display = (
         "entity",
@@ -103,7 +102,6 @@ class FieldCatalogEntryAdmin(admin.ModelAdmin):
     ordering = ("entity__code", "field_name")
 
 
-@admin.register(MetadataDependency)
 class MetadataDependencyAdmin(admin.ModelAdmin):
     list_display = ("consumer_type", "consumer_code", "field", "created_at")
     list_filter = ("consumer_type",)
@@ -112,7 +110,6 @@ class MetadataDependencyAdmin(admin.ModelAdmin):
     ordering = ("consumer_type", "consumer_code")
 
 
-@admin.register(BusinessGlossaryEntry)
 class BusinessGlossaryEntryAdmin(admin.ModelAdmin):
     list_display = (
         "term",
@@ -137,10 +134,34 @@ class ConfigMutationAuditLogAdmin(admin.ModelAdmin):
     ordering = ("-created_at",)
 
 
-@admin.register(LayoutDefinition)
 class LayoutDefinitionAdmin(admin.ModelAdmin):
     list_display = ("code", "name", "scope", "school", "is_active", "updated_at")
     list_filter = ("scope", "is_active")
     search_fields = ("code", "name")
     raw_id_fields = ("school",)
     ordering = ("code", "scope")
+
+
+# A bare @admin.register(Model) lands on Django's DEFAULT admin.site, which
+# no urlconf in this repo mounts (config/urls, tenant_urls, manager_urls and
+# public_urls were all read). The screen was therefore unreachable from any
+# host. Registered explicitly below instead.
+#
+# apps.metadata is in SHARED_APPS, so one table holds every school's rows.
+# The three definitions that carry a concrete `school` column go on BOTH
+# sites: TenantAdminSite.register wraps them in _TenantScopedQuerysetMixin,
+# so a tenant sees only its own rows, matching how this app's other models
+# (DynamicFieldDefinition, DynamicFieldValue, EntityCatalogEntry) are
+# already registered on both sites from metadata/apps.py.
+register_both(StateMachineDefinition, StateMachineDefinitionAdmin)
+register_both(EntityState, EntityStateAdmin)
+register_both(LayoutDefinition, LayoutDefinitionAdmin)
+
+# The remaining three have NO school column. On the tenant site an
+# unclassified SHARED model with no school column is deliberately
+# fail-closed -- _TenantUnclassifiedFailClosedMixin renders .none() and logs
+# a warning -- so registering them there would ship three permanently empty
+# screens. They are platform catalogs; the operator gets them.
+register_platform_admin(FieldCatalogEntry, FieldCatalogEntryAdmin)
+register_platform_admin(MetadataDependency, MetadataDependencyAdmin)
+register_platform_admin(BusinessGlossaryEntry, BusinessGlossaryEntryAdmin)

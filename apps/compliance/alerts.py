@@ -196,7 +196,11 @@ def _post_json(url, payload, max_retries=3):
 
     for attempt in range(max_retries):
         try:
-            with request.urlopen(req, timeout=5) as resp:  # nosec - trusted outbound webhook
+            # Trusted outbound webhook. B310 is named deliberately: an
+            # unscoped suppression waives EVERY check on this line, including
+            # one that does not exist yet. (The marker below must carry test
+            # ids only -- bandit reads any word after it as an id and warns.)
+            with request.urlopen(req, timeout=5) as resp:  # nosec B310
                 return resp.read()
         except (urllib_error.HTTPError, urllib_error.URLError, TimeoutError) as exc:
             is_last_attempt = attempt == max_retries - 1

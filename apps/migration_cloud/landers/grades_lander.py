@@ -68,6 +68,15 @@ _COMPONENT_FIELDS = (
     "test2",
 )
 
+#: Provenance written into the landed row's own ``remarks`` column — the one
+#: place a school administrator already reads when a mark looks odd. The lander
+#: used it to say an aggregate score was landed whole in ``exam_score`` rather
+#: than split into invented components; filler ATTRIBUTION now says so the same
+#: way, because a filler teacher nobody can find is a filler teacher nobody will
+#: ever reassign.
+_REMARK_AGGREGATE = "imported aggregate score"
+_REMARK_FILLER_TEACHER = "imported without a teacher - attribution is filler"
+
 
 def _norm(value: str) -> str:
     """Loose label normalization: case/spacing/separator-insensitive."""
@@ -189,12 +198,20 @@ class GradesLander(Lander):
             year, term, assignment = resolved
 
             teacher = self._assignment_teacher(assignment, TeacherProfile, ctx)
+            filler_teacher = False
+            if teacher is None:
+                # The assignment names nobody this tenant can resolve. Borrow a
+                # teacher OF THIS SCHOOL — never of another one — and say so on
+                # the row.
+                teacher = self._school_teacher_fallback(TeacherProfile, ctx)
+                filler_teacher = teacher is not None
             if teacher is None:
                 record_row_error(
                     result,
                     row,
-                    "grades: subject assignment has no teacher with a "
-                    f"TeacherProfile for {external_id} / {subject_label} / {term_label}",
+                    self._no_teacher_reason(
+                        ctx, external_id, subject_label, term_label
+                    ),
                     reason_code=INVALID_REF,
                 )
                 continue
@@ -204,12 +221,23 @@ class GradesLander(Lander):
                 defaults["school"] = ctx.school
             for field, value in components.items():
                 defaults[field] = value
+            remarks: list[str] = []
             if not components and aggregate is not None:
                 # Single aggregate score from a flat source — land it in the
                 # exam component with an honest provenance remark rather than
                 # inventing a component split.
                 defaults["exam_score"] = aggregate
-                defaults["remarks"] = "imported aggregate score"
+                remarks.append(_REMARK_AGGREGATE)
+            if filler_teacher:
+                # The attribution FK is filler, so the row says so. Otherwise the
+                # only visible difference between a real attribution and a
+                # stand-in is a teacher who does not recognise the class — which
+                # is not a difference anyone can query, and the admin who is
+                # meant to reassign it never learns there is anything to
+                # reassign.
+                remarks.append(_REMARK_FILLER_TEACHER)
+            if remarks:
+                defaults["remarks"] = "; ".join(remarks)[:255]
             if letter:
                 defaults["letter_grade"] = letter[:8]
             defaults = filter_to_model_fields(defaults, Evaluation)
@@ -263,7 +291,11 @@ class GradesLander(Lander):
 
     @staticmethod
     def _assignment_teacher(assignment, TeacherProfile, ctx: LanderContext):
-        """First assignment teacher that carries a TeacherProfile (Evaluation FK)."""
+        """First assignment teacher that carries a TeacherProfile (Evaluation FK).
+
+        ``None`` when the assignment names nobody this tenant can resolve; the
+        caller then asks ``_school_teacher_fallback`` for a stand-in.
+        """
         school_scoped = (
             "school" in model_field_names(TeacherProfile) and ctx.school is not None
         )
@@ -276,16 +308,80 @@ class GradesLander(Lander):
                     ).first()
                 )
             else:
-                profile = TeacherProfile.objects.filter(user=user).first()  # tenant-isolation-allow: alternate-deployments-without-school-fk-schema-context-isolates
+                profile = TeacherProfile.objects.filter(user=user).first()  # tenant-isolation-allow: user-comes-from-a-subjectassignment-already-filtered-to-ctx-school
             if profile is not None:
                 return profile
-        # Seeded SubjectAssignments often have no teacher yet; Evaluation.teacher
-        # is required, so attach any school teacher for import — admin reassigns.
-        if school_scoped:
-            fallback = TeacherProfile.objects.filter(school=ctx.school).order_by("pk").first()
-            if fallback is not None:
-                return fallback
-        return TeacherProfile.objects.order_by("pk").first()  # tenant-isolation-allow: schema-per-tenant-context-isolates-when-no-school-fk
+        return None
+
+    @staticmethod
+    def _school_teacher_fallback(TeacherProfile, ctx: LanderContext):
+        """A stand-in teacher OF THE IMPORTING SCHOOL, or ``None``.
+
+        Seeded SubjectAssignments often carry no teacher and
+        ``Evaluation.teacher`` is a required PROTECT FK (NOT nullable — see
+        ``apps/evals/models.py``), so refusing every teacherless row would throw
+        away the academic history the school is paying to migrate. Attaching a
+        teacher of the SAME school keeps score, student, subject and term exactly
+        as imported and leaves only the attribution FK as filler — which the
+        caller declares in ``remarks`` (``_REMARK_FILLER_TEACHER``) so an admin
+        can find it and reassign it.
+
+        There is deliberately no last resort BEYOND the tenant. This fallback
+        used to close with an UNSCOPED first-by-pk read of the whole
+        ``TeacherProfile`` table, carrying an isolation-allow marker whose
+        stated reason was "schema-per-tenant context isolates when no school
+        FK". It ran whenever the importing school had zero teachers, and the
+        reason was false twice over (the marker literal is deliberately not
+        reproduced here: the census scripts count the literal, and a retired
+        excuse must not re-enter the review sample):
+
+        * ``TeacherProfile`` HAS a ``school`` FK — the query one line above
+          filters on it — so the "when no school FK" premise never held here.
+        * The platform ships TWO tenancy modes (``apps/tenancy/strategy.py``).
+          The cloud is schema-per-tenant, but the sovereign edge box runs
+          ``TENANCY_MODE=RLS`` in a SHARED schema where every school's teachers
+          live in one ``people_teacherprofile`` table, and that table's RLS
+          policy is recorded as ``missing-force``
+          (``var/security-audit-baseline-rls-force-coverage.json``), so Django,
+          which owns the table, is not bound by it. There was no boundary in
+          either mode. Measured live: a bundle for school ``4154c00a…`` landed
+          an assignment attributed to a teacher of school ``42ac5473…``.
+
+        Holding the row is strictly better than mis-attributing it. A hold is
+        countable, and ``invalid_ref`` is the class the zero-touch spec REPLAYS
+        — which is right, because "this school has no teachers yet" is nearly
+        always the staff wave not having landed, and the replay then costs the
+        school nothing. One tenant's staff member written into another tenant's
+        academic record is silent, uncountable, and permanent once anyone trusts
+        it.
+
+        ``None`` also when there is no tenant to scope TO: ``ctx.school`` is
+        ``None`` for a pre-tenant bundle staged during signup
+        (``MigrationBundle.school`` is nullable), and a deployment whose
+        ``TeacherProfile`` carries no ``school`` column offers nothing to filter
+        on. In both, the importing tenant cannot be named, so there is nobody it
+        can legitimately borrow from.
+        """
+        if ctx.school is None or "school" not in model_field_names(TeacherProfile):
+            return None
+        return TeacherProfile.objects.filter(school=ctx.school).order_by("pk").first()
+
+    @staticmethod
+    def _no_teacher_reason(
+        ctx: LanderContext, external_id: str, subject_label: str, term_label: str
+    ) -> str:
+        """Why the row is held — naming the gap the school has to close."""
+        gap = (
+            "and this school has no teacher on record to stand in "
+            "(staff have not landed yet)"
+            if ctx.school is not None
+            else "and this bundle is not bound to a school yet"
+        )
+        return (
+            "grades: subject assignment has no teacher with a TeacherProfile "
+            f"{gap}, so there is nobody in this tenant to attribute "
+            f"{external_id} / {subject_label} / {term_label} to"
+        )
 
     # ── Flat-column deployments (foreign Evaluation shapes) ─────────
 

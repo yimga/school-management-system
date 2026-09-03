@@ -19,6 +19,9 @@ from apps.accounts.views_workflow import (
     _is_tenant_staff_member,
     _staff_workflow_cards,
 )
+from apps.siteconfig.tests._template_nodes import assert_markup
+
+TENANT_PRIMARY_NAV = Path("templates/partials/tenant_primary_nav.html")
 
 
 class StaffWorkflowGateTests(TestCase):
@@ -58,7 +61,16 @@ class StaffWorkflowRoutingTests(SimpleTestCase):
         self.assertTrue(reverse("accounts:staff_workflow"))
 
     def test_nav_has_staff_workflow_pill(self):
-        nav = Path("templates/partials/tenant_primary_nav.html").read_text(
-            encoding="utf-8"
+        nav = TENANT_PRIMARY_NAV.read_text(encoding="utf-8")
+        # The route name is a {% url %} ARGUMENT -- template code no parse and no
+        # render can see -- so that assertion stays a source read. The PILL is
+        # markup, though, and "nav has a pill" is a claim about the page: the
+        # lightning glyph is carried only by the Workflow links, so a nav whose
+        # body has been commented out emits it nowhere.
+        assert_markup(
+            self,
+            TENANT_PRIMARY_NAV,
+            'data-rmc-tenant-primary-nav="1"',
+            "bi-lightning-charge",
         )
         self.assertIn("accounts:staff_workflow", nav)

@@ -32,10 +32,13 @@
   {% if trust_procurement_cards %}
   <div class="mkt-trust-brief-grid" role="list" aria-label="{% trans 'Procurement briefing' %}">
     {% for card in trust_procurement_cards %}
-    <article class="mkt-trust-brief-card" role="listitem" data-trust-brief="{{ card.id }}">
+    {% comment %}div, not article: role="listitem" is not an allowed role for
+       <article> (axe aria-allowed-role), and since the role overrides the
+       element's own semantics anyway the <article> was buying nothing.{% endcomment %}
+    <div class="mkt-trust-brief-card" role="listitem" data-trust-brief="{{ card.id }}">
       <h3 class="mkt-trust-brief-card__title">{{ card.title }}</h3>
       <p class="mkt-trust-brief-card__body">{{ card.body }}</p>
-    </article>
+    </div>
     {% endfor %}
   </div>
   {% endif %}

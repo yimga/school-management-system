@@ -51,9 +51,22 @@ WHY XOR-FOLD PLUS A COUNT. Folding per-row digests with XOR makes the entity dig
 order-independent, so both sides can stream rows in whatever order their planner likes
 with no ``ORDER BY`` and no sort buffer - this has to be cheap enough to run on a mini-PC
 without disturbing the cycle. XOR's known weakness is that a duplicated element cancels
-itself; identities are unique per entity so duplicates cannot arise, and the row COUNT
-travels alongside anyway, which catches any cancellation and is also the cheapest possible
-first-line signal.
+itself, so the row COUNT travels alongside and is COMPARED - on the entity digest by
+:func:`compare_digests`, and on the per-bucket digests by :func:`drifting_buckets`. That
+catches every row-count difference and every ODD duplication, and is also the cheapest
+possible first-line signal.
+
+WHAT THE COUNT DOES NOT CATCH, said plainly because this paragraph used to claim
+"identities are unique per entity so duplicates cannot arise" and that was not true.
+``client_offline_id`` carries no unique constraint and no format rule, and the pk spelling
+of an identity is the string ``pk:<n>`` - so an anchor spelled ``pk:7`` digested under the
+SAME identity as the unanchored row with pk 7 until :func:`_namespaced_identity` separated
+them. Two rows sharing an identity AND their rail values fold to zero, so an EVEN number of
+them cancels while the count still matches: a side holding one such pair and a side holding
+a DIFFERENT such pair agree on both numbers while sharing no data at all. The count is a
+real mitigation, not a complete one. What is left after the namespacing is a genuine
+duplicate row, which is work for a duplicate-key sweep - no order-independent fold can see
+it.
 
 WHY THE HEADER IS TRUNCATED to 64 bits per entity. It is a health signal on a channel
 that is already HMAC-signed, bearer-authenticated and TLS-wrapped - not a security
@@ -207,6 +220,35 @@ def _canonical(value):
     return str(value)
 
 
+#: How the pk spelling of an identity begins. An ANCHOR that starts with it is escaped by
+#: :func:`_namespaced_identity`, so the two spellings can never name the same row.
+_PK_PREFIX = "pk:"
+#: How an anchor that would collide with the pk spelling is escaped.
+_ANCHOR_ESCAPE = "anchor:"
+
+
+def _namespaced_identity(anchor, pk_value) -> str:
+    """One identity from an anchor or a pk, in two spellings that cannot collide.
+
+    ``client_offline_id`` has no unique constraint and no format rule, so nothing stopped a
+    row whose anchor is literally ``"pk:7"`` from digesting under the SAME identity as the
+    unanchored row with pk 7. Two rows with one identity and equal rail values produce equal
+    digests, and equal digests CANCEL in the XOR fold - the one shape of duplication the
+    fold's row count cannot see, because a cancelling pair on each side leaves both the
+    digest and the count in agreement.
+
+    ONLY the colliding shape moves, deliberately. Respelling every anchored identity would
+    change every anchored row's digest, and a fleet mid-upgrade would then report total
+    drift on every entity that has offline-created rows and re-pull all of them, on links
+    some of these schools pay for by the megabyte. An anchor that starts with ``pk:`` is
+    already broken today, so moving those moves nothing that works.
+    """
+    anchor = str(anchor or "").strip()
+    if not anchor:
+        return f"{_PK_PREFIX}{pk_value}"
+    return f"{_ANCHOR_ESCAPE}{anchor}" if anchor.startswith(_PK_PREFIX) else anchor
+
+
 def _row_digest(identity: str, values: dict) -> bytes:
     payload = json.dumps(
         {k: _canonical(v) for k, v in values.items()},
@@ -264,9 +306,7 @@ def entity_digest(school, entity_type, model, allowed) -> dict:
     n = 0
     qs = model._default_manager.filter(school=school)  # school= is the tenant-isolation kwarg
     for row in qs.values(*columns).iterator():
-        identity = str(row.get(anchor) or "").strip() if anchor else ""
-        if not identity:
-            identity = f"pk:{row.get(pk_name)}"
+        identity = _identity_of(row, anchor, pk_name)
         digest = _row_digest(identity, {f: row.get(f) for f in fields})
         for i in range(_DIGEST_BYTES):
             fold[i] ^= digest[i]
@@ -319,8 +359,7 @@ def _identity_of(row: dict, anchor: str, pk_name: str) -> str:
     spellings of identity would put a row in different buckets on the two sides, and
     the repair would then serve the wrong rows while reporting success.
     """
-    identity = str(row.get(anchor) or "").strip() if anchor else ""
-    return identity or f"pk:{row.get(pk_name)}"
+    return _namespaced_identity(row.get(anchor) if anchor else "", row.get(pk_name))
 
 
 def bundle_row_identity(row: dict) -> str:
@@ -335,12 +374,12 @@ def bundle_row_identity(row: dict) -> str:
     row, as ``""``, which falls through to the pk form - the same answer ``_identity_of``
     gives when the anchor is absent.
     """
-    anchored = str((row or {}).get("client_offline_id") or "").strip()
-    return anchored or f"pk:{(row or {}).get('id')}"
+    row = row or {}
+    return _namespaced_identity(row.get("client_offline_id"), row.get("id"))
 
 
 def bucket_digests(school, entity_type, model, allowed, *, buckets=None) -> dict:
-    """``{"buckets": n, "b": {index: hex}}`` for one entity of one school.
+    """``{"buckets": n, "b": {index: hex}, "c": {index: rows}}`` for one entity.
 
     Only NON-EMPTY buckets appear. An empty bucket on one side and a populated one on
     the other still disagree, because the missing key reads as "no digest" rather than
@@ -353,6 +392,7 @@ def bucket_digests(school, entity_type, model, allowed, *, buckets=None) -> dict
 
     columns = [pk_name] + ([anchor] if anchor else []) + fields
     folds: dict = {}
+    counts: dict = {}
     qs = model._default_manager.filter(school=school)  # school= is the tenant-isolation kwarg
     for row in qs.values(*columns).iterator():
         identity = _identity_of(row, anchor, pk_name)
@@ -361,29 +401,51 @@ def bucket_digests(school, entity_type, model, allowed, *, buckets=None) -> dict
         fold = folds.get(idx)
         if fold is None:
             fold = folds[idx] = bytearray(_DIGEST_BYTES)
+            counts[idx] = 0
         for i in range(_DIGEST_BYTES):
             fold[i] ^= digest[i]
+        counts[idx] += 1
     return {
         "buckets": n,
         "b": {i: bytes(f).hex()[:_HEADER_HEX] for i, f in sorted(folds.items())},
+        # The count the module header promises, per BUCKET and not only per entity. This
+        # comparison is not a diagnostic: `sync_bundle_api` narrows a repair pull to
+        # `drifting_buckets`, so a bucket whose fold agrees is a bucket the cloud serves
+        # NOTHING for. Without a count here the localiser can contradict the detector - the
+        # entity digest reports a row-count difference, every bucket folds equal, and the
+        # repair reports success having shipped no rows at all.
+        "c": {i: counts[i] for i in sorted(folds)},
     }
 
 
 def encode_buckets(d: dict) -> str:
-    """``"64|0:9f3a...,7:00bb..."`` - the fan-out, then the non-empty buckets.
+    """``"64|0:9f3a...:12,7:00bb...:3"`` - the fan-out, then ``index:digest[:count]``.
 
     The fan-out travels because a box and a cloud configured differently would
     otherwise compare bucket 7 of 64 against bucket 7 of 128 and call it drift.
+
+    The COUNT rides as a THIRD field, and only ever after a FULL-WIDTH digest. A peer
+    running the older decoder reads the segment as ``index:digest`` and truncates the rest
+    away with its own ``[:_HEADER_HEX]`` slice, so it still recovers exactly the digest this
+    side meant - which is what makes the count safe to add with no version negotiation and
+    no new header. Appending it to a SHORT digest would defeat that truncation, so a short
+    digest never carries one.
     """
     if not d:
         return ""
     n = int(d.get("buckets") or 0)
     if n <= 0:
         return ""
-    body = ",".join(
-        f"{int(i)}:{str(h)[:_HEADER_HEX]}" for i, h in sorted((d.get("b") or {}).items())
-    )
-    return f"{n}|{body}"
+    counts = d.get("c") or {}
+    segments = []
+    for i, h in sorted((d.get("b") or {}).items()):
+        digest = str(h)[:_HEADER_HEX]
+        segment = f"{int(i)}:{digest}"
+        if i in counts and len(digest) == _HEADER_HEX:
+            segment = f"{segment}:{int(counts[i])}"
+        segments.append(segment)
+    joined = ",".join(segments)
+    return f"{n}|{joined}"
 
 
 def decode_buckets(raw: str) -> dict:
@@ -401,18 +463,36 @@ def decode_buckets(raw: str) -> dict:
     if not 1 <= n <= 4096:
         return {}
     out: dict = {}
+    counts: dict = {}
     for segment in body.split(","):
         segment = segment.strip()
         if not segment or ":" not in segment:
             continue
-        idx, _, digest = segment.partition(":")
+        idx, _, rest = segment.partition(":")
         try:
             i = int(idx)
         except (TypeError, ValueError):
             continue
-        if 0 <= i < n:
-            out[i] = digest.strip()[:_HEADER_HEX]
-    return {"buckets": n, "b": out}
+        if not 0 <= i < n:
+            continue
+        digest, _, raw_count = rest.partition(":")
+        out[i] = digest.strip()[:_HEADER_HEX]
+        raw_count = raw_count.strip()
+        if raw_count:
+            try:
+                counts[i] = int(raw_count)
+            except (TypeError, ValueError):
+                # A count this side cannot read is no count: the bucket still compares by
+                # digest, exactly as it did before counts existed. Guessing at one would
+                # manufacture drift out of a malformed field.
+                pass
+    decoded = {"buckets": n, "b": out}
+    # Present only when the sender actually sent one, so a peer that predates the count
+    # decodes to precisely the dict it always did, and `drifting_buckets` can tell "no
+    # counts were sent" apart from "the counts are zero".
+    if counts:
+        decoded["c"] = counts
+    return decoded
 
 
 def drifting_buckets(local: dict, remote: dict) -> list:
@@ -433,12 +513,30 @@ def drifting_buckets(local: dict, remote: dict) -> list:
         return None
     lb = local.get("b") or {}
     rb = remote.get("b") or {}
-    # A bucket present on one side only is drift: one of them holds rows the other
-    # does not. Comparing only the intersection would report agreement about rows
-    # nobody compared.
-    return sorted(
-        i for i in set(lb) | set(rb) if str(lb.get(i) or "") != str(rb.get(i) or "")
-    )
+    lc = local.get("c") or {}
+    rc = remote.get("c") or {}
+    drifted = set()
+    for i in set(lb) | set(rb):
+        # A bucket present on one side only is drift: one of them holds rows the other
+        # does not. Comparing only the intersection would report agreement about rows
+        # nobody compared.
+        if str(lb.get(i) or "") != str(rb.get(i) or ""):
+            drifted.add(i)
+            continue
+        # THE FOLDS AGREE, which is not the same as the rows agreeing. XOR cancels an even
+        # number of equal digests, so a bucket holding one row three times folds exactly
+        # like a bucket holding it once - and this comparison decides what a repair SERVES,
+        # so a difference missed here is a repair that ships nothing and reports success.
+        # The count separates them, and is read ONLY when both sides sent one: a peer that
+        # predates it must fall back to the old comparison rather than have every bucket
+        # read as drift.
+        if i in lc and i in rc:
+            try:
+                if int(lc[i]) != int(rc[i]):
+                    drifted.add(i)
+            except (TypeError, ValueError):
+                drifted.add(i)
+    return sorted(drifted)
 
 
 def parity_digests(school, *, entities=None) -> dict:
