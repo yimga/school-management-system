@@ -52,6 +52,7 @@ from ._helpers import (
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     resolve_student,
@@ -104,6 +105,7 @@ class CafeteriaAssignmentLander(Lander):
         meal_cache: dict[str, Any] = {}
 
         for row_index, row in enumerate(canonical_rows):
+            row = normalize_canonical_row("cafeteria_assignments", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             meal_plan_name = (row.get("meal_plan") or "").strip()
             # NOTE: meal_plan is optional for first-class MealPlanBalance

@@ -181,6 +181,13 @@ GATES: list[tuple[str, list[str]]] = [
     # .rmc-app-shell on both admin hosts, and the emit_once keys that stop a
     # shared chrome script re-executing.
     ("platform-back-to-top", ["verify_platform_back_to_top.py"]),
+    # Added 2026-09-03. Had ZERO runners: absent from every workflow, from this
+    # hook, from verify_ci_gate_wiring and from verify_gates_can_fail. It could
+    # not be wired while it demanded zero large-collection findings, because 37
+    # tables render an unbounded collection; those are now a burndown ratchet, so
+    # the property this enforces is "no NEW unbounded table, and no listed one
+    # quietly fixed without correcting the count".
+    ("cp-v8-operator-closeout", ["verify_cp_v8_operator_closeout.py"]),
     # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
     # title — operators scrolled past empty rules to reach "Platform Command Center".
     ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),
@@ -219,6 +226,15 @@ GATES: list[tuple[str, list[str]]] = [
     # enable_rls_postgresql migration has its matching default-deny), so wiring
     # them costs nothing now and locks the property from here on.
     ("rls-force-coverage", ["scan_rls_force_coverage.py", "--compare"]),
+    # A school AddField that runs AFTER an app's live-model healer
+    # (ensure_app_school_id_columns) collides on a from-scratch migrate: the
+    # healer already added the column, and a bare AddField then aborts with
+    # DuplicateColumn -- a fresh tenant schema / fresh box cannot provision.
+    # Invisible under --keepdb; it cost a real fresh-migrate failure at
+    # people/0075 (2026-09-03), fixed there with SeparateDatabaseAndState.
+    # Zero baseline: the AddField must be replay-safe or the table must be
+    # created in the same migration.
+    ("migration-school-addfield-guard", ["scan_migration_school_addfield_guard.py", "--compare"]),
     # No --compare: this one is a structural pairing check with nothing to
     # baseline. A bare run is the gate; --update-baseline is what rewrites, and
     # is deliberately not passed here.

@@ -48,6 +48,7 @@ from ._helpers import (
     coerce_int,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     row_savepoint,
@@ -94,6 +95,7 @@ class AthleticsTeamsLander(Lander):
         venue_cache: dict[str, Any] = {}
 
         for row_index, row in enumerate(canonical_rows):
+            row = normalize_canonical_row("athletics_teams", row, ctx)
             sport_name = (row.get("sport") or "").strip()
             season_name = (row.get("season") or "").strip()
             team_name = (row.get("team_name") or row.get("name") or "").strip()

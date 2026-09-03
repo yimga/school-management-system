@@ -649,6 +649,32 @@ MUTATIONS.update({
         defect="a table switched to RLS with no FORCE - Postgres exempts the OWNER, and Django connects AS the owner",
         content=b'from django.db import connection, migrations\n\n\nTABLES = ["schools_gateproofprobetable"]\n\n\ndef enable(apps, schema_editor):\n    with connection.cursor() as cursor:\n        for table in TABLES:\n            cursor.execute(f"ALTER TABLE {table} ENABLE ROW LEVEL SECURITY;")\n\n\nclass Migration(migrations.Migration):\n    dependencies = []\n    operations = [migrations.RunPython(enable, migrations.RunPython.noop)]\n',
     ),
+    "migration-school-addfield-guard": Mutation(
+        kind="create",
+        # number 9997 > the people healer (0067), model studentguardian created
+        # long before it, so a bare AddField(school) here is the exact front-run
+        # shape. In apps/people because that is a healer app; a school AddField
+        # in a non-healer app cannot collide and is not a finding.
+        path="apps/people/migrations/9997_%s_bare_school_addfield.py" % _PROOF,
+        defect="a bare school AddField AFTER the app's live-model healer - DuplicateColumn on a fresh migrate, so a new tenant/box cannot provision",
+        content=(
+            b"from django.db import migrations, models\n"
+            b"import django.db.models.deletion\n\n\n"
+            b"class Migration(migrations.Migration):\n"
+            b'    dependencies = [("people", "0077_rls_force_and_null_arm_postgresql")]\n'
+            b"    operations = [\n"
+            b"        migrations.AddField(\n"
+            b'            model_name="studentguardian",\n'
+            b'            name="school",\n'
+            b"            field=models.ForeignKey(\n"
+            b"                blank=True, null=True,\n"
+            b"                on_delete=django.db.models.deletion.CASCADE,\n"
+            b'                related_name="+", to="schools.school",\n'
+            b"            ),\n"
+            b"        ),\n"
+            b"    ]\n"
+        ),
+    ),
     "rls-policy-coverage": Mutation(
         kind="patch",
         path="apps/academics/migrations/0038_rls_policy_default_deny.py",
@@ -1053,6 +1079,22 @@ MUTATIONS["platform-back-to-top"] = Mutation(
     # what the gate itself asserts, so the two can only move together.
     anchor=b"partials/rmc_platform_chrome_scripts.html",
     replacement=b"partials/rmc_platform_chrome_scripts_gateproof.html",
+)
+
+MUTATIONS["cp-v8-operator-closeout"] = Mutation(
+    kind="patch",
+    path="var/large-collection-unbounded-baseline.json",
+    defect=(
+        "the large-collection burndown loses its entry list, so the 37 tables "
+        "that render an unbounded collection stop being known debt and a "
+        "thirty-eighth could land with nothing noticing"
+    ),
+    # The ratchet's own contract key, not any one filename in the list: the list
+    # is meant to shrink, so anchoring on a member would break the proof the
+    # first time somebody fixes that table -- and a mutation that no longer
+    # applies is a standing proof that has quietly stopped proving anything.
+    anchor=b'"known_unbounded"',
+    replacement=b'"known_unbounded_gateproof"',
 )
 
 MUTATIONS["theme-dual-plane-shell"] = Mutation(

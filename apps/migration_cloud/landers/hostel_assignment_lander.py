@@ -39,6 +39,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     resolve_student,
@@ -93,6 +94,7 @@ class HostelAssignmentLander(Lander):
         room_cache: dict[str, Any] = {}
 
         for row_index, row in enumerate(canonical_rows):
+            row = normalize_canonical_row("hostel_assignments", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             hostel_name = (row.get("hostel") or "").strip()
             room_name = (row.get("room") or "").strip()

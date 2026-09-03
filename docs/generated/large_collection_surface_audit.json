@@ -1,157 +1,1577 @@
 {
   "by_surface": {
-    "shared": 2,
-    "tenant": 1
+    "operator": 11,
+    "shared": 13,
+    "tenant": 13
   },
-  "finding_count": 3,
+  "finding_count": 37,
   "findings": [
     {
       "bound_declaration_reason": null,
-      "collection": "caseload",
-      "columns": 8,
-      "file": "templates/staff/counselor_caseload.html",
+      "bound_slice_evidence": null,
+      "collection": "last_actions",
+      "columns": 7,
+      "file": "templates/migration_cloud/super/lms_diagnostics.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
       "has_real_pagination": false,
-      "line": 52,
-      "loop": "for c in caseload",
+      "line": 149,
+      "loop": "for a in last_actions",
       "reasons": [
-        "8 columns",
-        "2 form(s) inside repeated rows",
-        "3 input/select controls inside repeated rows"
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
       ],
       "recommendations": [
-        "Move row forms behind disclosure, drawer, or detail page.",
-        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
         "Add pagination or virtualization for large collections."
       ],
-      "row_actions": 2,
-      "row_forms": 2,
-      "row_inputs": 3,
-      "score": 10,
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "snapshot.per_member",
+      "columns": 7,
+      "file": "templates/schools/mat_group_hub/detail.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 36,
+      "loop": "for m in snapshot.per_member",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
       "surface": "shared"
     },
     {
       "bound_declaration_reason": null,
-      "collection": "conflicts",
-      "columns": 6,
-      "file": "templates/siteconfig/sync_conflicts.html",
-      "has_paginate_scroll_policy": false,
-      "has_pagination": true,
-      "has_real_pagination": true,
-      "line": 62,
-      "loop": "for c in conflicts",
+      "bound_slice_evidence": null,
+      "collection": "events",
+      "columns": 7,
+      "file": "templates/super/integrations/idempotency_audit.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 59,
+      "loop": "for e in events",
       "reasons": [
-        "6 columns",
-        "2 input/select controls inside repeated rows",
-        "5 row links/buttons"
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
       ],
       "recommendations": [
-        "Move row forms behind disclosure, drawer, or detail page."
+        "Add pagination or virtualization for large collections."
       ],
-      "row_actions": 5,
+      "row_actions": 0,
+      "row_controls_individuated": false,
       "row_forms": 0,
-      "row_inputs": 2,
-      "score": 5,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "tree.children",
+      "columns": 7,
+      "file": "templates/super/wedges/surface_multicampus_academics.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 34,
+      "loop": "for child in tree.children",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "tree.children",
+      "columns": 7,
+      "file": "templates/super/wedges/surface_multicampus_billing.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 33,
+      "loop": "for child in tree.children",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "assignments",
+      "columns": 7,
+      "file": "templates/portal/teacher_assignments.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 26,
+      "loop": "for a in assignments",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
       "surface": "tenant"
     },
     {
       "bound_declaration_reason": null,
-      "collection": "artifact_rows",
-      "columns": 5,
-      "file": "templates/migration_cloud/connector/bundle_review.html",
+      "bound_slice_evidence": null,
+      "collection": "audit_rows",
+      "columns": 6,
+      "file": "templates/apicenter/super/ai_center_agentic.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
       "has_real_pagination": false,
-      "line": 445,
-      "loop": "for row in artifact_rows",
+      "line": 117,
+      "loop": "for r in audit_rows",
       "reasons": [
-        "2 input/select controls inside repeated rows"
+        "6 columns",
+        "no pagination and no verified row bound"
       ],
       "recommendations": [
-        "Move row forms behind disclosure, drawer, or detail page.",
         "Add pagination or virtualization for large collections."
       ],
       "row_actions": 0,
+      "row_controls_individuated": false,
       "row_forms": 0,
-      "row_inputs": 2,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 9,
+      "file": "templates/migration_cloud/operator/dlq_list.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 37,
+      "loop": "for row in rows",
+      "reasons": [
+        "9 columns (operational table \u2014 compact + paginated)",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 7,
+      "file": "templates/migration_cloud/operator/smoke_history.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 69,
+      "loop": "for row in rows",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "diag.providers",
+      "columns": 13,
+      "file": "templates/migration_cloud/super/lms_diagnostics.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 71,
+      "loop": "for p in diag.providers",
+      "reasons": [
+        "13 columns (operational table \u2014 compact + paginated)",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "attestations.recent",
+      "columns": 6,
+      "file": "templates/migration_cloud/super/maa_v2_promotion.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 115,
+      "loop": "for r in attestations.recent",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "snapshot",
+      "columns": 7,
+      "file": "templates/migration_cloud/super/vendor_write_status.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 57,
+      "loop": "for r in snapshot",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "regions",
+      "columns": 6,
+      "file": "templates/observability/slo_dashboard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 71,
+      "loop": "for row in regions",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "configs",
+      "columns": 6,
+      "file": "templates/schools/super_ai_model_hub.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 29,
+      "loop": "for c in configs",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "pack_compare_rows",
+      "columns": 7,
+      "file": "templates/schools/super_geography.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 37,
+      "loop": "for row in pack_compare_rows",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rules",
+      "columns": 6,
+      "file": "templates/schools/super_support_auto_rules.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 44,
+      "loop": "for r in rules",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "cockpit.churn_scorecard.rows",
+      "columns": 6,
+      "file": "templates/partials/cockpit/_churn_scorecard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 32,
+      "loop": "for row in cockpit.churn_scorecard.rows",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
       "score": 3,
       "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "packs",
+      "columns": 6,
+      "file": "templates/platform_runtime/configuration_module_detail.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 59,
+      "loop": "for pack in packs",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "registries",
+      "columns": 7,
+      "file": "templates/platform_runtime/configuration_module_detail.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 78,
+      "loop": "for registry in registries",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "defects",
+      "columns": 6,
+      "file": "templates/platform_runtime/pilot_defect_dashboard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 99,
+      "loop": "for d in defects",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "health.rows",
+      "columns": 7,
+      "file": "templates/platform_runtime/registry_health.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 25,
+      "loop": "for row in health.rows",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "psps",
+      "columns": 6,
+      "file": "templates/schools/manager_lane2_readiness.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 30,
+      "loop": "for p in psps",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "pilots",
+      "columns": 6,
+      "file": "templates/schools/manager_lane2_readiness.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 107,
+      "loop": "for p in pilots",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "requests",
+      "columns": 6,
+      "file": "templates/staff/contact_requests_list.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 46,
+      "loop": "for r in requests",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "summary.recent",
+      "columns": 6,
+      "file": "templates/super/ai_line_intent_coverage.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 57,
+      "loop": "for r in summary.recent",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "apps",
+      "columns": 7,
+      "file": "templates/marketplace/publisher_dashboard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 90,
+      "loop": "for app in apps",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "pending",
+      "columns": 6,
+      "file": "templates/marketplace/signup_review_queue.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 20,
+      "loop": "for s in pending",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 1,
+      "row_inputs": 1,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/reports/statistical_return.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 49,
+      "loop": "for r in rows",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "entities",
+      "columns": 7,
+      "file": "templates/siteconfig/entity_catalog_overview.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 51,
+      "loop": "for ent in entities",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "section.definitions",
+      "columns": 6,
+      "file": "templates/siteconfig/metadata_dynamic_fields_operator.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 52,
+      "loop": "for d in section.definitions",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 49,
+      "loop": "for y in rows",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 3,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "recent_reports",
+      "columns": 6,
+      "file": "templates/siteconfig/partials/report_output_history_evidence_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 51,
+      "loop": "for r in recent_reports",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "schedules",
+      "columns": 6,
+      "file": "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 87,
+      "loop": "for s in schedules",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "tags",
+      "columns": 7,
+      "file": "templates/siteconfig/partials/tag_manager_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 52,
+      "loop": "for tag in tags",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "schedules",
+      "columns": 7,
+      "file": "templates/siteconfig/partials/tenant_report_schedules_evidence_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 40,
+      "loop": "for s in schedules",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/siteconfig/partials/term_publish_status_evidence_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 38,
+      "loop": "for r in rows",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "simulation.capabilities",
+      "columns": 6,
+      "file": "templates/siteconfig/permission_matrix_simulator.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 40,
+      "loop": "for cap in simulation.capabilities",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
     }
   ],
-  "generated_at": "2026-09-03T11:38:07Z",
   "remediation_status": "PARTIAL",
   "top_findings": [
     {
       "bound_declaration_reason": null,
-      "collection": "caseload",
-      "columns": 8,
-      "file": "templates/staff/counselor_caseload.html",
+      "bound_slice_evidence": null,
+      "collection": "last_actions",
+      "columns": 7,
+      "file": "templates/migration_cloud/super/lms_diagnostics.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
       "has_real_pagination": false,
-      "line": 52,
-      "loop": "for c in caseload",
+      "line": 149,
+      "loop": "for a in last_actions",
       "reasons": [
-        "8 columns",
-        "2 form(s) inside repeated rows",
-        "3 input/select controls inside repeated rows"
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
       ],
       "recommendations": [
-        "Move row forms behind disclosure, drawer, or detail page.",
-        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
         "Add pagination or virtualization for large collections."
       ],
-      "row_actions": 2,
-      "row_forms": 2,
-      "row_inputs": 3,
-      "score": 10,
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "snapshot.per_member",
+      "columns": 7,
+      "file": "templates/schools/mat_group_hub/detail.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 36,
+      "loop": "for m in snapshot.per_member",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
       "surface": "shared"
     },
     {
       "bound_declaration_reason": null,
-      "collection": "conflicts",
-      "columns": 6,
-      "file": "templates/siteconfig/sync_conflicts.html",
-      "has_paginate_scroll_policy": false,
-      "has_pagination": true,
-      "has_real_pagination": true,
-      "line": 62,
-      "loop": "for c in conflicts",
+      "bound_slice_evidence": null,
+      "collection": "events",
+      "columns": 7,
+      "file": "templates/super/integrations/idempotency_audit.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 59,
+      "loop": "for e in events",
       "reasons": [
-        "6 columns",
-        "2 input/select controls inside repeated rows",
-        "5 row links/buttons"
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
       ],
       "recommendations": [
-        "Move row forms behind disclosure, drawer, or detail page."
+        "Add pagination or virtualization for large collections."
       ],
-      "row_actions": 5,
+      "row_actions": 0,
+      "row_controls_individuated": false,
       "row_forms": 0,
-      "row_inputs": 2,
-      "score": 5,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "tree.children",
+      "columns": 7,
+      "file": "templates/super/wedges/surface_multicampus_academics.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 34,
+      "loop": "for child in tree.children",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "tree.children",
+      "columns": 7,
+      "file": "templates/super/wedges/surface_multicampus_billing.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 33,
+      "loop": "for child in tree.children",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "assignments",
+      "columns": 7,
+      "file": "templates/portal/teacher_assignments.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 26,
+      "loop": "for a in assignments",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound",
+        "wide table without compact density marker"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 4,
       "surface": "tenant"
     },
     {
       "bound_declaration_reason": null,
-      "collection": "artifact_rows",
-      "columns": 5,
-      "file": "templates/migration_cloud/connector/bundle_review.html",
+      "bound_slice_evidence": null,
+      "collection": "audit_rows",
+      "columns": 6,
+      "file": "templates/apicenter/super/ai_center_agentic.html",
       "has_paginate_scroll_policy": true,
       "has_pagination": false,
       "has_real_pagination": false,
-      "line": 445,
-      "loop": "for row in artifact_rows",
+      "line": 117,
+      "loop": "for r in audit_rows",
       "reasons": [
-        "2 input/select controls inside repeated rows"
+        "6 columns",
+        "no pagination and no verified row bound"
       ],
       "recommendations": [
-        "Move row forms behind disclosure, drawer, or detail page.",
         "Add pagination or virtualization for large collections."
       ],
       "row_actions": 0,
+      "row_controls_individuated": false,
       "row_forms": 0,
-      "row_inputs": 2,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 9,
+      "file": "templates/migration_cloud/operator/dlq_list.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 37,
+      "loop": "for row in rows",
+      "reasons": [
+        "9 columns (operational table \u2014 compact + paginated)",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rows",
+      "columns": 7,
+      "file": "templates/migration_cloud/operator/smoke_history.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 69,
+      "loop": "for row in rows",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "diag.providers",
+      "columns": 13,
+      "file": "templates/migration_cloud/super/lms_diagnostics.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 71,
+      "loop": "for p in diag.providers",
+      "reasons": [
+        "13 columns (operational table \u2014 compact + paginated)",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "attestations.recent",
+      "columns": 6,
+      "file": "templates/migration_cloud/super/maa_v2_promotion.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 115,
+      "loop": "for r in attestations.recent",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "snapshot",
+      "columns": 7,
+      "file": "templates/migration_cloud/super/vendor_write_status.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 57,
+      "loop": "for r in snapshot",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "regions",
+      "columns": 6,
+      "file": "templates/observability/slo_dashboard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 71,
+      "loop": "for row in regions",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "configs",
+      "columns": 6,
+      "file": "templates/schools/super_ai_model_hub.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 29,
+      "loop": "for c in configs",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "pack_compare_rows",
+      "columns": 7,
+      "file": "templates/schools/super_geography.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 37,
+      "loop": "for row in pack_compare_rows",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "rules",
+      "columns": 6,
+      "file": "templates/schools/super_support_auto_rules.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 44,
+      "loop": "for r in rules",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "operator"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "cockpit.churn_scorecard.rows",
+      "columns": 6,
+      "file": "templates/partials/cockpit/_churn_scorecard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 32,
+      "loop": "for row in cockpit.churn_scorecard.rows",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "packs",
+      "columns": 6,
+      "file": "templates/platform_runtime/configuration_module_detail.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 59,
+      "loop": "for pack in packs",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "registries",
+      "columns": 7,
+      "file": "templates/platform_runtime/configuration_module_detail.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 78,
+      "loop": "for registry in registries",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "defects",
+      "columns": 6,
+      "file": "templates/platform_runtime/pilot_defect_dashboard.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 99,
+      "loop": "for d in defects",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "health.rows",
+      "columns": 7,
+      "file": "templates/platform_runtime/registry_health.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 25,
+      "loop": "for row in health.rows",
+      "reasons": [
+        "7 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "psps",
+      "columns": 6,
+      "file": "templates/schools/manager_lane2_readiness.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 30,
+      "loop": "for p in psps",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "pilots",
+      "columns": 6,
+      "file": "templates/schools/manager_lane2_readiness.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 107,
+      "loop": "for p in pilots",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "requests",
+      "columns": 6,
+      "file": "templates/staff/contact_requests_list.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 46,
+      "loop": "for r in requests",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": null,
+      "collection": "summary.recent",
+      "columns": 6,
+      "file": "templates/super/ai_line_intent_coverage.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "has_real_pagination": false,
+      "line": 57,
+      "loop": "for r in summary.recent",
+      "reasons": [
+        "6 columns",
+        "no pagination and no verified row bound"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_controls_individuated": false,
+      "row_forms": 0,
+      "row_inputs": 0,
       "score": 3,
       "surface": "shared"
     }

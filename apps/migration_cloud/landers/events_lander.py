@@ -25,6 +25,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
 )
@@ -52,6 +53,7 @@ class EventsLander(Lander):
         e_fields = model_field_names(SchoolEvent)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("events", row, ctx)
             title = (row.get("title") or "").strip()
             starts = coerce_date(row.get("starts_at") or row.get("start_date") or row.get("date"))
             if not title or starts is None:

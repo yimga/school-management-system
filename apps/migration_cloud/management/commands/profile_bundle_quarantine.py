@@ -11,7 +11,10 @@ from apps.migration_cloud.quarantine_profile import (
     artifact_yield_overview,
     profile_quarantine_distribution,
 )
-from apps.migration_cloud.quarantine_resolution import format_bundle_choices
+from apps.migration_cloud.quarantine_resolution import (
+    format_bundle_choices,
+    resolve_school_and_bundle,
+)
 
 
 class Command(BaseCommand):
@@ -25,6 +28,15 @@ class Command(BaseCommand):
         # way an operator on a Render shell or a box can discover a valid one.
         parser.add_argument("--bundle-id", type=int, default=None)
         parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help=(
+                "Tenant slug or subdomain — resolves the newest bundle when "
+                "--bundle-id is omitted (e.g. gilead-tech)."
+            ),
+        )
+        parser.add_argument(
             "--include-resolved",
             action="store_true",
             help="Include repaired/denied rows, not just pending.",
@@ -33,6 +45,23 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         bundle_id = options["bundle_id"]
+        school_slug = options.get("school")
+        if bundle_id is None and school_slug:
+            school, bundle = resolve_school_and_bundle(school_slug)
+            if school is None:
+                self.stdout.write(format_bundle_choices())
+                raise CommandError(
+                    f"Unknown school {school_slug!r} — see the bundle list above."
+                )
+            if bundle is None:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"School {school.slug!r} has no migration bundles — "
+                        "nothing to profile."
+                    )
+                )
+                return
+            bundle_id = bundle.pk
         if bundle_id is None:
             self.stdout.write(format_bundle_choices())
             return

@@ -24,6 +24,7 @@ from ._helpers import (
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
 )
@@ -52,6 +53,7 @@ class CafeteriaLander(Lander):
         seen: set[str] = set()
 
         for row in canonical_rows:
+            row = normalize_canonical_row("cafeteria", row, ctx)
             meal_name = (row.get("meal_plan") or row.get("name") or "").strip()
             if not meal_name:
                 record_row_error(

@@ -74157,3 +74157,122 @@ msgid ""
 "{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
 msgstr ""
 "{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
+
+msgid "Draft invoices with totals"
+msgstr "Draft invoices with totals"
+
+msgid "Finance ledger readiness"
+msgstr "Finance ledger readiness"
+
+msgid "Issued without ledger post"
+msgstr "Issued without ledger post"
+
+msgid "Ledger backfill needed"
+msgstr "Ledger backfill needed"
+
+msgid "Ledger posts complete"
+msgstr "Ledger posts complete"
+
+msgid "No invisible draft fees"
+msgstr "No invisible draft fees"
+
+msgid "Run repair or remediate_finance_ledger_closure"
+msgstr "Run repair or remediate_finance_ledger_closure"
+
+msgid "Select conflict: {{ entity }} {{ ident }}"
+msgstr "Select conflict: {{ entity }} {{ ident }}"
+
+msgid ""
+"Whether imported fee rows are visible to the bursar (issued invoices, lines,"
+" and ledger posts)."
+msgstr ""
+"Whether imported fee rows are visible to the bursar (issued invoices, lines,"
+" and ledger posts)."
+
+msgid "Academic catalog readiness"
+msgstr "Academic catalog readiness"
+
+msgid "Active enrollments"
+msgstr "Active enrollments"
+
+msgid ""
+"All closure checks pass — catalog, teaching graph, people directory, "
+"finance, and quarantine are ready."
+msgstr ""
+"All closure checks pass — catalog, teaching graph, people directory, "
+"finance, and quarantine are ready."
+
+msgid ""
+"Each active student should have one ACTIVE enrollment for the current year."
+msgstr ""
+"Each active student should have one ACTIVE enrollment for the current year."
+
+msgid "Enrollment SOT synced"
+msgstr "Enrollment SOT synced"
+
+msgid "Guardian directory links"
+msgstr "Guardian directory links"
+
+msgid "Guardian sidebar populated"
+msgstr "Guardian sidebar populated"
+
+msgid "No subject↔specialty inversion detected"
+msgstr "No subject↔specialty inversion detected"
+
+msgid "People directory readiness"
+msgstr "People directory readiness"
+
+msgid "Phantom departments"
+msgstr "Phantom departments"
+
+msgid "Phantom specialties"
+msgstr "Phantom specialties"
+
+msgid "Post-import playbook status"
+msgstr "Post-import playbook status"
+
+msgid "Promote parent hints or import guardians.csv"
+msgstr "Promote parent hints or import guardians.csv"
+
+msgid "Run remediate_inverted_academic_catalog"
+msgstr "Run remediate_inverted_academic_catalog"
+
+msgid "Run remediate_people_directory"
+msgstr "Run remediate_people_directory"
+
+msgid "Sample phantom specialty names: {{ names }}"
+msgstr "Sample phantom specialty names: {{ names }}"
+
+msgid ""
+"Some closure steps still need attention. Run remediate_tenant_post_import or"
+" use the readiness panels below."
+msgstr ""
+"Some closure steps still need attention. Run remediate_tenant_post_import or"
+" use the readiness panels below."
+
+msgid "Students missing enrollment row"
+msgstr "Students missing enrollment row"
+
+msgid "Subjects promoted from departments"
+msgstr "Subjects promoted from departments"
+
+msgid ""
+"Whether enrollments and guardian links match imported student placements."
+msgstr ""
+"Whether enrollments and guardian links match imported student placements."
+
+msgid ""
+"Whether subjects and specialties landed in the right catalog tables (common "
+"CM/TVET inversion)."
+msgstr ""
+"Whether subjects and specialties landed in the right catalog tables (common "
+"CM/TVET inversion)."
+
+msgid "of {{ total }} active students"
+msgstr "of {{ total }} active students"
+
+msgid "{{ held }} held row(s) still pending in this bundle."
+msgstr "{{ held }} held row(s) still pending in this bundle."
+
+msgid "{{ hints }} parent hint(s) not yet promoted"
+msgstr "{{ hints }} parent hint(s) not yet promoted"

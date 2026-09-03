@@ -55,6 +55,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     resolve_student,
@@ -103,6 +104,7 @@ class TransportAssignmentLander(Lander):
         route_cache: dict[str, Any] = {}
 
         for row_index, row in enumerate(canonical_rows):
+            row = normalize_canonical_row("transport_assignments", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             route_name = (row.get("route") or "").strip()
             if not (external_id or student_name_from_row(row)) or not route_name:

@@ -23,6 +23,7 @@ from ._helpers import (
     coerce_int,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
 )
@@ -50,6 +51,7 @@ class LibraryLander(Lander):
         i_fields = model_field_names(LibraryItem)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("library", row, ctx)
             title = (row.get("title") or "").strip()
             isbn = (row.get("isbn") or "").strip()
             author = (row.get("author") or "").strip()

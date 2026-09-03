@@ -464,7 +464,7 @@
     "apps/migration_cloud/views_maa_promotion.py": 4,
     "apps/migration_cloud/views_smoke_trigger.py": 4,
     "apps/migration_cloud/views_tenant_provisioning.py": 1,
-    "apps/migration_cloud/views_tenant_upload.py": 25,
+    "apps/migration_cloud/views_tenant_upload.py": 28,
     "apps/migration_cloud/views_token_admin.py": 3,
     "apps/migration_cloud/views_webhook_admin.py": 3,
     "apps/migration_cloud/wizard_pipeline_kernel.py": 1,

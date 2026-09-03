@@ -1,5 +1,125 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Gilead slug alias resolution (batch 1835 - 2026-09-03)
+
+**A. Scope:** Post-import operator commands must accept production host token `gilead-tech` as well as tenant slug `gilead-school`.
+
+**B. Shipped:** `TENANT_SLUG_LOOKUP_ALIASES` via `RMC_TENANT_SLUG_LOOKUP_ALIASES` env; four-way slug/subdomain lookup in `resolve_school_from_slug`; alias + production subdomain tests; playbook doc for Gilead host token.
+
+**C. Proof:** sqlite-memory tenant post-import suite **9/9 OK**; `lint_gilead_residue` + full-tree classification **PASS**.
+
+**D. Deploy:** On Render, set `RMC_TENANT_SLUG_LOOKUP_ALIASES={"gilead-tech":"gilead-school"}` then run `python manage.py migration_closure_status --school gilead-tech`.
+
+## Slice - custom_fields catch-all normalize (batch 1834 - 2026-09-03)
+
+**A. Scope:** Complete normalize-at-land for the generic DFV fallback so unknown-domain rows get the same enrich replay as hand-tuned landers.
+
+**B. Shipped:** `custom_fields` enrich branch; `normalize_canonical_row` on `DynamicFieldLander`; stable `entity_id` from external refs; skip meta keys on write.
+
+**C. Proof:** sqlite-memory auto-repair + land-path suites green (38 tests across both files).
+
+**D. Deploy:** Re-import or quarantine replay for catch-all held rows; normalize coverage now 32/33 landers (`reports` no-op by design).
+
+## Slice - Playbook graceful no-bundle skip (batch 1833 - 2026-09-03)
+
+**A. Scope:** Five-step post-import playbook must exit 0 when the tenant exists but has not imported a bundle yet.
+
+**B. Shipped:** `resolve_school_and_bundle`; quarantine preview/apply/profile skip with warning instead of CommandError; orchestrator integration test.
+
+**C. Proof:** sqlite-memory tenant post-import suite green; live dry-run on `gilead-school` exits clean.
+
+**D. Deploy:** `remediate_tenant_post_import --dry-run` now completes through closure summary even before first bundle.
+
+## Slice - Academic sessions + compliance normalize (batch 1832 - 2026-09-03)
+
+**A. Scope:** Complete normalize-at-land for OneRoster academic session imports and compliance DFV preserves.
+
+**B. Shipped:** session/OneRoster enrich aliases; compliance category/subject/date aliases; normalize on `academic_sessions` + `compliance` landers.
+
+**C. Proof:** sqlite-memory **36/36 OK** (auto-repair + closure + orchestrator suites).
+
+**D. Deploy:** Re-import OneRoster bundles or replay quarantine for session/compliance held rows.
+
+## Slice - Transcripts/comms/fixtures normalize (batch 1831 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for transcript vault, historical message, and athletics fixture rows.
+
+**B. Shipped:** enrich aliases for transcripts/communications/athletics_fixtures; `normalize_canonical_row` on three landers.
+
+**C. Proof:** sqlite-memory auto-repair suite green (35 tests).
+
+**D. Deploy:** Re-run import or `remediate_quarantine_batch --apply` for held rows in these domains.
+
+## Slice - Catalog/scaffold normalize + playbook banner (batch 1830 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for transport/payroll/events/athletics/cafeteria/hostel catalog rows; Review & Import shows whether the five-step post-import playbook can run clean.
+
+**B. Shipped:** enrich aliases for seven scaffold domains; `normalize_canonical_row` on matching landers; `_build_migration_closure_summary` + playbook-ready banner on `bundle_review.html`.
+
+**C. Proof:** sqlite-memory **31/31 OK** (auto-repair + closure suites).
+
+**D. Deploy:** Re-open Review & Import after apply — green playbook banner means `migration_closure_status` reports ready; run `remediate_tenant_post_import --apply` if held rows or closure gaps remain.
+
+## Slice - Health/library normalize + catalog panel + closure tail (batch 1829 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for health/library rows; Review & Import shows catalog inversion; post-import playbook ends with closure summary.
+
+**B. Shipped:** health/library enrich + normalize-at-land; `catalog_inversion_readiness` panel; orchestrator calls `migration_closure_status` after step 5.
+
+**C. Proof:** sqlite-memory **30/30 OK**.
+
+**D. Deploy:** `remediate_tenant_post_import --apply` now prints closure summary automatically; Review & Import shows four readiness panels (catalog, teaching, people, finance).
+
+## Slice - People directory readiness panel (batch 1828 - 2026-09-03)
+
+**A. Scope:** Tenant Review & Import UX parity — people directory closure visible next to teaching graph and finance.
+
+**B. Shipped:** `_build_people_directory_readiness`; `people_directory_readiness` card on `bundle_review.html`.
+
+**C. Proof:** sqlite-memory **5/5 OK** on closure-status suite.
+
+**D. Deploy:** Re-open Review & Import after apply; panel shows enrollment/guardian gaps before running `remediate_people_directory`.
+
+## Slice - Assignment normalize + closure status (batch 1827 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for transport/hostel/cafeteria assignment rows; operator triage snapshot before/after post-import playbook.
+
+**B. Shipped:** enrollment/assignment enrich aliases (`pupil_id`, route/room); `normalize_canonical_row` on three assignment landers; `closure_status.py` + `migration_closure_status --school=<slug>`.
+
+**C. Proof:** sqlite-memory **21/21 OK**.
+
+**D. Deploy:** `python manage.py migration_closure_status --school gilead-tech` before/after `remediate_tenant_post_import --apply`.
+
+## Slice - Schedule normalize + people directory playbook (batch 1826 - 2026-09-03)
+
+**A. Scope:** Enrollment/guardian directory closure after import; schedule quarantine burndown via enrich-at-land.
+
+**B. Shipped:** schedule enrich + normalize; `sync_all_enrollments_for_school`; guardian dry-run `would_promote`; `remediate_people_directory`; 5-step `remediate_tenant_post_import`.
+
+**C. Proof:** sqlite-memory people-directory + orchestrator tests green.
+
+**D. Deploy:** `python manage.py remediate_tenant_post_import --school gilead-tech --apply` (now 5 steps).
+
+## Slice - Catalog lander normalize + teaching graph playbook (batch 1825 - 2026-09-03)
+
+**A. Scope:** Extend quarantine burndown to specialty/sections/structure landers; add teaching-graph closure to the gilead-tech post-import playbook so gradebook and teacher portal work after catalog repair.
+
+**B. Shipped:** `normalize_canonical_row` on specialty/sections/structure; structure/sections enrich alias expansion; `remediate_teaching_graph_closure`; 4-step `remediate_tenant_post_import`; `profile_bundle_quarantine --school=<slug>`.
+
+**C. Proof:** sqlite-memory **21/21 OK** (`test_auto_repair_expansion_2026_09_03`, `test_tenant_post_import_2026_09_03`, `test_teaching_graph_closure_2026_09_03`).
+
+**D. Deploy:** `python manage.py remediate_tenant_post_import --school gilead-tech --dry-run` then `--apply` (now runs catalog → teaching graph → finance → quarantine). Triage held rows: `python manage.py profile_bundle_quarantine --school gilead-tech`.
+
+## Slice - gilead-tech post-import playbook command (batch 1824 - 2026-09-03)
+
+**A. Scope:** One operator entry point for catalog + finance + quarantine closure after 1821–1823 deploy.
+
+**B. Shipped:** `remediate_tenant_post_import --school=<slug>`; `preview_quarantine_autopilot --school=<slug>`.
+
+**C. Proof:** sqlite-memory **2/2 OK**; pre-push green.
+
+**D. Deploy:** `python manage.py remediate_tenant_post_import --school gilead-tech --dry-run` then `--apply`.
+
 ## Slice - Quarantine burndown normalize + enrich replay (batch 1823 - 2026-09-03)
 
 **A. Scope:** Burn held rows on gilead-tech / Mama Novi without re-import — extend normalize-at-land to high-volume landers and widen autopilot enrich replay.

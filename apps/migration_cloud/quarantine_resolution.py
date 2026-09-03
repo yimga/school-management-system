@@ -20,6 +20,9 @@ from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
+# Host subdomains / legacy operator tokens → canonical ``School.slug``.
+# Configure via ``RMC_TENANT_SLUG_LOOKUP_ALIASES`` JSON env (see docs/MIGRATION_PLAYBOOK.md).
+
 QUARANTINE_ISSUE_LABELS: dict[str, str] = {
     "source_deletion": str(_("Deleted in your old system — not imported (no action needed)")),
     "duplicate": str(_("Already exists here — skipped to avoid a double record")),
@@ -185,18 +188,30 @@ def format_bundle_choices(*, limit: int = 15) -> str:
     return "\n".join(lines)
 
 
-def resolve_latest_bundle_for_school(slug: str):
-    """Most recently touched bundle for a tenant slug, or ``None``."""
-    from apps.migration_cloud.models import MigrationBundle
+def resolve_school_from_slug(slug: str):
+    """Tenant ``School`` for a slug/subdomain token, or ``None``."""
+    from django.conf import settings
+
     from apps.schools.models import School
 
     token = str(slug or "").strip()
     if not token:
         return None
-    school = (
-        School.objects.filter(slug=token).first()
+    aliases = getattr(settings, "TENANT_SLUG_LOOKUP_ALIASES", None) or {}
+    canonical = str(aliases.get(token.lower(), token))
+    return (
+        School.objects.filter(slug=canonical).first()
+        or School.objects.filter(slug=token).first()
         or School.objects.filter(subdomain=token).first()
+        or School.objects.filter(subdomain=canonical).first()
     )
+
+
+def resolve_latest_bundle_for_school(slug: str):
+    """Most recently touched bundle for a tenant slug, or ``None``."""
+    from apps.migration_cloud.models import MigrationBundle
+
+    school = resolve_school_from_slug(slug)
     if school is None:
         return None
     return (
@@ -204,6 +219,14 @@ def resolve_latest_bundle_for_school(slug: str):
         .order_by("-updated_at", "-pk")
         .first()
     )
+
+
+def resolve_school_and_bundle(slug: str) -> tuple[Any | None, Any | None]:
+    """Return ``(school, bundle)`` — school ``None`` when slug is unknown."""
+    school = resolve_school_from_slug(slug)
+    if school is None:
+        return None, None
+    return school, resolve_latest_bundle_for_school(slug)
 
 
 def _source_row_from_payload(payload: dict[str, Any]) -> dict[str, Any]:

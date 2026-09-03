@@ -717,6 +717,7 @@ def _enrich_student_identity_keys(
         or flat.get("student_external_id")
         or flat.get("admission_number")
         or flat.get("student_code")
+        or flat.get("pupil_id")
         or flat.get("exam_candidate_number")
         or ""
     ).strip()
@@ -819,7 +820,7 @@ def enrich_missing_required_row(
             enriched["title"] = name
             evidence.append("title←subject_name")
 
-    elif domain_key in {"students", "enrollment", "attendance", "behavior", "alumni"}:
+    elif domain_key in {"students", "attendance", "behavior", "alumni"}:
         _enrich_student_identity_keys(
             enriched,
             flat,
@@ -827,6 +828,68 @@ def enrich_missing_required_row(
             school=school,
             transformer_options=transformer_options,
         )
+
+    elif domain_key == "enrollment":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        section = str(
+            flat.get("section_code")
+            or flat.get("classroom_name")
+            or flat.get("section_name")
+            or flat.get("class_id")
+            or flat.get("class_name")
+            or ""
+        ).strip()
+        if section and not str(flat.get("section_code") or "").strip():
+            enriched["section_code"] = section
+            evidence.append("section_code←section_alias")
+        specialty = str(
+            flat.get("specialty")
+            or flat.get("specialty_name")
+            or flat.get("stream")
+            or flat.get("trade")
+            or ""
+        ).strip()
+        if specialty and not str(flat.get("specialty") or "").strip():
+            enriched["specialty"] = specialty
+            evidence.append("specialty←specialty_alias")
+
+    elif domain_key in {
+        "transport_assignments",
+        "hostel_assignments",
+        "cafeteria_assignments",
+    }:
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        route = str(
+            flat.get("route")
+            or flat.get("route_name")
+            or flat.get("bus_route")
+            or ""
+        ).strip()
+        if route and not str(flat.get("route") or "").strip():
+            enriched["route"] = route
+            evidence.append("route←route_alias")
+        room = str(
+            flat.get("room")
+            or flat.get("room_name")
+            or flat.get("hostel_room")
+            or flat.get("dormitory")
+            or ""
+        ).strip()
+        if room and not str(flat.get("room") or "").strip():
+            enriched["room"] = room
+            evidence.append("room←room_alias")
 
     elif domain_key == "grades":
         _enrich_student_identity_keys(
@@ -911,7 +974,57 @@ def enrich_missing_required_row(
             enriched["staff_external_id"] = f"email-{hashlib.sha256(email.casefold().encode()).hexdigest()[:16]}"
             evidence.append("staff_external_id←email_hash")
 
-    elif domain_key in {"structure", "sections"}:
+    elif domain_key == "structure":
+        classroom = str(
+            flat.get("classroom")
+            or flat.get("classroom_name")
+            or flat.get("class_name")
+            or flat.get("section_name")
+            or ""
+        ).strip()
+        if classroom and not str(flat.get("classroom") or "").strip():
+            enriched["classroom"] = classroom
+            evidence.append("classroom←class_alias")
+        subject = str(
+            flat.get("subject")
+            or flat.get("subject_name")
+            or flat.get("course_name")
+            or flat.get("title")
+            or ""
+        ).strip()
+        if subject and not str(flat.get("subject") or "").strip():
+            enriched["subject"] = subject
+            evidence.append("subject←subject_alias")
+        specialty = str(
+            flat.get("specialty")
+            or flat.get("specialty_name")
+            or flat.get("stream")
+            or ""
+        ).strip()
+        if specialty and not str(flat.get("specialty") or "").strip():
+            enriched["specialty"] = specialty
+            evidence.append("specialty←specialty_alias")
+        year = str(
+            flat.get("academic_year")
+            or flat.get("year")
+            or flat.get("school_year")
+            or ""
+        ).strip()
+        if year and not str(flat.get("academic_year") or "").strip():
+            enriched["academic_year"] = year
+            evidence.append("academic_year←year_alias")
+        term = str(
+            flat.get("term")
+            or flat.get("term_label")
+            or flat.get("semester")
+            or flat.get("trimestre")
+            or ""
+        ).strip()
+        if term and not str(flat.get("term") or "").strip():
+            enriched["term"] = term
+            evidence.append("term←period_alias")
+
+    elif domain_key == "sections":
         label = str(
             flat.get("name")
             or flat.get("classroom_name")
@@ -923,6 +1036,10 @@ def enrich_missing_required_row(
         if label and not str(flat.get("name") or "").strip():
             enriched["name"] = label
             evidence.append("name←section_alias")
+        sec_code = str(flat.get("section_code") or flat.get("code") or "").strip()
+        if sec_code and not str(flat.get("section_code") or "").strip():
+            enriched["section_code"] = sec_code
+            evidence.append("section_code←code_alias")
 
     elif domain_key == "specialties":
         name = str(flat.get("name") or flat.get("title") or "").strip()
@@ -985,6 +1102,538 @@ def enrich_missing_required_row(
         if paid_raw not in (None, "") and flat.get("paid_amount") in (None, ""):
             enriched["paid_amount"] = paid_raw
             evidence.append("paid_amount←amount_paid_alias")
+
+    elif domain_key == "schedule":
+        section = str(
+            flat.get("section_external_id")
+            or flat.get("section_id")
+            or flat.get("class_id")
+            or flat.get("section_code")
+            or flat.get("classroom_name")
+            or flat.get("class_name")
+            or flat.get("section_name")
+            or ""
+        ).strip()
+        if section and not str(flat.get("section_external_id") or "").strip():
+            enriched["section_external_id"] = section
+            evidence.append("section_external_id←section_alias")
+        day = str(
+            flat.get("day_of_week")
+            or flat.get("day")
+            or flat.get("weekday")
+            or ""
+        ).strip()
+        if day and not str(flat.get("day_of_week") or "").strip():
+            enriched["day_of_week"] = day
+            evidence.append("day_of_week←day_alias")
+        start = str(
+            flat.get("start_time")
+            or flat.get("begin_time")
+            or flat.get("start")
+            or ""
+        ).strip()
+        if start and not str(flat.get("start_time") or "").strip():
+            enriched["start_time"] = start
+            evidence.append("start_time←begin_alias")
+        end = str(
+            flat.get("end_time")
+            or flat.get("finish_time")
+            or flat.get("end")
+            or ""
+        ).strip()
+        if end and not str(flat.get("end_time") or "").strip():
+            enriched["end_time"] = end
+            evidence.append("end_time←finish_alias")
+
+    elif domain_key == "health":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        record_date = str(
+            flat.get("record_date")
+            or flat.get("date")
+            or flat.get("visit_date")
+            or flat.get("event_date")
+            or ""
+        ).strip()
+        if record_date and not str(flat.get("record_date") or "").strip():
+            enriched["record_date"] = record_date
+            evidence.append("record_date←date_alias")
+        category = str(
+            flat.get("category")
+            or flat.get("record_type")
+            or flat.get("type")
+            or flat.get("event_type")
+            or ""
+        ).strip()
+        if category and not str(flat.get("category") or "").strip():
+            enriched["category"] = category
+            evidence.append("category←record_type_alias")
+
+    elif domain_key == "library":
+        title = str(
+            flat.get("title")
+            or flat.get("name")
+            or flat.get("book_title")
+            or flat.get("item_name")
+            or ""
+        ).strip()
+        if title and not str(flat.get("title") or "").strip():
+            enriched["title"] = title
+            evidence.append("title←name_alias")
+        isbn = str(
+            flat.get("isbn")
+            or flat.get("barcode")
+            or flat.get("isbn13")
+            or flat.get("isbn_13")
+            or ""
+        ).strip()
+        if isbn and not str(flat.get("isbn") or "").strip():
+            enriched["isbn"] = isbn
+            evidence.append("isbn←barcode_alias")
+        author = str(flat.get("author") or flat.get("author_name") or "").strip()
+        if author and not str(flat.get("author") or "").strip():
+            enriched["author"] = author
+            evidence.append("author←author_name")
+
+    elif domain_key == "transport":
+        route = str(
+            flat.get("route")
+            or flat.get("route_name")
+            or flat.get("bus_route")
+            or flat.get("name")
+            or ""
+        ).strip()
+        if route and not str(flat.get("route") or "").strip():
+            enriched["route"] = route
+            evidence.append("route←route_alias")
+
+    elif domain_key == "payroll":
+        ext = str(
+            flat.get("staff_external_id")
+            or flat.get("external_id")
+            or flat.get("employee_id")
+            or flat.get("employee_number")
+            or flat.get("staff_number")
+            or ""
+        ).strip()
+        if ext and not str(flat.get("staff_external_id") or "").strip():
+            enriched["staff_external_id"] = ext
+            evidence.append("staff_external_id←employee_id")
+        pay_period = str(
+            flat.get("pay_period")
+            or flat.get("period")
+            or flat.get("month")
+            or flat.get("pay_month")
+            or ""
+        ).strip()
+        if pay_period and not str(flat.get("pay_period") or "").strip():
+            enriched["pay_period"] = pay_period
+            evidence.append("pay_period←period_alias")
+        gross = flat.get("gross_amount")
+        if gross in (None, "") and flat.get("gross") not in (None, ""):
+            enriched["gross_amount"] = flat.get("gross")
+            evidence.append("gross_amount←gross_alias")
+        net = flat.get("net_amount")
+        if net in (None, "") and flat.get("net") not in (None, ""):
+            enriched["net_amount"] = flat.get("net")
+            evidence.append("net_amount←net_alias")
+
+    elif domain_key == "events":
+        title = str(
+            flat.get("title")
+            or flat.get("name")
+            or flat.get("event_name")
+            or flat.get("event_title")
+            or ""
+        ).strip()
+        if title and not str(flat.get("title") or "").strip():
+            enriched["title"] = title
+            evidence.append("title←event_name")
+        starts = str(
+            flat.get("starts_at")
+            or flat.get("start_date")
+            or flat.get("date")
+            or flat.get("event_date")
+            or ""
+        ).strip()
+        if starts and not str(flat.get("starts_at") or "").strip():
+            enriched["starts_at"] = starts
+            evidence.append("starts_at←start_date")
+        category = str(
+            flat.get("category")
+            or flat.get("event_type")
+            or flat.get("type")
+            or ""
+        ).strip()
+        if category and not str(flat.get("category") or "").strip():
+            enriched["category"] = category
+            evidence.append("category←event_type")
+
+    elif domain_key == "athletics_teams":
+        sport = str(flat.get("sport") or flat.get("sport_name") or "").strip()
+        if sport and not str(flat.get("sport") or "").strip():
+            enriched["sport"] = sport
+            evidence.append("sport←sport_name")
+        season = str(
+            flat.get("season")
+            or flat.get("season_name")
+            or flat.get("school_year")
+            or ""
+        ).strip()
+        if season and not str(flat.get("season") or "").strip():
+            enriched["season"] = season
+            evidence.append("season←season_name")
+        team_name = str(
+            flat.get("team_name")
+            or flat.get("name")
+            or flat.get("squad_name")
+            or flat.get("team")
+            or ""
+        ).strip()
+        if team_name and not str(flat.get("team_name") or "").strip():
+            enriched["team_name"] = team_name
+            evidence.append("team_name←squad_alias")
+
+    elif domain_key == "athletics_memberships":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        team_name = str(
+            flat.get("team_name")
+            or flat.get("team")
+            or flat.get("squad")
+            or ""
+        ).strip()
+        if team_name and not str(flat.get("team_name") or "").strip():
+            enriched["team_name"] = team_name
+            evidence.append("team_name←team_alias")
+
+    elif domain_key == "cafeteria":
+        meal = str(
+            flat.get("meal_plan")
+            or flat.get("name")
+            or flat.get("meal_name")
+            or flat.get("menu_item")
+            or ""
+        ).strip()
+        if meal and not str(flat.get("meal_plan") or "").strip():
+            enriched["meal_plan"] = meal
+            evidence.append("meal_plan←meal_name")
+
+    elif domain_key == "hostel":
+        hostel = str(
+            flat.get("hostel")
+            or flat.get("hostel_name")
+            or flat.get("dormitory")
+            or flat.get("dorm")
+            or ""
+        ).strip()
+        if hostel and not str(flat.get("hostel") or "").strip():
+            enriched["hostel"] = hostel
+            evidence.append("hostel←hostel_name")
+        room = str(
+            flat.get("room")
+            or flat.get("room_name")
+            or flat.get("room_number")
+            or flat.get("dorm_room")
+            or ""
+        ).strip()
+        if room and not str(flat.get("room") or "").strip():
+            enriched["room"] = room
+            evidence.append("room←room_name")
+
+    elif domain_key == "transcripts":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        year = str(
+            flat.get("academic_year")
+            or flat.get("school_year")
+            or flat.get("year")
+            or ""
+        ).strip()
+        if year and not str(flat.get("academic_year") or "").strip():
+            enriched["academic_year"] = year
+            evidence.append("academic_year←school_year")
+        term = str(
+            flat.get("term")
+            or flat.get("trimestre")
+            or flat.get("semester")
+            or flat.get("period")
+            or ""
+        ).strip()
+        if term and not str(flat.get("term") or "").strip():
+            enriched["term"] = term
+            evidence.append("term←period_alias")
+        subject = str(
+            flat.get("subject_code")
+            or flat.get("subject")
+            or flat.get("course_code")
+            or ""
+        ).strip()
+        if subject and not str(flat.get("subject_code") or "").strip():
+            enriched["subject_code"] = subject
+            evidence.append("subject_code←subject_alias")
+        grade = str(
+            flat.get("final_grade")
+            or flat.get("grade")
+            or flat.get("score")
+            or flat.get("letter_grade")
+            or ""
+        ).strip()
+        if grade and not str(flat.get("final_grade") or "").strip():
+            enriched["final_grade"] = grade
+            evidence.append("final_grade←grade_alias")
+        issued = str(
+            flat.get("issued_at")
+            or flat.get("issued_date")
+            or flat.get("date")
+            or ""
+        ).strip()
+        if issued and not str(flat.get("issued_at") or "").strip():
+            enriched["issued_at"] = issued
+            evidence.append("issued_at←date_alias")
+
+    elif domain_key == "communications":
+        recipient = str(
+            flat.get("recipient_external_id")
+            or flat.get("student_external_id")
+            or flat.get("pupil_id")
+            or flat.get("to_id")
+            or flat.get("recipient_id")
+            or ""
+        ).strip()
+        if recipient and not str(flat.get("recipient_external_id") or "").strip():
+            enriched["recipient_external_id"] = recipient
+            evidence.append("recipient_external_id←to_alias")
+        body = str(
+            flat.get("body")
+            or flat.get("message")
+            or flat.get("content")
+            or flat.get("text")
+            or ""
+        ).strip()
+        if body and not str(flat.get("body") or "").strip():
+            enriched["body"] = body
+            evidence.append("body←message_alias")
+        subject = str(flat.get("subject") or flat.get("title") or "").strip()
+        if subject and not str(flat.get("subject") or "").strip():
+            enriched["subject"] = subject
+            evidence.append("subject←title_alias")
+        sent = str(
+            flat.get("sent_at")
+            or flat.get("date")
+            or flat.get("timestamp")
+            or flat.get("sent_date")
+            or ""
+        ).strip()
+        if sent and not str(flat.get("sent_at") or "").strip():
+            enriched["sent_at"] = sent
+            evidence.append("sent_at←date_alias")
+
+    elif domain_key == "athletics_fixtures":
+        team_name = str(
+            flat.get("team_name")
+            or flat.get("team")
+            or flat.get("squad")
+            or flat.get("squad_name")
+            or ""
+        ).strip()
+        if team_name and not str(flat.get("team_name") or "").strip():
+            enriched["team_name"] = team_name
+            evidence.append("team_name←team_alias")
+        opponent = str(
+            flat.get("opponent_name")
+            or flat.get("opponent")
+            or flat.get("away_team")
+            or flat.get("home_team")
+            or flat.get("vs")
+            or ""
+        ).strip()
+        if opponent and not str(flat.get("opponent_name") or "").strip():
+            enriched["opponent_name"] = opponent
+            evidence.append("opponent_name←opponent_alias")
+        start = str(
+            flat.get("scheduled_start")
+            or flat.get("match_date")
+            or flat.get("kickoff")
+            or flat.get("start_date")
+            or flat.get("date")
+            or flat.get("scheduled_at")
+            or ""
+        ).strip()
+        if start and not str(flat.get("scheduled_start") or "").strip():
+            enriched["scheduled_start"] = start
+            evidence.append("scheduled_start←match_date")
+
+    elif domain_key == "academic_sessions":
+        title = str(
+            flat.get("session_title")
+            or flat.get("title")
+            or flat.get("name")
+            or flat.get("session_name")
+            or ""
+        ).strip()
+        if title and not str(flat.get("session_title") or "").strip():
+            enriched["session_title"] = title
+            evidence.append("session_title←title_alias")
+        session_type = str(
+            flat.get("session_type")
+            or flat.get("type")
+            or flat.get("sessionType")
+            or ""
+        ).strip()
+        if session_type and not str(flat.get("session_type") or "").strip():
+            enriched["session_type"] = session_type
+            evidence.append("session_type←type_alias")
+        school_year = str(
+            flat.get("school_year")
+            or flat.get("schoolYear")
+            or flat.get("year")
+            or flat.get("academic_year")
+            or ""
+        ).strip()
+        if school_year and not str(flat.get("school_year") or "").strip():
+            enriched["school_year"] = school_year
+            evidence.append("school_year←year_alias")
+        start = str(
+            flat.get("session_start")
+            or flat.get("start_date")
+            or flat.get("startDate")
+            or flat.get("start")
+            or ""
+        ).strip()
+        if start and not str(flat.get("session_start") or "").strip():
+            enriched["session_start"] = start
+            evidence.append("session_start←start_date")
+        end = str(
+            flat.get("session_end")
+            or flat.get("end_date")
+            or flat.get("endDate")
+            or flat.get("end")
+            or ""
+        ).strip()
+        if end and not str(flat.get("session_end") or "").strip():
+            enriched["session_end"] = end
+            evidence.append("session_end←end_date")
+        ext_id = str(
+            flat.get("session_external_id")
+            or flat.get("sourcedId")
+            or flat.get("external_id")
+            or flat.get("session_id")
+            or ""
+        ).strip()
+        if ext_id and not str(flat.get("session_external_id") or "").strip():
+            enriched["session_external_id"] = ext_id
+            evidence.append("session_external_id←sourcedId")
+        parent_ext = str(
+            flat.get("parent_session_external_id")
+            or flat.get("parentSourcedId")
+            or flat.get("parent_external_id")
+            or ""
+        ).strip()
+        if parent_ext and not str(flat.get("parent_session_external_id") or "").strip():
+            enriched["parent_session_external_id"] = parent_ext
+            evidence.append("parent_session_external_id←parentSourcedId")
+
+    elif domain_key == "compliance":
+        category = str(
+            flat.get("category")
+            or flat.get("check_type")
+            or flat.get("type")
+            or flat.get("requirement_type")
+            or ""
+        ).strip()
+        if category and not str(flat.get("category") or "").strip():
+            enriched["category"] = category
+            evidence.append("category←check_type")
+        subject = str(
+            flat.get("subject_external_id")
+            or flat.get("student_external_id")
+            or flat.get("pupil_id")
+            or flat.get("student_id")
+            or ""
+        ).strip()
+        if subject and not str(flat.get("subject_external_id") or "").strip():
+            enriched["subject_external_id"] = subject
+            evidence.append("subject_external_id←student_alias")
+        due = str(
+            flat.get("due_date")
+            or flat.get("due")
+            or flat.get("deadline")
+            or ""
+        ).strip()
+        if due and not str(flat.get("due_date") or "").strip():
+            enriched["due_date"] = due
+            evidence.append("due_date←due_alias")
+        completed = str(
+            flat.get("completed_date")
+            or flat.get("completed_at")
+            or flat.get("completion_date")
+            or ""
+        ).strip()
+        if completed and not str(flat.get("completed_date") or "").strip():
+            enriched["completed_date"] = completed
+            evidence.append("completed_date←completion_alias")
+
+    elif domain_key == "custom_fields":
+        _id_chain = (
+            "entity_id",
+            "record_id",
+            "external_id",
+            "student_external_id",
+            "staff_external_id",
+            "admission_number",
+            "pupil_id",
+        )
+        record_id = ""
+        source_key = ""
+        for alias in _id_chain:
+            candidate = str(flat.get(alias) or "").strip()
+            if candidate:
+                record_id = candidate
+                source_key = alias
+                break
+        if record_id and not str(flat.get("entity_id") or "").strip():
+            enriched["entity_id"] = record_id[:64]  # magic-number-allow: DynamicFieldValue.entity_id max_length
+            evidence.append("entity_id←external_ref")
+            if source_key and source_key != "entity_id":
+                enriched.pop(source_key, None)
+        label = str(
+            flat.get("label")
+            or flat.get("title")
+            or flat.get("name")
+            or flat.get("field_name")
+            or ""
+        ).strip()
+        if label and not str(flat.get("label") or "").strip():
+            enriched["label"] = label
+            evidence.append("label←title_alias")
+        custom = row.get("custom_fields")
+        if isinstance(custom, dict):
+            promoted = False
+            for ck, cv in custom.items():
+                if cv in (None, ""):
+                    continue
+                dotted = f"custom_fields.{ck}"
+                if dotted not in enriched:
+                    enriched[dotted] = cv
+                    promoted = True
+            if promoted:
+                evidence.append("custom_fields←nested_promotion")
 
     if not evidence:
         return row, []

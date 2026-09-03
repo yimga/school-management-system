@@ -40,3 +40,30 @@ def sync_enrollment_from_student_profile(student) -> Optional[Any]:
 
     enrollment.sync_student_row()
     return enrollment
+
+
+def sync_all_enrollments_for_school(school, *, dry_run: bool = False) -> dict[str, int]:
+    """Backfill ``people.Enrollment`` rows from landed student placements."""
+    summary = {"examined": 0, "synced": 0, "skipped": 0}
+    if school is None:
+        return summary
+    try:
+        from apps.people.models import StudentProfile
+    except ImportError:
+        return summary
+
+    for student in StudentProfile.objects.filter(school=school, is_active=True).iterator(
+        chunk_size=500
+    ):
+        summary["examined"] += 1
+        if getattr(student, "academic_year_id", None) is None:
+            summary["skipped"] += 1
+            continue
+        if dry_run:
+            summary["synced"] += 1
+            continue
+        if sync_enrollment_from_student_profile(student) is not None:
+            summary["synced"] += 1
+        else:
+            summary["skipped"] += 1
+    return summary
