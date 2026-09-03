@@ -804,6 +804,8 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={
                 "en": ["category", "subject_category", "type", "track", "subject_type"],
                 "fr": ["categorie", "type_matiere"],
+                "es": ["categoria"],
+                "pt": ["categoria"],
             },
         ),
     },

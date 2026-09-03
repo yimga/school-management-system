@@ -44,7 +44,7 @@ class SpreadsheetHeaderDetectionTests(TestCase):
 
 
 class AcademicsCategoryLanderTests(TestCase):
-    def test_category_lands_and_updates_on_reimport(self):
+    def test_category_lands_and_reimport_respects_deliberate_values(self):
         school = School.objects.create(
             name="Cat School",
             subdomain="cat-school",
@@ -74,8 +74,29 @@ class AcademicsCategoryLanderTests(TestCase):
             ctx=ctx,
         )
         subj.refresh_from_db()
-        self.assertEqual(subj.category, Subject.Category.GENERAL)
-        self.assertEqual(result.updated, 1)
+        # Subject carries no provenance column, so the lander cannot tell an
+        # import-set category from one a person chose in the UI. The rule that
+        # never destroys human work silently is backfill-only-default: a row
+        # already OFF the default keeps its category and the disagreement is
+        # REPORTED (record_row_note), for the operator to settle.
+        self.assertEqual(subj.category, Subject.Category.PROFESSIONAL)
+        self.assertTrue(
+            any("kept category" in str(n) for n in getattr(result, "notes", []) or []),
+            "the disagreement must be reported, not silent",
+        )
+
+        # The re-import case that DOES update: a row still at the field default
+        # takes the file's category.
+        blank = Subject.objects.create(school=school, name="DRAWING")
+        self.assertEqual(blank.category, Subject.Category.OTHER)
+        lander.land(
+            canonical_rows=iter(
+                [{"subject_name": "DRAWING", "category": "General"}]
+            ),
+            ctx=ctx,
+        )
+        blank.refresh_from_db()
+        self.assertEqual(blank.category, Subject.Category.GENERAL)
 
 
 def _xlsx_bytes(rows: list[tuple]) -> bytes:

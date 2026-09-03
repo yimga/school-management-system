@@ -60,6 +60,14 @@ def assess_tenant_schema_readiness(
     try:
         from django_tenants.utils import schema_context
     except ImportError:
+        schema_context = None
+    if schema_context is not None and not hasattr(connection, "set_schema"):
+        # The PACKAGE being importable does not make the CONNECTION a tenants
+        # backend: an RLS box and a local pytest run against SQLite both have
+        # django_tenants on the path with no connection.tenant, and entering
+        # schema_context there raises AttributeError before any column is read.
+        schema_context = None
+    if schema_context is None:
         # Shared-schema / RLS mode: current connection IS the tenant schema.
         def schema_context(name):  # type: ignore[misc]
             from contextlib import contextmanager
