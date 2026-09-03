@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -34,8 +35,6 @@ WAVE_NEEDLES: dict[str, list[tuple[str, str]]] = {
         ("templates/partials/tenant/admin_workspace_zone_intro.html", "Operator cockpit"),
         ("templates/partials/tenant/admin_workspace_zone_intro.html", "Setup Studio"),
         ("templates/accounts/backend_dashboard.html", "At a glance"),
-        ("templates/partials/tenant/setup_command_surface.html", "rmc-setup-surface__title"),
-        ("static/css/rmc-setup-surface.css", "minmax(220px"),
         ("static/css/rmc-backend-admin-bento.css", "rmc-admin-zone-intro"),
         ("var/design-previews/tenant-admin-workspace-preview.html", "Set up your school"),
     ],
@@ -75,6 +74,118 @@ WAVE_NEEDLES: dict[str, list[tuple[str, str]]] = {
         ("var/design-previews/mfa-wizard-review-void-fix-preview.html", "MFA"),
         ("var/design-previews/wizard-step-assist-preview.html", "Assist"),
     ],
+}
+
+
+# --------------------------------------------------------------------------
+# Behaviour checks
+#
+# A (path, substring) needle asserts a WORD. Two W1 needles outlived the words
+# they named while the behaviour behind them survived intact, so this gate
+# failed continuously and told nobody anything:
+#
+#   * "rmc-setup-surface__title" -- 84b7cf382 (2026-08-02) folded the setup
+#     landing's scattered islands into ONE bounded cockpit card and renamed the
+#     class to rmc-cockpit__title. The <h1> and its "Set up your <school>" copy
+#     moved verbatim; only the class token changed.
+#   * "minmax(220px" -- 159255257 (2026-08-01) replaced
+#     repeat(auto-fill, minmax(220px, 1fr)) with
+#     repeat(auto-fit, minmax(min(100%, 14.5rem), 1fr)): the same responsive
+#     card grid, minus the bare fixed min track that overflows any container
+#     narrower than itself.
+#
+# Both are asserted below as the behaviour they stood for, so a rename or a unit
+# change no longer reads as a breach -- and, unlike the needles, deleting the
+# heading or flattening the grid now does.
+# --------------------------------------------------------------------------
+
+SETUP_SURFACE_PARTIAL = "templates/partials/tenant/setup_command_surface.html"
+SETUP_SURFACE_CSS = "static/css/rmc-setup-surface.css"
+
+_H1_RE = re.compile(r"<h1(?:\s[^>]*)?>(.*?)</h1>", re.S | re.I)
+_SURFACE_LABELLED_RE = re.compile(
+    r'class="(?:[^"]*\s)?rmc-setup-surface(?:\s[^"]*)?"[^>]*aria-label='
+)
+_CARDS_RULE_RE = re.compile(r"\.rmc-setup-surface__cards\s*\{(.*?)\}", re.S)
+_GRID_COLS_RE = re.compile(r"grid-template-columns\s*:\s*([^;]+);")
+_REPEAT_MINMAX_RE = re.compile(
+    r"repeat\(\s*(auto-fit|auto-fill)\s*,\s*minmax\(\s*(.+?)\s*,\s*1fr\s*\)\s*\)",
+    re.S,
+)
+
+
+def _read_rel(rel: str) -> str | None:
+    path = ROOT / rel
+    if not path.is_file():
+        return None
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def _check_setup_surface_heading() -> list[str]:
+    """The setup command surface names itself with exactly one translatable <h1>."""
+    body = _read_rel(SETUP_SURFACE_PARTIAL)
+    if body is None:
+        return [f"missing file: {SETUP_SURFACE_PARTIAL}"]
+    findings: list[str] = []
+    headings = _H1_RE.findall(body)
+    if len(headings) != 1:
+        findings.append(
+            f"{SETUP_SURFACE_PARTIAL}: expected exactly one <h1> naming the setup "
+            f"surface, found {len(headings)}"
+        )
+    inner = headings[0] if headings else ""
+    if headings and not ("{% blocktrans" in inner or "{% trans" in inner):
+        findings.append(
+            f"{SETUP_SURFACE_PARTIAL}: the setup surface <h1> must be translatable "
+            f"(trans / blocktrans), not raw copy"
+        )
+    if headings and "Set up your" not in inner:
+        findings.append(
+            f"{SETUP_SURFACE_PARTIAL}: the setup surface <h1> must carry the approved "
+            f"preview title 'Set up your <school>' (see the W1 design-preview needle)"
+        )
+    if not _SURFACE_LABELLED_RE.search(body):
+        findings.append(
+            f"{SETUP_SURFACE_PARTIAL}: the .rmc-setup-surface region must carry an "
+            f"aria-label so the landmark has an accessible name"
+        )
+    return findings
+
+
+def _check_setup_surface_card_grid() -> list[str]:
+    """Step cards stay a responsive grid that cannot overflow its container."""
+    body = _read_rel(SETUP_SURFACE_CSS)
+    if body is None:
+        return [f"missing file: {SETUP_SURFACE_CSS}"]
+    rule = _CARDS_RULE_RE.search(body)
+    if not rule:
+        return [f"{SETUP_SURFACE_CSS}: no .rmc-setup-surface__cards rule"]
+    cols = _GRID_COLS_RE.search(rule.group(1))
+    if not cols:
+        return [
+            f"{SETUP_SURFACE_CSS}: .rmc-setup-surface__cards must set "
+            f"grid-template-columns -- the step cards stop reflowing without it"
+        ]
+    value = cols.group(1).strip()
+    match = _REPEAT_MINMAX_RE.search(value)
+    if not match:
+        return [
+            f"{SETUP_SURFACE_CSS}: .rmc-setup-surface__cards must lay out as "
+            f"repeat(auto-fit|auto-fill, minmax(<min>, 1fr)) so step cards reflow by "
+            f"available width; found {value!r}"
+        ]
+    minimum = match.group(2)
+    if "min(" not in minimum and "%" not in minimum:
+        return [
+            f"{SETUP_SURFACE_CSS}: .rmc-setup-surface__cards minmax minimum {minimum!r} "
+            f"is a bare fixed length -- it overflows any container narrower than itself; "
+            f"clamp it (min(100%, <len>)) the way 159255257 did"
+        ]
+    return []
+
+
+WAVE_BEHAVIOURS = {
+    "W1": (_check_setup_surface_heading, _check_setup_surface_card_grid),
 }
 
 
@@ -127,6 +238,8 @@ def main() -> int:
             findings.append(f"unknown wave: {wave}")
             continue
         findings.extend(_check_needles(wave))
+        for behaviour in WAVE_BEHAVIOURS.get(wave, ()):
+            findings.extend(behaviour())
 
     if findings:
         print("TENANT_PREVIEW_TO_LIVE_FAIL")
