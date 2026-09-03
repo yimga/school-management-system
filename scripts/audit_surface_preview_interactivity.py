@@ -89,7 +89,10 @@ def main() -> int:
     out = ROOT / "docs/generated/surface_preview_interactivity_audit.json"
     if args.write:
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        # write_bytes with an explicit \n: Path.write_text is TEXT mode and emits
+        # CRLF on Windows, which docs/generated/*.json (eol=lf) then reports as
+        # perpetually modified, breaking every rebase.
+        out.write_bytes((json.dumps(payload, indent=2) + "\n").encode("utf-8"))
 
     if args.json:
         print(json.dumps(payload, indent=2))

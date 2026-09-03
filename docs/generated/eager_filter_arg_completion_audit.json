@@ -1,5 +1,4 @@
 {
-  "generated_at": "2026-09-03T01:53:42.216852+00:00",
   "static_only": true,
   "pass_count": 6,
   "fail_count": 0,
@@ -23,7 +22,7 @@
       "check_id": "S3",
       "label": "Scanner stdlib unit tests green",
       "ok": true,
-      "proof": "include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_honors_default_fallback_allow_marker) ... ok\ntest_skips_dotted_same_object_defaults (scripts.tests.test_scan_include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_skips_dotted_same_object_defaults) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.825s\n\nOK"
+      "proof": "can_include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_honors_default_fallback_allow_marker) ... ok\ntest_skips_dotted_same_object_defaults (scripts.tests.test_scan_include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_skips_dotted_same_object_defaults) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in Ns\n\nOK"
     },
     {
       "check_id": "S4",
@@ -41,7 +40,7 @@
       "check_id": "R4",
       "label": "All rmc_operational_center_frame consumers free of banned defaults",
       "ok": true,
-      "proof": "consumers=66 clean"
+      "proof": "consumers=67 clean"
     }
   ]
 }
