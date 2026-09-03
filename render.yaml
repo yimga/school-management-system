@@ -261,6 +261,10 @@ services:
         sync: false
       - key: RMC_PUBLIC_SITE_URL
         value: "https://runmycampus.com"
+      # Post-import operator commands: host token → canonical School.slug (JSON object).
+      # Set in the Render dashboard — see docs/MIGRATION_PLAYBOOK.md § Post-import playbook.
+      - key: RMC_TENANT_SLUG_LOOKUP_ALIASES
+        sync: false
       # Durable Celery mail tasks — requires an always-on worker. Default "0"
       # for the no-worker topology (mail sends inline via eager execution).
       # Flip to "1" only when the worker service below is enabled (see the
@@ -407,6 +411,8 @@ services:
         sync: false
       - key: RMC_PUBLIC_SITE_URL
         value: "https://runmycampus.com"
+      - key: RMC_TENANT_SLUG_LOOKUP_ALIASES
+        sync: false
       - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
         value: "1"
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
