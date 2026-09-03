@@ -74099,3 +74099,9 @@ msgstr "likely filières"
 
 msgid "no matching filière code in this bundle"
 msgstr "no matching filière code in this bundle"
+
+msgid "Fleet pagination"
+msgstr "Fleet pagination"
+
+msgid "Page {{ current }} of {{ pages }}"
+msgstr "Page {{ current }} of {{ pages }}"
