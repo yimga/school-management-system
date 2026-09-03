@@ -58,6 +58,14 @@ class DynamicFieldDefinition(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Edge-sync anchor, same contract as every other rail entity: non-empty only
+    # for rows created offline on a box, upserted across the rail by
+    # (school, client_offline_id) instead of by pk. Platform-wide definitions
+    # (school=NULL) never ride and never mint one, so the school-scoped partial
+    # unique constraint below is the whole story.
+    client_offline_id = models.CharField(
+        max_length=128, blank=True, default="", db_index=True
+    )
 
     class Meta:
         app_label = "metadata"
@@ -65,6 +73,13 @@ class DynamicFieldDefinition(models.Model):
         verbose_name_plural = "Dynamic Field Definitions"
         unique_together = [["entity_type", "field_key", "school"]]
         ordering = ["entity_type", "field_key"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_dfd_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.entity_type}.{self.field_key}"
@@ -91,6 +106,25 @@ class DynamicFieldValue(models.Model):
         on_delete=models.CASCADE,
         related_name="+",
     )
+    # PROVENANCE. Who last wrote this value: "import" (a Migration Cloud lander or
+    # residual capture), "human" (a form, the admin break-glass screen, a deliberate
+    # service call), or "" for rows written before provenance existed. The guarded
+    # writer (apps.metadata.services.upsert_dynamic_field_value) reads it so a
+    # re-import cannot overturn a person's deliberate edit; auto_now ``updated_at``
+    # advances on ANY write, so it cannot answer that question.
+    source = models.CharField(max_length=20, blank=True, default="")
+    source_ref = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text='Locator for the last writer, e.g. "bundle:83/artifact:12" or "user:5".',
+    )
+    # Edge-sync anchor, same contract as every other rail entity: non-empty only
+    # for rows created offline on a box, upserted across the rail by
+    # (school, client_offline_id) instead of by pk.
+    client_offline_id = models.CharField(
+        max_length=128, blank=True, default="", db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -100,6 +134,13 @@ class DynamicFieldValue(models.Model):
         verbose_name_plural = "Dynamic Field Values"
         unique_together = [["school", "entity_type", "entity_id", "field_key"]]
         ordering = ["entity_type", "entity_id", "field_key"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_dfv_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.entity_type}:{self.entity_id}.{self.field_key}"

@@ -159,6 +159,8 @@ def set_dynamic_field_value(
     label: str = "",
     data_type: str = "",
     sync_legacy: bool = False,
+    source: str = "human",
+    source_ref: str = "",
 ):
     resolved_school = school_for_entity(instance, school=school)
     if resolved_school is None or getattr(instance, "pk", None) is None:
@@ -195,13 +197,82 @@ def set_dynamic_field_value(
         entity_type=entity_type,
         entity_id=entity_id_for(instance),
         field_key=field_key,
-        defaults={"value_json": wrap_value(value)},
+        # Every caller of this function is a deliberate write (a tenant EAV form,
+        # a GDPR action, domain code acting on a decision), so the default stamp
+        # is "human" -- the stamp the import-side guard defers to.
+        defaults={
+            "value_json": wrap_value(value),
+            "source": source,
+            "source_ref": source_ref,
+        },
     )
     if sync_legacy and hasattr(instance, "custom_attributes"):
         custom = legacy_custom_attributes(instance)
         custom[field_key] = value
         instance.custom_attributes = custom
     return field_value
+
+
+SOURCE_IMPORT = "import"
+SOURCE_HUMAN = "human"
+
+
+def upsert_dynamic_field_value(
+    *,
+    school,
+    entity_type: str,
+    entity_id: str,
+    field_key: str,
+    value_json: dict,
+    source: str,
+    source_ref: str = "",
+):
+    """Write one ``DynamicFieldValue`` with provenance, honouring deliberate edits.
+
+    Returns ``(obj, created, preserved)``. ``preserved=True`` means the row was NOT
+    written: the incoming write is an import and the existing value was last written
+    by a person -- a deliberate edit is that school's decision and a re-import does
+    not outrank it (the same rule the academics lander applies to a hand-set
+    ``Subject.category``). The caller reports the disagreement; nothing here is
+    silent.
+
+    An identical value is left untouched entirely: rewriting it would advance
+    ``updated_at`` (churning the edge sync rail for no data change) and, worse, let
+    an import overwrite the "human" stamp on a value it did not actually change.
+
+    ``school`` stays in the lookup, never in defaults --
+    ``DynamicFieldValue.Meta.unique_together`` is
+    ``["school", "entity_type", "entity_id", "field_key"]`` and metadata is a SHARED
+    app, one table for every tenant, so an unscoped lookup matches ANOTHER school's
+    row (``entity_id`` is a pk string, which collides across tenants as a matter of
+    course).
+    """
+    existing = DynamicFieldValue.objects.filter(
+        school=school,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        field_key=field_key,
+    ).first()
+    if existing is None:
+        obj = DynamicFieldValue.objects.create(
+            school=school,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            field_key=field_key,
+            value_json=value_json,
+            source=source,
+            source_ref=source_ref,
+        )
+        return obj, True, False
+    if existing.value_json == value_json:
+        return existing, False, False
+    if source == SOURCE_IMPORT and existing.source == SOURCE_HUMAN:
+        return existing, False, True
+    existing.value_json = value_json
+    existing.source = source
+    existing.source_ref = source_ref
+    existing.save(update_fields=["value_json", "source", "source_ref", "updated_at"])
+    return existing, False, False
 
 
 # --- Lineage-first rule (Workstream I7) and catalog package export (I2) ---

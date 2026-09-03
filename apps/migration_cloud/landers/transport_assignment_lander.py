@@ -285,11 +285,30 @@ class TransportAssignmentLander(Lander):
                 result.updated += 1 if exists else 0
                 result.created += 0 if exists else 1
                 continue
+            from apps.metadata.services import upsert_dynamic_field_value
+
+            from ._helpers import dfv_import_source_ref, record_row_note
+
             try:
                 with row_savepoint():  # atomic-apply isolation
-                    obj, created = DynamicFieldValue.objects.update_or_create(
-                        defaults=defaults_dfv, **lookup_kwargs_dfv,
+                    # Guarded write: keeps a value a person set by hand from being
+                    # clobbered by a re-import, and stamps writer provenance.
+                    obj, created, _preserved = upsert_dynamic_field_value(
+                        school=lookup_kwargs_dfv.get("school") or ctx.school,
+                        entity_type=lookup_kwargs_dfv["entity_type"],
+                        entity_id=lookup_kwargs_dfv["entity_id"],
+                        field_key=lookup_kwargs_dfv["field_key"],
+                        value_json=defaults_dfv.get("value_json") or {},
+                        source="import",
+                        source_ref=dfv_import_source_ref(ctx),
                     )
+                    if _preserved:
+                        record_row_note(
+                            result,
+                            f"{lookup_kwargs_dfv['entity_type']}"
+                            f"[{lookup_kwargs_dfv['entity_id']}]: kept the value a "
+                            "person set; the import does not outrank it",
+                        )
             except (TypeError, ValueError) as exc:
                 record_row_error(
                     result,
