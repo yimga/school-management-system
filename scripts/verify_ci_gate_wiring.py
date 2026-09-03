@@ -55,6 +55,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
     # can see it.
     ("scripts/verify_companion_server_contract.py", "ci.yml"),
+    # Added 2026-09-02. Run by nothing since it was written: absent from every
+    # workflow, from pre_push_boundary_check and from the test suite, while the
+    # execution log recorded a May hand-run of it as evidence the surface was OK.
+    ("scripts/verify_operator_siteconfig_cp_shell.py", "ci.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts
@@ -270,6 +274,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Platform nav catalog: static projector wiring in architectural-boundaries;
     # full reverse() of spine url_names in ci.yml.
     ("scripts/verify_nav_engine_coverage.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02: Gilead-class ingest gaps were first-class surfaces drifting
+    # apart (ontology/lander/UI/sync), not missing dynamic fields.
+    ("scripts/verify_tier1_academic_people_platform_contract.py", "architectural-boundaries.yml"),
     ("scripts/verify_report_entity_coverage.py", "architectural-boundaries.yml"),
     # A Migration Cloud lander must keep the row it rejected and declare why.
     # Added 2026-08-21: 29 of 35 lander files threw the offending row away, which

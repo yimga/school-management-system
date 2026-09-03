@@ -53,6 +53,8 @@
                   <th scope="col">{% trans "Staff ID" %}</th>
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Email" %}</th>
+                  <th scope="col">{% trans "Phone" %}</th>
+                  <th scope="col">{% trans "Role" %}</th>
                   <th scope="col">{% trans "Department" %}</th>
                   <th scope="col">{% trans "Actions" %}</th>
                 </tr>
@@ -63,10 +65,12 @@
                     tabindex="0"
                     data-rmc-row-title="{{ teacher.user.get_full_name|default:teacher.user.username }}"
                     data-rmc-row-subtitle="{{ teacher.staff_id|default:'—' }}"
-                    data-rmc-row-meta='{"{% trans "Department" %}":"{{ teacher.department.name|default:"—"|escapejs }}","{% trans "Email" %}":"{{ teacher.user.email|default:"—"|escapejs }}"}'>
+                    data-rmc-row-meta='{"{% trans "Department" %}":"{{ teacher.department.name|default:"—"|escapejs }}","{% trans "Email" %}":"{{ teacher.user.email|default:"—"|escapejs }}","{% trans "Phone" %}":"{{ teacher.phone|default:"—"|escapejs }}","{% trans "Role" %}":"{{ teacher.user.get_role_display|default:"—"|escapejs }}"}'>
                   <td>{{ teacher.staff_id|default:"-" }}</td>
                   <td>{{ teacher.user.get_full_name|default:teacher.user.username }}</td>
                   <td>{{ teacher.user.email|default:"-" }}</td>
+                  <td>{{ teacher.phone|default:"-" }}</td>
+                  <td>{{ teacher.user.get_role_display|default:"-" }}</td>
                   <td>{{ teacher.department.name|default:"-" }}</td>
                   <td>
                     <a href="{% url 'accounts:backend_teacher_detail' teacher.pk %}" class="btn btn-sm btn-outline-primary">{% trans "View" %}</a>

@@ -1838,18 +1838,22 @@ class TenantMigrationRollbackView(_TenantAdminWriteRequiredMixin, View):
 
 
 def _people_directory_urls() -> dict[str, str]:
-    """Tenant-host named URLs for Guardians + Staff Identity (empty if unresolved)."""
+    """Tenant-host named URLs to verify landed people + academic catalog rows."""
     from django.urls import NoReverseMatch, reverse
 
-    out = {"guardians_url": "", "staff_identity_url": ""}
-    try:
-        out["guardians_url"] = reverse("accounts:backend_guardian_list")
-    except NoReverseMatch:
-        pass
-    try:
-        out["staff_identity_url"] = reverse("accounts:tenant_identity_roster")
-    except NoReverseMatch:
-        pass
+    specs = (
+        ("guardians_url", "accounts:backend_guardian_list"),
+        ("staff_identity_url", "accounts:tenant_identity_roster"),
+        ("teachers_url", "accounts:backend_teacher_list"),
+        ("subjects_url", "accounts:backend_subject_list"),
+        ("specialties_url", "accounts:backend_specialty_list"),
+    )
+    out = {key: "" for key, _name in specs}
+    for key, url_name in specs:
+        try:
+            out[key] = reverse(url_name)
+        except NoReverseMatch:
+            pass
     return out
 
 
@@ -1918,6 +1922,27 @@ class TenantMigrationPeopleActivateView(_TenantAdminWriteRequiredMixin, View):
         if action in ("handover_parents", "handover_staff"):
             kind = "parents" if action == "handover_parents" else "staff"
             return handover_csv_response(school=school, kind=kind)
+        if action == "promote_staff_roles":
+            from apps.migration_cloud.staff_role_map import promote_imported_staff_roles
+
+            summary = promote_imported_staff_roles(school=school)
+            promoted = int(summary.get("promoted") or 0)
+            skipped = int(summary.get("skipped") or 0)
+            if promoted:
+                messages.success(
+                    request,
+                    _("Promoted imported roles for %(count)s staff member(s).")
+                    % {"count": promoted},
+                )
+            elif skipped:
+                messages.info(
+                    request,
+                    _("No staff roles needed promotion (%(count)s already correct).")
+                    % {"count": skipped},
+                )
+            else:
+                messages.info(request, _("No imported staff rows found to promote."))
+            return redirect(review)
         messages.info(request, _("Choose an activation action."))
         return redirect(review)
 

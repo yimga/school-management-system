@@ -195,6 +195,24 @@ class TheComposeFileMustDeclareTheBackupTests(SimpleTestCase):
             "the backup service must never be able to modify a school's uploads",
         )
 
+    def test_web_reads_the_backup_record_but_not_the_passphrase(self):
+        # The onboarding runbook refuses go-dark without a verified dump. The web
+        # process must see backup-state.json and must never see the key volume.
+        mounts = self.services["web"]["volumes"]
+        backup_data = [m for m in mounts if m.startswith("backupdata:")]
+        self.assertTrue(
+            backup_data,
+            "web has no backupdata mount, so Django cannot read backup-state.json",
+        )
+        self.assertTrue(
+            any("/backups:ro" in m for m in backup_data),
+            "the backup record must be read-only on web",
+        )
+        self.assertFalse(
+            any("backupkeys" in m for m in mounts),
+            "the passphrase volume must not be mounted on web",
+        )
+
     def test_it_cannot_take_the_box_down(self):
         # Same house rule as entrypoint.web.sh, where a boot helper must never fail the
         # boot. Nothing may depend on this service, and it must not publish a health

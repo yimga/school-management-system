@@ -36,6 +36,7 @@ _ENTITY_TYPE_TO_MODEL_LABEL: dict[str, str] = {
     "guardian": "people.studentguardian",
     "teacher": "people.teacherprofile",
     "classroom": "academics.classroom",
+    "subject": "academics.subject",
     "invoice": "finance.invoice",
     "payment": "finance.payment",
     "attendance": "academics.attendance",
@@ -116,6 +117,12 @@ PLATFORM_FIELD_RECIPES: list[tuple[str, str, str, str, bool]] = [
     ("classroom", "has_smartboard", "Has interactive whiteboard", "boolean", False),
     ("classroom", "wheelchair_accessible", "Wheelchair accessible", "boolean", False),
     ("classroom", "building", "Building / wing", "string", False),
+
+    # === Subject (Tier-2 extras — category/code/credits stay first-class) ===
+    ("subject", "syllabus_reference", "Syllabus / curriculum reference", "string", False),
+    ("subject", "exam_board", "Exam board / certifying body", "string", False),
+    ("subject", "weekly_periods", "Weekly periods", "number", False),
+    ("subject", "lab_required", "Requires lab / workshop", "boolean", False),
 
     # === Invoice ===
     ("invoice", "po_number", "Purchase order number", "string", False),

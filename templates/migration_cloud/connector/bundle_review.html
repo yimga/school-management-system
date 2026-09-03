@@ -411,6 +411,26 @@ persistent data failure routes to correction rather than an endless retry.
     <a href="{{ staff_identity_url }}">{% trans "Open Staff Identity" %}</a>
     {% endif %}
   </p>
+  <p class="text-muted small mb-0 mt-2">
+    {% trans "Verify imported catalog data before sync:" %}
+    {% if teachers_url %}
+    <a href="{{ teachers_url }}">{% trans "Teachers" %}</a>
+    {% endif %}
+    {% if teachers_url and subjects_url %} · {% endif %}
+    {% if subjects_url %}
+    <a href="{{ subjects_url }}">{% trans "Subjects" %}</a>
+    {% endif %}
+    {% if subjects_url and specialties_url %} · {% endif %}
+    {% if specialties_url %}
+    <a href="{{ specialties_url }}">{% trans "Specialties" %}</a>
+    {% endif %}
+  </p>
+  <form method="post" action="{{ activate_url }}" class="mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="promote_staff_roles">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Promote imported staff roles" %}</button>
+    <span class="text-muted small ms-2">{% trans "Re-applies directory role labels (Principal, Bursar, HOD, …) onto staff accounts imported before role mapping shipped." %}</span>
+  </form>
 </section>
 {% endif %}
 

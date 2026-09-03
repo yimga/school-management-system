@@ -496,6 +496,14 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
             "0",
         ],
     ),
+    # Wired 2026-09-02. It had never been run: not by this file, not by a
+    # workflow, not by a test. docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md
+    # records it as "OK (22 stems, 35 partials)" from a hand-run in May; run
+    # again on 2026-09-02 it printed 17 findings, every one of them false,
+    # while missing a real TypeError 500 on /school/studio/offboarding/ that
+    # had been live since the page was written. The noise and the miss are
+    # both what an unrun gate decays into.
+    ("operator-siteconfig-cp-shell", ["verify_operator_siteconfig_cp_shell.py"]),
 ]
 
 # Per-gate wall-clock ceiling, overridable with RMC_PREPUSH_GATE_TIMEOUT_S.

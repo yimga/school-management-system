@@ -25,6 +25,7 @@ Canonical row shape (source field names)::
 
 from __future__ import annotations
 
+import re
 from typing import Any, Iterator
 
 from ._helpers import (
@@ -41,6 +42,24 @@ from ._helpers import (
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 from .reason_codes import SOURCE_DELETION
+
+_CATEGORY_ALIASES: dict[str, str] = {
+    "general": "GENERAL",
+    "generale": "GENERAL",
+    "professional": "PROFESSIONAL",
+    "professionnel": "PROFESSIONAL",
+    "professionnelle": "PROFESSIONAL",
+    "related": "RELATED",
+    "other": "OTHER",
+}
+
+
+def _resolve_subject_category(raw: object) -> str | None:
+    token = str(raw or "").strip().lower()
+    if not token:
+        return None
+    compact = re.sub(r"[^a-z]+", "", token)
+    return _CATEGORY_ALIASES.get(token) or _CATEGORY_ALIASES.get(compact)
 
 
 def _resolve_category(raw, Subject):
@@ -124,48 +143,66 @@ class AcademicsLander(Lander):
                 # The CATEGORY column (a real Subject field with choices) used to be
                 # read by NOTHING: 108 subjects landed and every "Professional" /
                 # "General" cell fell to residual capture, invisible in the catalog.
+                # Two resolvers, merged from parallel fixes: the model-derived
+                # matcher understands any choice the model grows; the alias map
+                # catches French spellings the display labels do not.
+                raw_category = row.get("category") or row.get("subject_category")
                 category = (
-                    _resolve_category(row.get("category"), Subject)
+                    (
+                        _resolve_category(raw_category, Subject)
+                        or _resolve_subject_category(raw_category)
+                    )
                     if "category" in subject_fields
                     else None
                 )
-                def _create_kwargs(c=credits, cat=category):
-                    kwargs = {}
-                    if c is not None and "credits" in subject_fields:
-                        kwargs["credits"] = c
-                    if cat is not None:
-                        kwargs["category"] = cat
-                    return kwargs
+                create_kwargs: dict[str, Any] = {}
+                if credits is not None and "credits" in subject_fields:
+                    create_kwargs["credits"] = credits
+                if category is not None and "category" in subject_fields:
+                    create_kwargs["category"] = category
+                if code and "code" in subject_fields:
+                    create_kwargs["code"] = code[:30]  # magic-number-allow: Subject.code max_length
                 obj, created = get_or_create_named(
                     model=Subject,
                     school=ctx.school,
                     name=name[:120],  # magic-number-allow: Subject.name CharField max_length
-                    create_kwargs=_create_kwargs,
+                    create_kwargs=(lambda ck=create_kwargs: ck) if create_kwargs else None,
                     result=result,
                 )
-                if created:
-                    result.created += 1
-                else:
-                    result.skipped += 1
+                updates: dict[str, Any] = {}
+                if category is not None and "category" in subject_fields and obj.category != category:
                     # Backfill: only a row still on the field DEFAULT may take the
                     # import's category -- a category somebody set by hand is that
                     # school's decision and a re-upload must not overturn it.
-                    if category is not None and getattr(obj, "category", None) != category:
-                        if obj.category == Subject.Category.OTHER:
-                            obj.category = category
-                            obj.save(update_fields=["category"])
-                            result.updated += 1
-                        else:
-                            record_row_note(
-                                result,
-                                f"academics: kept category {obj.category!r} for"
-                                f" {name!r} (import says {category!r}; the row was"
-                                " set deliberately and an import does not outrank it)",
-                            )
-                if row.get("category") and category is None:
+                    if obj.category == Subject.Category.OTHER:
+                        updates["category"] = category
+                    else:
+                        record_row_note(
+                            result,
+                            f"academics: kept category {obj.category!r} for"
+                            f" {name!r} (import says {category!r}; the row was"
+                            " set deliberately and an import does not outrank it)",
+                        )
+                if code and "code" in subject_fields:
+                    trimmed = code[:30]  # magic-number-allow: Subject.code max_length
+                    if trimmed and obj.code != trimmed:
+                        updates["code"] = trimmed
+                if credits is not None and "credits" in subject_fields and obj.credits != credits:
+                    updates["credits"] = credits
+                if updates:
+                    for field, value in updates.items():
+                        setattr(obj, field, value)
+                    obj.save(update_fields=list(updates.keys()))
+                if created:
+                    result.created += 1
+                elif updates:
+                    result.updated += 1
+                else:
+                    result.skipped += 1
+                if raw_category and category is None:
                     record_row_note(
                         result,
-                        f"academics: category {str(row.get('category'))[:40]!r} on"
+                        f"academics: category {str(raw_category)[:40]!r} on"
                         f" {name!r} matches no Subject.Category choice; left at"
                         " the model default (value preserved in custom fields)",
                     )

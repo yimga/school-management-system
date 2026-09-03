@@ -1023,15 +1023,18 @@ def backend_teacher_list(request):
             f'attachment; filename="teachers_export_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
         )
         writer = csv.writer(response)
-        writer.writerow(["staff_id", "first_name", "last_name", "email", "department"])
+        writer.writerow(["staff_id", "first_name", "last_name", "email", "phone", "role", "department"])
         for t in qs[:10000]:
             u = t.user
+            role_label = u.get_role_display() if hasattr(u, "get_role_display") else getattr(u, "role", "")
             writer.writerow(
                 [
                     getattr(t, "staff_id", "") or "",
                     getattr(u, "first_name", "") or "",
                     getattr(u, "last_name", "") or "",
                     getattr(u, "email", "") or "",
+                    getattr(t, "phone", "") or "",
+                    role_label or "",
                     t.department.name if getattr(t, "department", None) else "",
                 ]
             )
