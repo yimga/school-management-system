@@ -697,6 +697,17 @@ def resolve(index: dict | None = None) -> dict:
     summaries: dict[str, FunctionSummary] = {}
     for analysis in analyses:
         summaries.update(analysis.functions)
+    # One write lives OUTSIDE the analyzed package: the guarded DynamicFieldValue
+    # writer (apps.metadata.services.upsert_dynamic_field_value, 2026-09-02) that
+    # every lander and the residual net route through. Its update_or_create sits
+    # one module away, where the inter-procedural pass cannot see it, so it is
+    # declared here as a synthetic summary -- the same shape a scanned function
+    # earns -- and callers inherit the write through the ordinary propagation.
+    _external = FunctionSummary(
+        "apps.metadata.services:upsert_dynamic_field_value", [], []
+    )
+    _external.concrete.add("metadata.DynamicFieldValue")
+    summaries.setdefault(_external.key, _external)
     passes = close_over_calls(summaries)
 
     domains: dict[str, dict] = {}
