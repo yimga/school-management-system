@@ -97,6 +97,8 @@ When the production host subdomain differs from the canonical `School.slug` (e.g
 export RMC_TENANT_SLUG_LOOKUP_ALIASES='{"gilead-tech":"gilead-school"}'
 ```
 
+On Render, the blueprint declares `RMC_TENANT_SLUG_LOOKUP_ALIASES` (`sync: false`) on web + worker — paste the JSON in the dashboard for each service after deploy.
+
 Resolution order: alias map → slug → subdomain (both token and canonical). Subdomain match alone is sufficient when the DB subdomain matches the host.
 
 ## When to escalate
