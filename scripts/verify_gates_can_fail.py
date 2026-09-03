@@ -1081,6 +1081,22 @@ MUTATIONS["platform-back-to-top"] = Mutation(
     replacement=b"partials/rmc_platform_chrome_scripts_gateproof.html",
 )
 
+MUTATIONS["cp-v8-operator-closeout"] = Mutation(
+    kind="patch",
+    path="var/large-collection-unbounded-baseline.json",
+    defect=(
+        "the large-collection burndown loses its entry list, so the 37 tables "
+        "that render an unbounded collection stop being known debt and a "
+        "thirty-eighth could land with nothing noticing"
+    ),
+    # The ratchet's own contract key, not any one filename in the list: the list
+    # is meant to shrink, so anchoring on a member would break the proof the
+    # first time somebody fixes that table -- and a mutation that no longer
+    # applies is a standing proof that has quietly stopped proving anything.
+    anchor=b'"known_unbounded"',
+    replacement=b'"known_unbounded_gateproof"',
+)
+
 MUTATIONS["theme-dual-plane-shell"] = Mutation(
     kind="patch",
     path="static/css/rmc-theme-experience-dual-plane.css",

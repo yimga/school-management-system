@@ -38,6 +38,7 @@ from ._helpers import (
     coerce_int,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     resolve_student,
@@ -82,6 +83,7 @@ class AthleticsMembershipsLander(Lander):
         team_cache: dict[str, Any] = {}
 
         for row_index, row in enumerate(canonical_rows):
+            row = normalize_canonical_row("athletics_memberships", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             team_name = (row.get("team_name") or row.get("team") or "").strip()
             if not (external_id or student_name_from_row(row)) or not team_name:

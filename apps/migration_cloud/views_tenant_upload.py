@@ -1359,6 +1359,10 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "apply_result": apply_result,
             "verification": None,
             "teaching_graph_readiness": None,
+            "finance_ledger_readiness": None,
+            "people_directory_readiness": None,
+            "catalog_inversion_readiness": None,
+            "migration_closure_summary": None,
             "importing": False,
             "import_flight": {"in_flight": False, "phase": "", "stuck": False},
             "live_import": {},
@@ -1516,6 +1520,10 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "apply_result": apply_result,
             "verification": _build_verification(bundle),
             "teaching_graph_readiness": _build_teaching_graph_readiness(bundle),
+            "finance_ledger_readiness": _build_finance_ledger_readiness(bundle),
+            "people_directory_readiness": _build_people_directory_readiness(bundle),
+            "catalog_inversion_readiness": _build_catalog_inversion_readiness(bundle),
+            "migration_closure_summary": _build_migration_closure_summary(bundle),
             # Live import/repair state: the review page shows a polling progress
             # card and hides the write affordances while an apply is in flight,
             # then reveals the outcome (last_import) once it settles.
@@ -1695,6 +1703,70 @@ def _last_import_summary(bundle):
     }
 
 
+def _build_catalog_inversion_readiness(bundle):
+    """CM/TVET catalog inversion readiness for post-import review."""
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return None
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        if not totals and getattr(bundle, "status", "") not in (
+            BundleStatus.APPLIED,
+            BundleStatus.RECONCILED,
+        ):
+            return None
+        from apps.migration_cloud.catalog_repair import plan_inverted_catalog_repair
+
+        plan = plan_inverted_catalog_repair(school)
+        return {
+            "actionable": bool(plan.get("actionable")),
+            "phantom_specialties": len(plan.get("phantom_specialties_removed") or []),
+            "phantom_departments": len(plan.get("phantom_departments_removed") or []),
+            "subjects_promoted": len(plan.get("subjects_promoted_from_departments") or []),
+            "sample_phantoms": (plan.get("phantom_specialties_removed") or [])[:5],
+        }
+    except Exception:  # noqa: BLE001 — panel must never break review
+        logger.debug(
+            "tenant review: catalog inversion readiness failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        return None
+
+
+def _build_migration_closure_summary(bundle):
+    """Compact playbook-ready signal for post-import review."""
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return None
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        if not totals and getattr(bundle, "status", "") not in (
+            BundleStatus.APPLIED,
+            BundleStatus.RECONCILED,
+        ):
+            return None
+        from apps.migration_cloud.closure_status import build_migration_closure_report
+
+        report = build_migration_closure_report(school, bundle=bundle)
+        quarantine = report.get("quarantine") or {}
+        return {
+            "playbook_ready": bool(report.get("playbook_ready")),
+            "held_rows_pending": int(quarantine.get("held_rows_pending") or 0),
+        }
+    except Exception:  # noqa: BLE001 — panel must never break review
+        logger.debug(
+            "tenant review: migration closure summary failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        return None
+
+
 def _build_teaching_graph_readiness(bundle):
     """Teaching graph + timetable readiness for post-import review."""
     try:
@@ -1715,6 +1787,58 @@ def _build_teaching_graph_readiness(bundle):
     except Exception:  # noqa: BLE001 — panel must never break review
         logger.debug(
             "tenant review: teaching graph readiness failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        return None
+
+
+def _build_finance_ledger_readiness(bundle):
+    """Finance ledger readiness for post-import review."""
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return None
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        if not totals and getattr(bundle, "status", "") not in (
+            BundleStatus.APPLIED,
+            BundleStatus.RECONCILED,
+        ):
+            return None
+        from apps.migration_cloud.finance_ledger import assess_finance_ledger_readiness
+
+        return assess_finance_ledger_readiness(school)
+    except Exception:  # noqa: BLE001 — panel must never break review
+        logger.debug(
+            "tenant review: finance ledger readiness failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        return None
+
+
+def _build_people_directory_readiness(bundle):
+    """Enrollment SOT + guardian directory readiness for post-import review."""
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return None
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        if not totals and getattr(bundle, "status", "") not in (
+            BundleStatus.APPLIED,
+            BundleStatus.RECONCILED,
+        ):
+            return None
+        from apps.migration_cloud.closure_status import assess_people_directory_readiness
+
+        return assess_people_directory_readiness(school)
+    except Exception:  # noqa: BLE001 — panel must never break review
+        logger.debug(
+            "tenant review: people directory readiness failed for %s",
             getattr(bundle, "pk", "?"),
             exc_info=True,
         )

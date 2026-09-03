@@ -152,6 +152,63 @@ any locale can't break the inline script's string literals.
 </section>
 {% endif %}
 
+{% if migration_closure_summary %}
+<section class="rmc-card mb-4{% if migration_closure_summary.playbook_ready %} border-success{% else %} border-warning{% endif %}" aria-labelledby="mc-closure-summary-heading" id="mc-closure-summary">
+  <h2 id="mc-closure-summary-heading" class="h5">{% trans "Post-import playbook status" %}</h2>
+  {% if migration_closure_summary.playbook_ready %}
+  <p class="text-success mb-0">{% trans "All closure checks pass — catalog, teaching graph, people directory, finance, and quarantine are ready." %}</p>
+  {% else %}
+  <p class="text-warning mb-2">{% trans "Some closure steps still need attention. Run remediate_tenant_post_import or use the readiness panels below." %}</p>
+  <p class="small text-muted mb-0">
+    {% blocktrans with held=migration_closure_summary.held_rows_pending %}
+    {{ held }} held row(s) still pending in this bundle.
+    {% endblocktrans %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if catalog_inversion_readiness %}
+<section class="rmc-card mb-4" aria-labelledby="mc-catalog-inversion-heading" id="mc-catalog-inversion">
+  <h2 id="mc-catalog-inversion-heading" class="h5">{% trans "Academic catalog readiness" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Whether subjects and specialties landed in the right catalog tables (common CM/TVET inversion)." %}</p>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Phantom specialties" %}</div>
+        <div class="h4 mb-0">{{ catalog_inversion_readiness.phantom_specialties }}</div>
+        <p class="small mb-0 mt-2{% if catalog_inversion_readiness.actionable %} text-warning{% else %} text-success{% endif %}">
+          {% if catalog_inversion_readiness.actionable %}
+          {% trans "Run remediate_inverted_academic_catalog" %}
+          {% else %}
+          {% trans "No subject↔specialty inversion detected" %}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Phantom departments" %}</div>
+        <div class="h4 mb-0">{{ catalog_inversion_readiness.phantom_departments }}</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Subjects promoted from departments" %}</div>
+        <div class="h4 mb-0">{{ catalog_inversion_readiness.subjects_promoted }}</div>
+      </div>
+    </div>
+  </div>
+  {% if catalog_inversion_readiness.sample_phantoms %}
+  <p class="small text-muted mt-3 mb-0">
+    {% blocktrans with names=catalog_inversion_readiness.sample_phantoms|join:", " %}
+    Sample phantom specialty names: {{ names }}
+    {% endblocktrans %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if teaching_graph_readiness %}
 <section class="rmc-card mb-4" aria-labelledby="mc-teaching-graph-heading" id="mc-teaching-graph">
   <h2 id="mc-teaching-graph-heading" class="h5">{% trans "Teaching graph readiness" %}</h2>
@@ -199,6 +256,82 @@ any locale can't break the inline script's string literals.
     {% endif %}
   </p>
   {% endif %}
+</section>
+{% endif %}
+
+{% if finance_ledger_readiness %}
+<section class="rmc-card mb-4" aria-labelledby="mc-finance-ledger-heading" id="mc-finance-ledger">
+  <h2 id="mc-finance-ledger-heading" class="h5">{% trans "Finance ledger readiness" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Whether imported fee rows are visible to the bursar (issued invoices, lines, and ledger posts)." %}</p>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Draft invoices with totals" %}</div>
+        <div class="h4 mb-0">{{ finance_ledger_readiness.draft_invoices_with_total }}</div>
+        <p class="small mb-0 mt-2{% if finance_ledger_readiness.draft_invoices_with_total %} text-warning{% else %} text-success{% endif %}">
+          {% if finance_ledger_readiness.draft_invoices_with_total %}{% trans "Run repair or remediate_finance_ledger_closure" %}{% else %}{% trans "No invisible draft fees" %}{% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Issued without ledger post" %}</div>
+        <div class="h4 mb-0">{{ finance_ledger_readiness.issued_without_ledger }}</div>
+        <p class="small mb-0 mt-2{% if finance_ledger_readiness.issued_without_ledger %} text-warning{% else %} text-success{% endif %}">
+          {% if finance_ledger_readiness.issued_without_ledger %}{% trans "Ledger backfill needed" %}{% else %}{% trans "Ledger posts complete" %}{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if people_directory_readiness %}
+<section class="rmc-card mb-4" aria-labelledby="mc-people-directory-heading" id="mc-people-directory">
+  <h2 id="mc-people-directory-heading" class="h5">{% trans "People directory readiness" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Whether enrollments and guardian links match imported student placements." %}</p>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Active enrollments" %}</div>
+        <div class="h4 mb-0">{{ people_directory_readiness.active_enrollments }}</div>
+        <p class="small mb-0 mt-2{% if not people_directory_readiness.ready_for_enrollment_sot %} text-warning{% else %} text-success{% endif %}">
+          {% blocktrans with total=people_directory_readiness.students_active %}
+          of {{ total }} active students
+          {% endblocktrans %}
+          {% if people_directory_readiness.ready_for_enrollment_sot %}
+          · {% trans "Enrollment SOT synced" %}
+          {% else %}
+          · {% trans "Run remediate_people_directory" %}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Guardian directory links" %}</div>
+        <div class="h4 mb-0">{{ people_directory_readiness.guardian_links }}</div>
+        <p class="small mb-0 mt-2{% if not people_directory_readiness.ready_for_guardian_directory %} text-warning{% else %} text-success{% endif %}">
+          {% if people_directory_readiness.parent_name_hints and not people_directory_readiness.guardian_links %}
+          {% blocktrans with hints=people_directory_readiness.parent_name_hints %}
+          {{ hints }} parent hint(s) not yet promoted
+          {% endblocktrans %}
+          {% elif people_directory_readiness.ready_for_guardian_directory %}
+          {% trans "Guardian sidebar populated" %}
+          {% else %}
+          {% trans "Promote parent hints or import guardians.csv" %}
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Students missing enrollment row" %}</div>
+        <div class="h4 mb-0">{{ people_directory_readiness.students_missing_active_enrollment }}</div>
+        <p class="small mb-0 mt-2 text-muted">{% trans "Each active student should have one ACTIVE enrollment for the current year." %}</p>
+      </div>
+    </div>
+  </div>
 </section>
 {% endif %}
 

@@ -29,6 +29,7 @@ from typing import Any, Iterator
 
 from ._helpers import (
     persist_dfv_extras,
+    normalize_canonical_row,
     record_bundle_scoped_key,
     record_row_error,
 )
@@ -50,6 +51,7 @@ class PayrollLander(Lander):
     ) -> LanderResult:
         result = LanderResult()
         for row in canonical_rows:
+            row = normalize_canonical_row("payroll", row, ctx)
             external_id = (row.get("staff_external_id") or row.get("external_id") or "").strip()
             # Schools that kept payroll by name rather than by employee number
             # had every row rejected. The name is a perfectly good identity for

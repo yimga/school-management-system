@@ -29,6 +29,8 @@ from apps.migration_cloud.models import MigrationBundle
 from apps.migration_cloud.quarantine_resolution import (
     format_bundle_choices,
     pending_quarantine_count,
+    resolve_latest_bundle_for_school,
+    resolve_school_and_bundle,
 )
 
 
@@ -41,6 +43,15 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         # Optional on purpose -- see profile_bundle_quarantine.
         parser.add_argument("--bundle-id", type=int, default=None)
+        parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help=(
+                "Tenant slug or subdomain — resolves the newest bundle when "
+                "--bundle-id is omitted (e.g. gilead-tech)."
+            ),
+        )
         parser.add_argument(
             "--max-sweeps",
             type=int,
@@ -60,6 +71,27 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         bundle_id = options["bundle_id"]
+        school_slug = options.get("school")
+        if bundle_id is None and school_slug:
+            school, bundle = resolve_school_and_bundle(school_slug)
+            if school is None:
+                self.stdout.write(format_bundle_choices())
+                raise CommandError(
+                    f"Unknown school {school_slug!r} — see the bundle list above."
+                )
+            if bundle is None:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"School {school.slug!r} has no migration bundles — "
+                        "quarantine autopilot skipped."
+                    )
+                )
+                return
+            bundle_id = bundle.pk
+            self.stdout.write(
+                f"Resolved --school {school_slug!r} → bundle {bundle_id} "
+                f"({pending_quarantine_count(bundle)} held)."
+            )
         if bundle_id is None:
             self.stdout.write(format_bundle_choices())
             return

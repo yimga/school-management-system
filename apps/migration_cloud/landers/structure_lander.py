@@ -65,6 +65,7 @@ from ._helpers import (
     coerce_decimal,
     mint_scoped_code,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     row_savepoint,
@@ -144,6 +145,7 @@ class StructureLander(Lander):
         result = LanderResult()
 
         for row in canonical_rows:
+            row = normalize_canonical_row("structure", row, ctx)
             year_name = (row.get("academic_year") or "").strip()
             term_name = (row.get("term") or "").strip()
             classroom_name = (row.get("classroom") or "").strip()

@@ -30,6 +30,7 @@ from ._helpers import (
     dfv_import_source_ref,
     filter_to_model_fields,
     maybe_stall_pulse,
+    normalize_canonical_row,
     record_row_error,
     record_row_note,
     row_savepoint,
@@ -42,6 +43,7 @@ _ENTITY_TYPE = "migration_artifact"
 _FIELD_KEY_CAP = 120
 _ENTITY_ID_CAP = 64
 _LABEL_CAP = 255
+_SKIP_WRITE_KEYS = frozenset({"custom_fields", "entity_id"})
 
 
 class DynamicFieldLander(Lander):
@@ -73,14 +75,23 @@ class DynamicFieldLander(Lander):
 
         for row_index, row in enumerate(canonical_rows):
             maybe_stall_pulse(every=25, counter=row_index)
+            row = normalize_canonical_row("custom_fields", row, ctx)
             if not row:
                 result.skipped += 1
                 continue
             if ctx.dry_run:
-                result.created += sum(1 for v in row.values() if v not in (None, ""))
+                result.created += sum(
+                    1
+                    for key, v in row.items()
+                    if key not in _SKIP_WRITE_KEYS and v not in (None, "")
+                )
                 continue
-            entity_id = f"bundle-{ctx.bundle_id}-{row_index}"[:_ENTITY_ID_CAP]
+            entity_id = str(
+                row.get("entity_id") or f"bundle-{ctx.bundle_id}-{row_index}"
+            )[:_ENTITY_ID_CAP]
             for key, value in row.items():
+                if key in _SKIP_WRITE_KEYS:
+                    continue
                 if value in (None, ""):
                     continue
                 key_str = str(key)

@@ -38,6 +38,7 @@ from ._helpers import (
     detect_and_register_assets,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     record_row_note,
@@ -72,6 +73,7 @@ class AlumniLander(Lander):
         student_lookup = student_lookup_field(student_fields)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("alumni", row, ctx)
             external_id = (row.get("external_id") or "").strip()
             first_name = (row.get("first_name") or "").strip()
             last_name = (row.get("last_name") or "").strip()
