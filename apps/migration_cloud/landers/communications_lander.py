@@ -30,6 +30,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_id_mapping,
     record_row_error,
@@ -66,6 +67,7 @@ class CommunicationsLander(Lander):
         staff_lookup = staff_lookup_field(staff_fields)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("communications", row, ctx)
             recipient_ext = (row.get("recipient_external_id") or "").strip()
             recipient_kind = (row.get("recipient_kind") or "student").strip().lower()
             subject = (row.get("subject") or "").strip()

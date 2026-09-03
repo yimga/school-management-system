@@ -25,6 +25,9 @@ on:
       - "scripts/scan_dangling_static_reference.py"
       - "scripts/verify_theme_experience_dual_plane_shell.py"
       - "scripts/verify_platform_back_to_top.py"
+      - "scripts/verify_cp_v8_operator_closeout.py"
+      - "scripts/audit_large_collection_surfaces.py"
+      - "var/large-collection-unbounded-baseline.json"
       - "static/css/rmc-theme-experience-dual-plane.css"
       - "scripts/audit_no_placeholder.py"
       - "docs/generated/no_placeholder_audit.json"
@@ -878,6 +881,11 @@ jobs:
           }
 
           run_unit u_platform_back_to_top "Admin shells mount platform chrome outside the scroll canvas"
+
+          u_cp_v8_operator_closeout() {
+            python scripts/verify_cp_v8_operator_closeout.py
+          }
+          run_unit u_cp_v8_operator_closeout "Operator closeout children all pass and the large-collection burndown holds"
           # A tracked artifact that certified a clean state over a surface it
           # never scanned: no_placeholder_audit.json read 0 findings over 1086
           # templates while 1910 existed, because the script always returned 0

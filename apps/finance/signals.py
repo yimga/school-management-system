@@ -146,6 +146,9 @@ def sync_payment(sender, instance: Payment, created: bool, **kwargs):
     if instance.invoice_id:
         apply_payment(instance)
     if created and instance.invoice_id:
+        ext = (instance.external_reference or "").strip()
+        if ext.startswith("mc-import:"):
+            return
         try:
             from .notifications import notify_guardians_payment_received
 

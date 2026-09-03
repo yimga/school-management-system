@@ -23,6 +23,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     resolve_student,
@@ -58,6 +59,7 @@ class HealthLander(Lander):
         h_fields = model_field_names(HealthRecord)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("health", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             date_val = coerce_date(row.get("record_date") or row.get("date"))
             category = (row.get("category") or row.get("record_type") or "").strip().lower()

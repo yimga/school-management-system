@@ -887,7 +887,7 @@ def build_dashboard_extras(
         from apps.academics.services import get_active_year_and_term
         from apps.portal.services import _merged_upcoming_events
 
-        year, _ = get_active_year_and_term()
+        year, _ = get_active_year_and_term(school=getattr(request, "school", None))
         upcoming_events = _merged_upcoming_events(year)[:7]
     except _DASHBOARD_SNAPSHOT_ERRORS:
         pass

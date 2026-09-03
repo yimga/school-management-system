@@ -124,7 +124,7 @@ def _badge_or_none(value):
     return count if count > 0 else None
 
 
-def _sidebar_badge_counts(user, role, staff_like):
+def _sidebar_badge_counts(user, role, staff_like, school=None):
     """
     Compute compact sidebar badge counts.
     Returns (workflow_pending, finance_pending, signatures_pending).
@@ -145,7 +145,7 @@ def _sidebar_badge_counts(user, role, staff_like):
                 TeacherProfile.objects.filter(user=user).only("id").first()
             )
             if teacher_profile:
-                year, _term = get_active_year_and_term()
+                year, _term = get_active_year_and_term(school=school)
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 eval_qs = Evaluation.objects.filter(teacher=teacher_profile)
                 if year:
@@ -216,7 +216,7 @@ def _sidebar_badge_counts(user, role, staff_like):
             from apps.academics.services import get_active_year_and_term
             from apps.people.models import StudentProfile, TeacherProfile
 
-            year, _term = get_active_year_and_term()
+            year, _term = get_active_year_and_term(school=school)
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             if year:
                 missing_steps = 0
@@ -246,7 +246,7 @@ def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
     """
     user_id = getattr(user, "pk", None)
     if not user_id:
-        return _sidebar_badge_counts(user, role, staff_like)
+        return _sidebar_badge_counts(user, role, staff_like, school=getattr(request, "school", None))
     try:
         from apps.siteconfig.cache_utils import get_tenant_cache_prefix
 
@@ -259,7 +259,7 @@ def _cached_sidebar_badge_counts(user, role, staff_like, request=None):
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
-    counts = _sidebar_badge_counts(user, role, staff_like)
+    counts = _sidebar_badge_counts(user, role, staff_like, school=getattr(request, "school", None))
     cache.set(cache_key, counts, 60)
     return counts
 

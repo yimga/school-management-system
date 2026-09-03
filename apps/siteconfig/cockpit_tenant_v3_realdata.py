@@ -84,7 +84,7 @@ def _hydrate_gradebook_trend(
         from apps.academics.services import get_active_year_and_term
         from apps.people.models import StudentProfile
 
-        year, term = get_active_year_and_term()
+        year, term = get_active_year_and_term(school=getattr(request, "school", None))
         if not year or not term:
             return section
         school = getattr(request, "school", None)

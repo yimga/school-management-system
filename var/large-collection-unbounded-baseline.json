@@ -1,0 +1,216 @@
+{
+  "established": "2026-09-03",
+  "gate": "large-collection-unbounded",
+  "kind": "DEBT, not decisions",
+  "known_unbounded": [
+    {
+      "count": 1,
+      "file": "templates/apicenter/super/ai_center_agentic.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/marketplace/publisher_dashboard.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/marketplace/signup_review_queue.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/migration_cloud/operator/dlq_list.html",
+      "note": "9 columns (operational table \u2014 compact + paginated); no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/migration_cloud/operator/smoke_history.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 2,
+      "file": "templates/migration_cloud/super/lms_diagnostics.html",
+      "note": "13 columns (operational table \u2014 compact + paginated); 7 columns; no pagination and no verified row bound; wide table without compact density marker",
+      "worst_score": 4
+    },
+    {
+      "count": 1,
+      "file": "templates/migration_cloud/super/maa_v2_promotion.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/migration_cloud/super/vendor_write_status.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/observability/slo_dashboard.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/partials/cockpit/_churn_scorecard.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 2,
+      "file": "templates/platform_runtime/configuration_module_detail.html",
+      "note": "6 columns; 7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/platform_runtime/pilot_defect_dashboard.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/platform_runtime/registry_health.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/portal/teacher_assignments.html",
+      "note": "7 columns; no pagination and no verified row bound; wide table without compact density marker",
+      "worst_score": 4
+    },
+    {
+      "count": 1,
+      "file": "templates/reports/statistical_return.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 2,
+      "file": "templates/schools/manager_lane2_readiness.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/schools/mat_group_hub/detail.html",
+      "note": "7 columns; no pagination and no verified row bound; wide table without compact density marker",
+      "worst_score": 4
+    },
+    {
+      "count": 1,
+      "file": "templates/schools/super_ai_model_hub.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/schools/super_geography.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/schools/super_support_auto_rules.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/entity_catalog_overview.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/metadata_dynamic_fields_operator.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/partials/report_output_history_evidence_body.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/partials/tag_manager_body.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/partials/tenant_report_schedules_evidence_body.html",
+      "note": "7 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/partials/term_publish_status_evidence_body.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/siteconfig/permission_matrix_simulator.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/staff/contact_requests_list.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/super/ai_line_intent_coverage.html",
+      "note": "6 columns; no pagination and no verified row bound",
+      "worst_score": 3
+    },
+    {
+      "count": 1,
+      "file": "templates/super/integrations/idempotency_audit.html",
+      "note": "7 columns; no pagination and no verified row bound; wide table without compact density marker",
+      "worst_score": 4
+    },
+    {
+      "count": 1,
+      "file": "templates/super/wedges/surface_multicampus_academics.html",
+      "note": "7 columns; no pagination and no verified row bound; wide table without compact density marker",
+      "worst_score": 4
+    },
+    {
+      "count": 1,
+      "file": "templates/super/wedges/surface_multicampus_billing.html",
+      "note": "7 columns; no pagination and no verified row bound; wide table without compact density marker",
+      "worst_score": 4
+    }
+  ],
+  "not_like_the_others": "companion-server-contract and wizard-label-token record DECISIONS. This one records DEBT. Do not copy its shape to excuse a defect.",
+  "ratchet": "This list may only SHRINK, and the counts must stay exact. A file with unbounded tables that is not listed FAILS the gate. A listed file that became clean FAILS until its entry is deleted. A count that grew FAILS. A count that shrank also FAILS, until it is corrected -- a baseline that over-states the debt makes 'no regressions' easier to pass. An entry with no note FAILS.",
+  "script": "scripts/audit_large_collection_surfaces.py --compare",
+  "summary": "Tables that render a collection with no bound anywhere -- not a pager in the template, and no slice, Paginator or paginate_by in the scope that renders it. Every entry is a real defect that nobody has fixed yet.",
+  "why_this_exists": "Before this the gate had ZERO runners, so an unbounded table could land with nothing noticing. These were invisible because the gate accepted data-rmc-scroll-policy=\"paginate\" as a bound; that attribute drives a long-page SECTION navigator and never removes a row, so 77 tables were excused by it. Teaching the gate to find the bound in the VIEW cleared 40 of them as genuinely capped. These are the remainder."
+}

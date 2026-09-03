@@ -34,6 +34,7 @@ from ._helpers import (
     explicit_conflict_resolution_for,
     get_or_create_named,
     model_field_names,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_id_mapping,
     record_row_error,
@@ -206,6 +207,7 @@ class AcademicsLander(Lander):
         subject_fields = model_field_names(Subject)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("academics", row, ctx)
             # D-3: a source row marked tobedeleted must NOT land as an active
             # Subject. Subject has no is_active/status column and grades FK into
             # it, so we neither import it as active nor hard-delete an existing one

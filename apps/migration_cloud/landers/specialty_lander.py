@@ -33,6 +33,7 @@ from typing import Any, Iterator
 from ._helpers import (
     get_or_create_named,
     mint_scoped_code,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_id_mapping,
     record_row_error,
@@ -64,6 +65,7 @@ class SpecialtyLander(Lander):
 
         result = LanderResult()
         for row in canonical_rows:
+            row = normalize_canonical_row("specialties", row, ctx)
             if row_looks_like_subject_catalog_entry(row):
                 academics = get_lander("academics")
                 if academics is not None:

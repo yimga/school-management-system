@@ -36,6 +36,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     student_lookup_field,
@@ -68,6 +69,7 @@ class TranscriptsLander(Lander):
         item_fields = model_field_names(TranscriptVaultItem)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("transcripts", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             academic_year = (row.get("academic_year") or "").strip()
             term = (row.get("term") or "").strip()

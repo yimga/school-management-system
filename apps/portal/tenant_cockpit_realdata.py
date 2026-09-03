@@ -44,7 +44,7 @@ def _teacher_widget_bundle(request: HttpRequest) -> dict[str, dict] | None:
         from apps.academics.services import get_active_year_and_term
         from apps.portal.services import teacher_dashboard_widget_data, teacher_scope
 
-        year, term = get_active_year_and_term()
+        year, term = get_active_year_and_term(school=getattr(request, "school", None))
         if not year or not term:
             return None
         teacher_profile, assignments, _students, _classrooms = teacher_scope(

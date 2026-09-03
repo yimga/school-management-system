@@ -68,7 +68,7 @@ from django.utils import timezone
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
 from apps.people.models import StudentProfile
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.test_utils.http_clients import login_tenant_admin_client
 from apps.test_utils.tenant_hosts import (
     HOST_ROUTED_SETTINGS,
@@ -278,3 +278,164 @@ class RolloverPrepareIsSchoolScopedTests(_TwoSchoolRolloverFixture):
             ).exists(),
             "the proposal was created but did not pick up this school's own student",
         )
+
+
+class RolloverCohortCarriesTheSchoolTermTests(TestCase):
+    """Defence in depth inside the task: which students a proposal may contain.
+
+    The view now refuses a foreign year, so this asserts the layer BEHIND that.
+    Two properties, and they pull in opposite directions -- which is the whole
+    reason the term is NULL-inclusive rather than strict:
+
+    1. a student whose school is a DIFFERENT school must be excluded, even when
+       their academic_year is the year being rolled over (a corrupt cross-link,
+       and the shape a legacy shared year produces at scale -- AcademicYear.school
+       is itself nullable, so several schools can reference one year);
+    2. a student whose school is NULL must be RETAINED. StudentProfile.school is
+       nullable, and a rollover MOVES and graduates people, so an unattributed
+       student silently left behind is worse than one listed for review.
+
+    A strict `school=school` would satisfy (1) and break (2).
+    """
+
+    def setUp(self):
+        self.ours = School.objects.create(
+            name="Cohort ours", slug="cohort-ours",
+            subdomain="cohort-ours", is_active=True,
+        )
+        self.theirs = School.objects.create(
+            name="Cohort theirs", slug="cohort-theirs",
+            subdomain="cohort-theirs", is_active=True,
+        )
+        self.source = AcademicYear.objects.create(
+            school=self.ours, name="Cohort 2024/2025",
+            start_date=timezone.localdate() - timedelta(days=400),
+            end_date=timezone.localdate() - timedelta(days=40),
+            is_active=False,
+        )
+        self.target = AcademicYear.objects.create(
+            school=self.ours, name="Cohort 2025/2026",
+            start_date=timezone.localdate() - timedelta(days=30),
+            end_date=timezone.localdate() + timedelta(days=300),
+            is_active=True,
+        )
+        self.mine = self._student(self.ours, "MINE")
+        self.foreign = self._student(self.theirs, "FOREIGN")
+        self.orphan = self._student(None, "ORPHAN")
+
+    def _student(self, school, tag):
+        # Every one of the three sits in OUR source year on purpose: the year
+        # filter is not what separates them, the school term is.
+        return StudentProfile.objects.create(
+            school=school,
+            academic_year=self.source,
+            first_name=tag.capitalize(),
+            last_name="Cohort",
+            student_code=f"CO-{tag}",
+            is_active=True,
+        )
+
+    def _run(self):
+        from apps.accounts.tasks import _prepare_rollover_proposal_impl
+
+        result = _prepare_rollover_proposal_impl(
+            self.ours.pk, self.source.pk, self.target.pk
+        )
+        self.assertTrue(result.get("ok"), result)
+        proposal = RolloverProposal.objects.get(pk=result["proposal_id"])
+        return set(
+            RolloverProposalItem.objects.filter(proposal=proposal).values_list(
+                "student_id", flat=True
+            )
+        )
+
+    def test_a_different_school_s_student_is_excluded(self):
+        picked = self._run()
+        self.assertNotIn(
+            self.foreign.pk,
+            picked,
+            "a student belonging to another school was selected for this "
+            "school's rollover -- they would be moved and possibly graduated",
+        )
+
+    def test_a_school_less_student_is_retained(self):
+        picked = self._run()
+        self.assertIn(
+            self.orphan.pk,
+            picked,
+            "an unattributed (school=NULL) student was dropped from the "
+            "rollover; a strict school= term causes exactly this, and the "
+            "student is silently left behind in a closed year",
+        )
+
+    def test_the_cohort_is_exactly_ours_plus_the_orphan(self):
+        self.assertEqual(self._run(), {self.mine.pk, self.orphan.pk})
+
+
+class TeacherOrgTreeUsesItsOwnSchoolYearTests(TestCase):
+    """`_teacher_org_tree` takes a user, and User has no school column.
+
+    `get_active_year_and_term` resolves `years.order_by("id").first()`, so the
+    EARLIEST-created active year wins when no school is passed. The other school
+    is therefore created first here: that is what makes the wrong answer the
+    default rather than a coincidence.
+
+    The failure mode is silence, not a leak -- every assignment in the tree is
+    filtered by this year, so a foreign year yields an empty tree and no error.
+    """
+
+    def setUp(self):
+        # created FIRST -> lower id -> an unscoped read returns THIS one
+        self.theirs = School.objects.create(
+            name="Org theirs", slug="org-theirs",
+            subdomain="org-theirs", is_active=True,
+        )
+        self.their_year = AcademicYear.objects.create(
+            school=self.theirs, name="Org theirs 2025/2026",
+            start_date=timezone.localdate() - timedelta(days=30),
+            end_date=timezone.localdate() + timedelta(days=300),
+            is_active=True,
+        )
+        self.ours = School.objects.create(
+            name="Org ours", slug="org-ours",
+            subdomain="org-ours", is_active=True,
+        )
+        self.our_year = AcademicYear.objects.create(
+            school=self.ours, name="Org ours 2025/2026",
+            start_date=timezone.localdate() - timedelta(days=30),
+            end_date=timezone.localdate() + timedelta(days=300),
+            is_active=True,
+        )
+        self.user = User.objects.create_user(
+            username="org_teacher", password="pass1234", role=User.Role.TEACHER
+        )
+
+    def test_the_year_comes_from_the_teacher_profile_school(self):
+        from apps.people.models import TeacherProfile
+
+        from apps.accounts.views import _teacher_org_tree
+
+        TeacherProfile.objects.create(user=self.user, school=self.ours)
+        tree = _teacher_org_tree(self.user)
+        self.assertIsNotNone(tree)
+        self.assertEqual(
+            tree["academic_year"].pk,
+            self.our_year.pk,
+            "the org tree resolved another school's active year; every "
+            "assignment it renders is filtered by this year, so the teacher "
+            "would see an empty tree with nothing logged",
+        )
+
+    def test_a_school_less_profile_falls_back_to_the_primary_membership(self):
+        from apps.people.models import TeacherProfile
+
+        from apps.accounts.views import _teacher_org_tree
+
+        TeacherProfile.objects.create(user=self.user, school=None)
+        SchoolMembership.objects.create(
+            user=self.user, school=self.ours,
+            role=User.Role.TEACHER, is_primary=True,
+        )
+        tree = _teacher_org_tree(self.user)
+        self.assertIsNotNone(tree)
+        self.assertEqual(tree["academic_year"].pk, self.our_year.pk)

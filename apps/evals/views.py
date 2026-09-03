@@ -592,7 +592,7 @@ def teacher_dashboard(request: HttpRequest):
     teacher, error = _get_teacher_or_forbid(request)
     if error:
         return error
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not term:
         from apps.portal.tenant_role_home import build_tp_hero_context
 
@@ -1339,7 +1339,7 @@ def teacher_workflow_center(request: HttpRequest):
     from apps.portal.tenant_role_home import build_tp_hero_context
     from apps.portal.tenant_workflow_portal import build_tenant_workflow_portal
 
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not term:
         steps = [
             {
@@ -1659,7 +1659,7 @@ def teacher_marks_entry(request: HttpRequest):
     teacher, error = _get_teacher_or_forbid(request)
     if error:
         return error
-    year, active_term = get_active_year_and_term()
+    year, active_term = get_active_year_and_term(school=getattr(request, "school", None))
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
@@ -2224,7 +2224,7 @@ def teacher_marks_list(request: HttpRequest):
     if error:
         return error
     user_name = request.user.get_full_name() or request.user.username
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
@@ -2473,7 +2473,7 @@ def class_ranking_view(request: HttpRequest):
     """
     from django.utils.translation import gettext
 
-    year, active_term = get_active_year_and_term()
+    year, active_term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
@@ -2591,7 +2591,7 @@ def school_ranking_view(request: HttpRequest):
     """
     from django.utils.translation import gettext
 
-    year, active_term = get_active_year_and_term()
+    year, active_term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
@@ -2667,7 +2667,7 @@ def school_ranking_view(request: HttpRequest):
 @require_permission("grades.manage")
 def evaluation_admin(request: HttpRequest):
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-    year, active_term = get_active_year_and_term()
+    year, active_term = get_active_year_and_term(school=getattr(request, "school", None))
     if not year or not active_term:
         return HttpResponseForbidden("No active academic year/term set by admin yet.")
 
@@ -3022,7 +3022,7 @@ def grade_import_upload_view(request: HttpRequest):
     actual upload + apply are handled client-side via grade_import_preview_api /
     grade_import_apply_api.
     """
-    active_year, _ = get_active_year_and_term()
+    active_year, _ = get_active_year_and_term(school=getattr(request, "school", None))
     return render(
         request,
         "evals/grade_import_upload_v2.html",
@@ -3237,7 +3237,7 @@ def compliance_dashboard_view(request):
     """
     from apps.analytics.services import get_teacher_compliance
 
-    academic_year, term = get_active_year_and_term()
+    academic_year, term = get_active_year_and_term(school=getattr(request, "school", None))
 
     if not academic_year or not term:
         messages.warning(request, "No active academic year or term.")

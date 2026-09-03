@@ -195,10 +195,25 @@ def _prepare_rollover_proposal_impl(
         )
     # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
     )
+    # Defence in depth behind the view-level ownership check. The cohort is
+    # already bounded by `academic_year=source_year`, so this cannot pull in a
+    # co-located school's students wholesale -- it closes two narrower holes:
+    # a corrupt cross-link (a student whose academic_year is ours but whose
+    # school is not), and a LEGACY SHARED YEAR, where AcademicYear.school is
+    # itself NULL and students from several schools reference the same year.
+    #
+    # NULL-inclusive on purpose. StudentProfile.school is nullable, so a strict
+    # `school=school` would silently drop unattributed students from a rollover
+    # that should carry them -- and a rollover MOVES and graduates people, so a
+    # student quietly left behind is worse than one listed for review.
+    from django.db.models import Q
+
     students = list(
-        # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
+        # tenant-isolation-allow: bounded-by-school-scoped-source-year-plus-legacy-null-rows
         StudentProfile.objects.filter(
-            academic_year=source_year, is_active=True
+            Q(school=school) | Q(school__isnull=True),
+            academic_year=source_year,
+            is_active=True,
         ).select_related("classroom")
     )
 

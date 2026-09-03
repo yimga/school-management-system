@@ -462,7 +462,7 @@ def dashboard(request: HttpRequest):
 
 @require_permission("analytics.manage")
 def master_sheet(request: HttpRequest):
-    active_year, active_term = get_active_year_and_term()
+    active_year, active_term = get_active_year_and_term(school=getattr(request, "school", None))
     if not active_year or not active_term:
         return HttpResponseForbidden("No active academic year/term configured yet.")
 

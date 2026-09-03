@@ -26,7 +26,7 @@ def build_year_close_checklist(school, *, user: Any = None) -> dict[str, Any]:
     from apps.academics.models import AcademicYear
 
     if not academic_year_close_in_progress(school):
-        year, _term = get_active_year_and_term()
+        year, _term = get_active_year_and_term(school=school)
         if not year:
             return {"ok": True, "visible": False, "items": []}
         next_year = (

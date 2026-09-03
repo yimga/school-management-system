@@ -39,7 +39,7 @@ def student_attendance_export(request: HttpRequest):
     if not user_belongs_to_school(request.user, school):
         return HttpResponseForbidden("Not a member of this school.")
 
-    year, _term = get_active_year_and_term()
+    year, _term = get_active_year_and_term(school=school)
     filters, err = parse_export_filters_from_get(request.GET)
     if err:
         messages.error(request, err)

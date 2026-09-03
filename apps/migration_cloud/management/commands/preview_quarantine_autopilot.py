@@ -35,6 +35,15 @@ class Command(BaseCommand):
         # Optional on purpose -- see profile_bundle_quarantine.
         parser.add_argument("--bundle-id", type=int, default=None)
         parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help=(
+                "Tenant slug or subdomain — previews the newest bundle when "
+                "--bundle-id is omitted."
+            ),
+        )
+        parser.add_argument(
             "--all",
             action="store_true",
             dest="do_all",
@@ -57,9 +66,33 @@ class Command(BaseCommand):
         )
 
         bundle_id = options["bundle_id"]
+        school_slug = options.get("school")
         if options["do_all"]:
             self._preview_every_bundle(recent_bundles_overview(limit=200), options)
             return
+        if bundle_id is None and school_slug:
+            from apps.migration_cloud.quarantine_resolution import (
+                resolve_school_and_bundle,
+            )
+
+            school, bundle = resolve_school_and_bundle(school_slug)
+            if school is None:
+                self.stdout.write(format_bundle_choices())
+                raise CommandError(
+                    f"Unknown school {school_slug!r} — see the bundle list above."
+                )
+            if bundle is None:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"School {school.slug!r} has no migration bundles — "
+                        "quarantine preview skipped."
+                    )
+                )
+                return
+            bundle_id = bundle.pk
+            self.stdout.write(
+                f"Resolved --school {school_slug!r} → bundle {bundle_id} for preview."
+            )
         if bundle_id is None:
             self.stdout.write(format_bundle_choices())
             return

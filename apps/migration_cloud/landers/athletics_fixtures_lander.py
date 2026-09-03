@@ -49,6 +49,7 @@ from ._helpers import (
     coerce_int,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
     record_row_note,
@@ -146,6 +147,7 @@ class AthleticsFixturesLander(Lander):
         venue_cache: dict[str, Any] = {}
 
         for row_index, row in enumerate(canonical_rows):
+            row = normalize_canonical_row("athletics_fixtures", row, ctx)
             team_name = (row.get("team_name") or row.get("team") or "").strip()
             opponent_name = (row.get("opponent_name") or "").strip()
             scheduled_start = _coerce_datetime(row.get("scheduled_start"))

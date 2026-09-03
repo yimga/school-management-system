@@ -76,7 +76,9 @@ cloud governs.
                   <tr>
                     <td>
                       {% if c.status == "PENDING" %}
-                        <input type="checkbox" data-rmc-bulk-checkbox value="{{ c.id }}" aria-label="{% trans 'Select conflict' %}">
+                        <input type="checkbox" data-rmc-bulk-checkbox id="sync-select-{{ c.id }}"
+                               value="{{ c.id }}"
+                               aria-label="{% blocktrans with entity=c.entity_type ident=c.entity_id %}Select conflict: {{ entity }} {{ ident }}{% endblocktrans %}">
                       {% endif %}
                     </td>
                     <td>{{ c.entity_type }}</td>

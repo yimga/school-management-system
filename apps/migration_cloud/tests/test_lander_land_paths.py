@@ -84,6 +84,27 @@ class DynamicFieldLanderLandTests(_SchoolFixtureMixin, TestCase):
         )
         self.assertEqual(dfv.value_json, {"v": "Green"})
 
+    def test_external_id_stable_entity_id_on_rerun(self):
+        lander = DynamicFieldLander()
+        ctx = self._ctx(self.school)
+        ctx.bundle_id = 42
+        lander.land(
+            canonical_rows=iter([{"external_id": "EXT-1", "house": "Blue"}]),
+            ctx=ctx,
+        )
+        result = lander.land(
+            canonical_rows=iter([{"external_id": "EXT-1", "house": "Green"}]),
+            ctx=ctx,
+        )
+        self.assertEqual(result.quarantined, 0)
+        self.assertEqual(result.updated, 1)
+        dfv = DynamicFieldValue.objects.get(
+            entity_type="migration_artifact",
+            entity_id="EXT-1",
+            field_key="house",
+        )
+        self.assertEqual(dfv.value_json, {"v": "Green"})
+
 
 class BehaviorLanderLandTests(_SchoolFixtureMixin, TestCase):
     def setUp(self):

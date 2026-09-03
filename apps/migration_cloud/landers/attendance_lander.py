@@ -25,6 +25,7 @@ from ._helpers import (
     filter_to_model_fields,
     map_attendance_status,
     model_field_names,
+    normalize_canonical_row,
     record_row_error,
     resolve_student,
     student_lookup_field,
@@ -100,6 +101,7 @@ class AttendanceLander(Lander):
             status_default = "present"
 
         for row in canonical_rows:
+            row = normalize_canonical_row("attendance", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             date_val = coerce_date(row.get("date"))
             status_raw = (row.get("status") or "").strip().lower()

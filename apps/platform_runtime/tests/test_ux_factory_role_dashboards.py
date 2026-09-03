@@ -100,9 +100,8 @@ class UxFactoryTenantDashboardTests(TestCase):
             addons=[],
             features={},
         )
-        # Ensure get_active_year_and_term() resolves to this tenant's active pair (not migration seed rows).
-        AcademicYear.objects.all().update(is_active=False)
-        Term.objects.all().update(is_active=False)
+        # Callers resolve the active pair via school= scoping (swept 2026-09-03),
+        # so migration seed rows no longer need deactivating here.
         year = AcademicYear.objects.create(
             name="2025/2026",
             start_date=date(2025, 9, 1),

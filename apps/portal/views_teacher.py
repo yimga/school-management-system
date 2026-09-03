@@ -451,7 +451,7 @@ def take_student_attendance(request: HttpRequest):
             "You do not have permission to take student attendance."
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         )
-    year, _term = get_active_year_and_term()
+    year, _term = get_active_year_and_term(school=getattr(request, "school", None))
     classrooms = _attendance_visible_classrooms(request, year)
     today = timezone.localdate()
     date_str = request.GET.get("date") or request.POST.get("date") or today.isoformat()
@@ -660,7 +660,7 @@ def seating_chart_view(request: HttpRequest):
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             "You do not have permission to view seating chart."
         )
-    year, _term = get_active_year_and_term()
+    year, _term = get_active_year_and_term(school=getattr(request, "school", None))
     classrooms = _attendance_visible_classrooms(request, year)
     classroom_id = request.GET.get("classroom")
     classroom_obj = None
@@ -725,7 +725,7 @@ def cahier_list(request: HttpRequest):
     if not profile:
         return redirect("portal:teacher_dashboard_alias")
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    year, _ = get_active_year_and_term()
+    year, _ = get_active_year_and_term(school=getattr(request, "school", None))
     assignments_qs = SubjectAssignment.objects.none()
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     if year:
@@ -882,7 +882,7 @@ def teacher_timetable(request: HttpRequest):
     "latest draft" would leak an unpublished, possibly-conflicting timetable to
     teachers. When nothing is published, show the empty state.
     """
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     schedule = None
     entries = []
     if year and term:

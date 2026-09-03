@@ -25,6 +25,7 @@ from typing import Any, Iterator
 from ._helpers import (
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_id_mapping,
     record_row_error,
 )
@@ -53,6 +54,7 @@ class TransportLander(Lander):
         seen_routes: set[str] = set()
 
         for row in canonical_rows:
+            row = normalize_canonical_row("transport", row, ctx)
             route_name = (row.get("route") or row.get("name") or "").strip()
             if not route_name:
                 record_row_error(
