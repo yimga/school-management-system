@@ -153,6 +153,37 @@ EDGE_SYNC_SCOPE = "edge-sync-machine"
 # --------------------------------------------------------------------------- #
 # Bundle building (shared by export_edge_delta_bundle + post_edge_outbox)
 # --------------------------------------------------------------------------- #
+def _dfv_target_anchor(school, changes, config, cache):
+    """The target row's sync anchor for a dynamic_field_value bundle row, or "".
+
+    One lookup per DISTINCT (entity_type, entity_id) per build — values cluster
+    heavily on the same targets, so the cache keeps this O(distinct targets).
+    """
+    from apps.api.sync_services import _dfv_target_model
+
+    key = (changes.get("entity_type"), str(changes.get("entity_id") or ""))
+    if key in cache:
+        return cache[key]
+    anchor = ""
+    model = _dfv_target_model(key[0], config)
+    if model is not None and any(
+        getattr(f, "name", "") == "client_offline_id"
+        for f in model._meta.get_fields()
+    ):
+        qs = model._base_manager.all()
+        if any(getattr(f, "name", "") == "school" for f in model._meta.get_fields()):
+            qs = qs.filter(school=school)
+        try:
+            anchor = (
+                qs.filter(pk=key[1]).values_list("client_offline_id", flat=True).first()
+                or ""
+            )
+        except (ValueError, TypeError):
+            anchor = ""
+    cache[key] = anchor
+    return anchor
+
+
 def build_edge_delta_rows(school, *, since=None, entities=None):
     """The school's changed ROWS since ``since``, plus meta — unsigned and unpackaged.
 
@@ -184,6 +215,7 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
     sort_keys: list = []
     counts: dict[str, int] = {}
     high_water = None
+    _dfv_anchor_cache: dict = {}
     for entity_type, (model, allowed) in config.items():
         if want and entity_type not in want:
             continue
@@ -225,6 +257,18 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
                 "changes": changes,
                 "updated_at": updated_at.isoformat() if updated_at else None,
             }
+            # A custom-field value names its target row by pk STRING, which the
+            # receiver cannot trust across pk spaces. Attach the target's sync
+            # anchor whenever it has one so the receiver resolves identity by
+            # anchor first (see sync_services._resolve_dfv_target). Absent means
+            # absent: a pk-portable (cloud-authored) target has no anchor and the
+            # receiver falls back to pk-with-existence.
+            if entity_type == "dynamic_field_value":
+                _t_anchor = _dfv_target_anchor(
+                    school, changes, config, _dfv_anchor_cache
+                )
+                if _t_anchor:
+                    row["entity_anchor"] = _t_anchor
             # CAUSALITY TOKEN. The version of the RECEIVER's row that this edit descends
             # from, which is precisely the stamp their copy carried when we last applied
             # it. With it the receiver's `_conflict_decision` stops racing two wall clocks

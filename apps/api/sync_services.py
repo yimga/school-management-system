@@ -119,6 +119,28 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     # It rides for the same reason the schedule does -- both are the SCHOOL's decision and
     # both are acted on by the BOX, and the cloud cannot reach a box to tell it either.
     ("sync_policy", "sync_engine", "SyncPolicy"),
+    # Slice 9 — school-defined custom fields (2026-09-02). The EAV pair Migration
+    # Cloud's residual capture and the tenant EAV forms write: definitions carry the
+    # vocabulary (which fields exist, typing, validation), values carry the data.
+    # Both live in a SHARED app, which the rail already handles without a special
+    # case (see sync_schedule above): `school` is excluded from the derived field
+    # set and the delta builder scopes by it.
+    #
+    # A platform-wide definition (school=NULL) deliberately does NOT ride: the delta
+    # builder scopes by school, platform definitions are seeded by code on both
+    # sides (seed_platform_eav_baseline), and shipping them per-tenant would fork
+    # one definition into per-school copies on the receiving side.
+    ("dynamic_field_definition", "metadata", "DynamicFieldDefinition"),
+    # VALUES need one thing no other entity does. `entity_id` is a pk STRING naming
+    # a row in another table — a soft reference the FK remap machinery cannot see —
+    # and the two deployments mint integer pks in unrelated spaces, so applying it
+    # verbatim would attach the value to whatever row happens to sit at that number
+    # (delete_safety.py documents the identity cases). Bundle rows for this entity
+    # therefore carry the TARGET row's sync anchor (`entity_anchor`, attached at
+    # build), and every apply path resolves the target anchor-first before writing;
+    # an unresolvable target is refused with `dfv_target_unresolved`, never guessed.
+    # See _resolve_dfv_target.
+    ("dynamic_field_value", "metadata", "DynamicFieldValue"),
 ]
 
 # Entities that sync as UPDATES but whose offline-CREATED rows are refused outright.
@@ -262,6 +284,105 @@ _LWW_SAFE_ENTITIES = frozenset(
         "sync_policy",
     }
 )
+
+# The one entity whose rows point at OTHER rows by pk string rather than by FK.
+_DFV_ENTITY = "dynamic_field_value"
+
+
+def _dfv_target_model(target_entity, config):
+    """The rail model a DynamicFieldValue row's ``entity_type`` names, or ``None``.
+
+    DFV rows reference their target in two vocabularies: the rail's own entity
+    names ("student", written by e.g. the alumni lander) and
+    ``metadata.services.entity_type_for``'s "app_label.model_name"
+    ("people.studentprofile", written by the tenant EAV forms). A namespace that
+    resolves to neither — ``migration_residual:<domain>``, ``migration_artifact``,
+    "incident" — is an opaque grouping key, not a row reference, and its rows pass
+    through untouched: there is no integer pk to collide.
+    """
+    t = str(target_entity or "").strip().lower()
+    if not t:
+        return None
+    pair = config.get(t)
+    if pair is not None:
+        return pair[0]
+    for model, _allowed in config.values():
+        if f"{model._meta.app_label}.{model._meta.model_name}" == t:
+            return model
+    return None
+
+
+def _resolve_dfv_target(school_id, changes, entity_anchor, config, remap=None):
+    """Rewrite a dynamic_field_value row's ``entity_id`` into THIS side's pk space.
+
+    Returns ``(resolved_changes, None)`` or ``(None, reason)``. Resolution order:
+
+    1.  ANCHOR. The sender attached the target row's ``client_offline_id`` at build
+        time (``entity_anchor`` on the bundle row); a local row carrying that anchor
+        is the same row by construction, whatever pk it sits at here.
+    2.  IN-BUNDLE REMAP (inserts only). The target was itself inserted earlier in
+        this same bundle and its freshly assigned pk is in ``remap``.
+    3.  PK, only when a local row EXISTS at that pk (scoped to the school). This is
+        the pk-portable case — a cloud-authored row is created on the box preserving
+        its pk (_create_from_cloud_pull), so the number names the same row on both
+        sides. The residual ambiguity is a box row created through an ordinary
+        online form (anchor-less AND box-pk'd, delete_safety.py's case 3); it is
+        accepted here for the same reason the update rail accepts it: refusing every
+        pk reference would strand all cloud-authored values, and the sender attaches
+        the anchor whenever its target has one, which covers every offline-created
+        target.
+
+    Anything else is refused with a reason, never attached to whatever row happens
+    to sit at that integer.
+    """
+    target_entity = changes.get("entity_type")
+    model = _dfv_target_model(target_entity, config)
+    if model is None:
+        return changes, None  # opaque namespace: portable as-is
+    entity_id = str(changes.get("entity_id") or "").strip()
+    if not entity_id:
+        return None, "target_id_missing"
+    anchor = str(entity_anchor or "").strip()
+    has_school = any(
+        getattr(f, "name", "") == "school" for f in model._meta.get_fields()
+    )
+    scoped = model._base_manager.all()
+    if has_school and school_id is not None:
+        scoped = scoped.filter(school_id=school_id)
+    if anchor:
+        has_anchor_col = any(
+            getattr(f, "name", "") == "client_offline_id"
+            for f in model._meta.get_fields()
+        )
+        if has_anchor_col:
+            local = (
+                scoped.filter(client_offline_id=anchor)
+                .values_list("pk", flat=True)
+                .first()
+            )
+            if local is not None:
+                out = dict(changes)
+                out["entity_id"] = str(local)[:64]
+                return out, None
+        return None, "target_anchor_not_found"
+    if remap:
+        rail_names = [ent for ent, (m, _a) in config.items() if m is model]
+        candidate_keys = [entity_id]
+        if entity_id.isdigit():
+            candidate_keys.append(int(entity_id))
+        for ent in rail_names:
+            for key in candidate_keys:
+                mapped = remap.get((ent, key))
+                if mapped is not None:
+                    out = dict(changes)
+                    out["entity_id"] = str(mapped)[:64]
+                    return out, None
+    try:
+        if scoped.filter(pk=entity_id).exists():
+            return changes, None
+    except (ValueError, TypeError):
+        return None, "target_pk_invalid"
+    return None, "target_not_found"
 
 
 def _is_sync_tenant_model(model) -> bool:
@@ -1813,6 +1934,26 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                     }
                 )
                 continue
+            # Resolve a custom-field value's soft target reference BEFORE either the
+            # update or the create path reads `changes` — entity_id is a pk string in
+            # the SENDER's space and must never be written verbatim into ours.
+            if entity_type == _DFV_ENTITY:
+                changes, _dfv_reason = _resolve_dfv_target(
+                    school_id, changes, item.get("entity_anchor"), config
+                )
+                if changes is None:
+                    _emit(
+                        {
+                            "index": idx,
+                            "status": 409,
+                            "data": {
+                                "error": "dfv_target_unresolved",
+                                "reason": _dfv_reason,
+                                "entity_type": entity_type,
+                            },
+                        }
+                    )
+                    continue
             updates = {k: v for k, v in changes.items() if k in allowed}
             if not updates:
                 _emit(
@@ -2495,6 +2636,25 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         dropped_fks.append(key)
                         continue
             updates[key] = value
+
+        # Same soft-reference resolution as the update path, WITH the in-bundle remap:
+        # a value's target row may have been inserted moments ago in this very bundle
+        # under a freshly assigned pk.
+        if entity_type == _DFV_ENTITY:
+            updates, _dfv_reason = _resolve_dfv_target(
+                school_id, updates, item.get("entity_anchor"), config, remap=remap
+            )
+            if updates is None:
+                results_by_index[idx] = {
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "dfv_target_unresolved",
+                        "reason": _dfv_reason,
+                        "entity_type": entity_type,
+                    },
+                }
+                continue
 
         # Referential preflight for the FKs the remap loop above does NOT cover: it only
         # knows FKs pointing at another REGISTERED entity (its job is remapping

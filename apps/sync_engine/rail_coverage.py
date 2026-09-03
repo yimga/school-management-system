@@ -3,12 +3,15 @@
 Why this module exists
 ----------------------
 The edge appliance replicates a small fraction of the product. Measured on
-2026-08-31: **17 entities ride the delta rail**, of which **15 are tenant
-business models**, against **326 models across the 15 apps in ``TENANT_APPS``**
--- about **4.6%**. The rail side is read from the live entity registry; the 326
-is read from MIGRATION STATE, for reasons ``tenant_models`` sets out at length. Two of the 17 (``sync_schedule``,
-``sync_policy``) live in the SHARED ``sync_engine`` app: they are the rail's own
-configuration, not school data, so they are counted separately.
+2026-08-31, updated 2026-09-02: **19 entities ride the delta rail**, of which
+**15 are tenant business models**, against **326 models across the 15 apps in
+``TENANT_APPS``** -- about **4.6%**. The rail side is read from the live entity
+registry; the 326 is read from MIGRATION STATE, for reasons ``tenant_models``
+sets out at length. Four of the 19 live in SHARED apps and are counted
+separately from business coverage: ``sync_schedule`` and ``sync_policy``
+(``sync_engine`` -- the rail's own configuration) and
+``dynamic_field_definition`` / ``dynamic_field_value`` (``metadata`` -- the
+school-defined custom-field vocabulary and data, added 2026-09-02).
 
 That number is not, by itself, a defect. Some absences are correct and are
 argued in the repo -- ``finance.Payment`` is held out for two independently
