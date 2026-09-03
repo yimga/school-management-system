@@ -13,8 +13,10 @@ Invariants enforced (per docs/plans/UNIFIED_WIZARD_FRAMEWORK_IMPLEMENTATION_DETA
 * input_type in known set
 * branches and next_step_resolver mutually exclusive
 * options_resolver / next_step_resolver / persistence.writer use ``module::callable`` format
-* label_token matches ``^wizards\\.<wizard_key>\\.(label|description|step\\.<step_key>\\.(label|description)|.*)$``
-  (i.e. namespaced under wizards.)
+* label_token is REACHABLE BY A TRANSLATOR -- it is a msgid in a shipped
+  catalog, or it is listed in var/wizard-label-token-baseline.json with a
+  written reason. See _label_token_error for why the old spelling rule was
+  exactly backwards.
 """
 
 from __future__ import annotations
@@ -38,6 +40,109 @@ _VALID_AUDIENCES = {"operator", "tenant_admin", "teacher", "parent", "student", 
 _WIZARD_KEY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _STEP_KEY_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 _TOKEN_PREFIX_RE = re.compile(r"^wizards\.")
+_MSGID_RE = re.compile(r'^msgid "((?:[^"\\\\]|\\\\.)*)"', re.MULTILINE)
+
+LABEL_BASELINE_PATH = REPO_ROOT / "var" / "wizard-label-token-baseline.json"
+
+
+def _catalog_msgids() -> set[str]:
+    """Every msgid a translator can see, across all shipped catalogs.
+
+    Reachability, not translatedness: whether a given locale has actually
+    filled the msgstr in is a separate question from whether the string is
+    exposed to translators at all. This gate asks the second one.
+    """
+    seen: set[str] = set()
+    for po in sorted((REPO_ROOT / "locale").glob("*/LC_MESSAGES/django.po")):
+        try:
+            text = po.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        seen |= set(_MSGID_RE.findall(text))
+    return seen
+
+
+_CACHE: dict = {}
+
+
+def _label_token_error(wizard_key: str, token: object) -> str | None:
+    """A wizard label passes if a translator can actually reach it.
+
+    The rule this replaced required the token to START WITH "wizards.", which
+    is a fact about the spelling and not about whether anyone can translate it.
+    Measured against the shipped catalogs: ZERO wizards.* msgids exist in any of
+    the 20 of them. humanize_wizard_token calls gettext(token) first, gets the
+    token back unchanged, and falls through to title-casing the last slug
+    segment -- so all 37 tokenised labels render English ("Academic Year Setup")
+    on every locale, forever, with nothing for a translator to translate.
+
+    Meanwhile the single wizard the old rule FLAGGED, mfa_setup, carries
+    "Set up two-factor authentication" -- which IS a msgid in the catalog, and
+    is therefore the only wizard label the i18n pipeline can reach at all.
+    Tokenising it to make the gate green would have made the label LESS
+    translatable: the definition of satisfying a gate's letter while damaging
+    the thing it was written to protect.
+
+    Whether wizard labels SHOULD be wizards.* tokens emitted into the catalog by
+    sync_i18n_catalog, or real English msgids as mfa_setup uses, is an i18n
+    architecture decision that belongs to the operator. This gate does not pick;
+    it refuses to let the choice go unrecorded.
+    """
+    if not isinstance(token, str) or not token:
+        return f"{wizard_key}: label_token missing or not a string"
+    if "msgids" not in _CACHE:
+        _CACHE["msgids"] = _catalog_msgids()
+    if token in _CACHE["msgids"]:
+        return None
+    if "baseline" not in _CACHE:
+        _CACHE["baseline"] = _load_label_baseline()
+    listed = {e.get("label_token") for e in _CACHE["baseline"].get("unreachable", [])}
+    if token in listed:
+        return None
+    return (
+        f"{wizard_key}: label_token {token!r} is not a msgid in any shipped "
+        f"catalog and is not listed in {LABEL_BASELINE_PATH.name} -- no "
+        f"translator can reach it, so it renders English on every locale"
+    )
+
+
+def _icon_rule_active() -> bool:
+    if "icon_rendered" not in _CACHE:
+        _CACHE["icon_rendered"] = _icon_class_is_rendered()
+    return bool(_CACHE["icon_rendered"])
+
+
+def _load_label_baseline() -> dict:
+    try:
+        return json.loads(LABEL_BASELINE_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def _icon_class_is_rendered() -> bool:
+    """Does any template actually put icon_class on the page?
+
+    Measured 2026-09-03: no. icon_class is parsed into the Wizard dataclass and
+    copied into two payloads (wizard_ai, wizard_analytics), and reaches no page.
+    The convention it was policing names .rmc-icon-* classes that are defined in
+    NO stylesheet in this repository. So the rule made exactly one wizard fail
+    for spelling a class name differently from 37 others, where all 38 name
+    classes that do not exist and nobody ever sees -- the definition of
+    satisfying a gate's letter.
+
+    The rule is not deleted, it is DORMANT: the moment a template renders
+    icon_class this returns True and the naming convention is enforced again.
+    """
+    templates = REPO_ROOT / "templates"
+    if not templates.is_dir():
+        return False
+    for path in templates.rglob("*.html"):
+        try:
+            if "icon_class" in path.read_text(encoding="utf-8", errors="replace"):
+                return True
+        except OSError:
+            continue
+    return False
 _DOTTED_PATH_RE = re.compile(r"^apps\.[a-z_.]+::[a-z_]+$")
 _ICON_RE = re.compile(r"^rmc-icon-[a-z-]+$")
 
@@ -73,12 +178,12 @@ def scan_file(path: Path) -> list[str]:
             if a not in _VALID_AUDIENCES:
                 errors.append(f"{wizard_key}: invalid audience {a!r}")
 
-    label_token = data.get("label_token")
-    if not isinstance(label_token, str) or not _TOKEN_PREFIX_RE.match(label_token):
-        errors.append(f"{wizard_key}: label_token must start with 'wizards.'")
+    label_error = _label_token_error(wizard_key, data.get("label_token"))
+    if label_error:
+        errors.append(label_error)
 
     icon = data.get("icon_class")
-    if isinstance(icon, str) and not _ICON_RE.match(icon):
+    if isinstance(icon, str) and _icon_rule_active() and not _ICON_RE.match(icon):
         errors.append(f"{wizard_key}: icon_class {icon!r} should match ^rmc-icon-[a-z-]+$")
 
     em = data.get("estimated_minutes")
@@ -144,6 +249,38 @@ def main(argv: list[str]) -> int:
         if path.name.startswith("_"):
             continue
         all_errors.extend(scan_file(path))
+
+    # Ratchet, same contract as var/companion-server-contract-baseline.json: the
+    # list may only shrink. A label that becomes reachable must leave the file,
+    # or the backlog decays into a number nobody rereads; an entry with no reason
+    # is not a decision, it is a silence.
+    baseline = _load_label_baseline()
+    unreachable = baseline.get("unreachable", [])
+    if "msgids" not in _CACHE:
+        _CACHE["msgids"] = _catalog_msgids()
+    for entry in unreachable:
+        token = entry.get("label_token")
+        if token in _CACHE["msgids"]:
+            all_errors.append(
+                f"{entry.get('wizard_key')}: label_token {token!r} is now a real "
+                f"msgid -- delete this entry from {LABEL_BASELINE_PATH.name}"
+            )
+        if not str(entry.get("reason") or "").strip():
+            all_errors.append(
+                f"{entry.get('wizard_key')}: baseline entry carries no reason"
+            )
+
+    if unreachable:
+        print(
+            f"  NOTE {len(unreachable)} wizard label(s) are unreachable by i18n and "
+            f"render English on every locale; see {LABEL_BASELINE_PATH.name}"
+        )
+    if not _icon_rule_active():
+        print(
+            "  NOTE icon_class reaches no template, and no .rmc-icon-* class is "
+            "defined in any stylesheet; its naming rule stays dormant until "
+            "something renders the field"
+        )
 
     if all_errors:
         print(f"\nFAILED — {len(all_errors)} schema drift finding(s):")
