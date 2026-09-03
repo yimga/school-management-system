@@ -62,7 +62,6 @@ def detect_legacy_issues(school) -> dict[str, Any]:
     try:
         from apps.evals.models import Evaluation
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         orphan_evals = Evaluation.objects.filter(
             student__school=school, student__is_active=False
         ).count()

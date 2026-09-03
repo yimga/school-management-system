@@ -493,7 +493,7 @@ def migration_wizard(request):
             elif migration_type == "grades":
                 from apps.academics.services import get_active_year_and_term
 
-                active_year, _ = get_active_year_and_term()
+                active_year, _ = get_active_year_and_term(school=getattr(request, "school", None))
                 if not active_year:
                     result["error_count"] = len(transformed)
                     result["errors"] = ["No active academic year set."]

@@ -141,12 +141,12 @@ def _check_session_lock(
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def certification_home(request):
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     guard = _year_gce_enabled_or_forbidden(request, year)
     if guard:
         return guard
 
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    # tenant-isolation-allow: bounded-by-school-scoped-active-year
     sessions = CertificationExamSession.objects.filter(academic_year=year).order_by(
         "-created_at"
     )
@@ -171,7 +171,7 @@ def certification_home(request):
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def certification_session_detail(request, session_id: int):
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     guard = _year_gce_enabled_or_forbidden(request, year)
     if guard:
         return guard
@@ -228,7 +228,7 @@ def certification_export_zip(request, session_id: int):
     - README with official workflow references
     - Folder stubs for documents/photos
     """
-    year, _term = get_active_year_and_term()
+    year, _term = get_active_year_and_term(school=getattr(request, "school", None))
     guard = _year_gce_enabled_or_forbidden(request, year)
     if guard:
         return guard
@@ -619,19 +619,22 @@ class CertificationBulkCandidateForm(forms.Form):
             {"class": "form-check-input"}
         )
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         if year is not None:
             base_classrooms = Classroom.objects.filter(academic_year=year).order_by(
                 "name"
             )
             if base_classrooms.filter(gce_eligible=True).exists():
-                # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 base_classrooms = base_classrooms.filter(gce_eligible=True)
             self.fields["classrooms"].queryset = base_classrooms
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            self.fields["specialties"].queryset = Specialty.objects.all().order_by(
-                "name"
-            )
+            # Specialty carries a school FK and this read ignored it, so the
+            # picker listed every co-located school's specialty names. It cannot
+            # WIDEN the cohort -- the student queryset is already bounded by year
+            # and classroom, so a foreign pk narrows to nothing -- but the names
+            # themselves are another school's data on this school's page.
+            # tenant-isolation-allow: bounded-by-the-school-owning-the-active-year
+            self.fields["specialties"].queryset = Specialty.objects.filter(
+                school_id=getattr(year, "school_id", None)
+            ).order_by("name")
 
 
 @login_required
@@ -642,7 +645,7 @@ def certification_bulk_add_candidates(request, session_id: int):
     Bulk-create CertificationCandidate rows for a session by selecting classroom(s) + optional specialty filter.
     Designed for Form 5 / Upper Sixth style flows, but kept generic.
     """
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
     guard = _year_gce_enabled_or_forbidden(request, year)
     if guard:
         return guard
@@ -682,7 +685,7 @@ def certification_bulk_add_candidates(request, session_id: int):
             specialties = form.cleaned_data.get("specialties")
             include_inactive = bool(form.cleaned_data.get("include_inactive_students"))
             skip_existing = bool(form.cleaned_data.get("skip_existing_candidates"))
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+            # tenant-isolation-allow: bounded-by-school-scoped-active-year-and-its-classrooms
 
             students_qs = StudentProfile.objects.filter(
                 academic_year=year, classroom__in=classrooms
@@ -763,7 +766,7 @@ def certification_session_override(request, session_id: int):
     """
     Admin override handler: set or clear deadline locks.
     """
-    year, _term = get_active_year_and_term()
+    year, _term = get_active_year_and_term(school=getattr(request, "school", None))
     guard = _year_gce_enabled_or_forbidden(request, year)
     if guard:
         return guard

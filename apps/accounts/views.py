@@ -2505,7 +2505,7 @@ def backend_dashboard(request):
 
     # config-resolver-allow: namespace passed to template context ('site') plus method/attr fan-out (compliance_profile, feature-control methods, social links)
     site = get_effective_site_settings(request=request)
-    year, term = get_active_year_and_term()
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
 
     backend_flags = get_effective_flags(request)
 
