@@ -1,9 +1,9 @@
 {
   "by_surface": {
-    "shared": 1,
-    "tenant": 3
+    "shared": 3,
+    "tenant": 8
   },
-  "finding_count": 4,
+  "finding_count": 11,
   "findings": [
     {
       "collection": "caseload",
@@ -28,6 +28,97 @@
       "row_inputs": 7,
       "score": 10,
       "surface": "shared"
+    },
+    {
+      "collection": "groups",
+      "columns": 3,
+      "file": "templates/reports/bulk_console.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": false,
+      "line": 89,
+      "loop": "for g in groups",
+      "reasons": [
+        "2 form(s) inside repeated rows",
+        "10 input/select controls inside repeated rows",
+        "no pagination or paginate scroll policy found"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 4,
+      "row_forms": 2,
+      "row_inputs": 10,
+      "score": 9,
+      "surface": "tenant"
+    },
+    {
+      "collection": "conflicts",
+      "columns": 6,
+      "file": "templates/siteconfig/sync_conflicts.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": true,
+      "line": 62,
+      "loop": "for c in conflicts",
+      "reasons": [
+        "6 columns",
+        "4 form(s) inside repeated rows",
+        "6 input/select controls inside repeated rows",
+        "5 row links/buttons"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page."
+      ],
+      "row_actions": 5,
+      "row_forms": 4,
+      "row_inputs": 6,
+      "score": 9,
+      "surface": "tenant"
+    },
+    {
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 49,
+      "loop": "for y in rows",
+      "reasons": [
+        "6 columns",
+        "3 form(s) inside repeated rows",
+        "8 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 3,
+      "row_forms": 3,
+      "row_inputs": 8,
+      "score": 8,
+      "surface": "tenant"
+    },
+    {
+      "collection": "orders",
+      "columns": 5,
+      "file": "templates/schoolops/ops_procurement.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 66,
+      "loop": "for order in orders",
+      "reasons": [
+        "1 form(s) inside repeated rows",
+        "2 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_forms": 1,
+      "row_inputs": 2,
+      "score": 7,
+      "surface": "tenant"
     },
     {
       "collection": "grid.rows",
@@ -91,9 +182,72 @@
       "row_inputs": 0,
       "score": 4,
       "surface": "tenant"
+    },
+    {
+      "collection": "artifact_rows",
+      "columns": 5,
+      "file": "templates/migration_cloud/connector/bundle_review.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 425,
+      "loop": "for row in artifact_rows",
+      "reasons": [
+        "3 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_forms": 0,
+      "row_inputs": 3,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/sync_engine/super/fleet_console.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": false,
+      "line": 63,
+      "loop": "for row in rows",
+      "reasons": [
+        "6 columns",
+        "no pagination or paginate scroll policy found"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "collection": "recent_batches",
+      "columns": 7,
+      "file": "templates/reports/bulk_console.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": false,
+      "line": 145,
+      "loop": "for b in recent_batches",
+      "reasons": [
+        "7 columns",
+        "no pagination or paginate scroll policy found"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "tenant"
     }
   ],
-  "generated_at": "2026-08-01T12:00:06Z",
+  "generated_at": "2026-09-03T01:24:30Z",
   "remediation_status": "PARTIAL",
   "top_findings": [
     {
@@ -121,6 +275,97 @@
       "surface": "shared"
     },
     {
+      "collection": "groups",
+      "columns": 3,
+      "file": "templates/reports/bulk_console.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": false,
+      "line": 89,
+      "loop": "for g in groups",
+      "reasons": [
+        "2 form(s) inside repeated rows",
+        "10 input/select controls inside repeated rows",
+        "no pagination or paginate scroll policy found"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 4,
+      "row_forms": 2,
+      "row_inputs": 10,
+      "score": 9,
+      "surface": "tenant"
+    },
+    {
+      "collection": "conflicts",
+      "columns": 6,
+      "file": "templates/siteconfig/sync_conflicts.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": true,
+      "line": 62,
+      "loop": "for c in conflicts",
+      "reasons": [
+        "6 columns",
+        "4 form(s) inside repeated rows",
+        "6 input/select controls inside repeated rows",
+        "5 row links/buttons"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page."
+      ],
+      "row_actions": 5,
+      "row_forms": 4,
+      "row_inputs": 6,
+      "score": 9,
+      "surface": "tenant"
+    },
+    {
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 49,
+      "loop": "for y in rows",
+      "reasons": [
+        "6 columns",
+        "3 form(s) inside repeated rows",
+        "8 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 3,
+      "row_forms": 3,
+      "row_inputs": 8,
+      "score": 8,
+      "surface": "tenant"
+    },
+    {
+      "collection": "orders",
+      "columns": 5,
+      "file": "templates/schoolops/ops_procurement.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 66,
+      "loop": "for order in orders",
+      "reasons": [
+        "1 form(s) inside repeated rows",
+        "2 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_forms": 1,
+      "row_inputs": 2,
+      "score": 7,
+      "surface": "tenant"
+    },
+    {
       "collection": "grid.rows",
       "columns": 2,
       "file": "templates/academics/timetable_review.html",
@@ -181,6 +426,69 @@
       "row_forms": 1,
       "row_inputs": 0,
       "score": 4,
+      "surface": "tenant"
+    },
+    {
+      "collection": "artifact_rows",
+      "columns": 5,
+      "file": "templates/migration_cloud/connector/bundle_review.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 425,
+      "loop": "for row in artifact_rows",
+      "reasons": [
+        "3 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_forms": 0,
+      "row_inputs": 3,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "collection": "rows",
+      "columns": 6,
+      "file": "templates/sync_engine/super/fleet_console.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": false,
+      "line": 63,
+      "loop": "for row in rows",
+      "reasons": [
+        "6 columns",
+        "no pagination or paginate scroll policy found"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
+      "surface": "shared"
+    },
+    {
+      "collection": "recent_batches",
+      "columns": 7,
+      "file": "templates/reports/bulk_console.html",
+      "has_paginate_scroll_policy": false,
+      "has_pagination": false,
+      "line": 145,
+      "loop": "for b in recent_batches",
+      "reasons": [
+        "7 columns",
+        "no pagination or paginate scroll policy found"
+      ],
+      "recommendations": [
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 0,
+      "row_forms": 0,
+      "row_inputs": 0,
+      "score": 3,
       "surface": "tenant"
     }
   ]

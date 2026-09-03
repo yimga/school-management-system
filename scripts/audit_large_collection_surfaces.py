@@ -258,7 +258,14 @@ def main() -> int:
         print("LARGE_COLLECTION_SURFACE_PASS")
     for surface, count in sorted(summary["by_surface"].items()):
         print(f"  {surface}: {count}")
-    for finding in findings[:10]:
+    # Print EVERY finding. This was `findings[:10]` with nothing said about the
+    # rest, so a run reporting 11 listed 10 and the eleventh existed only in the
+    # JSON report. Its sole caller then kept the LAST 300 characters of this
+    # output, and since the list is sorted by descending severity that tail was
+    # the mildest end: three of eleven findings reached CI, and the eight worst
+    # were the ones dropped. A tally that does not close is worse than no tally --
+    # the header said 11, the body showed 10, and nobody subtracted.
+    for finding in findings:
         reasons = "; ".join(finding["reasons"])
         print(f"  {finding['score']:02d} {finding['file']}:{finding['line']} [{finding['surface']}] {reasons}")
     return 0
