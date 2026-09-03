@@ -74111,3 +74111,49 @@ msgstr "Save file & column settings"
 
 msgid "Save name & date preferences"
 msgstr "Save name & date preferences"
+
+msgid "Add teaching hints or run repair"
+msgstr "Add teaching hints or run repair"
+
+msgid "Gradebook grid cells"
+msgstr "Gradebook grid cells"
+
+msgid "Ready for grade entry"
+msgstr "Ready for grade entry"
+
+msgid "Run repair to provision the teaching grid"
+msgstr "Run repair to provision the teaching grid"
+
+msgid "Some timetable rows still need subject and teacher references."
+msgstr "Some timetable rows still need subject and teacher references."
+
+msgid "Students placed"
+msgstr "Students placed"
+
+msgid "Teacher portal links"
+msgstr "Teacher portal links"
+
+msgid "Teachers can open their classes"
+msgstr "Teachers can open their classes"
+
+msgid "Teaching graph readiness"
+msgstr "Teaching graph readiness"
+
+msgid ""
+"Timetable: {{ materialized }} class slots materialized · {{ preserved }} "
+"preserved import rows"
+msgstr ""
+"Timetable: {{ materialized }} class slots materialized · {{ preserved }} "
+"preserved import rows"
+
+msgid ""
+"Whether grades, teacher portal, and timetable views can work from what this "
+"import landed."
+msgstr ""
+"Whether grades, teacher portal, and timetable views can work from what this "
+"import landed."
+
+msgid ""
+"{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
+msgstr ""
+"{{ missing_class }} missing class · {{ missing_spec }} missing specialty"

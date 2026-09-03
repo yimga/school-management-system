@@ -229,6 +229,14 @@ class EnrollmentLander(Lander):
                     ctx=ctx, entity_type="student", entity_id=student.pk,
                     extras=extras, result=result,
                 )
+                try:
+                    from apps.migration_cloud.enrollment_sync import (
+                        sync_enrollment_from_student_profile,
+                    )
+
+                    sync_enrollment_from_student_profile(student)
+                except Exception:  # noqa: BLE001 — enrollment sync must not quarantine row
+                    pass
                 result.updated += 1
                 result.updated_ids_with_old_values.append(
                     {"pk": student.pk, "old": old_snapshot}
