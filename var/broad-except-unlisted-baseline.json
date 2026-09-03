@@ -905,7 +905,7 @@
     "apps/sync_engine/sync_status.py": 2,
     "apps/sync_engine/system_manifest.py": 1,
     "apps/sync_engine/tasks.py": 2,
-    "apps/sync_engine/tenant_manifest_resolver.py": 5,
+    "apps/sync_engine/tenant_manifest_resolver.py": 6,
     "apps/sync_engine/tombstones.py": 8,
     "apps/sync_engine/upgrade_lock.py": 3,
     "apps/sync_engine/upgrade_runtime.py": 6,

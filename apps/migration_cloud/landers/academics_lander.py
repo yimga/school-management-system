@@ -151,11 +151,13 @@ def _link_subject_curriculum(
             specialty=sp,
             subject=subject,
             defaults={
-                "school": ctx.school,
                 "coefficient": coef if coef is not None else 1,
                 "is_core": is_core,
             },
         )
+        if link.school_id != ctx.school_id:
+            link.school = ctx.school
+            link.save(update_fields=["school"])
         updates: list[str] = []
         if coef is not None and link.coefficient != coef:
             link.coefficient = coef

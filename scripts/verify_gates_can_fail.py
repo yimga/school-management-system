@@ -999,6 +999,46 @@ MUTATIONS["companion-server-contract"] = Mutation(
     content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
 )
 
+MUTATIONS["global-country-ingestion-coverage"] = Mutation(
+    kind="patch",
+    path="apps/migration_cloud/ingestion_lexicon.py",
+    defect="offline ingestion manifest missing lexicon_mappings for a country compile",
+    anchor=b'    "lexicon_mappings",',
+    replacement=b'    "lexicon_mappings_removed_gateproof",',
+)
+
+MUTATIONS["ingestion-lexicon-offline-wiring"] = Mutation(
+    kind="patch",
+    path="static/js/rmc-offline-ingestion-lexicon.js",
+    defect="client lexicon module missing IndexedDB read path for cold-offline preflight",
+    anchor=b"ensureManifestReady",
+    replacement=b"ensureManifestReadyGateproofRemoved",
+)
+
+MUTATIONS["global-local-first-ingestion-chain"] = Mutation(
+    kind="patch",
+    path="apps/sync_engine/tenant_manifest_resolver.py",
+    defect="tenant offline manifest missing operational_context.ingestion_lexicon",
+    anchor=b'operational_context["ingestion_lexicon"]',
+    replacement=b'operational_context["ingestion_lexicon_gateproof_removed"]',
+)
+
+MUTATIONS["global-platform-country-readiness"] = Mutation(
+    kind="patch",
+    path="scripts/verify_global_platform_country_readiness.py",
+    defect="country readiness gate no longer checks service-worker precache for lexicon JS",
+    anchor=b'"rmc-offline-ingestion-lexicon.js"',
+    replacement=b'"rmc-offline-ingestion-lexicon-gateproof.js"',
+)
+
+MUTATIONS["global-platform-country-readiness-django"] = Mutation(
+    kind="patch",
+    path="scripts/verify_global_local_first_ingestion_chain.py",
+    defect="ingestion chain gate no longer requires tenant manifest ingestion_lexicon",
+    anchor=b'"ingestion_lexicon"',
+    replacement=b'"ingestion_lexicon_gateproof_removed"',
+)
+
 MUTATIONS["platform-back-to-top"] = Mutation(
     kind="patch",
     path="templates/admin/base.html",

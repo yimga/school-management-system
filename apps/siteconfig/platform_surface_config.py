@@ -386,7 +386,7 @@ def _ingestion_manifest_for_request(request) -> dict[str, Any]:
         )
 
         return compile_offline_ingestion_manifest_for_school(school)
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError):
         return {}
 
 

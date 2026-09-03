@@ -267,7 +267,7 @@ def _normalize_country(code: str | None) -> str:
         a2 = alpha2_for_country(raw)
         if a2:
             return a2.upper()
-    except Exception:
+    except (ImportError, AttributeError, KeyError, ValueError):
         pass
     if raw in ("CMR", "CAMEROON"):
         return "CM"
