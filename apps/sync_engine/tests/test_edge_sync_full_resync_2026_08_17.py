@@ -184,7 +184,11 @@ class DownloadEndpointStampsDirectiveTests(TestCase):
             "apps.api.sync_bundle_api.user_may_operate_on_school", return_value=True
         ):
             view = SyncBundleDownloadView()
-            request = mock.Mock(school=school, query_params={}, user=mock.Mock())
+            # META must be a real dict: the download path now reads the box's
+            # upgrade-failure header from request.META before stamping anything.
+            request = mock.Mock(
+                school=school, query_params={}, user=mock.Mock(), META={}
+            )
             first = view.get(request)
             second = view.get(request)
 

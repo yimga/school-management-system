@@ -40,11 +40,20 @@ class DynamicFieldValueAdmin(admin.ModelAdmin):
     """Canonical DynamicField values; registered on tenant + platform in ``metadata.apps``."""
 
     change_form_template = "admin/metadata/dynamicfieldvalue/change_form.html"
-    list_display = ("entity_type", "entity_id", "field_key", "school", "updated_at")
-    list_filter = ("entity_type",)
+    list_display = ("entity_type", "entity_id", "field_key", "school", "source", "updated_at")
+    list_filter = ("entity_type", "source")
     search_fields = ("entity_type", "entity_id", "field_key")
     ordering = ("entity_type", "entity_id", "field_key")
     raw_id_fields = ("school",)
+    # Provenance is stamped by save_model below, never typed: an editable source
+    # field would let a break-glass edit dress itself up as an import, which is
+    # exactly the ambiguity the column exists to remove.
+    readonly_fields = ("source", "source_ref")
+
+    def save_model(self, request, obj, form, change):
+        obj.source = "human"
+        obj.source_ref = f"user:{getattr(request.user, 'pk', '') or ''}"[:120]
+        super().save_model(request, obj, form, change)
 
 
 class StateMachineDefinitionAdmin(admin.ModelAdmin):

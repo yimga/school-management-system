@@ -205,6 +205,25 @@ POLICIES: dict[str, SyncPolicy] = {
             "offline evidence capture belongs to fee_payment/payment_proof."
         ),
     ),
+    "dynamic_field_definition": SyncPolicy(
+        entity="dynamic_field_definition",
+        strategy=MergeStrategy.CAUSAL_LWW,
+        rationale=(
+            "School-defined custom-field vocabulary is benign master data: a later "
+            "admin edit to a label or validation rule wins, same as the curriculum "
+            "catalog rows. Grants nothing, moves no money, changes no mark."
+        ),
+    ),
+    "dynamic_field_value": SyncPolicy(
+        entity="dynamic_field_value",
+        strategy=MergeStrategy.CAUSAL_LWW,
+        rationale=(
+            "Custom-field values converge by causal rank and carry their own writer "
+            "provenance (source/source_ref) across the rail. Target identity is a "
+            "separate question answered at apply time (dfv_target_unresolved), not "
+            "a merge-strategy one."
+        ),
+    ),
 }
 
 

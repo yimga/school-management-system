@@ -94,6 +94,17 @@ _ALIAS_TO_ROLE_NAME: dict[str, str] = {
     "promoteur": "PROPRIETOR",
     "executiveassistant": "EXECUTIVE_ASSISTANT",
     "virtualassistant": "VIRTUAL_ASSISTANT",
+    # Anglophone-system compound titles measured on a real staff directory
+    # (2026-09-02): every one of these compacted to a string this map had no
+    # entry for, so a principal's cabinet imported as held-for-review rows.
+    "deanofstudies": "DEAN",
+    "deanofstudy": "DEAN",
+    "seniordisciplinemaster": "DISCIPLINE_MASTER",
+    "systemadministrator": "IT_ADMIN",
+    "schoolsystemadministrator": "IT_ADMIN",
+    "sysadmin": "IT_ADMIN",
+    "administrativeassistant": "SECRETARY",
+    "adminassistant": "SECRETARY",
 }
 
 
@@ -155,6 +166,31 @@ def _match_staff_role(raw: object) -> tuple[str | None, str | None]:
     alias = _ALIAS_TO_ROLE_NAME.get(_compact(token))
     if alias and alias in allowed and alias not in forbidden:
         return alias, None
+    # Compound cells -- "BURSAR/ PARTNER", "TEACHER /DRIVER" -- resolve ONLY when
+    # every segment that names a role names the SAME role. Two different roles in
+    # one cell ("ADMINISTRATIVE ASSISTANT / IT") is a claim this map must not
+    # arbitrate: picking either would grant a privilege the sheet did not clearly
+    # state, so the row stays held for a person. A forbidden segment forbids the
+    # whole cell. Split on strong delimiters only, never spaces.
+    raw_text = str(raw or "")
+    if any(d in raw_text for d in "/|,;"):
+        seen: set[str] = set()
+        for seg in re.split(r"[/|,;]+", raw_text):
+            seg_token = normalize_role(seg)
+            if not seg_token:
+                continue
+            if seg_token in forbidden:
+                return None, ROLE_FORBIDDEN
+            if seg_token in allowed:
+                seen.add(seg_token)
+                continue
+            seg_alias = _ALIAS_TO_ROLE_NAME.get(_compact(seg_token))
+            if seg_alias and seg_alias in forbidden:
+                return None, ROLE_FORBIDDEN
+            if seg_alias and seg_alias in allowed:
+                seen.add(seg_alias)
+        if len(seen) == 1:
+            return next(iter(seen)), None
     return None, ROLE_UNMAPPED
 
 

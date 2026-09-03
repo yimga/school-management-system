@@ -212,6 +212,9 @@ def _persist_behavior_extras(
         return
     try:
         from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
+        from apps.metadata.services import upsert_dynamic_field_value
+
+        from ._helpers import dfv_import_source_ref
     except Exception as exc:  # noqa: BLE001
         record_row_note(
             result,
@@ -225,20 +228,25 @@ def _persist_behavior_extras(
             school=ctx.school,
             defaults={"label": "Action taken", "data_type": "json"},
         )
-        # school belongs in the LOOKUP: DynamicFieldValue.unique_together is
-        # [school, entity_type, entity_id, field_key] and metadata is a SHARED app,
-        # so omitting it matches ANOTHER tenant's row and update_or_create
-        # overwrites its value and re-parents it.
-        DynamicFieldValue.objects.update_or_create(
+        # school stays in the LOOKUP (inside the guarded writer): metadata is a
+        # SHARED app, so an unscoped lookup matches ANOTHER tenant's row. The guard
+        # also keeps a value a person set by hand from being clobbered by a
+        # re-import.
+        _obj, _created, _preserved = upsert_dynamic_field_value(
             school=ctx.school,
             entity_type="incident",
             entity_id=str(incident_pk)[:64],
             field_key="action_taken",
-            defaults=filter_to_model_fields(
-                {"value_json": {"v": action_taken[:1024]}},  # magic-number-allow: defensive DFV value cap
-                DynamicFieldValue,
-            ),
+            value_json={"v": action_taken[:1024]},  # magic-number-allow: defensive DFV value cap
+            source="import",
+            source_ref=dfv_import_source_ref(ctx),
         )
+        if _preserved:
+            record_row_note(
+                result,
+                "behavior extras: kept 'action_taken' a person set; the import "
+                "does not outrank it",
+            )
     except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
         record_row_note(result, f"behavior extras write failed: {type(exc).__name__}: {exc}")
 

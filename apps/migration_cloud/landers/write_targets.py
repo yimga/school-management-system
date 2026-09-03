@@ -55,6 +55,7 @@ DOMAIN_WRITE_TARGETS: dict[str, tuple[str, ...]] = {
         "academics.Subject",
         "metadata.DynamicFieldDefinition",
         "metadata.DynamicFieldValue",
+        "migration_cloud.MigrationConflict",
         "migration_cloud.MigrationIdMapping",
     ),
     "alumni": (

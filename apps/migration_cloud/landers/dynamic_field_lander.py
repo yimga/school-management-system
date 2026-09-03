@@ -27,9 +27,11 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
+    dfv_import_source_ref,
     filter_to_model_fields,
     maybe_stall_pulse,
     record_row_error,
+    record_row_note,
     row_savepoint,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -58,6 +60,7 @@ class DynamicFieldLander(Lander):
     ) -> LanderResult:
         try:
             from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
+            from apps.metadata.services import upsert_dynamic_field_value
         except ImportError as exc:
             raise LanderError(
                 f"DynamicFieldLander could not import metadata models: {exc!s}"
@@ -106,20 +109,18 @@ class DynamicFieldLander(Lander):
                     continue
                 try:
                     with row_savepoint():
-                        # school belongs in the LOOKUP: DynamicFieldValue's
-                        # unique_together is [school, entity_type, entity_id,
-                        # field_key] and metadata is a SHARED app, so omitting it
-                        # matches ANOTHER tenant's row and update_or_create
-                        # overwrites its value and re-parents it.
-                        obj, created = DynamicFieldValue.objects.update_or_create(
+                        # school stays in the LOOKUP (inside the guarded writer):
+                        # metadata is a SHARED app, so an unscoped lookup matches
+                        # ANOTHER tenant's row. The guard also keeps a value a
+                        # person set by hand from being clobbered by a re-import.
+                        obj, created, _preserved = upsert_dynamic_field_value(
                             school=ctx.school,
                             entity_type=_ENTITY_TYPE,
                             entity_id=entity_id,
                             field_key=key_str[:_FIELD_KEY_CAP],
-                            defaults=filter_to_model_fields(
-                                {"value_json": {"v": value}},
-                                DynamicFieldValue,
-                            ),
+                            value_json={"v": value},
+                            source="import",
+                            source_ref=dfv_import_source_ref(ctx),
                         )
                 except Exception as exc:  # noqa: BLE001 — per-row quarantine
                     record_row_error(
@@ -133,6 +134,12 @@ class DynamicFieldLander(Lander):
                 if created:
                     result.created += 1
                     result.created_ids.append(obj.pk)
+                elif _preserved:
+                    record_row_note(
+                        result,
+                        f"{_ENTITY_TYPE}[{entity_id}].{key_str[:_FIELD_KEY_CAP]}: "
+                        "kept the value a person set; the import does not outrank it",
+                    )
                 else:
                     result.updated += 1
         return result

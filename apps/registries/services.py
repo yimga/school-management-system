@@ -865,6 +865,26 @@ INSTITUTION_TYPE_SEED_DEFAULTS: tuple[dict, ...] = (
     {"code": "UNIVERSITY", "name": "University / higher education", "sort_order": 70},
     {"code": "TRAINING_CENTER", "name": "Training center", "sort_order": 80},
     {"code": "SPECIAL_SCHOOL", "name": "Special-needs school", "sort_order": 90},
+    # Global variants beyond the founding nine (2026-09-02). Codes stay neutral
+    # snake-case like the rows above; the vocabulary a school actually sees is
+    # still country-filtered by its country pack
+    # (apps/siteconfig/_seed_country_localization.py) and localized names come
+    # from i18n/terminology packs, so a longer registry adds reach without
+    # adding option fatigue. Every consumer derives from this tuple
+    # (ensure_institution_type_registry_seed, platform_seed_audit), so adding a
+    # row here IS the whole change.
+    {"code": "GYMNASIUM", "name": "Gymnasium (academic secondary)", "sort_order": 100},
+    {"code": "SIXTH_FORM_COLLEGE", "name": "Sixth form college (post-16 / A-Level)", "sort_order": 110},
+    {"code": "MADRASAH", "name": "Madrasah (Islamic school)", "sort_order": 120},
+    {"code": "INTERMEDIATE_COLLEGE", "name": "Intermediate college (grades 11-12 / HSC)", "sort_order": 130},
+    {"code": "BACHILLERATO", "name": "Bachillerato (upper secondary)", "sort_order": 140},
+    {"code": "SECUNDARIA_TECNICA", "name": "Secundaria tecnica (technical secondary)", "sort_order": 150},
+    {"code": "INSTITUTO_PROFESIONAL", "name": "Instituto profesional / CFT (technical higher ed)", "sort_order": 160},
+    {"code": "COMMUNITY_COLLEGE", "name": "Community / junior college", "sort_order": 170},
+    {"code": "MAGNET_SCHOOL", "name": "Magnet school (specialized public)", "sort_order": 180},
+    {"code": "GRANDE_ECOLE", "name": "Grande ecole (elite higher education)", "sort_order": 190},
+    {"code": "POLYTECHNIC", "name": "Polytechnic / institute of technology", "sort_order": 200},
+    {"code": "ADULT_EDUCATION_CENTER", "name": "Adult / continuing education center", "sort_order": 210},
 )
 
 # Calendar systems keyed to `RegionConfig.calendar_system` values. Single source

@@ -30,10 +30,13 @@ from typing import Any, Iterator
 
 from ._helpers import (
     coerce_decimal,
+    detect_conflict,
+    explicit_conflict_resolution_for,
     get_or_create_named,
     model_field_names,
     record_id_mapping,
     record_row_error,
+    record_row_note,
     row_is_pdf_noise_hold,
     row_is_unstructured_text_fragment,
     row_marks_deletion,
@@ -59,6 +62,25 @@ def _resolve_subject_category(raw: object) -> str | None:
         return None
     compact = re.sub(r"[^a-z]+", "", token)
     return _CATEGORY_ALIASES.get(token) or _CATEGORY_ALIASES.get(compact)
+
+
+def _resolve_category(raw, Subject):
+    """A recognized category label -> a ``Subject.Category`` value; else ``None``.
+
+    Matching is against the model's OWN choices -- values ("PROFESSIONAL") and
+    display labels ("Professional") both count, case/space/underscore-insensitive --
+    so a new choice added to the model is understood here with no edit. An
+    unrecognized label maps to nothing rather than to a guess: OTHER is a real
+    curriculum statement, not a bucket for text we failed to read.
+    """
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    compact = text.replace(" ", "").replace("-", "").replace("_", "").upper()
+    for value, label in Subject.Category.choices:
+        if compact in (value.replace("_", ""), str(label).replace(" ", "").upper()):
+            return value
+    return None
 
 
 class AcademicsLander(Lander):
@@ -120,13 +142,25 @@ class AcademicsLander(Lander):
 
             try:
                 credits = coerce_decimal(row.get("credits"))
-                category = _resolve_subject_category(
-                    row.get("category") or row.get("subject_category")
+                # The CATEGORY column (a real Subject field with choices) used to be
+                # read by NOTHING: 108 subjects landed and every "Professional" /
+                # "General" cell fell to residual capture, invisible in the catalog.
+                # Two resolvers, merged from parallel fixes: the model-derived
+                # matcher understands any choice the model grows; the alias map
+                # catches French spellings the display labels do not.
+                raw_category = row.get("category") or row.get("subject_category")
+                category = (
+                    (
+                        _resolve_category(raw_category, Subject)
+                        or _resolve_subject_category(raw_category)
+                    )
+                    if "category" in subject_fields
+                    else None
                 )
                 create_kwargs: dict[str, Any] = {}
                 if credits is not None and "credits" in subject_fields:
                     create_kwargs["credits"] = credits
-                if category and "category" in subject_fields:
+                if category is not None and "category" in subject_fields:
                     create_kwargs["category"] = category
                 if code and "code" in subject_fields:
                     create_kwargs["code"] = code[:30]  # magic-number-allow: Subject.code max_length
@@ -138,8 +172,41 @@ class AcademicsLander(Lander):
                     result=result,
                 )
                 updates: dict[str, Any] = {}
-                if category and "category" in subject_fields and obj.category != category:
-                    updates["category"] = category
+                if category is not None and "category" in subject_fields and obj.category != category:
+                    # Backfill: only a row still on the field DEFAULT may take the
+                    # import's category -- a category somebody set by hand is that
+                    # school's decision and a re-upload must not overturn it.
+                    if obj.category == Subject.Category.OTHER:
+                        updates["category"] = category
+                    elif explicit_conflict_resolution_for(ctx=ctx, canonical_obj=obj) in (
+                        "OVERWRITE",
+                        "MERGE",
+                    ):
+                        # The operator reviewed this exact disagreement and said
+                        # the file wins. That recorded decision is the provenance
+                        # Subject.category itself lacks.
+                        updates["category"] = category
+                    else:
+                        # A note is durable but is NOT a held row -- nothing in
+                        # the review queue would ever offer this to an operator.
+                        # detect_conflict makes the disagreement ACTIONABLE: it
+                        # mints a MigrationConflict the conflicts screen shows,
+                        # and an explicit OVERWRITE there is honoured by the
+                        # branch above on the next apply of this bundle.
+                        detect_conflict(
+                            ctx=ctx,
+                            domain="academics",
+                            canonical_obj=obj,
+                            incoming={"category": category},
+                            legacy_id=code or name,
+                        )
+                        record_row_note(
+                            result,
+                            f"academics: kept category {obj.category!r} for"
+                            f" {name!r} (import says {category!r}; the row was"
+                            " set deliberately and an import does not outrank it;"
+                            " logged for conflict review)",
+                        )
                 if code and "code" in subject_fields:
                     trimmed = code[:30]  # magic-number-allow: Subject.code max_length
                     if trimmed and obj.code != trimmed:
@@ -156,6 +223,13 @@ class AcademicsLander(Lander):
                     result.updated += 1
                 else:
                     result.skipped += 1
+                if raw_category and category is None:
+                    record_row_note(
+                        result,
+                        f"academics: category {str(raw_category)[:40]!r} on"
+                        f" {name!r} matches no Subject.Category choice; left at"
+                        " the model default (value preserved in custom fields)",
+                    )
                 record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="academics")
             except Exception as exc:  # noqa: BLE001
                 record_row_error(

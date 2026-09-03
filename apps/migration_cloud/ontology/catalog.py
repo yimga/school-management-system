@@ -640,7 +640,13 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={
                 "en": [
                     "phone", "number", "telephone", "mobile", "phone_number",
-                    "telephone_number", "contact", "contact_number", "tel", "cell", "msisdn",
+                    "contact", "contact_number", "tel", "cell", "msisdn",
+                    # A hand-kept school directory says "TELEPHONE NUMBER", not
+                    # "phone": the two-word forms were enumerated for students
+                    # (line ~226) and never for staff, so a real staff sheet
+                    # landed 50 teachers with every phone cell dropped.
+                    "telephone_number", "telephone_no", "tel_no",
+                    "mobile_number", "mobile_no", "cell_number", "cell_phone",
                 ],
                 "fr": ["telephone", "numero", "portable"],
                 "es": ["telefono", "movil", "celular"],
@@ -798,6 +804,8 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={
                 "en": ["category", "subject_category", "type", "track", "subject_type"],
                 "fr": ["categorie", "type_matiere"],
+                "es": ["categoria"],
+                "pt": ["categoria"],
             },
         ),
     },
