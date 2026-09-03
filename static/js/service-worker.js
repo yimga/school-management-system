@@ -217,7 +217,7 @@
 // v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
 // v4.06.71: tenant admin sidebar server-owned, host-isolated preferences.
 // v4.06.81: unified tenant/operator admin navigation v3, semantic CAS sync.
-const CACHE_VERSION = "sms-v4.06.85-zero-touch-gap-closeout-2026-08-28";
+const CACHE_VERSION = "sms-v4.06.88-offline-lexicon-idb-read-precache-2026-09-03";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -326,6 +326,9 @@ const STATIC_ASSETS = [
   "/static/js/dashboard-layout.js",
   "/static/js/vendor/dexie.min.js",
   "/static/js/offline-db.js",
+  "/static/js/rmc-offline-ingestion-lexicon.js",
+  "/static/js/offline-queue-client.js",
+  "/static/js/rmc-offline-portal-forms.js",
   "/static/js/form-draft-save.js",
   "/static/js/sync-manager.js",
   "/static/js/low-power.js",

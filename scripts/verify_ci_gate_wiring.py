@@ -273,6 +273,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-09-02: Gilead-class ingest gaps were first-class surfaces drifting
     # apart (ontology/lander/UI/sync), not missing dynamic fields.
     ("scripts/verify_tier1_academic_people_platform_contract.py", "architectural-boundaries.yml"),
+    ("scripts/verify_global_country_ingestion_coverage.py", "architectural-boundaries.yml"),
+    ("scripts/verify_ingestion_lexicon_offline_wiring.py", "architectural-boundaries.yml"),
+    ("scripts/verify_global_local_first_ingestion_chain.py", "ci.yml"),
+    ("scripts/verify_global_platform_country_readiness.py", "ci.yml"),
     ("scripts/verify_report_entity_coverage.py", "architectural-boundaries.yml"),
     # A Migration Cloud lander must keep the row it rejected and declare why.
     # Added 2026-08-21: 29 of 35 lander files threw the offending row away, which

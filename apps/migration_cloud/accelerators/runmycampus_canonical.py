@@ -157,7 +157,8 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     "academics": {
         "subject_code", "subject_name", "credits", "department", "name", "code",
         # Francophone / legacy SIS exports (e.g. a live tenant's subjects_2026.xlsx).
-        "title", "description", "category",
+        "title", "description", "category", "coef", "coefficient", "fr_title",
+        "specialty", "filiere",
     },
     # Specialty / trade / stream catalog (SpecialtyLander → apps.academics.Specialty
     # + its required Department). Shares name/code/department with academics, so a

@@ -77,6 +77,29 @@ _CUSTOM_FIELD_KEY_RE = re.compile(r"^(?:custom_fields|_unmapped)\.(.+)$")
 _CUSTOM_ATTR_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-"})
 
 
+def _resolve_staff_department(*, school, row, Department, Specialty, result):
+    """Map directory SPECIALTY column to ``Specialty.department`` when possible."""
+    token = (
+        _staff_field_from_row(row, "department")
+        or str(row.get("specialty") or row.get("specialty_name") or "").strip()
+    )
+    if not token:
+        return None, None
+    specialty = Specialty.objects.filter(school=school, name__iexact=token).first()
+    if specialty is not None:
+        return specialty.department, specialty
+    department, _ = get_or_create_named(
+        model=Department,
+        school=school,
+        name=token,
+        create_kwargs=lambda dn=token: {
+            "code": mint_scoped_code(prefix="DPT", name=dn, school=school, model=Department)
+        },
+        result=result,
+    )
+    return department, None
+
+
 def _compact_header(raw: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", (raw or "").lower())
 
@@ -160,7 +183,7 @@ class StaffLander(Lander):
         try:
             from django.contrib.auth import get_user_model
 
-            from apps.academics.models import Department
+            from apps.academics.models import Department, Specialty
             from apps.people.models import TeacherProfile
         except ImportError as exc:
             raise LanderError(f"StaffLander could not import TeacherProfile: {exc!s}") from exc
@@ -331,17 +354,14 @@ class StaffLander(Lander):
                 # so reusing it would not raise — it would silently import the
                 # source system's namespace into this tenant's catalog.
                 department = None
+                imported_specialty = None
                 dept_name = _staff_field_from_row(row, "department")
                 if dept_name and "department" in model_fields:
-                    department, _ = get_or_create_named(
-                        model=Department,
+                    department, imported_specialty = _resolve_staff_department(
                         school=ctx.school,
-                        name=dept_name,
-                        create_kwargs=lambda dn=dept_name: {
-                            "code": mint_scoped_code(
-                                prefix="DPT", name=dn, school=ctx.school, model=Department
-                            )
-                        },
+                        row=row,
+                        Department=Department,
+                        Specialty=Specialty,
                         result=result,
                     )
 
@@ -377,7 +397,10 @@ class StaffLander(Lander):
                 persist_dfv_extras(
                     ctx=ctx, entity_type="staff", entity_id=obj.pk,
                     extras={"hire_date": _staff_field_from_row(row, "hire_date"),
-                            "source_role": role_label},
+                            "source_role": role_label,
+                            "imported_specialty": (
+                                imported_specialty.name if imported_specialty else ""
+                            )},
                     result=result,
                 )
                 _sweep_custom_attributes(obj, row, model_fields, result)

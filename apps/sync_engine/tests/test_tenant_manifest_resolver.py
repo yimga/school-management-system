@@ -30,6 +30,13 @@ def _school(**kwargs):
 
 
 class TenantManifestResolverTests(SimpleTestCase):
+    def test_manifest_includes_ingestion_lexicon(self) -> None:
+        m = build_school_offline_manifest(_school(country_code="CM"))
+        lex = m.operational_context.get("ingestion_lexicon")
+        self.assertIsInstance(lex, dict)
+        self.assertEqual(lex.get("country_code"), "CM")
+        self.assertTrue(lex.get("lexicon_mappings"))
+
     def test_defined_country_produces_country_enriched_manifest(self) -> None:
         m = build_school_offline_manifest(_school(country_code="CM"))
         self.assertEqual(m.data_policies["country"]["country_code"], "CM")

@@ -7,7 +7,7 @@
   'use strict';
 
   var DB_NAME = 'sms-offline-mirror';
-  var DB_VERSION = 6;
+  var DB_VERSION = 7;
   var db = null;
 
   function getDexie() {
@@ -38,7 +38,7 @@
         kb_articles: 'id, slug, locale, updated_at',
         wizard_drafts: 'key, school_id, wizard_key, step_key, updated_at',
       });
-      db.version(DB_VERSION).stores({
+      db.version(6).stores({
         students: 'id, school_id, classroom_id, updated_at',
         attendance: 'id, student_id, classroom_id, date, updated_at',
         evaluations: 'id, student_id, subject_assignment_id, updated_at',
@@ -50,6 +50,9 @@
         school_readiness: 'school_key, updated_at',
         operational_lifecycle: 'school_key, updated_at',
         discipline_incidents: 'id, school_id, updated_at',
+      });
+      db.version(DB_VERSION).stores({
+        ingestion_lexicon: 'country_code, updated_at',
       });
       return db.open().then(function () { return db; });
     } catch (err) {
