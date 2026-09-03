@@ -548,8 +548,16 @@ def compose_live_import(
         # TypeError from a real defect in the assessment should be visible in the
         # log, not indistinguishable from an unmigrated table.
         edge_stranding = None
+    try:
+        from .catalog_preflight import review_notice as catalog_routing_notice
+
+        catalog_routing = catalog_routing_notice(bundle)
+    except (ImportError, AttributeError, LookupError, TypeError, ValueError,
+            ProgrammingError, OperationalError):
+        catalog_routing = None
     return {
         "edge_stranding": edge_stranding,
+        "catalog_routing": catalog_routing,
         "status": status,
         "succeeded": succeeded,
         "workflow_state": workflow_state_label(

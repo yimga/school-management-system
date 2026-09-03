@@ -22,6 +22,10 @@ Block obviously broken bundles BEFORE the apply step burns workers:
       (every entry path reaches it); this one exists so the wizard can show the
       operator the answer before they press the button.
 
+    * :func:`check_catalog_routing` — spreadsheet catalog shape vs assigned
+      record type (Matières vs Filières). Warning-only; surfaces on Review &
+      Import via :mod:`catalog_preflight`.
+
     * :func:`run_all` — convenience wrapper returning a single dict
       consumed by the wizard before flipping APPLYING.
 """
@@ -268,6 +272,35 @@ def check_edge_reachability(*, bundle: MigrationBundle) -> PreflightCheck:
     )
 
 
+def check_catalog_routing(*, bundle: MigrationBundle) -> PreflightCheck:
+    """Warn when spreadsheet catalog shape disagrees with assigned record type."""
+    from .catalog_preflight import catalog_preflight_report
+
+    report = catalog_preflight_report(bundle)
+    if not report.get("has_findings"):
+        return PreflightCheck(
+            name="catalog_routing",
+            passed=True,
+            message="Subject/specialty catalog tags match file shape.",
+            detail=report,
+        )
+    parts: list[str] = []
+    for row in report.get("artifacts") or []:
+        fname = row.get("filename") or "file"
+        msgs = row.get("messages") or []
+        if msgs:
+            prefix = "CRITICAL" if row.get("severity") == "critical" else "warn"
+            parts.append(f"{prefix} {fname}: {msgs[0]}")
+    for msg in report.get("bundle_warnings") or []:
+        parts.append(str(msg))
+    return PreflightCheck(
+        name="catalog_routing",
+        passed=not report.get("blocking"),
+        message="; ".join(parts[:4]) if parts else "Catalog routing review recommended.",
+        detail=report,
+    )
+
+
 def run_all(*, bundle: MigrationBundle) -> PreflightReport:
     """Run every check; returns a single report consumable by the wizard."""
     return PreflightReport(
@@ -277,5 +310,6 @@ def run_all(*, bundle: MigrationBundle) -> PreflightReport:
             check_disk_space(bundle=bundle),
             check_cross_bundle_fks(bundle=bundle),
             check_edge_reachability(bundle=bundle),
+            check_catalog_routing(bundle=bundle),
         ],
     )

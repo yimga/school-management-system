@@ -1327,6 +1327,19 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             detected = (artifact.assigned_domain or top.get("domain", "") or "").strip()
             artifact_maps = per_artifact.get(artifact.path_within_bundle or "") or []
             mapping_rows = _column_mapping_rows(artifact_maps)
+            catalog_hint = ""
+            if bundle.school_id:
+                try:
+                    from .catalog_preflight import artifact_catalog_hint
+
+                    catalog_hint = artifact_catalog_hint(artifact, school=bundle.school)
+                except (ImportError, AttributeError, TypeError, ValueError):
+                    catalog_hint = ""
+            row_hint = _row_hint(artifact)
+            if catalog_hint and row_hint:
+                combined_hint = f"{catalog_hint} {row_hint}"
+            else:
+                combined_hint = catalog_hint or row_hint
             rows.append(
                 {
                     "id": artifact.pk,
@@ -1344,7 +1357,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                     "source": artifact.inferred_source,
                     "quarantined": artifact.quarantined,
                     "quarantine_reason": artifact.quarantine_reason,
-                    "hint": _row_hint(artifact),
+                    "hint": combined_hint,
                     "dfv_only": detected in ("payroll", "compliance"),
                     "mappings": mapping_rows,
                     "field_choices": _field_choices_for_domain(detected),
@@ -1619,6 +1632,25 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         confirmed = str(request.POST.get("confirm", "")).lower() in ("1", "true", "yes", "on")
         dry_run = not confirmed
+        catalog_ack = str(request.POST.get("catalog_routing_ack", "")).lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+        if confirmed:
+            from .catalog_preflight import apply_blocked_by_catalog
+
+            blocked, block_msg = apply_blocked_by_catalog(
+                bundle,
+                confirmed=True,
+                acknowledged=catalog_ack,
+            )
+            if blocked:
+                messages.error(request, block_msg)
+                return redirect(
+                    _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
+                )
         try:
             from .celery_tasks import enqueue_apply
 

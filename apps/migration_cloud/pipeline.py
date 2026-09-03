@@ -418,6 +418,12 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
         # custom_fields lander for every artifact.
         bundle.save(update_fields=["mapping_summary", "updated_at"])
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"ai_calls": summary["ai_calls"]})
+        try:
+            from .catalog_preflight import persist_catalog_preflight
+
+            persist_catalog_preflight(bundle)
+        except Exception:  # noqa: BLE001 — preflight must never block mapping
+            logger.debug("pipeline: catalog preflight persist failed", exc_info=True)
         bundle.refresh_from_db()
         summary["stages_run"].append("map")
         # Partner lifecycle event (G-5): emitted at the SERVICE layer so a
