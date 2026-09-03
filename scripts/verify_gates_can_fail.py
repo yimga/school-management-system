@@ -1023,6 +1023,27 @@ MUTATIONS["admin-autofill-coverage"] = Mutation(
     replacement=b"INITIAL_BUILDERS: dict = {}" + chr(10).encode() + b"_GATEPROOF_RETIRED_BUILDERS = {",
 )
 
+MUTATIONS["no-placeholder-copy"] = Mutation(
+    kind="create",
+    path="templates/_gate_proof_undeclared_placeholder.html",
+    defect=(
+        "a template ships stub copy that no human ever declared -- exactly the state "
+        "docs/generated/no_placeholder_audit.json certified as clean while covering a "
+        "corpus 824 templates smaller than the tree it was describing"
+    ),
+    # create, not patch: the gate is a tree scan, and a new file carrying the
+    # violation cannot go stale the way a byte anchor in someone else's file
+    # does. The harness marks it intent-to-add, so a corpus built from
+    # `git ls-files` would see it too.
+    content=(
+        b"{% comment %}Planted by verify_gates_can_fail; not a real page.{% endcomment %}"
+        + chr(10).encode()
+        + b"<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>"
+        + chr(10).encode()
+    ),
+)
+
+
 # DEAD verdicts that have been INDEPENDENTLY CONFIRMED, with the evidence that
 # confirmed them.
 #

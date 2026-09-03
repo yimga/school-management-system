@@ -393,6 +393,20 @@ GATES: list[tuple[str, list[str]]] = [
     # from the live registry and cannot be typed, so registering an entity never
     # fails this gate -- only failing to SAY something does.
     ("edge-rail-coverage", ["audit_rail_coverage.py", "--compare"]),
+    # A tracked artifact that certified a clean state over a surface it never
+    # scanned (2026-09-02). docs/generated/no_placeholder_audit.json read
+    # "finding_count": 0 over "templates_scanned": 1086 while 1910 templates
+    # existed, so 824 of the templates that certificate covered -- 43% -- had
+    # never been looked at, and the one live finding in the tree was not in it.
+    # It could rot because nothing ran it: main() ended in `return 0`
+    # unconditionally, there was no --strict, and the only files naming the
+    # script were itself and generate_final_validation_truth_check.py, which
+    # re-serialises the artifact rather than re-running the scan. --strict
+    # re-derives the answer from the live tree, WRITES NOTHING (so this hook
+    # does not dirty the worktree), and fails on an undeclared placeholder, a
+    # broken allow-marker, an empty corpus, or an artifact that no longer
+    # matches. ~7s over 1922 templates, stdlib only.
+    ("no-placeholder-copy", ["audit_no_placeholder.py", "--strict"]),
     # --- the meta-gate above the meta-gate (2026-08-28) ----------------------
     # verify_ci_gate_wiring proves a gate is INVOKED. Nothing proved a gate,
     # once invoked, DOES anything -- and three gates in this very list were

@@ -83,6 +83,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # decorative. This gate is exactly the kind that gets quietly unwired,
     # because unwiring it makes nothing go red.
     ("scripts/scan_workflow_swallowed_exit_codes.py", "architectural-boundaries.yml"),
+    # Added 2026-09-02. Its own tracked artifact is what made the case: a
+    # "finding_count": 0 over 1086 templates, dated 2026-05-19, while the tree
+    # held 1910 -- a clean bill of health over 824 templates it had never seen.
+    # An unwired reporter rots silently and is then read as a fact, so the
+    # invocation itself is the thing that has to be defended.
+    ("scripts/audit_no_placeholder.py", "architectural-boundaries.yml"),
     ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
     # Added 2026-08-27, detector integrity. These three were each green for a
     # reason unrelated to the tree being clean, which is the worst state a gate
