@@ -10,7 +10,11 @@ Supports both stacks:
 from __future__ import annotations
 
 import argparse
+import ast
+import importlib
+import inspect
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,6 +28,56 @@ def _index(stack: list[str], needle: str) -> int:
             return i
     return -1
 
+
+def _calls_get_response(node) -> bool:
+    """True if this statement contains a call to ``self.get_response(...)``."""
+    for sub in ast.walk(node):
+        if (
+            isinstance(sub, ast.Call)
+            and isinstance(sub.func, ast.Attribute)
+            and sub.func.attr == "get_response"
+        ):
+            return True
+    return False
+
+
+def has_request_phase(dotted: str) -> bool:
+    """Does this middleware do anything BEFORE calling get_response?
+
+    Structural, not a name allowlist, so the next response-only wrapper is legal
+    and the next request-phase interloper still fails. Unknown shapes are treated
+    as request-phase: this decides whether something may sit ahead of
+    SecurityMiddleware, so the safe default is "yes, it does".
+    """
+    module_path, _, attr = dotted.rpartition(".")
+    try:
+        obj = getattr(importlib.import_module(module_path), attr)
+    except Exception:
+        return True
+    if hasattr(obj, "process_request") or hasattr(obj, "process_view"):
+        return True
+    call = getattr(obj, "__call__", None)
+    if call is None:
+        return True
+    try:
+        tree = ast.parse(textwrap.dedent(inspect.getsource(call)))
+    except (OSError, TypeError, SyntaxError):
+        return True
+    fn = tree.body[0]
+    if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        return True
+    body = list(fn.body)
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+        and isinstance(body[0].value.value, str)
+    ):
+        body = body[1:]  # a docstring is not request-phase work
+    for position, stmt in enumerate(body):
+        if _calls_get_response(stmt):
+            return position > 0
+    return True  # never delegates: not a passthrough wrapper
 
 def verify_middleware_order(stack: list[str], *, django_tenants_mode: bool) -> list[str]:
     errors: list[str] = []
@@ -92,10 +146,20 @@ def verify_middleware_order(stack: list[str], *, django_tenants_mode: bool) -> l
         "SessionMiddleware",
         "CORS must run before session for preflight OPTIONS",
     )
+    # INVERTED 2026-09-03. This asked for IdempotencyKeyMiddleware BEFORE
+    # AuthenticationMiddleware ("dedupe before auth mutates request"). Implementing
+    # that is a cross-user data leak: the idempotency cache key is built from
+    # _user_key(request), which reads request.user and falls back to "anon" when it
+    # is absent -- and request.user is exactly what AuthenticationMiddleware sets. Run
+    # earlier and every caller keys as global:anon:<method>:<path>:<header>, so two
+    # authenticated users sending the same Idempotency-Key to the same path collide
+    # and the second is served the first one's cached JSON body. Measured: the two
+    # cache keys come back byte-identical. The stack already has this the right way
+    # round; the gate did not.
     require_before(
-        "IdempotencyKeyMiddleware",
         "AuthenticationMiddleware",
-        "API idempotency dedupe before auth mutates request",
+        "IdempotencyKeyMiddleware",
+        "the idempotency cache key is user-scoped, so request.user must already be set",
     )
     require_before(
         "SessionMiddleware",
@@ -112,8 +176,28 @@ def verify_middleware_order(stack: list[str], *, django_tenants_mode: bool) -> l
         "AppApiContextMiddleware",
         "marketplace app API context after user is known",
     )
-    if _index(stack, "SecurityMiddleware") != 0:
-        errors.append("SecurityMiddleware must be first in MIDDLEWARE")
+    # RELAXED 2026-09-03, in letter but not in intent. This required
+    # SecurityMiddleware at index 0 outright, which is incompatible with a
+    # RESPONSE-ONLY wrapper -- and one is deliberately in front of it.
+    # EdgeHttpsPortRedirectMiddleware rewrites the Location header SecurityMiddleware
+    # emits: SECURE_SSL_REDIRECT builds its target from request.get_host() including
+    # the port, so a box published on WEB_PORT answers 301 https://<box>:10000/ where
+    # nothing speaks TLS, and the browser hangs to ERR_TIMED_OUT. Measured on a live
+    # box. Django runs the response phase in reverse, so the fixer MUST be listed
+    # earlier. What "first" is really protecting is that no middleware inspects or
+    # mutates a REQUEST before the security checks run -- and that is preserved
+    # exactly, because a response-only wrapper has no request phase at all.
+    security_at = _index(stack, "SecurityMiddleware")
+    if security_at < 0:
+        errors.append("missing middleware containing 'SecurityMiddleware'")
+    else:
+        for ahead in stack[:security_at]:
+            if has_request_phase(ahead):
+                errors.append(
+                    f"{ahead} precedes SecurityMiddleware and has request-phase "
+                    "behaviour: only response-only middleware may sit ahead of the "
+                    "security checks"
+                )
 
     return errors
 
