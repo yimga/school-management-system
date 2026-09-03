@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Playbook graceful no-bundle skip (batch 1833 - 2026-09-03)
+
+**A. Scope:** Five-step post-import playbook must exit 0 when the tenant exists but has not imported a bundle yet.
+
+**B. Shipped:** `resolve_school_and_bundle`; quarantine preview/apply/profile skip with warning instead of CommandError; orchestrator integration test.
+
+**C. Proof:** sqlite-memory tenant post-import suite green; live dry-run on `gilead-school` exits clean.
+
+**D. Deploy:** `remediate_tenant_post_import --dry-run` now completes through closure summary even before first bundle.
+
 ## Slice - Academic sessions + compliance normalize (batch 1832 - 2026-09-03)
 
 **A. Scope:** Complete normalize-at-land for OneRoster academic session imports and compliance DFV preserves.

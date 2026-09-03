@@ -1,5 +1,7 @@
 # RunMyCampus — single execution source of truth
 
+**§11.4 forward queue — batch 1833 (playbook graceful no-bundle skip - 2026-09-03):** **DONE (repo-scope).** Closes operator E2E gap where a valid tenant with zero bundles made step 5 raise and the five-step playbook exit 1. **Shipped:** `resolve_school_from_slug` + `resolve_school_and_bundle`; preview/remediate/profile commands skip quarantine with a warning when the school exists but has no bundles; integration test on full dry-run orchestrator. **Proof:** sqlite-memory tenant post-import suite green.
+
 **§11.4 forward queue — batch 1832 (academic_sessions + compliance normalize - 2026-09-03):** **DONE (repo-scope).** Closes normalize-at-land coverage for OneRoster session rows and compliance DFV preserves. **Shipped:** OneRoster/session enrich aliases; compliance category/subject/date aliases; `normalize_canonical_row` on `academic_sessions` + `compliance` landers. **Proof:** sqlite-memory auto-repair suite green (36 tests). **Note:** `reports` lander remains intentional no-op (derived aggregates).
 
 **§11.4 forward queue — batch 1831 (transcripts/comms/fixtures normalize - 2026-09-03):** **DONE (repo-scope).** Extends quarantine burndown to transcript vault, historical communications, and athletics fixture rows. **Shipped:** enrich aliases for transcripts/communications/athletics_fixtures; `normalize_canonical_row` on three landers. **Proof:** sqlite-memory auto-repair suite green.

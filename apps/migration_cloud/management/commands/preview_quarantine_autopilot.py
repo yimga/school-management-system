@@ -72,15 +72,23 @@ class Command(BaseCommand):
             return
         if bundle_id is None and school_slug:
             from apps.migration_cloud.quarantine_resolution import (
-                resolve_latest_bundle_for_school,
+                resolve_school_and_bundle,
             )
 
-            bundle = resolve_latest_bundle_for_school(school_slug)
-            if bundle is None:
+            school, bundle = resolve_school_and_bundle(school_slug)
+            if school is None:
                 self.stdout.write(format_bundle_choices())
                 raise CommandError(
-                    f"No school or bundle found for {school_slug!r} — see the list above."
+                    f"Unknown school {school_slug!r} — see the bundle list above."
                 )
+            if bundle is None:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"School {school.slug!r} has no migration bundles — "
+                        "quarantine preview skipped."
+                    )
+                )
+                return
             bundle_id = bundle.pk
             self.stdout.write(
                 f"Resolved --school {school_slug!r} → bundle {bundle_id} for preview."

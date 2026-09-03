@@ -13,7 +13,7 @@ from apps.migration_cloud.quarantine_profile import (
 )
 from apps.migration_cloud.quarantine_resolution import (
     format_bundle_choices,
-    resolve_latest_bundle_for_school,
+    resolve_school_and_bundle,
 )
 
 
@@ -47,12 +47,20 @@ class Command(BaseCommand):
         bundle_id = options["bundle_id"]
         school_slug = options.get("school")
         if bundle_id is None and school_slug:
-            bundle = resolve_latest_bundle_for_school(school_slug)
-            if bundle is None:
+            school, bundle = resolve_school_and_bundle(school_slug)
+            if school is None:
                 self.stdout.write(format_bundle_choices())
                 raise CommandError(
-                    f"No school or bundle found for {school_slug!r} — see the list above."
+                    f"Unknown school {school_slug!r} — see the bundle list above."
                 )
+            if bundle is None:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"School {school.slug!r} has no migration bundles — "
+                        "nothing to profile."
+                    )
+                )
+                return
             bundle_id = bundle.pk
         if bundle_id is None:
             self.stdout.write(format_bundle_choices())

@@ -50,6 +50,25 @@ class ResolveLatestBundleForSchoolTests(TestCase):
     def test_unknown_slug_returns_none(self):
         self.assertIsNone(resolve_latest_bundle_for_school("no-such-school-slug"))
 
+    def test_school_without_bundle_returns_none(self):
+        school = _school("no-bundle")
+        self.assertIsNone(resolve_latest_bundle_for_school(school.slug))
+
+
+class RemediateTenantPostImportNoBundleTests(TestCase):
+    def test_dry_run_exits_clean_when_school_has_no_bundle(self):
+        school = _school("no-bundle-orch")
+        out = StringIO()
+        call_command(
+            "remediate_tenant_post_import",
+            school=school.slug,
+            dry_run=True,
+            stdout=out,
+        )
+        rendered = out.getvalue()
+        self.assertIn("quarantine preview skipped", rendered.lower())
+        self.assertIn("Closure summary", rendered)
+
 
 class RemediateTenantPostImportOrchestratorTests(TestCase):
     def test_dry_run_chains_five_steps_in_order(self):
