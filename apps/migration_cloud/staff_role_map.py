@@ -97,7 +97,6 @@ _ALIAS_TO_ROLE_NAME: dict[str, str] = {
     # entry for, so a principal's cabinet imported as held-for-review rows.
     "deanofstudies": "DEAN",
     "deanofstudy": "DEAN",
-    "disciplinemaster": "DISCIPLINE_MASTER",
     "seniordisciplinemaster": "DISCIPLINE_MASTER",
     "systemadministrator": "IT_ADMIN",
     "schoolsystemadministrator": "IT_ADMIN",
