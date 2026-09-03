@@ -620,6 +620,7 @@ class CertificationBulkCandidateForm(forms.Form):
         )
 
         if year is not None:
+            # tenant-isolation-allow: bounded-by-school-scoped-active-year
             base_classrooms = Classroom.objects.filter(academic_year=year).order_by(
                 "name"
             )

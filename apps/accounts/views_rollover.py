@@ -716,6 +716,7 @@ def rollover_year(request):
             try:
                 from apps.academics.models import ClassroomPromotionMapping
 
+                # tenant-isolation-allow: bounded-by-school-scoped-source-and-target-year
                 for m in ClassroomPromotionMapping.objects.filter(
                     source_year=source_year, target_year=target_year
                 ).select_related("source_classroom", "target_classroom"):

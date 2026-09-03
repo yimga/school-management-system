@@ -247,7 +247,7 @@ def saml_acs(request, integration_id: int):
         return JsonResponse({"error": "Invalid or expired RelayState"}, status=403)
 
     integration = (
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: sso-callback-integration-id-is-the-tenant-selector-pre-session-then-cross-checked-403-on-mismatch
         ServiceIntegration.objects.filter(
             pk=integration_id,
             service_type=ServiceIntegration.ServiceType.OAUTH,
@@ -396,7 +396,7 @@ def saml_acs(request, integration_id: int):
 
 @require_GET
 def saml_metadata(request, integration_id: int):
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    # tenant-isolation-allow: public-sp-metadata-no-session-exists-integration-id-is-the-tenant-selector
     integration = ServiceIntegration.objects.filter(
         pk=integration_id,
         service_type=ServiceIntegration.ServiceType.OAUTH,
