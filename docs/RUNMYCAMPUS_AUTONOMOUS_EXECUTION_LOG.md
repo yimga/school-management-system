@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - People directory readiness panel (batch 1828 - 2026-09-03)
+
+**A. Scope:** Tenant Review & Import UX parity — people directory closure visible next to teaching graph and finance.
+
+**B. Shipped:** `_build_people_directory_readiness`; `people_directory_readiness` card on `bundle_review.html`.
+
+**C. Proof:** sqlite-memory **5/5 OK** on closure-status suite.
+
+**D. Deploy:** Re-open Review & Import after apply; panel shows enrollment/guardian gaps before running `remediate_people_directory`.
+
 ## Slice - Assignment normalize + closure status (batch 1827 - 2026-09-03)
 
 **A. Scope:** Quarantine burndown for transport/hostel/cafeteria assignment rows; operator triage snapshot before/after post-import playbook.

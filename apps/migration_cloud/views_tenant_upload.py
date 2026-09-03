@@ -1360,6 +1360,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "verification": None,
             "teaching_graph_readiness": None,
             "finance_ledger_readiness": None,
+            "people_directory_readiness": None,
             "importing": False,
             "import_flight": {"in_flight": False, "phase": "", "stuck": False},
             "live_import": {},
@@ -1518,6 +1519,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "verification": _build_verification(bundle),
             "teaching_graph_readiness": _build_teaching_graph_readiness(bundle),
             "finance_ledger_readiness": _build_finance_ledger_readiness(bundle),
+            "people_directory_readiness": _build_people_directory_readiness(bundle),
             # Live import/repair state: the review page shows a polling progress
             # card and hides the write affordances while an apply is in flight,
             # then reveals the outcome (last_import) once it settles.
@@ -1743,6 +1745,32 @@ def _build_finance_ledger_readiness(bundle):
     except Exception:  # noqa: BLE001 — panel must never break review
         logger.debug(
             "tenant review: finance ledger readiness failed for %s",
+            getattr(bundle, "pk", "?"),
+            exc_info=True,
+        )
+        return None
+
+
+def _build_people_directory_readiness(bundle):
+    """Enrollment SOT + guardian directory readiness for post-import review."""
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return None
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        if not totals and getattr(bundle, "status", "") not in (
+            BundleStatus.APPLIED,
+            BundleStatus.RECONCILED,
+        ):
+            return None
+        from apps.migration_cloud.closure_status import assess_people_directory_readiness
+
+        return assess_people_directory_readiness(school)
+    except Exception:  # noqa: BLE001 — panel must never break review
+        logger.debug(
+            "tenant review: people directory readiness failed for %s",
             getattr(bundle, "pk", "?"),
             exc_info=True,
         )
