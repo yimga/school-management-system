@@ -1262,11 +1262,47 @@ class StudentGuardian(models.Model):
         on_delete=models.SET_NULL,
         related_name="merged_guardian_duplicates",
     )
+    # Tenant ownership (2026-09-03). The link is SCHOOL data even though it names
+    # a login: the edge sync rail scopes every entity by school, and this model
+    # had no school column, so guardian contact edits made offline could never
+    # ride. Nullable for old rows; save() aligns it from the student, the same
+    # rule academics.Incident applies.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    # Edge-sync contract, same shape as every rail entity. The entity is
+    # INSERT-HELD (see _INSERT_HELD_ENTITIES): updates to an existing link
+    # converge two-way, but creating one requires the accounts.User it names,
+    # and minting a login that grants access to a child's records is an
+    # authentication decision the rail must not make.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    client_offline_id = models.CharField(
+        max_length=128, blank=True, default="", db_index=True
+    )
 
     objects = StudentGuardianQuerySet.as_manager()
 
     class Meta:
         unique_together = ("guardian_user", "student")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_studentguardian_school_offline_id",
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        # Keep tenant ownership aligned with the student, mirroring
+        # academics.Incident.save(): a link whose school stays NULL is invisible
+        # to the school-scoped delta builder forever.
+        if self.student_id and not self.school_id:
+            self.school_id = getattr(self.student, "school_id", None)
+        super().save(*args, **kwargs)
 
     def clean(self):
         # Allow PARENT or TEACHER (dual-role: teacher who is also a parent uses same account)

@@ -330,7 +330,7 @@ def on_attendance_saved(sender, instance, created, **kwargs):
             return
 
         student = instance.student
-        guardians = StudentGuardian.objects.filter(
+        guardians = StudentGuardian.objects.filter(  # tenant-isolation-allow: bound to one student row off the saved instance (reviewed 2026-09-03)
             student=student,
             is_active=True,
             guardian_user__isnull=False,
@@ -392,7 +392,7 @@ def on_incident_saved(sender, instance, created, **kwargs):
         from apps.finance.models import Notification as FinanceNotification
 
         student = instance.student
-        guardians = StudentGuardian.objects.filter(
+        guardians = StudentGuardian.objects.filter(  # tenant-isolation-allow: bound to one student row off the saved instance (reviewed 2026-09-03)
             student=student,
             is_active=True,
             guardian_user__isnull=False,

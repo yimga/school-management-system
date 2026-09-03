@@ -47,7 +47,7 @@ def has_parent_hat(user) -> bool:
         return False
     from apps.people.models import StudentGuardian
 
-    return StudentGuardian.objects.filter(guardian_user=user).exists()
+    return StudentGuardian.objects.filter(guardian_user=user).exists()  # tenant-isolation-allow: existence probe for the user's own parent hat (reviewed 2026-09-03)
 
 
 def _has_teacher_hat_cached(request):

@@ -383,7 +383,7 @@ def split_allocation(request: HttpRequest):
             payer_allocations = form.get_payer_allocations()
         elif split_mode == "equal":
             student_guardians = list(
-                StudentGuardian.objects.filter(
+                StudentGuardian.objects.filter(  # tenant-isolation-allow: bound to one school-resolved student row; links follow the student (reviewed 2026-09-03)
                     student=student,
                     can_view_finance=True,
                     guardian_user__is_active=True,

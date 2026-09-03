@@ -224,6 +224,32 @@ POLICIES: dict[str, SyncPolicy] = {
             "a merge-strategy one."
         ),
     ),
+    "incident": SyncPolicy(
+        entity="incident",
+        strategy=MergeStrategy.CAUSAL_LWW,
+        rationale=(
+            "Discipline incidents are a mutable register BY DESIGN -- the model "
+            "carries a status workflow (OPEN->RESOLVED, resolved_at) that people "
+            "edit, so a later causally ranked correction winning is correct. This "
+            "is deliberately NOT the behavior_event row above: that row governs an "
+            "append-only event-log abstraction that was never a registered rail "
+            "entity, and aliasing Incident to it would turn every offline status "
+            "change into a manual conflict while protecting nothing (no access, "
+            "money or marks ride on the row)."
+        ),
+    ),
+    "student_guardian": SyncPolicy(
+        entity="student_guardian",
+        strategy=MergeStrategy.CAUSAL_LWW,
+        rationale=(
+            "Guardian CONTACT data (relationship, phone, email, channel "
+            "preferences) converges by causal rank -- correcting a parent's phone "
+            "offline is the point. The sensitive parts are handled structurally, "
+            "not by protection: creation is insert-held (the link names a login "
+            "and grants access), and can_view_finance / is_active / merged_into "
+            "ride down-only."
+        ),
+    ),
 }
 
 

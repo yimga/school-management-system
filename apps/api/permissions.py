@@ -97,7 +97,7 @@ class CanViewChild(permissions.BasePermission):
             return True
         from apps.people.models import StudentGuardian
 
-        return StudentGuardian.objects.filter(
+        return StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship check on one (user, student) pair (reviewed 2026-09-03)
             guardian_user=user,
             student=obj,
             can_view_results=True,

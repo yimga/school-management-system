@@ -408,7 +408,7 @@ def parent_feed(request: HttpRequest):
         messages.info(request, "Select a school to view the feed.")
         return redirect("portal:parent_dashboard")
     student_ids = set(
-        StudentGuardian.objects.filter(guardian_user=request.user).values_list(
+        StudentGuardian.objects.filter(guardian_user=request.user).values_list(  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
             "student_id", flat=True
         )
     )

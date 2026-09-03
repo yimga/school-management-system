@@ -1070,7 +1070,7 @@ def assign_equal_invoice_payer_shares(invoice: Invoice) -> list[InvoicePayerShar
     if not invoice or not invoice.student_id:
         return []
     guardians = list(
-        StudentGuardian.objects.filter(
+        StudentGuardian.objects.filter(  # tenant-isolation-allow: bound to one student row off the invoice (reviewed 2026-09-03)
             student_id=invoice.student_id,
             can_view_finance=True,
             guardian_user__is_active=True,

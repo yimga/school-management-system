@@ -1289,6 +1289,16 @@ def conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
     Returns 'OVERWRITE' (default), 'PRESERVE' (skip update), or 'MERGE'
     (the lander caller can decide field-by-field). Operators set this via
     the conflict review UI before re-running apply.
+
+    DELIBERATE ASYMMETRY with ``explicit_conflict_resolution_for`` above -- do
+    not harmonise them. HERE absent-means-OVERWRITE, because this serves the
+    ordinary field idiom where the import refreshing data is the point and
+    PRESERVE is the operator's opt-out. THERE absent-means-"", because that
+    caller's default is PROTECT (a value someone set by hand) and collapsing
+    "nobody decided" into "overwrite" is precisely the silent overturn the
+    protective branch exists to stop. Making these two return the same thing
+    for an absent row would reintroduce that data-loss path while looking like
+    a cleanup.
     """
     if canonical_obj is None:
         return "OVERWRITE"

@@ -254,7 +254,7 @@ def _teacher_org_tree(user):
 
 def _parent_children_tree(user):
     """Build tree of children linked to this parent (guardian)."""
-    links = StudentGuardian.objects.filter(guardian_user=user).select_related(
+    links = StudentGuardian.objects.filter(guardian_user=user).select_related(  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
         "student",
         "student__classroom",
         "student__classroom__academic_year",

@@ -1480,6 +1480,15 @@ class Incident(models.Model):
         help_text="When True, linked guardians are notified (student incidents only).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    # Edge-sync contract (2026-09-03): the delta cursor filters on updated_at and
+    # the anchor upserts offline-created rows by (school, client_offline_id) --
+    # same shape as every other rail entity. Offline discipline logging on a box
+    # is a primary use of this model, which is why it is insertable across the
+    # rail rather than insert-held.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    client_offline_id = models.CharField(
+        max_length=128, blank=True, default="", db_index=True
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -1503,6 +1512,13 @@ class Incident(models.Model):
 
     class Meta:
         ordering = ["-date", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_incident_school_offline_id",
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         """

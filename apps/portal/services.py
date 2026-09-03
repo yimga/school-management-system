@@ -82,7 +82,7 @@ def guardian_student_links(
     Return StudentGuardian links scoped to the authenticated guardian.
     Ensures we never leak referred students outside the guardianship table.
     """
-    qs = StudentGuardian.objects.filter(guardian_user=user)
+    qs = StudentGuardian.objects.filter(guardian_user=user)  # tenant-isolation-allow: the signed-in guardian's own links; see docstring (reviewed 2026-09-03)
     if finance_only:
         # Respect the site-level finance opt-in toggle; when disabled, all guardian links apply.
         qs = _guardian_finance_qs(user)
