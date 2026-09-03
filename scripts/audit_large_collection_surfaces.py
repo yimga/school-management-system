@@ -13,6 +13,31 @@ ALLOW_MARKER_RE = re.compile(
     r"<!--\s*large-collection-allow:\s*(?P<reason>[^-]+(?:-[^-]+)*)\s*-->",
     re.IGNORECASE,
 )
+# A REAL paginator, as opposed to the word "pagination" appearing somewhere in
+# the file. The bare substring matched an aria-label ("Chain pagination"), a print
+# stylesheet href (rmc-pagination-grammar.css) and Django's own get_pagination_key
+# -- none of which bound a single row.
+PAGINATION_CONTEXT_RE = re.compile(r"\b(?:page_obj|is_paginated|paginator)\b")
+PAGINATION_INCLUDE_RE = re.compile(r"{%\s*include\s+[\"'][^\"']*pagination[^\"']*[\"']")
+
+# Not every paginated page uses Django's ListView names. token_rotation_chain.html
+# slices to PAGE_SIZE in the view and hands the template page_num/page_count/
+# has_prev/has_next -- real pagination that none of the names above match. What it
+# does have, and what an aria-label or a stylesheet href never has, is a link that
+# asks the SERVER for another page. That link is the behaviour; the word was not.
+PAGE_QUERY_LINK_RE = re.compile(r"href=[\"'][^\"']*[?&]page=", re.IGNORECASE)
+
+# `table-pagination-allow:` is verify_platform_ux_invariants.py's marker for "this
+# table is bounded, and here is why". This gate was honouring it BY ACCIDENT --
+# the marker contains the word "pagination", so the bare substring test passed.
+# Honour it deliberately instead, and require the reason it is supposed to carry:
+# a marker with no reason bounds nothing and explains nothing.
+BOUND_DECLARATION_RE = re.compile(
+    r"table-pagination-allow:\s*(?P<reason>[^\r\n]*?)\s*(?:{%\s*endcomment|--!?>|$)",
+    re.IGNORECASE | re.MULTILINE,
+)
+MIN_BOUND_REASON_TOKENS = 2
+
 TABLE_RE = re.compile(r"<table\b(?P<table_attrs>[^>]*)>(?P<body>.*?)</table>", re.IGNORECASE | re.DOTALL)
 THEAD_RE = re.compile(r"<thead\b[^>]*>(?P<body>.*?)</thead>", re.IGNORECASE | re.DOTALL)
 TBODY_RE = re.compile(r"<tbody\b[^>]*>(?P<body>.*?)</tbody>", re.IGNORECASE | re.DOTALL)
@@ -77,6 +102,19 @@ _FORM_BLOCK_RE = re.compile(r"<form\b[^>]*>.*?</form>", re.IGNORECASE | re.DOTAL
 
 
 _DETAILS_TOKEN_RE = re.compile(r"<details\b[^>]*>|</details\s*>", re.IGNORECASE)
+
+
+def _bound_declaration(file_text: str) -> str | None:
+    """The written reason from a `table-pagination-allow:` marker, if it has one.
+
+    Returns None when the marker is absent OR present without a real reason, so a
+    bare marker cannot silence the gate. Callers treat None as "not bounded".
+    """
+    for match in BOUND_DECLARATION_RE.finditer(file_text):
+        reason = (match.group("reason") or "").strip()
+        if len(reason.split()) >= MIN_BOUND_REASON_TOKENS:
+            return reason
+    return None
 
 
 def _details_blocks(html: str) -> list[str]:
@@ -234,12 +272,16 @@ def score_table(file_text: str, table_match: re.Match[str], path: Path) -> dict 
         raw_row_forms > 0 and row_form_count == 0
     )
     collection = loop_match.group("collection")
-    has_pagination = (
+    has_real_pagination = (
         "components/pagination.html" in file_text
-        or "pagination" in file_text
+        or PAGINATION_INCLUDE_RE.search(file_text) is not None
+        or PAGINATION_CONTEXT_RE.search(file_text) is not None
+        or PAGE_QUERY_LINK_RE.search(file_text) is not None
         or collection.startswith("page_obj")
         or collection.startswith("page.")
     )
+    bound_reason = _bound_declaration(file_text)
+    has_pagination = has_real_pagination or bound_reason is not None
     has_density = (
         "density" in table_html
         or "table-sm" in table_html
@@ -329,6 +371,8 @@ def score_table(file_text: str, table_match: re.Match[str], path: Path) -> dict 
         "row_forms": row_form_count,
         "row_inputs": row_input_count,
         "has_pagination": has_pagination,
+        "has_real_pagination": has_real_pagination,
+        "bound_declaration_reason": bound_reason,
         "has_paginate_scroll_policy": has_scroll_policy,
         "reasons": reasons,
         "recommendations": recommendations,
