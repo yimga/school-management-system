@@ -17,11 +17,16 @@ BARE_CALL = "get_active_year_and_term" + "()"
 
 # Files still allowed to contain a bare call. Every entry must actually
 # contain one, so fixing a file forces its removal here (no stale exemptions).
-ALLOWED_BARE = {
-    # _teacher_org_tree: no request in scope and User has no school column;
-    # owned by the accounts tenancy burndown.
-    "apps/accounts/views.py",
-}
+# Closed 2026-09-03. The last exemption was _teacher_org_tree in
+# apps/accounts/views.py: it takes a user rather than a request, and User has
+# no school column, so the scope now comes from TeacherProfile.school (the
+# profile is resolved from that user, so it names exactly one school) with the
+# user's primary non-suspended SchoolMembership as the fallback.
+#
+# Kept as set() rather than {} on purpose: an empty brace literal is a DICT,
+# and the `ALLOWED_BARE - set(offenders)` staleness check below would raise
+# TypeError instead of asserting.
+ALLOWED_BARE: set[str] = set()
 
 
 class BareCallerRatchetTests(SimpleTestCase):
