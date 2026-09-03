@@ -146,6 +146,8 @@ class BannerRowTrimTests(SimpleTestCase):
 
 class AcademicsCategoryLandingTests(TestCase):
     def setUp(self):
+        from apps.migration_cloud.models import MigrationBundle
+
         self.school = School.objects.create(
             name="Field Fidelity School",
             slug="field-fidelity",
@@ -153,8 +155,20 @@ class AcademicsCategoryLandingTests(TestCase):
             is_active=True,
             country_code="CM",
         )
+        # A REAL bundle row: detect_conflict refuses to mint a review item for a
+        # bundle id that resolves to nothing, so the actionability assertions
+        # below need the fk to exist.
+        self.bundle = MigrationBundle.objects.create(
+            school=self.school,
+            schema_name="",
+            idempotency_key="fidelity-cat-2026-09-03",
+        )
         self.ctx = LanderContext(
-            school=self.school, bundle_id=1, artifact_id=1, dry_run=False, schema_name=""
+            school=self.school,
+            bundle_id=self.bundle.pk,
+            artifact_id=1,
+            dry_run=False,
+            schema_name="",
         )
 
     def _land(self, row):
@@ -173,6 +187,8 @@ class AcademicsCategoryLandingTests(TestCase):
         self.assertEqual(subj.category, Subject.Category.GENERAL)
 
     def test_a_deliberate_category_outranks_the_import(self):
+        from apps.migration_cloud.models import ConflictResolution, MigrationConflict
+
         Subject.objects.create(
             school=self.school, name="DRAWING", category=Subject.Category.PROFESSIONAL
         )
@@ -183,6 +199,37 @@ class AcademicsCategoryLandingTests(TestCase):
             any("kept category" in str(n) for n in getattr(res, "notes", []) or []),
             "the disagreement must be reported, not silent",
         )
+        # Reported is not enough: a note is not a held row, and nothing in the
+        # review queue would ever offer it to an operator. The kept branch must
+        # mint an ACTIONABLE conflict.
+        conflict = MigrationConflict.objects.get(
+            bundle=self.bundle, canonical_pk=str(subj.pk)
+        )
+        self.assertEqual(conflict.resolution, ConflictResolution.PENDING)
+        self.assertIn("category", conflict.changed_fields)
+
+    def test_an_explicit_overwrite_decision_is_honoured_on_reapply(self):
+        from django.utils import timezone
+
+        from apps.migration_cloud.models import ConflictResolution, MigrationConflict
+
+        Subject.objects.create(
+            school=self.school, name="METALWORK", category=Subject.Category.PROFESSIONAL
+        )
+        self._land({"title": "METALWORK", "category": "General"})
+        subj = Subject.objects.get(school=self.school, name="METALWORK")
+        self.assertEqual(subj.category, Subject.Category.PROFESSIONAL)
+        conflict = MigrationConflict.objects.get(
+            bundle=self.bundle, canonical_pk=str(subj.pk)
+        )
+        conflict.resolution = ConflictResolution.OVERWRITE
+        conflict.resolved_at = timezone.now()
+        conflict.save(update_fields=["resolution", "resolved_at"])
+        # The operator said the file wins; the next apply of this bundle acts
+        # on that decision instead of re-filing the same disagreement.
+        self._land({"title": "METALWORK", "category": "General"})
+        subj.refresh_from_db()
+        self.assertEqual(subj.category, Subject.Category.GENERAL)
 
     def test_unknown_label_lands_the_subject_and_says_so(self):
         res = self._land({"title": "FORGE WORK", "category": "Vocational-ish"})

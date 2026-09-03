@@ -30,6 +30,8 @@ from typing import Any, Iterator
 
 from ._helpers import (
     coerce_decimal,
+    detect_conflict,
+    explicit_conflict_resolution_for,
     get_or_create_named,
     model_field_names,
     record_id_mapping,
@@ -176,12 +178,34 @@ class AcademicsLander(Lander):
                     # school's decision and a re-upload must not overturn it.
                     if obj.category == Subject.Category.OTHER:
                         updates["category"] = category
+                    elif explicit_conflict_resolution_for(ctx=ctx, canonical_obj=obj) in (
+                        "OVERWRITE",
+                        "MERGE",
+                    ):
+                        # The operator reviewed this exact disagreement and said
+                        # the file wins. That recorded decision is the provenance
+                        # Subject.category itself lacks.
+                        updates["category"] = category
                     else:
+                        # A note is durable but is NOT a held row -- nothing in
+                        # the review queue would ever offer this to an operator.
+                        # detect_conflict makes the disagreement ACTIONABLE: it
+                        # mints a MigrationConflict the conflicts screen shows,
+                        # and an explicit OVERWRITE there is honoured by the
+                        # branch above on the next apply of this bundle.
+                        detect_conflict(
+                            ctx=ctx,
+                            domain="academics",
+                            canonical_obj=obj,
+                            incoming={"category": category},
+                            legacy_id=code or name,
+                        )
                         record_row_note(
                             result,
                             f"academics: kept category {obj.category!r} for"
                             f" {name!r} (import says {category!r}; the row was"
-                            " set deliberately and an import does not outrank it)",
+                            " set deliberately and an import does not outrank it;"
+                            " logged for conflict review)",
                         )
                 if code and "code" in subject_fields:
                     trimmed = code[:30]  # magic-number-allow: Subject.code max_length

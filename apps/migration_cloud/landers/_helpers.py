@@ -1243,6 +1243,42 @@ def record_row_note(result, message: str, row: Any = None) -> None:
         pass
 
 
+def explicit_conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
+    """The operator's RECORDED decision for this object in this bundle, or "".
+
+    ``conflict_resolution_for`` collapses "no decision" into its OVERWRITE
+    default, which is right for the ordinary field idiom (import refreshes,
+    PRESERVE is the opt-out). A caller whose default is PROTECT -- the subject
+    category, where "off the default" is the only proxy for a deliberate edit --
+    needs the absence of a decision distinguished from the decision, or the
+    default would reinstate exactly the silent overturn the protection exists
+    to stop.
+    """
+    if canonical_obj is None:
+        return ""
+    try:
+        from apps.migration_cloud.models import ConflictResolution, MigrationConflict
+    except Exception:  # noqa: BLE001
+        return ""
+    try:
+        canonical_model_path = (
+            f"{canonical_obj.__class__.__module__}.{canonical_obj.__class__.__name__}"
+        )
+        row = (
+            MigrationConflict.objects.filter(
+                bundle_id=ctx.bundle_id,
+                canonical_model=canonical_model_path,
+                canonical_pk=str(getattr(canonical_obj, "pk", "")),
+            )
+            .exclude(resolution=ConflictResolution.PENDING)
+            .order_by("-resolved_at")
+            .first()
+        )
+        return "" if row is None else str(row.resolution)
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
     """Look up a resolved-conflict decision for this row, if any.
 
