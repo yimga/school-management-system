@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Gilead slug alias resolution (batch 1835 - 2026-09-03)
+
+**A. Scope:** Post-import operator commands must accept production host token `gilead-tech` as well as tenant slug `gilead-school`.
+
+**B. Shipped:** `TENANT_SLUG_LOOKUP_ALIASES` via `RMC_TENANT_SLUG_LOOKUP_ALIASES` env; four-way slug/subdomain lookup in `resolve_school_from_slug`; alias + production subdomain tests; playbook doc for Gilead host token.
+
+**C. Proof:** sqlite-memory tenant post-import suite **9/9 OK**; `lint_gilead_residue` + full-tree classification **PASS**.
+
+**D. Deploy:** On Render, set `RMC_TENANT_SLUG_LOOKUP_ALIASES={"gilead-tech":"gilead-school"}` then run `python manage.py migration_closure_status --school gilead-tech`.
+
 ## Slice - custom_fields catch-all normalize (batch 1834 - 2026-09-03)
 
 **A. Scope:** Complete normalize-at-land for the generic DFV fallback so unknown-domain rows get the same enrich replay as hand-tuned landers.

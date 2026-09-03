@@ -7,7 +7,7 @@ from io import StringIO
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.migration_cloud.models import IntakeMethod, MigrationBundle
@@ -53,6 +53,52 @@ class ResolveLatestBundleForSchoolTests(TestCase):
     def test_school_without_bundle_returns_none(self):
         school = _school("no-bundle")
         self.assertIsNone(resolve_latest_bundle_for_school(school.slug))
+
+
+class SchoolSlugAliasResolutionTests(TestCase):
+    @override_settings(TENANT_SLUG_LOOKUP_ALIASES={"gilead-tech": "gilead-school"})
+    def test_gilead_tech_alias_resolves_gilead_school_slug(self):
+        school = School.objects.create(
+            name="Gilead Technical High School",
+            slug="gilead-school",
+            subdomain="gilead-school",
+            country_code="CM",
+        )
+        from apps.migration_cloud.quarantine_resolution import resolve_school_from_slug
+
+        resolved = resolve_school_from_slug("gilead-tech")
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.pk, school.pk)
+
+    def test_production_subdomain_gilead_tech_resolves(self):
+        school = School.objects.create(
+            name="Gilead Technical High School",
+            slug="gilead-school",
+            subdomain="gilead-tech",
+            country_code="CM",
+        )
+        from apps.migration_cloud.quarantine_resolution import resolve_school_from_slug
+
+        self.assertEqual(resolve_school_from_slug("gilead-tech").pk, school.pk)
+        self.assertEqual(resolve_school_from_slug("gilead-school").pk, school.pk)
+
+    @override_settings(TENANT_SLUG_LOOKUP_ALIASES={"gilead-tech": "gilead-school"})
+    def test_gilead_tech_alias_resolves_latest_bundle(self):
+        school = School.objects.create(
+            name="Gilead Technical High School",
+            slug="gilead-school",
+            subdomain="gilead-tech",
+            country_code="CM",
+        )
+        bundle = MigrationBundle.objects.create(
+            school=school,
+            label="gilead-import",
+            intake_method=IntakeMethod.FILE_UPLOAD,
+            idempotency_key=f"gilead-{uuid.uuid4().hex}",
+        )
+        resolved = resolve_latest_bundle_for_school("gilead-tech")
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.pk, bundle.pk)
 
 
 class RemediateTenantPostImportNoBundleTests(TestCase):
