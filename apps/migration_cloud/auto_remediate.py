@@ -398,6 +398,29 @@ def auto_reroute_misclassified_catalog_rows(bundle, *, user=None) -> dict[str, A
     return {"replayed": replayed, "failed": failed, "errors": errors}
 
 
+def auto_ensure_teaching_graph_closure(bundle, *, user=None) -> dict[str, Any]:
+    """Provision SubjectAssignment grid and link TeacherAssignment from import hints."""
+    school = getattr(bundle, "school", None)
+    if not school:
+        return {"skipped": True, "reason": "no_school"}
+
+    from .post_apply_provision import _gap_fill_enabled
+    from .teaching_graph import ensure_teaching_graph_closure_for_bundle
+
+    if not _gap_fill_enabled(school):
+        return {"skipped": True, "reason": "gap_fill_disabled"}
+
+    outcome = ensure_teaching_graph_closure_for_bundle(bundle, dry_run=False)
+    summary = dict(getattr(bundle, "mapping_summary", None) or {})
+    summary["teaching_graph_closure"] = {
+        **outcome,
+        "by": getattr(user, "pk", None),
+    }
+    bundle.mapping_summary = summary
+    bundle.save(update_fields=["mapping_summary", "updated_at"])
+    return outcome
+
+
 def auto_repair_inverted_catalog(bundle, *, user=None) -> dict[str, Any]:
     """Remove phantom specialty/department rows that duplicate real subjects."""
     school = getattr(bundle, "school", None)
@@ -435,6 +458,13 @@ def _sum_auto_resolved(results: dict[str, Any]) -> int:
         + int(results.get("missing_required_replayed") or 0)
         + int(results.get("catalog_rerouted") or 0)
         + int(results.get("catalog_phantoms_removed") or 0)
+        + int(results.get("teacher_assignments_linked") or 0)
+        + int(
+            (results.get("teaching_graph_closure") or {}).get("teacher_links", {}).get(
+                "teacher_assignments_created", 0
+            )
+            or 0
+        )
     )
 
 
@@ -735,6 +765,15 @@ def auto_remediate_on_review_open(
             "enrich": post_enrich,
         }
 
+    graph_closure = auto_ensure_teaching_graph_closure(bundle, user=user)
+    results["teaching_graph_closure"] = graph_closure
+    if graph_closure and not graph_closure.get("skipped"):
+        post_graph_invalid = auto_replay_invalid_ref_holds(bundle, user=user)
+        results["invalid_ref_replayed"] = int(results["invalid_ref_replayed"]) + int(
+            post_graph_invalid.get("replayed") or 0
+        )
+        results["post_teaching_graph_replay"] = post_graph_invalid
+
     pdf_final = auto_dismiss_pdf_noise_holds(bundle, user=user)
     frag_final = auto_dismiss_unstructured_fragments(bundle, user=user)
     results["pdf_noise_dismissed"] = int(results["pdf_noise_dismissed"]) + int(
@@ -812,6 +851,15 @@ def auto_remediate_after_apply(bundle, *, user=None) -> dict[str, Any]:
             "invalid_ref": post_invalid,
             "enrich": post_enrich,
         }
+
+    graph_closure = auto_ensure_teaching_graph_closure(bundle, user=user)
+    results["teaching_graph_closure"] = graph_closure
+    if graph_closure and not graph_closure.get("skipped"):
+        post_graph_invalid = auto_replay_invalid_ref_holds(bundle, user=user)
+        results["invalid_ref_replayed"] = int(results["invalid_ref_replayed"]) + int(
+            post_graph_invalid.get("replayed") or 0
+        )
+        results["post_teaching_graph_replay"] = post_graph_invalid
 
     # Final PDF noise sweep (rows exposed by failed enrich attempts)
     pdf_final = auto_dismiss_pdf_noise_holds(bundle, user=user)

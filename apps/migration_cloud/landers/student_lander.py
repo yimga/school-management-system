@@ -313,6 +313,14 @@ class StudentLander(Lander):
                 # the specialty link so the classroom can inherit the trade's
                 # department. Best-effort — never quarantines the landed student.
                 _link_student_classroom(obj, row, ctx, model_fields, result)
+                try:
+                    from apps.migration_cloud.enrollment_sync import (
+                        sync_enrollment_from_student_profile,
+                    )
+
+                    sync_enrollment_from_student_profile(obj)
+                except Exception:  # noqa: BLE001 — enrollment sync must not quarantine student
+                    pass
                 # Preserve a free-text parent/guardian NAME from the roster as a
                 # student-scoped, ACCOUNT-FREE claimable hint (G6) — never a User /
                 # StudentGuardian at ingest (COPPA-safe). A parent who later links
