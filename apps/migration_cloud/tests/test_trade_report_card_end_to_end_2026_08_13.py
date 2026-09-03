@@ -17,7 +17,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.models import (
@@ -53,7 +53,7 @@ def _add_artifact(bundle, filename, headers, rows, sha):
     )
 
 
-class TradeStudentReportCardEndToEndTests(TransactionTestCase):
+class TradeStudentReportCardEndToEndTests(TestCase):
     def test_migrated_trade_student_grid_auto_built_and_report_generates(self):
         from apps.academics.models import SubjectAssignment, Term
         from apps.accounts.models import User

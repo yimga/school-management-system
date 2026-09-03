@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import uuid
 
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -33,7 +33,7 @@ _MANAGER_SETTINGS = dict(
 )
 
 
-class ThemeExperiencePlaneIsolationTests(TransactionTestCase):
+class ThemeExperiencePlaneIsolationTests(TestCase):
     def setUp(self):
         suffix = uuid.uuid4().hex[:8]
         self.tenant_host = f"plane-school-{suffix}.runmycampus.com"

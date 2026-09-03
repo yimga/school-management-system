@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from django.test import Client, TestCase, TransactionTestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -111,7 +111,7 @@ class TenantAccessUnitTests(TestCase):
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     SESSION_PINNING_ENABLED=False,
 )
-class ComplianceExportEnforcementTests(TransactionTestCase):
+class ComplianceExportEnforcementTests(TestCase):
     databases = {"default"}
 
     def setUp(self):
@@ -147,7 +147,7 @@ class ComplianceExportEnforcementTests(TransactionTestCase):
     SESSION_PINNING_ENABLED=False,
     OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
 )
-class SecuritySurfaceDashboardTests(TransactionTestCase):
+class SecuritySurfaceDashboardTests(TestCase):
     def test_super_sees_marker_and_staff_blocked(self):
         password = "y" * 8
         super_u = User.objects.create_user(

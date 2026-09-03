@@ -19,7 +19,7 @@ import datetime as _dt
 import io
 import types
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.models import (
@@ -122,7 +122,7 @@ def _add_artifact(bundle, path, filename, headers, rows, sha):
     store.capture_artifact_blob(art, _payload(data))
 
 
-class GapFillAndClassroomEndToEndTests(TransactionTestCase):
+class GapFillAndClassroomEndToEndTests(TestCase):
     def test_student_placed_in_created_classroom_and_gap_fill_scaffolds(self):
         from apps.academics.models import AcademicYear, Department, Specialty
         from apps.migration_cloud.orchestrator import apply_bundle

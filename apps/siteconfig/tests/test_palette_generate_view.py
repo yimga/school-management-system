@@ -7,7 +7,7 @@ import uuid
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.test_utils.http_clients import login_manager_client
@@ -20,7 +20,7 @@ _MANAGER_SETTINGS = dict(
 )
 
 
-class PaletteGenerateViewTests(TransactionTestCase):
+class PaletteGenerateViewTests(TestCase):
     def setUp(self):
         User = get_user_model()
         suffix = uuid.uuid4().hex[:8]

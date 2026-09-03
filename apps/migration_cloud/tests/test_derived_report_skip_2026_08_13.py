@@ -13,7 +13,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.accelerators.runmycampus_canonical import is_derived_report
@@ -96,7 +96,7 @@ class ReportClassifyTests(TestCase):
         self.assertEqual(domain, "reports", f"got {domain!r}")
 
 
-class ReportApplyLandsZeroTests(TransactionTestCase):
+class ReportApplyLandsZeroTests(TestCase):
     def test_report_lands_zero_records(self):
         from apps.migration_cloud.orchestrator import apply_bundle
         from apps.migration_cloud.pipeline import advance_bundle

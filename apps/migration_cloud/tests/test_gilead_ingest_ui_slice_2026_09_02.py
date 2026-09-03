@@ -115,7 +115,7 @@ def _payload(data: bytes):
     return types.SimpleNamespace(content_opener=lambda: io.BytesIO(data))
 
 
-class TelephoneDirectoryImportTests(TransactionTestCase):
+class TelephoneDirectoryImportTests(TestCase):
     def test_title_row_directory_lands_phone_specialty_role(self):
         data = _xlsx_bytes(
             [
@@ -179,7 +179,7 @@ class TelephoneDirectoryImportTests(TransactionTestCase):
         self.assertEqual(principal.department.name, "MATHEMATICS")
 
 
-class MamaNoviSubjectsCategoryTests(TransactionTestCase):
+class MamaNoviSubjectsCategoryTests(TestCase):
     def test_subjects_file_categories_land(self):
         src = MAMA_NOVI / "subjects_2026.xlsx"
         if not src.is_file():
@@ -256,6 +256,15 @@ class BackendTeacherListPhoneRoleTests(TestCase):
         self.assertIn("MATHEMATICS", body)
 
 
+# Stays a TransactionTestCase, deliberately. This class drives a real bundle
+# apply, and apps/migration_cloud/orchestrator.py runs its waves in a
+# ThreadPoolExecutor (line ~576, collected at ~588). Under TestCase the outer
+# test holds an open transaction on its connection while the worker threads
+# open their own, and _create_audit_run dies with
+#   sqlite3.OperationalError: database is locked
+# Measured 2026-09-03: converted -> that failure; reverted -> 6 passed.
+# It therefore FLUSHES the seeded catalog at teardown; order this module last.
+# See docs/audits/TRANSACTION_TESTCASE_FLUSH_2026_09_03.md
 class MamaNoviFullBundleTests(TransactionTestCase):
     """End-to-end proof for all four Mama Novi fixtures when present locally."""
 

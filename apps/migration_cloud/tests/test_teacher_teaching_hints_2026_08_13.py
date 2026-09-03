@@ -8,7 +8,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.landers.staff_lander import (
@@ -67,7 +67,7 @@ def _add_artifact(bundle, filename, headers, rows, sha):
     )
 
 
-class TeacherTeachingHintsEndToEndTests(TransactionTestCase):
+class TeacherTeachingHintsEndToEndTests(TestCase):
     def test_preserves_and_resolves_teacher_subject_ids(self):
         from apps.metadata.models import DynamicFieldValue
         from apps.migration_cloud.orchestrator import apply_bundle

@@ -2,7 +2,7 @@
 
 import uuid
 
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -21,7 +21,7 @@ _PASSWORD = "testpass123"
     SESSION_PINNING_ENABLED=False,
     OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
 )
-class SuperDashboardHttpTests(TransactionTestCase):
+class SuperDashboardHttpTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username=f"super_dashboard_http_{uuid.uuid4().hex[:10]}",

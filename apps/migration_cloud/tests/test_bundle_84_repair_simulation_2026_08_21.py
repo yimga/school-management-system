@@ -11,7 +11,7 @@ import io
 import types
 from pathlib import Path
 
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.classifiers.domain import DomainCandidate, _filename_led_fallback, classify_domain
@@ -67,7 +67,7 @@ def _add_xlsx(bundle, filename: str) -> MigrationArtifact:
     return art
 
 
-class Bundle84RepairSimulationTests(TransactionTestCase):
+class Bundle84RepairSimulationTests(TestCase):
     def test_repair_simulation_quarantine_breakdown(self):
         if not (MAMA_NOVI / "student_2026.xlsx").is_file():
             self.skipTest("Mama Novi fixture files not present")

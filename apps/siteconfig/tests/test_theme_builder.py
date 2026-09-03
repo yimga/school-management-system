@@ -6,7 +6,7 @@ import json
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.siteconfig.theme_builder import (
@@ -24,7 +24,7 @@ _MANAGER_SETTINGS = dict(
 )
 
 
-class ThemeBuilderTests(TransactionTestCase):
+class ThemeBuilderTests(TestCase):
     def setUp(self):
         User = get_user_model()
         suffix = uuid.uuid4().hex[:8]

@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase, TransactionTestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.utils import timezone
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -45,10 +45,14 @@ class _FeedbackClientMixin:
     @staticmethod
     def _build_shared_fixtures(target):
         """Create the two-school + role-user fixture set on ``target`` (a class
-        or an instance). ``setUpTestData`` binds it to the class (TestCase
-        variant); ``setUp`` binds it to the instance for the TransactionTestCase
-        variant, which never invokes ``setUpTestData`` (it is a TestCase-only
-        hook, so a mixin shared with TransactionTestCase must not rely on it)."""
+        or an instance). ``setUpTestData`` binds it to the class; ``setUp``
+        binds it to the instance when that class hook did not run.
+
+        The instance path is kept deliberately. ``FeedbackTestCase`` was a
+        ``TransactionTestCase`` until 2026-09-03, and that base never invokes
+        ``setUpTestData`` (a TestCase-only hook). The mixin therefore does not
+        rely on it, so it stays correct under either base -- including for any
+        future subclass that genuinely needs transaction semantics."""
         suffix = uuid.uuid4().hex[:8]
         target.school_a = School.objects.create(
             name="School A",
@@ -95,8 +99,9 @@ class _FeedbackClientMixin:
         cls._build_shared_fixtures(cls)
 
     def setUp(self):
-        # TransactionTestCase never runs setUpTestData (a TestCase-only hook),
-        # so build the fixtures per-test when the class hook did not.
+        # Build the fixtures per-test when the class hook did not run --
+        # a TransactionTestCase base never invokes setUpTestData. Harmless
+        # under TestCase, where the attribute is already bound.
         if not hasattr(self, "school_a"):
             self._build_shared_fixtures(self)
         self.default_host = f"{self.school_a.subdomain}.runmycampus.com"
@@ -114,7 +119,7 @@ class _FeedbackClientMixin:
 
 
 @override_settings(**_FEEDBACK_TEST_SETTINGS)
-class FeedbackTestCase(_FeedbackClientMixin, TransactionTestCase):
+class FeedbackTestCase(_FeedbackClientMixin, TestCase):
     pass
 
 

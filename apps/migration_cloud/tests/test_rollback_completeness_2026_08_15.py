@@ -1,7 +1,17 @@
 """RMC Edge feature ④ — rollback-completeness seals (2026-08-15).
 
-Two VERIFIED gaps closed, each proven end-to-end through a real apply (which
-spawns worker threads, hence ``TransactionTestCase``):
+Two VERIFIED gaps closed, each proven end-to-end through a real apply:
+
+(This file was a ``TransactionTestCase`` on the stated grounds that a real
+apply "spawns worker threads". ``orchestrator.py`` does use a
+``ThreadPoolExecutor``, but neither test here reaches a wave that needs
+cross-connection visibility -- converted to ``TestCase`` on 2026-09-03 and
+both still pass with identical assertions. Contrast
+``test_gilead_ingest_ui_slice_2026_09_02.MamaNoviFullBundleTests``, which does
+reach it and dies with "database is locked" under ``TestCase``. The change
+matters because a ``TransactionTestCase`` flushes every table at teardown and,
+against the persisted keepdb database, empties the migration-seeded catalog for
+the rest of the run -- docs/audits/TRANSACTION_TESTCASE_FLUSH_2026_09_03.md.)
 
 Fix A — enrollment rollback RESTORES the snapshotted prior values.
     ``enrollment_lander`` snapshots the OLD non-empty value of every field it
@@ -27,7 +37,7 @@ import io
 import types
 from unittest import mock
 
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.models import (
@@ -89,7 +99,7 @@ def _map(bundle, per_artifact):
     bundle.save(update_fields=["mapping_summary", "updated_at"])
 
 
-class EnrollmentRollbackRestoresPriorValuesTests(TransactionTestCase):
+class EnrollmentRollbackRestoresPriorValuesTests(TestCase):
     """Fix A — the in-place enrollment overwrite is reversible from its snapshot."""
 
     def test_rollback_restores_overwritten_student_status(self):
@@ -171,7 +181,7 @@ class EnrollmentRollbackRestoresPriorValuesTests(TransactionTestCase):
         )
 
 
-class FailedNonAtomicBundleRollsBackCommittedRowsTests(TransactionTestCase):
+class FailedNonAtomicBundleRollsBackCommittedRowsTests(TestCase):
     """Fix B — a FAILED non-atomic bundle leaves no committed rows live."""
 
     def test_second_artifact_failure_rolls_back_first_artifacts_rows(self):
