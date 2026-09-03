@@ -271,6 +271,7 @@ def assess_finance_ledger_readiness(school) -> dict[str, Any]:
 
     return {
         "ready": draft_with_total == 0 and issued_without_ledger == 0,
+        "ready_for_bursar": draft_with_total == 0 and issued_without_ledger == 0,
         "draft_invoices_with_total": draft_with_total,
         "issued_without_ledger": issued_without_ledger,
     }

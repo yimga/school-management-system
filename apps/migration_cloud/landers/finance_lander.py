@@ -41,6 +41,7 @@ from ._helpers import (
     record_id_mapping,
     record_row_error,
     record_row_note,
+    normalize_canonical_row,
     resolve_student,
     row_savepoint,
     student_lookup_field,
@@ -90,6 +91,7 @@ class FinanceLander(Lander):
                 )
 
         for row in canonical_rows:
+            row = normalize_canonical_row("finance", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             reference = (
                 row.get("reference")

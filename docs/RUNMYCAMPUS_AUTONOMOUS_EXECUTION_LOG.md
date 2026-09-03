@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Finance ledger ops + auto-enrich (batch 1822 - 2026-09-03)
+
+**A. Scope:** Operational closure after batch 1821 for tenants that already applied finance rows (gilead-tech / Mama Novi path).
+
+**B. Shipped:** Finance-domain `enrich_missing_required_row` aliases; `normalize_canonical_row` on `FinanceLander`; Review & Import finance ledger readiness panel; `remediate_finance_ledger_closure` management command.
+
+**C. Proof:** sqlite-memory **7/7 OK** (`test_finance_ledger_closure_2026_09_03`); tenant queryset safety **0** new findings.
+
+**D. Deploy:** `python manage.py remediate_finance_ledger_closure --school gilead-tech --apply` inside tenant schema; re-open Review/Repair or run quarantine replay for held finance rows.
+
+## Slice - Finance import→ledger chain (batch 1821 - 2026-09-03)
+
+**A. Scope:** Close Migration Cloud finance import→ledger chain so imported fee rows become visible AR (not silent DRAFT shells).
+
+**B. Shipped:** `finance_ledger.py` (InvoiceLine + ISSUED/PAID + idempotent `mc-import:*` Payment + ledger); lander sync; post-apply + auto-remediate hooks; guardian payment ping skip for historical imports.
+
+**C. Proof:** sqlite-memory **5/5 OK**; pre-push **69 PASS / 0 FAIL**; pushed `e239f7dc0`.
+
+**D. Deploy:** re-apply or Review/Repair on gilead-tech after deploy; finance rows with `paid_amount`/`balance` land as issued/partial/paid invoices.
+
 ## Slice - Independent validation of batches 1817-1819 (batch 1820 - 2026-09-01)
 
 **A. Scope:** Validate the waiver slice by running its engines, per docs/EDGE_ONBOARDING_WAIVER_VALIDATION_BRIEF_2026_09_01.md. The brief's own instruction was that the engine wins over the brief, and that a hung run is not a green run.

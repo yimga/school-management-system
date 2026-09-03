@@ -130,3 +130,38 @@ class FinanceLedgerClosureTests(TestCase):
         )
         self.assertTrue(outcome.get("dry_run"))
         self.assertFalse(Payment.objects.filter(invoice=inv).exists())
+
+    def test_enrich_missing_required_maps_invoice_aliases(self):
+        from apps.migration_cloud.landers._helpers import enrich_missing_required_row
+
+        row = {
+            "invoice_number": "INV-ENR-1",
+            "total": "800.00",
+            "admission_number": "ADM-ledger-1",
+            "amount_paid": "200.00",
+        }
+        enriched, evidence = enrich_missing_required_row("finance", row, school=self.school)
+        self.assertIn("reference←invoice_alias", evidence)
+        self.assertEqual(enriched["reference"], "INV-ENR-1")
+        self.assertEqual(enriched["amount"], "800.00")
+        self.assertEqual(enriched["student_external_id"], "ADM-ledger-1")
+        self.assertEqual(enriched["paid_amount"], "200.00")
+
+    @override_settings(SEND_FINANCE_SIGNALS=True)
+    def test_enriched_row_lands_via_lander(self):
+        from apps.migration_cloud.landers._helpers import enrich_missing_required_row
+
+        row = {
+            "invoice_number": "INV-ENR-2",
+            "total": "600.00",
+            "admission_number": "ADM-ledger-1",
+            "paid_amount": "600.00",
+            "issue_date": "2025-09-01",
+            "description": "Back fees",
+        }
+        result = FinanceLander().land(
+            canonical_rows=iter([row]), ctx=_ctx(self.school)
+        )
+        self.assertEqual(result.quarantined, 0, result.errors)
+        inv = Invoice.objects.get(reference="INV-ENR-2")
+        self.assertEqual(inv.status, Invoice.Status.PAID)

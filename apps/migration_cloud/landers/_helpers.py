@@ -934,6 +934,58 @@ def enrich_missing_required_row(
             enriched["code"] = name[:30]  # magic-number-allow: Specialty.code max_length
             evidence.append("code←name")
 
+    elif domain_key == "finance":
+        ref = str(
+            flat.get("reference")
+            or flat.get("invoice_reference")
+            or flat.get("invoice_number")
+            or flat.get("invoice_no")
+            or ""
+        ).strip()
+        if ref and not str(flat.get("reference") or "").strip():
+            enriched["reference"] = ref
+            evidence.append("reference←invoice_alias")
+        amount_raw = (
+            flat.get("amount")
+            if flat.get("amount") not in (None, "")
+            else flat.get("total")
+            if flat.get("total") not in (None, "")
+            else flat.get("total_amount")
+            if flat.get("total_amount") not in (None, "")
+            else flat.get("invoice_amount")
+        )
+        if amount_raw not in (None, "") and flat.get("amount") in (None, ""):
+            enriched["amount"] = amount_raw
+            evidence.append("amount←total_alias")
+        student_ref = str(
+            flat.get("student_external_id")
+            or flat.get("admission_number")
+            or flat.get("student_code")
+            or flat.get("pupil_id")
+            or ""
+        ).strip()
+        if student_ref and not str(flat.get("student_external_id") or "").strip():
+            enriched["student_external_id"] = student_ref
+            evidence.append("student_external_id←id_alias")
+        issue_raw = (
+            flat.get("issue_date")
+            if flat.get("issue_date") not in (None, "")
+            else flat.get("issued_date")
+            if flat.get("issued_date") not in (None, "")
+            else flat.get("invoice_date")
+        )
+        if issue_raw not in (None, "") and flat.get("issue_date") in (None, ""):
+            enriched["issue_date"] = issue_raw
+            evidence.append("issue_date←issued_alias")
+        paid_raw = (
+            flat.get("paid_amount")
+            if flat.get("paid_amount") not in (None, "")
+            else flat.get("amount_paid")
+        )
+        if paid_raw not in (None, "") and flat.get("paid_amount") in (None, ""):
+            enriched["paid_amount"] = paid_raw
+            evidence.append("paid_amount←amount_paid_alias")
+
     if not evidence:
         return row, []
     return enriched, evidence

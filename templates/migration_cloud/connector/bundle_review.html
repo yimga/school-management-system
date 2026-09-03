@@ -202,6 +202,33 @@ any locale can't break the inline script's string literals.
 </section>
 {% endif %}
 
+{% if finance_ledger_readiness %}
+<section class="rmc-card mb-4" aria-labelledby="mc-finance-ledger-heading" id="mc-finance-ledger">
+  <h2 id="mc-finance-ledger-heading" class="h5">{% trans "Finance ledger readiness" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Whether imported fee rows are visible to the bursar (issued invoices, lines, and ledger posts)." %}</p>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Draft invoices with totals" %}</div>
+        <div class="h4 mb-0">{{ finance_ledger_readiness.draft_invoices_with_total }}</div>
+        <p class="small mb-0 mt-2{% if finance_ledger_readiness.draft_invoices_with_total %} text-warning{% else %} text-success{% endif %}">
+          {% if finance_ledger_readiness.draft_invoices_with_total %}{% trans "Run repair or remediate_finance_ledger_closure" %}{% else %}{% trans "No invisible draft fees" %}{% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Issued without ledger post" %}</div>
+        <div class="h4 mb-0">{{ finance_ledger_readiness.issued_without_ledger }}</div>
+        <p class="small mb-0 mt-2{% if finance_ledger_readiness.issued_without_ledger %} text-warning{% else %} text-success{% endif %}">
+          {% if finance_ledger_readiness.issued_without_ledger %}{% trans "Ledger backfill needed" %}{% else %}{% trans "Ledger posts complete" %}{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% if progress_url and not detecting %}
 {% comment %}
 Kickoff-page live board. Import / repair progress, pipeline, created/updated/held,
