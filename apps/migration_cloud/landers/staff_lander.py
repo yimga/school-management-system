@@ -98,7 +98,19 @@ def _staff_field_from_row(row: dict[str, Any], field: str) -> str:
             continue
         m = _CUSTOM_FIELD_KEY_RE.match(key)
         label = m.group(1) if m else key
-        if _compact_header(label) not in wanted:
+        candidates = {_compact_header(label)}
+        # A hand-kept sheet often names one column for several ideas at once --
+        # "POST / FUNCTION / Role" -- whose compacted WHOLE matches nothing, so the
+        # role of every row on such a sheet silently blanked. Each strong-delimiter
+        # segment is tried on its own; spaces are deliberately NOT split on, so
+        # "administrative assistant" can never match an "assistant" field one word
+        # at a time.
+        if any(d in label for d in "/|,;"):
+            for seg in re.split(r"[/|,;]+", label):
+                seg_compact = _compact_header(seg)
+                if seg_compact:
+                    candidates.add(seg_compact)
+        if candidates.isdisjoint(wanted):
             continue
         text = str(value or "").strip()
         if text and text.lower() not in _CUSTOM_ATTR_NULL_LITERALS:
@@ -200,7 +212,10 @@ class StaffLander(Lander):
             # "Name"/"NAME" staff column is split locale-aware into first/last
             # so a teacher roster with no separate given/family columns is not
             # quarantined for "missing name".
-            full_name = (row.get("full_name") or "").strip()
+            # "name" too: a printed directory heads the column NAME, which
+            # canonicalizes to "name" -- reading only "full_name" left every
+            # row of such a sheet nameless while the names sat in plain sight.
+            full_name = (row.get("full_name") or row.get("name") or "").strip()
             if full_name and (not first_name or not last_name):
                 fn, _mn, ln = split_name_for(ctx, full_name)
                 first_name = first_name or fn

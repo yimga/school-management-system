@@ -637,6 +637,12 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
                 "en": [
                     "phone", "number", "telephone", "mobile", "phone_number",
                     "contact", "contact_number", "tel", "cell", "msisdn",
+                    # A hand-kept school directory says "TELEPHONE NUMBER", not
+                    # "phone": the two-word forms were enumerated for students
+                    # (line ~226) and never for staff, so a real staff sheet
+                    # landed 50 teachers with every phone cell dropped.
+                    "telephone_number", "telephone_no", "tel_no",
+                    "mobile_number", "mobile_no", "cell_number", "cell_phone",
                 ],
                 "fr": ["telephone", "numero", "portable"],
                 "es": ["telefono", "movil", "celular"],

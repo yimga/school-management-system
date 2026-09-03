@@ -33,6 +33,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     record_row_error,
+    record_row_note,
     row_is_pdf_noise_hold,
     row_is_unstructured_text_fragment,
     row_marks_deletion,
@@ -40,6 +41,25 @@ from ._helpers import (
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 from .reason_codes import SOURCE_DELETION
+
+
+def _resolve_category(raw, Subject):
+    """A recognized category label -> a ``Subject.Category`` value; else ``None``.
+
+    Matching is against the model's OWN choices -- values ("PROFESSIONAL") and
+    display labels ("Professional") both count, case/space/underscore-insensitive --
+    so a new choice added to the model is understood here with no edit. An
+    unrecognized label maps to nothing rather than to a guess: OTHER is a real
+    curriculum statement, not a bucket for text we failed to read.
+    """
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    compact = text.replace(" ", "").replace("-", "").replace("_", "").upper()
+    for value, label in Subject.Category.choices:
+        if compact in (value.replace("_", ""), str(label).replace(" ", "").upper()):
+            return value
+    return None
 
 
 class AcademicsLander(Lander):
@@ -101,19 +121,54 @@ class AcademicsLander(Lander):
 
             try:
                 credits = coerce_decimal(row.get("credits"))
+                # The CATEGORY column (a real Subject field with choices) used to be
+                # read by NOTHING: 108 subjects landed and every "Professional" /
+                # "General" cell fell to residual capture, invisible in the catalog.
+                category = (
+                    _resolve_category(row.get("category"), Subject)
+                    if "category" in subject_fields
+                    else None
+                )
+                def _create_kwargs(c=credits, cat=category):
+                    kwargs = {}
+                    if c is not None and "credits" in subject_fields:
+                        kwargs["credits"] = c
+                    if cat is not None:
+                        kwargs["category"] = cat
+                    return kwargs
                 obj, created = get_or_create_named(
                     model=Subject,
                     school=ctx.school,
                     name=name[:120],  # magic-number-allow: Subject.name CharField max_length
-                    create_kwargs=lambda c=credits: (
-                        {"credits": c} if c is not None and "credits" in subject_fields else {}
-                    ),
+                    create_kwargs=_create_kwargs,
                     result=result,
                 )
                 if created:
                     result.created += 1
                 else:
                     result.skipped += 1
+                    # Backfill: only a row still on the field DEFAULT may take the
+                    # import's category -- a category somebody set by hand is that
+                    # school's decision and a re-upload must not overturn it.
+                    if category is not None and getattr(obj, "category", None) != category:
+                        if obj.category == Subject.Category.OTHER:
+                            obj.category = category
+                            obj.save(update_fields=["category"])
+                            result.updated += 1
+                        else:
+                            record_row_note(
+                                result,
+                                f"academics: kept category {obj.category!r} for"
+                                f" {name!r} (import says {category!r}; the row was"
+                                " set deliberately and an import does not outrank it)",
+                            )
+                if row.get("category") and category is None:
+                    record_row_note(
+                        result,
+                        f"academics: category {str(row.get('category'))[:40]!r} on"
+                        f" {name!r} matches no Subject.Category choice; left at"
+                        " the model default (value preserved in custom fields)",
+                    )
                 record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="academics")
             except Exception as exc:  # noqa: BLE001
                 record_row_error(
