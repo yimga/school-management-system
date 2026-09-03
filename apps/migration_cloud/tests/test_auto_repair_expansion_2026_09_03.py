@@ -317,6 +317,32 @@ class NormalizeCanonicalRowTests(SimpleTestCase):
         self.assertEqual(normalized["student_external_id"], "X-1")
         self.assertEqual(normalized["subject_code"], "Physics")
 
+    def test_custom_fields_enrich_promotes_nested_and_entity_id(self):
+        from apps.migration_cloud.landers._helpers import enrich_missing_required_row
+
+        row = {
+            "custom_fields": {"house": "Blue", "badge": "Gold"},
+            "external_id": "REC-77",
+        }
+        enriched, evidence = enrich_missing_required_row("custom_fields", row)
+        self.assertEqual(enriched["entity_id"], "REC-77")
+        self.assertEqual(enriched["custom_fields.house"], "Blue")
+        self.assertIn("custom_fields←nested_promotion", evidence)
+
+    def test_normalize_custom_fields_matches_enrich(self):
+        from apps.migration_cloud.landers._helpers import normalize_canonical_row
+
+        ctx = LanderContext(
+            school=School(country_code="CM"),
+            schema_name="public",
+            bundle_id=1,
+            artifact_id=1,
+        )
+        row = {"custom_fields": {"note": "keep"}, "pupil_id": "P-1"}
+        normalized = normalize_canonical_row("custom_fields", row, ctx)
+        self.assertEqual(normalized["entity_id"], "P-1")
+        self.assertEqual(normalized["custom_fields.note"], "keep")
+
 
 class AcademicsLanderStillAcceptsSubjectShapeTests(TestCase):
     def test_direct_academics_lands_coef_row(self):

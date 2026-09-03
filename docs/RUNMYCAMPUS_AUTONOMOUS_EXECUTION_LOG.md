@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - custom_fields catch-all normalize (batch 1834 - 2026-09-03)
+
+**A. Scope:** Complete normalize-at-land for the generic DFV fallback so unknown-domain rows get the same enrich replay as hand-tuned landers.
+
+**B. Shipped:** `custom_fields` enrich branch; `normalize_canonical_row` on `DynamicFieldLander`; stable `entity_id` from external refs; skip meta keys on write.
+
+**C. Proof:** sqlite-memory auto-repair + land-path suites green (38 tests across both files).
+
+**D. Deploy:** Re-import or quarantine replay for catch-all held rows; normalize coverage now 32/33 landers (`reports` no-op by design).
+
 ## Slice - Playbook graceful no-bundle skip (batch 1833 - 2026-09-03)
 
 **A. Scope:** Five-step post-import playbook must exit 0 when the tenant exists but has not imported a bundle yet.

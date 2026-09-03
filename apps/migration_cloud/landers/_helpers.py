@@ -1589,6 +1589,52 @@ def enrich_missing_required_row(
             enriched["completed_date"] = completed
             evidence.append("completed_date←completion_alias")
 
+    elif domain_key == "custom_fields":
+        _id_chain = (
+            "entity_id",
+            "record_id",
+            "external_id",
+            "student_external_id",
+            "staff_external_id",
+            "admission_number",
+            "pupil_id",
+        )
+        record_id = ""
+        source_key = ""
+        for alias in _id_chain:
+            candidate = str(flat.get(alias) or "").strip()
+            if candidate:
+                record_id = candidate
+                source_key = alias
+                break
+        if record_id and not str(flat.get("entity_id") or "").strip():
+            enriched["entity_id"] = record_id[:64]  # magic-number-allow: DynamicFieldValue.entity_id max_length
+            evidence.append("entity_id←external_ref")
+            if source_key and source_key != "entity_id":
+                enriched.pop(source_key, None)
+        label = str(
+            flat.get("label")
+            or flat.get("title")
+            or flat.get("name")
+            or flat.get("field_name")
+            or ""
+        ).strip()
+        if label and not str(flat.get("label") or "").strip():
+            enriched["label"] = label
+            evidence.append("label←title_alias")
+        custom = row.get("custom_fields")
+        if isinstance(custom, dict):
+            promoted = False
+            for ck, cv in custom.items():
+                if cv in (None, ""):
+                    continue
+                dotted = f"custom_fields.{ck}"
+                if dotted not in enriched:
+                    enriched[dotted] = cv
+                    promoted = True
+            if promoted:
+                evidence.append("custom_fields←nested_promotion")
+
     if not evidence:
         return row, []
     return enriched, evidence
