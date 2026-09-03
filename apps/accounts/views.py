@@ -149,7 +149,34 @@ def _teacher_org_tree(user):
     )
     if not teacher:
         return None
-    year, _ = get_active_year_and_term()
+    # This helper takes a USER, not a request, and User has no school column --
+    # so the school comes from the tenancy relations that do exist.
+    # TeacherProfile.school is the precise anchor: the profile was just resolved
+    # from this user, so it names exactly one school. A user's SchoolMembership
+    # set is the fallback, since a profile's school is nullable; prefer the
+    # primary membership and ignore suspended ones.
+    #
+    # It matters because every assignment below is filtered by this year: an
+    # unscoped read returns whichever school's active year sorts first, and a
+    # wrong one yields an EMPTY org tree with no error raised anywhere.
+    school = getattr(teacher, "school", None)
+    if school is None:
+        try:
+            from apps.schools.models import SchoolMembership
+
+            membership = (
+                # tenant-isolation-allow: bounded-by-this-user-own-membership-rows
+                SchoolMembership.objects.filter(
+                    user=user, suspended_at__isnull=True
+                )
+                .order_by("-is_primary", "id")
+                .select_related("school")
+                .first()
+            )
+            school = getattr(membership, "school", None)
+        except ImportError:
+            school = None
+    year, _ = get_active_year_and_term(school=school)
     assignments = []
     if year:
         # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
