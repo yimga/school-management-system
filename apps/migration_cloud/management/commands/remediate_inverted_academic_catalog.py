@@ -105,13 +105,20 @@ class Command(BaseCommand):
 
     @staticmethod
     def _resolve_school(token: str):
+        import uuid
+
         from apps.schools.models import School
         from django.db.models import Q
 
-        qs = School.objects.filter(
-            Q(pk=token) | Q(subdomain=token) | Q(slug=token)
-        )
-        school = qs.first()
+        filters = Q(subdomain=token) | Q(slug=token)
+        try:
+            uuid.UUID(str(token))
+        except (ValueError, TypeError, AttributeError):
+            pass
+        else:
+            filters |= Q(pk=token)
+
+        school = School.objects.filter(filters).first()
         if school is None:
             raise CommandError(f"School not found: {token!r}")
         return school
