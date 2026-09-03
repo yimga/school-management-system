@@ -36,6 +36,15 @@ from apps.api.runtime_endpoints import (
     structural_options_initialize_runtime,
     structural_options_runtime,
 )
+from apps.migration_cloud.companion_api_v1 import (
+    CompanionEmailLoginView,
+    CompanionMaaSignApiView,
+    CompanionMaaTextApiView,
+    CompanionReceiptDetailApiView,
+    CompanionReceiptListApiView,
+    CompanionServerPubkeyApiView,
+    CompanionUploadApiView,
+)
 
 app_name = "api_v1"
 
@@ -411,5 +420,42 @@ urlpatterns = [
         "localization/<str:country_code>/",
         country_localization_pack,
         name="localization-country-pack",
+    ),
+    # Companion siblings (Tauri / Docker) — JWT contract documented in
+    # docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md
+    path(  # rbac-allow: companion-sibling-email-password-login-mint-jwt
+        "auth/login/",
+        CompanionEmailLoginView.as_view(),
+        name="companion-auth-login",
+    ),
+    path(  # rbac-allow: companion-sibling-jwt-maa-text-fetch
+        "migration/maa/text/",
+        CompanionMaaTextApiView.as_view(),
+        name="companion-maa-text",
+    ),
+    path(  # rbac-allow: companion-sibling-jwt-maa-sign
+        "migration/maa/sign/",
+        CompanionMaaSignApiView.as_view(),
+        name="companion-maa-sign",
+    ),
+    path(  # rbac-allow: companion-sibling-jwt-sealed-upload
+        "migration/companion/upload/",
+        CompanionUploadApiView.as_view(),
+        name="companion-upload",
+    ),
+    path(  # rbac-allow: companion-sibling-pubkey-read-with-optional-tenant-query
+        "migration/companion/server-pubkey/",
+        CompanionServerPubkeyApiView.as_view(),
+        name="companion-server-pubkey",
+    ),
+    path(  # rbac-allow: companion-sibling-jwt-receipt-list
+        "migration/receipts/",
+        CompanionReceiptListApiView.as_view(),
+        name="companion-receipt-list",
+    ),
+    path(  # rbac-allow: companion-sibling-jwt-receipt-detail
+        "migration/receipts/<int:receipt_id>/",
+        CompanionReceiptDetailApiView.as_view(),
+        name="companion-receipt-detail",
     ),
 ]
