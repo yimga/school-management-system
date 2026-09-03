@@ -44,6 +44,7 @@ from ._helpers import (
     get_or_create_named,
     mint_scoped_code,
     model_field_names,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_id_mapping,
     record_row_error,
@@ -223,6 +224,7 @@ class StaffLander(Lander):
 
         for row in canonical_rows:
             rows_total += 1
+            row = normalize_canonical_row("staff", row, ctx)
             external_id = (
                 row.get("staff_external_id")
                 or row.get("external_id")

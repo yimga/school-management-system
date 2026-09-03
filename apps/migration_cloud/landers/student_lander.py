@@ -18,6 +18,7 @@ from ._helpers import (
     detect_and_register_assets,
     detect_conflict,
     map_enrollment_status,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_id_mapping,
     record_row_error,
@@ -53,6 +54,7 @@ class StudentLander(Lander):
 
         result = LanderResult()
         for row in canonical_rows:
+            row = normalize_canonical_row("students", row, ctx)
             external_id = _clean_source_string(row.get("external_id"))
             first_name = _clean_source_string(row.get("first_name"))
             last_name = _clean_source_string(row.get("last_name"))

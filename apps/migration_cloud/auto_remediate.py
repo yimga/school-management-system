@@ -273,11 +273,15 @@ def auto_replay_invalid_ref_holds(bundle, *, user=None) -> dict[str, Any]:
 
 
 def auto_enrich_and_replay_missing_required(bundle, *, user=None) -> dict[str, Any]:
-    """Apply defensible defaults to ``missing_required`` rows and replay."""
+    """Apply defensible defaults to replayable holds and re-land them.
+
+    Covers ``missing_required`` and ``lander_error`` when enrichment evidence
+    exists — many landers declare ``lander_error`` for fixable identity gaps.
+    """
     from apps.automation.quarantine_services import mark_repaired
 
     qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
-        issue_class="missing_required"
+        issue_class__in=("missing_required", "lander_error")
     )
     enriched = 0
     replayed = 0
@@ -1071,6 +1075,19 @@ def _preview_one(
                 "catalog_reroute",
                 "subject catalog row mis-tagged as specialties; replay via academics",
             )
+        _, evidence = enrich_missing_required_row(
+            domain,
+            source_row,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        if evidence:
+            return (
+                "auto_replay",
+                "enrich_replay",
+                "defensible default available: " + "; ".join(evidence),
+            )
+        return "needs_person", "none", f"class {issue_class or 'unknown'} has no automated rule"
 
     if issue_class == "invalid_ref":
         if source_row:

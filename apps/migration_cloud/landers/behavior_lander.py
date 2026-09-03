@@ -27,6 +27,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    normalize_canonical_row,
     record_row_error,
     record_row_note,
     resolve_student,
@@ -93,6 +94,7 @@ class BehaviorLander(Lander):
         student_lookup = student_lookup_field(student_fields)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("behavior", row, ctx)
             external_id = (row.get("student_external_id") or "").strip()
             date_val = coerce_date(row.get("date"))
             description = (row.get("description") or "").strip()

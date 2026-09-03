@@ -185,6 +185,27 @@ def format_bundle_choices(*, limit: int = 15) -> str:
     return "\n".join(lines)
 
 
+def resolve_latest_bundle_for_school(slug: str):
+    """Most recently touched bundle for a tenant slug, or ``None``."""
+    from apps.migration_cloud.models import MigrationBundle
+    from apps.schools.models import School
+
+    token = str(slug or "").strip()
+    if not token:
+        return None
+    school = (
+        School.objects.filter(slug=token).first()
+        or School.objects.filter(subdomain=token).first()
+    )
+    if school is None:
+        return None
+    return (
+        MigrationBundle.objects.filter(school=school)
+        .order_by("-updated_at", "-pk")
+        .first()
+    )
+
+
 def _source_row_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     row = payload.get("source_row")
     if isinstance(row, dict):

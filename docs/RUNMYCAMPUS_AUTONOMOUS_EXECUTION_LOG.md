@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Quarantine burndown normalize + enrich replay (batch 1823 - 2026-09-03)
+
+**A. Scope:** Burn held rows on gilead-tech / Mama Novi without re-import — extend normalize-at-land to high-volume landers and widen autopilot enrich replay.
+
+**B. Shipped:** `normalize_canonical_row` on student/staff/attendance/academics/behavior/alumni; `lander_error` rows replay when enrich evidence exists; `remediate_quarantine_batch --school=<slug>`.
+
+**C. Proof:** sqlite-memory **11/11 OK**; pre-push gates green.
+
+**D. Deploy:** `python manage.py remediate_quarantine_batch --school gilead-tech --apply` after deploy; re-open Review/Repair for page-open autopilot on smaller bundles.
+
 ## Slice - Finance ledger ops + auto-enrich (batch 1822 - 2026-09-03)
 
 **A. Scope:** Operational closure after batch 1821 for tenants that already applied finance rows (gilead-tech / Mama Novi path).

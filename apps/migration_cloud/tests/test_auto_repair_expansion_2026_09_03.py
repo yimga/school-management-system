@@ -17,6 +17,7 @@ from apps.migration_cloud.landers._helpers import enrich_missing_required_row
 from apps.migration_cloud.landers.academics_lander import AcademicsLander
 from apps.migration_cloud.landers.base import LanderContext
 from apps.migration_cloud.landers.specialty_lander import SpecialtyLander
+from apps.migration_cloud.landers.student_lander import StudentLander
 from apps.schools.models import School
 
 
@@ -63,6 +64,38 @@ class EnrichMissingRequiredExpansionTests(SimpleTestCase):
         self.assertTrue(enriched.get("first_name"))
         self.assertTrue(enriched.get("last_name"))
         self.assertIn("first_name←full_name", evidence)
+
+
+class PreviewLanderErrorEnrichTests(SimpleTestCase):
+    def test_lander_error_with_enrich_evidence_is_auto_replay(self):
+        from apps.migration_cloud.auto_remediate import _preview_one
+
+        decision, rule, _note = _preview_one(
+            issue_class="lander_error",
+            domain="students",
+            source_row={"admission_number": "ADM-42", "full_name": "Jean Paul Mbarga"},
+            artifact="students.csv",
+            reason_source="declared",
+            message="missing required fields",
+        )
+        self.assertEqual(decision, "auto_replay")
+        self.assertEqual(rule, "enrich_replay")
+
+
+class StudentNormalizeAtLandTests(TestCase):
+    def test_admission_number_and_full_name_land_without_external_id(self):
+        school = _school("student-norm")
+        ctx = LanderContext(
+            school=school,
+            schema_name="public",
+            bundle_id=3,
+            artifact_id=3,
+            transformer_options={"name_order": "last_first"},
+        )
+        row = {"admission_number": "ADM-99", "full_name": "ANDONGMAD FAVOUR"}
+        result = StudentLander().land(canonical_rows=iter([row]), ctx=ctx)
+        self.assertEqual(result.quarantined, 0, result.errors)
+        self.assertEqual(result.created, 1)
 
 
 class SpecialtyAutoRerouteTests(TestCase):
