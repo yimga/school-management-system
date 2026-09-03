@@ -20,6 +20,9 @@ from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
+# Host subdomains / legacy operator tokens → canonical ``School.slug``.
+# Configure via ``RMC_TENANT_SLUG_LOOKUP_ALIASES`` JSON env (see docs/MIGRATION_PLAYBOOK.md).
+
 QUARANTINE_ISSUE_LABELS: dict[str, str] = {
     "source_deletion": str(_("Deleted in your old system — not imported (no action needed)")),
     "duplicate": str(_("Already exists here — skipped to avoid a double record")),
@@ -187,14 +190,20 @@ def format_bundle_choices(*, limit: int = 15) -> str:
 
 def resolve_school_from_slug(slug: str):
     """Tenant ``School`` for a slug/subdomain token, or ``None``."""
+    from django.conf import settings
+
     from apps.schools.models import School
 
     token = str(slug or "").strip()
     if not token:
         return None
+    aliases = getattr(settings, "TENANT_SLUG_LOOKUP_ALIASES", None) or {}
+    canonical = str(aliases.get(token.lower(), token))
     return (
-        School.objects.filter(slug=token).first()
+        School.objects.filter(slug=canonical).first()
+        or School.objects.filter(slug=token).first()
         or School.objects.filter(subdomain=token).first()
+        or School.objects.filter(subdomain=canonical).first()
     )
 
 

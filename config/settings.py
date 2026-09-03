@@ -1970,6 +1970,12 @@ MARKETING_REPLACEMENT_MESSAGING = _safe_mkt_json_dict(
     },
 )
 
+# Post-import operator commands: host token → canonical School.slug (JSON object).
+TENANT_SLUG_LOOKUP_ALIASES = _safe_mkt_json_dict(
+    os.getenv("RMC_TENANT_SLUG_LOOKUP_ALIASES") or "",
+    {},
+)
+
 # Role-based session overrides (seconds)
 ROLE_SESSION_TIMEOUTS = {
     "SUPERADMIN": int(os.getenv("SESSION_TIMEOUT_SUPERADMIN", "1800")),  # 30 min

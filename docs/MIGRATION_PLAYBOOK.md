@@ -80,6 +80,25 @@ These are externally-blocked items. Do NOT attempt to unblock without explicit c
 - **v3.37** (2026-05-19): v3.34 deferred closeout — companion popup tenant switcher, SDK accept_legacy, MAA v2.0 dashboard, RMC handshake + canonical CSV, webhook replay.
 - **v3.34** (2026-05-18): per-tenant CompanionKeypair, Tauri/Docker siblings, PyPI+npm SDKs, vendor legacy-hash timestamps, MAA v2.0 plumbing.
 
+## Post-import operator playbook (tenant slug)
+
+After a bundle is **APPLIED** or **RECONCILED**, run the five-step closure playbook:
+
+```bash
+python manage.py migration_closure_status --school=<slug>
+python manage.py remediate_tenant_post_import --school=<slug> --dry-run
+python manage.py remediate_tenant_post_import --school=<slug> --apply
+python manage.py profile_bundle_quarantine --school=<slug>
+```
+
+When the production host subdomain differs from the canonical `School.slug` (e.g. `gilead-tech.runmycampus.com` vs slug `gilead-school`), set:
+
+```bash
+export RMC_TENANT_SLUG_LOOKUP_ALIASES='{"gilead-tech":"gilead-school"}'
+```
+
+Resolution order: alias map → slug → subdomain (both token and canonical). Subdomain match alone is sufficient when the DB subdomain matches the host.
+
 ## When to escalate
 
 - Audit chain integrity broken (`verify_audit_chain` exit code 1) — page security.
