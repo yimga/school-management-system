@@ -133,7 +133,7 @@ def claim_invite(request: HttpRequest, token: str | None = None):
         invite = form.invite
         student = invite.student
 
-        exists = StudentGuardian.objects.filter(
+        exists = StudentGuardian.objects.filter(  # tenant-isolation-allow: duplicate-link existence check on one (user, student) pair (reviewed 2026-09-03)
             guardian_user=request.user,
             student=student,
         ).exists()
@@ -446,7 +446,7 @@ def child_digital_id(request: HttpRequest, student_id: int):
     from apps.people.badge_services import get_signed_id_token
 
     link = (
-        StudentGuardian.objects.filter(
+        StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship check on one (user, student) pair (reviewed 2026-09-03)
             guardian_user=request.user,
             student_id=student_id,
         )
@@ -666,7 +666,7 @@ def parent_child_results(request: HttpRequest, student_id: int):
         return HttpResponseForbidden("No active academic year/term configured yet.")
 
     link = (
-        StudentGuardian.objects.filter(
+        StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship check on one (user, student) pair (reviewed 2026-09-03)
             guardian_user=request.user, student_id=student_id, can_view_results=True
         )
         .select_related("student")

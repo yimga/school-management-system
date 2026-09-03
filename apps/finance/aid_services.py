@@ -81,7 +81,7 @@ def _student_context(student: StudentProfile) -> dict[str, Any]:
         )
         if guardian_ids:
             same_guardian = (
-                StudentGuardian.objects.filter(guardian_user_id__in=guardian_ids)
+                StudentGuardian.objects.filter(guardian_user_id__in=guardian_ids)  # tenant-isolation-allow: bounded to an explicit guardian id set from one student's links (reviewed 2026-09-03)
                 .values_list("student_id", flat=True)
                 .distinct()
             )

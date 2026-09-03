@@ -429,7 +429,7 @@ def invoice_detail(request: HttpRequest, invoice_id: int):
         is_parent = getattr(request.user, "role", "") == User.Role.PARENT
         is_guardian = bool(
             invoice.student_id
-            and StudentGuardian.objects.filter(
+            and StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship existence check on one (user, student) pair (reviewed 2026-09-03)
                 guardian_user=request.user,
                 student_id=invoice.student_id,
             ).exists()
@@ -643,7 +643,7 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
         is_parent = getattr(request.user, "role", "") == User.Role.PARENT
         is_guardian = bool(
             invoice.student_id
-            and StudentGuardian.objects.filter(
+            and StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship existence check on one (user, student) pair (reviewed 2026-09-03)
                 guardian_user=request.user,
                 student_id=invoice.student_id,
             ).exists()

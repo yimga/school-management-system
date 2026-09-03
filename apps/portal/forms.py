@@ -315,7 +315,7 @@ class LinkChildForm(forms.Form):
     def clean(self):
         cleaned = super().clean()
         if getattr(self, "student", None) and self.guardian_user:
-            exists = StudentGuardian.objects.filter(
+            exists = StudentGuardian.objects.filter(  # tenant-isolation-allow: duplicate-link existence check on one (user, student) pair (reviewed 2026-09-03)
                 guardian_user=self.guardian_user,
                 student=self.student,
             ).exists()

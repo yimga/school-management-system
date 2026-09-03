@@ -82,7 +82,7 @@ def _notify_guardians_of_rollover(rolled_students, target_year, *, created_by=No
     notified = 0
     for student, new_classroom in rolled_students:
         msg = f"Your child {student.get_full_name() or student.last_name} has been assigned to {new_classroom.name} for {target_year.name}."
-        for link in StudentGuardian.objects.filter(
+        for link in StudentGuardian.objects.filter(  # tenant-isolation-allow: bound to one student row from the school-scoped rollover set (reviewed 2026-09-03)
             student=student
         ).select_related("guardian_user"):
             if link.guardian_user_id:

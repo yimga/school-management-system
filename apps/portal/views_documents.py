@@ -475,7 +475,7 @@ def signature_pending_list(request):
         return redirect("portal:parent_dashboard")
 
     # Get linked students
-    guardian_links = StudentGuardian.objects.filter(guardian_user=request.user)
+    guardian_links = StudentGuardian.objects.filter(guardian_user=request.user)  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
     student_ids = [link.student_id for link in guardian_links]
 
     # Get pending signature requests for this parent's children

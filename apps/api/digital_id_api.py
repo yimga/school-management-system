@@ -119,7 +119,7 @@ class DigitalIDChildrenAPI(View):
                 {"error": "Permission denied. Parent only."}, status=403
             )
         try:
-            links = StudentGuardian.objects.filter(
+            links = StudentGuardian.objects.filter(  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
                 guardian_user=request.user,
                 student__is_active=True,
             ).select_related("student", "student__classroom", "student__academic_year")

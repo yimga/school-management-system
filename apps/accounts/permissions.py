@@ -944,7 +944,7 @@ def _guardian_finance_qs(user):
 
         with transaction.atomic():
             school = (
-                StudentGuardian.objects.filter(guardian_user=user)
+                StudentGuardian.objects.filter(guardian_user=user)  # tenant-isolation-allow: derives the school FROM the guardian's own link; nothing to scope by yet (reviewed 2026-09-03)
                 .values_list("student__school", flat=True)
                 .first()
             )
@@ -964,7 +964,7 @@ def _guardian_finance_qs(user):
     filters = {"guardian_user": user}
     if require_opt_in:
         filters["can_view_finance"] = True
-    return StudentGuardian.objects.filter(**filters)
+    return StudentGuardian.objects.filter(**filters)  # tenant-isolation-allow: the signed-in guardian's own links; guardian_user is the identity anchor (reviewed 2026-09-03)
 
 
 def guardian_finance_student_ids(user):

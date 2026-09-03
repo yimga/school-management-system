@@ -29,7 +29,7 @@ def _guardians_with_finance_access(invoice: Invoice):
     if not invoice.student_id:
         return []
     return list(
-        StudentGuardian.objects.filter(
+        StudentGuardian.objects.filter(  # tenant-isolation-allow: bound to one student row off the invoice (reviewed 2026-09-03)
             student=invoice.student,
             is_active=True,
             can_view_finance=True,

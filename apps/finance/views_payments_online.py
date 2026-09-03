@@ -57,7 +57,7 @@ def initiate_online_payment(request, invoice_id):
         is_parent = getattr(request.user, "role", "") == User.Role.PARENT
         is_guardian = bool(
             invoice.student_id
-            and StudentGuardian.objects.filter(
+            and StudentGuardian.objects.filter(  # tenant-isolation-allow: guardianship existence check on one (user, student) pair (reviewed 2026-09-03)
                 guardian_user=request.user, student_id=invoice.student_id
             ).exists()
         )

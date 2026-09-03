@@ -78,7 +78,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
             messages.error(request, "Student not found.")
             return finance_save_redirect(request, "finance:invoices")
 
-        guardians = StudentGuardian.objects.filter(student=student).select_related(
+        guardians = StudentGuardian.objects.filter(student=student).select_related(  # tenant-isolation-allow: bound to one school-resolved student row (reviewed 2026-09-03)
             "guardian_user"
         )
         to_grant = guardians.filter(can_view_finance=False)
@@ -167,7 +167,7 @@ def request_finance_access(request: HttpRequest, invoice_id: int | None = None):
         messages.success(request, f"Updated {updated} guardian link(s) for {student}.")
         return finance_save_redirect(request, "finance:invoices")
 
-    guardian_links = StudentGuardian.objects.filter(
+    guardian_links = StudentGuardian.objects.filter(  # tenant-isolation-allow: the signed-in guardian's own links (reviewed 2026-09-03)
         guardian_user=request.user
     ).select_related("student")
     if request.method == "POST" and request.POST.get("student_id"):
