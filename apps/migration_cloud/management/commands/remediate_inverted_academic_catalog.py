@@ -12,11 +12,39 @@ Usage::
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from apps.academics.models import Department, Specialty, SpecialtySubject, Subject
-from apps.people.models import TeacherProfile, StudentProfile
+from apps.people.models import StudentProfile, TeacherProfile
+
+
+@contextmanager
+def _tenant_schema(school):
+    """Enter the tenant schema for ``school`` (noop on single-schema backends)."""
+    from apps.migration_cloud.schema_binding import resolve_school_schema_name
+
+    schema_name = (resolve_school_schema_name(school) or "").strip()
+    if not schema_name:
+        raise CommandError(
+            f"No tenant schema bound to school {getattr(school, 'subdomain', school)!r}."
+        )
+    try:
+        from django_tenants.utils import schema_context
+    except ImportError:
+        schema_context = None
+    if schema_context is None:
+        yield schema_name
+        return
+    from django.db import connection
+
+    if not hasattr(connection, "set_schema"):
+        yield schema_name
+        return
+    with schema_context(schema_name):
+        yield schema_name
 
 
 class Command(BaseCommand):
@@ -46,9 +74,32 @@ class Command(BaseCommand):
         if not options["dry_run"] and not options["apply"]:
             raise CommandError("Pass --dry-run or --apply.")
 
-        from apps.schools.models import School
-
         school = self._resolve_school(options["school"])
+        with _tenant_schema(school) as schema_name:
+            from apps.migration_cloud.tenant_schema_readiness import (
+                assess_tenant_schema_readiness,
+            )
+
+            self.stdout.write(f"Tenant schema: {schema_name}")
+            readiness = assess_tenant_schema_readiness(
+                schema_name, attempt_repair=True
+            )
+            if readiness.repaired_labels:
+                self.stdout.write(
+                    f"Schema columns repaired: {', '.join(readiness.repaired_labels)}"
+                )
+            if not readiness.ready:
+                preview = ", ".join(readiness.missing_labels[:6])
+                extra = ""
+                if len(readiness.missing_labels) > 6:
+                    extra = f" (+{len(readiness.missing_labels) - 6} more)"
+                raise CommandError(
+                    "Tenant schema is still missing columns after repair: "
+                    f"{preview}{extra}. Run migrate_schemas for this tenant, then retry."
+                )
+            self._run_for_school(school, options)
+
+    def _run_for_school(self, school, options) -> None:
         subject_names = set(
             Subject.objects.filter(school=school).values_list("name", flat=True)
         )
@@ -60,19 +111,14 @@ class Command(BaseCommand):
             "curriculum_links_created": 0,
         }
 
-        # Use .values() so the command runs on tenant schemas that have not yet
-        # received edge-sync columns (e.g. department.updated_at from 0075).
-        dept_rows = Department.objects.filter(school=school).values("id", "name")
-        for dept in dept_rows:
+        # Use .values() so reads stay minimal on healed schemas.
+        for dept in Department.objects.filter(school=school).values("id", "name"):
             name = dept["name"]
             if name in subject_names:
                 plan["phantom_departments_removed"].append(name)
-                if options["apply"]:
-                    continue  # handled in _apply
             elif Subject.objects.filter(school=school, name__iexact=name).exists():
                 plan["subjects_promoted_from_departments"].append(name)
 
-        # Specialties that mirror subject titles (mis-routed subject catalog).
         for sp in Specialty.objects.filter(school=school).values("id", "name"):
             name = sp["name"]
             if name in subject_names:

@@ -131,3 +131,113 @@ def ensure_academics_offline_sync_columns() -> bool:
             editor.add_field(model, field)
         changed = True
     return changed
+
+
+# Migration 0075 / 0080 catalog edge-sync columns. A tenant whose django_migrations
+# records those migrations but whose DDL never landed 500s any full-model Department
+# query with ``column academics_department.updated_at does not exist``.
+_CATALOG_SYNC_SPECS: tuple[tuple[str, tuple[tuple[str, str], ...]], ...] = (
+    (
+        "academics_department",
+        (
+            ("client_offline_id", "varchar(128) NOT NULL DEFAULT ''"),
+            ("updated_at", "timestamp with time zone NULL"),
+        ),
+    ),
+    (
+        "academics_specialty",
+        (
+            ("client_offline_id", "varchar(128) NOT NULL DEFAULT ''"),
+            ("updated_at", "timestamp with time zone NULL"),
+        ),
+    ),
+    (
+        "academics_subject",
+        (
+            ("client_offline_id", "varchar(128) NOT NULL DEFAULT ''"),
+            ("updated_at", "timestamp with time zone NULL"),
+        ),
+    ),
+    (
+        "academics_specialtysubject",
+        (
+            ("client_offline_id", "varchar(128) NOT NULL DEFAULT ''"),
+            ("updated_at", "timestamp with time zone NULL"),
+        ),
+    ),
+    (
+        "academics_academicyear",
+        (
+            ("client_offline_id", "varchar(128) NOT NULL DEFAULT ''"),
+            ("updated_at", "timestamp with time zone NULL"),
+        ),
+    ),
+    (
+        "academics_term",
+        (
+            ("client_offline_id", "varchar(128) NOT NULL DEFAULT ''"),
+            ("updated_at", "timestamp with time zone NULL"),
+        ),
+    ),
+)
+
+
+def ensure_academics_catalog_sync_columns() -> bool:
+    """Add 0075/0080 ``updated_at`` + ``client_offline_id`` when missing in this schema."""
+    if connection.vendor != "postgresql":
+        import apps.academics.models as academics_models
+
+        changed = False
+        with connection.cursor() as cursor:
+            existing_tables = set(connection.introspection.table_names(cursor))
+        model_by_table = {
+            model._meta.db_table: model
+            for model in (
+                academics_models.Department,
+                academics_models.Specialty,
+                academics_models.Subject,
+                academics_models.SpecialtySubject,
+                academics_models.AcademicYear,
+                academics_models.Term,
+            )
+        }
+        for table, _specs in _CATALOG_SYNC_SPECS:
+            if table not in existing_tables:
+                continue
+            model = model_by_table.get(table)
+            if model is None:
+                continue
+            cols = _table_columns(table)
+            for field_name in ("client_offline_id", "updated_at"):
+                if field_name in cols:
+                    continue
+                field = model._meta.get_field(field_name)
+                with connection.schema_editor() as editor:
+                    editor.add_field(model, field)
+                changed = True
+        return changed
+
+    changed = False
+    with connection.cursor() as cursor:
+        existing_tables = set(connection.introspection.table_names(cursor))
+    for table, columns in _CATALOG_SYNC_SPECS:
+        if table not in existing_tables:
+            continue
+        q_table = connection.ops.quote_name(table)
+        live_cols = _table_columns(table)
+        for col_name, col_type in columns:
+            if col_name in live_cols:
+                continue
+            q_col = connection.ops.quote_name(col_name)
+            with connection.cursor() as cursor:
+                # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-add-column
+                cursor.execute(
+                    f"ALTER TABLE {q_table} ADD COLUMN IF NOT EXISTS {q_col} {col_type};"
+                )
+                if col_name == "client_offline_id":
+                    # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-add-column
+                    cursor.execute(
+                        f"ALTER TABLE {q_table} ALTER COLUMN {q_col} DROP DEFAULT;"
+                    )
+            changed = True
+    return changed

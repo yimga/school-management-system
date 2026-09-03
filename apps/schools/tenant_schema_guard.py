@@ -269,6 +269,11 @@ _COLUMN_REPAIRS: tuple[tuple[str, str, str], ...] = (
     # column whose absence HARD-500s any Classroom/Attendance query on a tenant that
     # never physically received 0073. TRUE column heal (mirrors people offline heal).
     ("academics_offline_id", "apps.academics.schema_repair", "ensure_academics_offline_sync_columns"),
+    (
+        "academics_catalog_sync",
+        "apps.academics.schema_repair",
+        "ensure_academics_catalog_sync_columns",
+    ),
     ("people_schema", "apps.people.schema_repair", "ensure_people_schema_current"),
     ("schoolops_visitorcheckin_offline_id", "apps.schoolops.schema_repair", "ensure_visitorcheckin_offline_id_column"),
     # Notification.dismissed_at/expires_at/school_id from finance 0071 — the drift
