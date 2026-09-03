@@ -1,0 +1,6 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-09-03",
+  "rule": "a school AddField in a healer app must be wrapped in SeparateDatabaseAndState (state=AddField, database=guarded add), unless the same migration creates the model"
+}
