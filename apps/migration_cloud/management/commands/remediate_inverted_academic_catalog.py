@@ -60,21 +60,25 @@ class Command(BaseCommand):
             "curriculum_links_created": 0,
         }
 
-        # Departments whose names duplicate an existing Subject → subject-shaped debris.
-        for dept in Department.objects.filter(school=school):
-            if dept.name in subject_names:
-                plan["phantom_departments_removed"].append(dept.name)
+        # Use .values() so the command runs on tenant schemas that have not yet
+        # received edge-sync columns (e.g. department.updated_at from 0075).
+        dept_rows = Department.objects.filter(school=school).values("id", "name")
+        for dept in dept_rows:
+            name = dept["name"]
+            if name in subject_names:
+                plan["phantom_departments_removed"].append(name)
                 if options["apply"]:
                     continue  # handled in _apply
-            elif Subject.objects.filter(school=school, name__iexact=dept.name).exists():
-                plan["subjects_promoted_from_departments"].append(dept.name)
+            elif Subject.objects.filter(school=school, name__iexact=name).exists():
+                plan["subjects_promoted_from_departments"].append(name)
 
         # Specialties that mirror subject titles (mis-routed subject catalog).
-        for sp in Specialty.objects.filter(school=school).select_related("department"):
-            if sp.name in subject_names:
-                plan["phantom_specialties_removed"].append(sp.name)
-            elif Subject.objects.filter(school=school, name__iexact=sp.name).exists():
-                plan["phantom_specialties_removed"].append(sp.name)
+        for sp in Specialty.objects.filter(school=school).values("id", "name"):
+            name = sp["name"]
+            if name in subject_names:
+                plan["phantom_specialties_removed"].append(name)
+            elif Subject.objects.filter(school=school, name__iexact=name).exists():
+                plan["phantom_specialties_removed"].append(name)
 
         self.stdout.write(f"School: {school.name} ({school.subdomain})")
         for key, val in plan.items():
@@ -126,33 +130,39 @@ class Command(BaseCommand):
     @staticmethod
     def _remove_phantom_specialties(school, subject_names: set[str]) -> int:
         removed = 0
-        for sp in Specialty.objects.filter(school=school):
-            if sp.name not in subject_names and not Subject.objects.filter(
-                school=school, name__iexact=sp.name
+        for sp in Specialty.objects.filter(school=school).values("id", "name"):
+            sp_id = sp["id"]
+            name = sp["name"]
+            if name not in subject_names and not Subject.objects.filter(
+                school=school, name__iexact=name
             ).exists():
                 continue
-            if StudentProfile.objects.filter(school=school, specialty=sp).exists():
+            if StudentProfile.objects.filter(school=school, specialty_id=sp_id).exists():
                 continue
-            SpecialtySubject.objects.filter(specialty=sp).delete()
-            sp.delete()
+            SpecialtySubject.objects.filter(specialty_id=sp_id).delete()
+            Specialty.objects.filter(pk=sp_id).delete()
             removed += 1
         return removed
 
     @staticmethod
     def _remove_phantom_departments(school, subject_names: set[str]) -> int:
         removed = 0
-        for dept in Department.objects.filter(school=school):
-            if dept.name not in subject_names:
+        for dept in Department.objects.filter(school=school).values("id", "name"):
+            dept_id = dept["id"]
+            name = dept["name"]
+            if name not in subject_names:
                 continue
-            if dept.name.lower() == "general":
+            if name.lower() == "general":
                 continue
-            if TeacherProfile.objects.filter(school=school, department=dept).exists():
+            if TeacherProfile.objects.filter(school=school, department_id=dept_id).exists():
                 continue
-            if Specialty.objects.filter(school=school, department=dept).exists():
+            if Specialty.objects.filter(school=school, department_id=dept_id).exists():
                 continue
-            if StudentProfile.objects.filter(school=school, specialty__department=dept).exists():
+            if StudentProfile.objects.filter(
+                school=school, specialty__department_id=dept_id
+            ).exists():
                 continue
-            dept.delete()
+            Department.objects.filter(pk=dept_id).delete()
             removed += 1
         return removed
 
