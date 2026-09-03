@@ -711,6 +711,22 @@
   font-weight: 700;
 }
 
+/* The recessive half of the pair above. rmc-wizard-zero-friction-scope.js
+   toggles --muted as the exact inverse of --ready, and every item in
+   wizard_migration_scope_preview.html ships with --muted set, so this is the
+   DEFAULT state of all six rows on first render -- it was referenced six
+   times, toggled by JS, and defined nowhere, which left "not yet unlocked"
+   looking identical to the base item. Deliberately no opacity and no colour
+   change on the text: the base rule already sets --text-secondary, and
+   dimming it further would cost contrast to say something the dashed edge
+   already says. */
+.rmc-wizard-zf-preview__item--muted {
+  border-style: dashed;
+  border-color: var(--hairline);
+  background: var(--surface-bg);
+}
+
+
 .rmc-wizard-zf-preview__hint {
   margin-block: var(--space-2) 0;
   font-size: var(--type-size-xs, 0.6875rem);
