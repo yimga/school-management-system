@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import uuid
+from io import StringIO
+from unittest.mock import patch
 
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 
@@ -46,3 +49,62 @@ class ResolveLatestBundleForSchoolTests(TestCase):
 
     def test_unknown_slug_returns_none(self):
         self.assertIsNone(resolve_latest_bundle_for_school("no-such-school-slug"))
+
+
+class RemediateTenantPostImportOrchestratorTests(TestCase):
+    def test_dry_run_chains_five_steps_in_order(self):
+        school = _school("orch-dry")
+        calls: list[str] = []
+
+        def _fake_call(command_name, *args, **kwargs):
+            calls.append(command_name)
+            return None
+
+        out = StringIO()
+        with patch(
+            "apps.migration_cloud.management.commands.remediate_tenant_post_import.call_command",
+            side_effect=_fake_call,
+        ):
+            call_command(
+                "remediate_tenant_post_import",
+                school=school.slug,
+                dry_run=True,
+                stdout=out,
+            )
+
+        self.assertEqual(
+            calls,
+            [
+                "remediate_inverted_academic_catalog",
+                "remediate_teaching_graph_closure",
+                "remediate_people_directory",
+                "remediate_finance_ledger_closure",
+                "preview_quarantine_autopilot",
+            ],
+        )
+        rendered = out.getvalue()
+        self.assertIn("1/5 academic catalog", rendered)
+        self.assertIn("3/5 people directory", rendered)
+        self.assertIn("5/5 quarantine autopilot", rendered)
+
+    def test_apply_chains_quarantine_batch(self):
+        school = _school("orch-apply")
+        calls: list[str] = []
+
+        def _fake_call(command_name, *args, **kwargs):
+            calls.append(command_name)
+            return None
+
+        with patch(
+            "apps.migration_cloud.management.commands.remediate_tenant_post_import.call_command",
+            side_effect=_fake_call,
+        ):
+            call_command(
+                "remediate_tenant_post_import",
+                school=school.slug,
+                apply=True,
+                max_sweeps=3,
+            )
+
+        self.assertEqual(calls[-1], "remediate_quarantine_batch")
+        self.assertEqual(len(calls), 5)

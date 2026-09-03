@@ -911,7 +911,57 @@ def enrich_missing_required_row(
             enriched["staff_external_id"] = f"email-{hashlib.sha256(email.casefold().encode()).hexdigest()[:16]}"
             evidence.append("staff_external_id←email_hash")
 
-    elif domain_key in {"structure", "sections"}:
+    elif domain_key == "structure":
+        classroom = str(
+            flat.get("classroom")
+            or flat.get("classroom_name")
+            or flat.get("class_name")
+            or flat.get("section_name")
+            or ""
+        ).strip()
+        if classroom and not str(flat.get("classroom") or "").strip():
+            enriched["classroom"] = classroom
+            evidence.append("classroom←class_alias")
+        subject = str(
+            flat.get("subject")
+            or flat.get("subject_name")
+            or flat.get("course_name")
+            or flat.get("title")
+            or ""
+        ).strip()
+        if subject and not str(flat.get("subject") or "").strip():
+            enriched["subject"] = subject
+            evidence.append("subject←subject_alias")
+        specialty = str(
+            flat.get("specialty")
+            or flat.get("specialty_name")
+            or flat.get("stream")
+            or ""
+        ).strip()
+        if specialty and not str(flat.get("specialty") or "").strip():
+            enriched["specialty"] = specialty
+            evidence.append("specialty←specialty_alias")
+        year = str(
+            flat.get("academic_year")
+            or flat.get("year")
+            or flat.get("school_year")
+            or ""
+        ).strip()
+        if year and not str(flat.get("academic_year") or "").strip():
+            enriched["academic_year"] = year
+            evidence.append("academic_year←year_alias")
+        term = str(
+            flat.get("term")
+            or flat.get("term_label")
+            or flat.get("semester")
+            or flat.get("trimestre")
+            or ""
+        ).strip()
+        if term and not str(flat.get("term") or "").strip():
+            enriched["term"] = term
+            evidence.append("term←period_alias")
+
+    elif domain_key == "sections":
         label = str(
             flat.get("name")
             or flat.get("classroom_name")
@@ -923,6 +973,10 @@ def enrich_missing_required_row(
         if label and not str(flat.get("name") or "").strip():
             enriched["name"] = label
             evidence.append("name←section_alias")
+        sec_code = str(flat.get("section_code") or flat.get("code") or "").strip()
+        if sec_code and not str(flat.get("section_code") or "").strip():
+            enriched["section_code"] = sec_code
+            evidence.append("section_code←code_alias")
 
     elif domain_key == "specialties":
         name = str(flat.get("name") or flat.get("title") or "").strip()
@@ -985,6 +1039,48 @@ def enrich_missing_required_row(
         if paid_raw not in (None, "") and flat.get("paid_amount") in (None, ""):
             enriched["paid_amount"] = paid_raw
             evidence.append("paid_amount←amount_paid_alias")
+
+    elif domain_key == "schedule":
+        section = str(
+            flat.get("section_external_id")
+            or flat.get("section_id")
+            or flat.get("class_id")
+            or flat.get("section_code")
+            or flat.get("classroom_name")
+            or flat.get("class_name")
+            or flat.get("section_name")
+            or ""
+        ).strip()
+        if section and not str(flat.get("section_external_id") or "").strip():
+            enriched["section_external_id"] = section
+            evidence.append("section_external_id←section_alias")
+        day = str(
+            flat.get("day_of_week")
+            or flat.get("day")
+            or flat.get("weekday")
+            or ""
+        ).strip()
+        if day and not str(flat.get("day_of_week") or "").strip():
+            enriched["day_of_week"] = day
+            evidence.append("day_of_week←day_alias")
+        start = str(
+            flat.get("start_time")
+            or flat.get("begin_time")
+            or flat.get("start")
+            or ""
+        ).strip()
+        if start and not str(flat.get("start_time") or "").strip():
+            enriched["start_time"] = start
+            evidence.append("start_time←begin_alias")
+        end = str(
+            flat.get("end_time")
+            or flat.get("finish_time")
+            or flat.get("end")
+            or ""
+        ).strip()
+        if end and not str(flat.get("end_time") or "").strip():
+            enriched["end_time"] = end
+            evidence.append("end_time←finish_alias")
 
     if not evidence:
         return row, []

@@ -11,7 +11,10 @@ from apps.migration_cloud.quarantine_profile import (
     artifact_yield_overview,
     profile_quarantine_distribution,
 )
-from apps.migration_cloud.quarantine_resolution import format_bundle_choices
+from apps.migration_cloud.quarantine_resolution import (
+    format_bundle_choices,
+    resolve_latest_bundle_for_school,
+)
 
 
 class Command(BaseCommand):
@@ -25,6 +28,15 @@ class Command(BaseCommand):
         # way an operator on a Render shell or a box can discover a valid one.
         parser.add_argument("--bundle-id", type=int, default=None)
         parser.add_argument(
+            "--school",
+            type=str,
+            default=None,
+            help=(
+                "Tenant slug or subdomain — resolves the newest bundle when "
+                "--bundle-id is omitted (e.g. gilead-tech)."
+            ),
+        )
+        parser.add_argument(
             "--include-resolved",
             action="store_true",
             help="Include repaired/denied rows, not just pending.",
@@ -33,6 +45,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         bundle_id = options["bundle_id"]
+        school_slug = options.get("school")
+        if bundle_id is None and school_slug:
+            bundle = resolve_latest_bundle_for_school(school_slug)
+            if bundle is None:
+                self.stdout.write(format_bundle_choices())
+                raise CommandError(
+                    f"No school or bundle found for {school_slug!r} — see the list above."
+                )
+            bundle_id = bundle.pk
         if bundle_id is None:
             self.stdout.write(format_bundle_choices())
             return

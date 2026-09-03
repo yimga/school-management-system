@@ -37,6 +37,7 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
+    normalize_canonical_row,
     persist_dfv_extras,
     record_row_error,
 )
@@ -58,6 +59,7 @@ class ScheduleLander(Lander):
     ) -> LanderResult:
         result = LanderResult()
         for row in canonical_rows:
+            row = normalize_canonical_row("schedule", row, ctx)
             section = (
                 row.get("section_external_id")
                 or row.get("section_id")

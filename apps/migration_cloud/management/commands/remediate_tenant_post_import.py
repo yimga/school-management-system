@@ -3,17 +3,15 @@
 Order (each step is idempotent):
 
 1. ``remediate_inverted_academic_catalog`` — CM/TVET subject↔specialty inversion
-2. ``remediate_finance_ledger_closure`` — issue imported fees + ledger posts
-3. ``remediate_quarantine_batch`` — zero-touch autopilot over held rows
+2. ``remediate_teaching_graph_closure`` — teaching grid + teacher RBAC links
+3. ``remediate_people_directory`` — enrollment SOT + guardian directory
+4. ``remediate_finance_ledger_closure`` — issue imported fees + ledger posts
+5. ``remediate_quarantine_batch`` — zero-touch autopilot over held rows
 
-Typical production run after batches 1821–1823 land::
+Typical production run::
 
     manage.py remediate_tenant_post_import --school gilead-tech --dry-run
     manage.py remediate_tenant_post_import --school gilead-tech --apply
-
-Preview held-row outcomes first (writes nothing)::
-
-    manage.py preview_quarantine_autopilot --school gilead-tech
 """
 
 from __future__ import annotations
@@ -26,7 +24,8 @@ from django.core.management.base import BaseCommand, CommandError
 
 class Command(BaseCommand):
     help = (
-        "Catalog repair + finance ledger closure + quarantine autopilot for one tenant."
+        "Catalog + teaching graph + people directory + finance + quarantine "
+        "autopilot for one tenant."
     )
 
     def add_arguments(self, parser):
@@ -43,7 +42,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--apply",
             action="store_true",
-            help="Execute all three steps.",
+            help="Execute all five steps.",
         )
         parser.add_argument(
             "--max-sweeps",
@@ -62,7 +61,7 @@ class Command(BaseCommand):
         mode_flag = "--dry-run" if dry_run else "--apply"
         report: dict[str, object] = {"school": school, "dry_run": dry_run, "steps": []}
 
-        self.stdout.write(f"=== 1/3 academic catalog ({mode_flag}) ===")
+        self.stdout.write(f"=== 1/5 academic catalog ({mode_flag}) ===")
         call_command(
             "remediate_inverted_academic_catalog",
             school=school,
@@ -71,7 +70,25 @@ class Command(BaseCommand):
         )
         report["steps"].append("catalog")
 
-        self.stdout.write(f"\n=== 2/3 finance ledger ({mode_flag}) ===")
+        self.stdout.write(f"\n=== 2/5 teaching graph ({mode_flag}) ===")
+        call_command(
+            "remediate_teaching_graph_closure",
+            school=school,
+            **({"dry_run": True} if dry_run else {"apply": True}),
+            stdout=self.stdout,
+        )
+        report["steps"].append("teaching_graph")
+
+        self.stdout.write(f"\n=== 3/5 people directory ({mode_flag}) ===")
+        call_command(
+            "remediate_people_directory",
+            school=school,
+            **({"dry_run": True} if dry_run else {"apply": True}),
+            stdout=self.stdout,
+        )
+        report["steps"].append("people_directory")
+
+        self.stdout.write(f"\n=== 4/5 finance ledger ({mode_flag}) ===")
         call_command(
             "remediate_finance_ledger_closure",
             school=school,
@@ -80,7 +97,7 @@ class Command(BaseCommand):
         )
         report["steps"].append("finance_ledger")
 
-        self.stdout.write(f"\n=== 3/3 quarantine autopilot ===")
+        self.stdout.write(f"\n=== 5/5 quarantine autopilot ===")
         if dry_run:
             call_command(
                 "preview_quarantine_autopilot",

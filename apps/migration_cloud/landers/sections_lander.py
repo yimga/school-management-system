@@ -32,6 +32,7 @@ from ._helpers import (
     get_or_create_named,
     mint_scoped_code,
     model_field_names,
+    normalize_canonical_row,
     persist_dfv_extras,
     record_id_mapping,
     record_row_error,
@@ -62,6 +63,7 @@ class SectionsLander(Lander):
         cls_fields = model_field_names(Classroom)
 
         for row in canonical_rows:
+            row = normalize_canonical_row("sections", row, ctx)
             # D-3: a source row marked tobedeleted must NOT land as an active
             # Classroom. Classroom has no is_active/status column and enrollments /
             # grades reference it, so we neither import it as active nor hard-delete

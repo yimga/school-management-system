@@ -1,5 +1,25 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Schedule normalize + people directory playbook (batch 1826 - 2026-09-03)
+
+**A. Scope:** Enrollment/guardian directory closure after import; schedule quarantine burndown via enrich-at-land.
+
+**B. Shipped:** schedule enrich + normalize; `sync_all_enrollments_for_school`; guardian dry-run `would_promote`; `remediate_people_directory`; 5-step `remediate_tenant_post_import`.
+
+**C. Proof:** sqlite-memory people-directory + orchestrator tests green.
+
+**D. Deploy:** `python manage.py remediate_tenant_post_import --school gilead-tech --apply` (now 5 steps).
+
+## Slice - Catalog lander normalize + teaching graph playbook (batch 1825 - 2026-09-03)
+
+**A. Scope:** Extend quarantine burndown to specialty/sections/structure landers; add teaching-graph closure to the gilead-tech post-import playbook so gradebook and teacher portal work after catalog repair.
+
+**B. Shipped:** `normalize_canonical_row` on specialty/sections/structure; structure/sections enrich alias expansion; `remediate_teaching_graph_closure`; 4-step `remediate_tenant_post_import`; `profile_bundle_quarantine --school=<slug>`.
+
+**C. Proof:** sqlite-memory **21/21 OK** (`test_auto_repair_expansion_2026_09_03`, `test_tenant_post_import_2026_09_03`, `test_teaching_graph_closure_2026_09_03`).
+
+**D. Deploy:** `python manage.py remediate_tenant_post_import --school gilead-tech --dry-run` then `--apply` (now runs catalog → teaching graph → finance → quarantine). Triage held rows: `python manage.py profile_bundle_quarantine --school gilead-tech`.
+
 ## Slice - gilead-tech post-import playbook command (batch 1824 - 2026-09-03)
 
 **A. Scope:** One operator entry point for catalog + finance + quarantine closure after 1821–1823 deploy.

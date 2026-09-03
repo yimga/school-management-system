@@ -65,6 +65,49 @@ class EnrichMissingRequiredExpansionTests(SimpleTestCase):
         self.assertTrue(enriched.get("last_name"))
         self.assertIn("first_name←full_name", evidence)
 
+    def test_structure_backfills_classroom_and_subject_aliases(self):
+        row = {
+            "classroom_name": "Form 4A",
+            "course_name": "Mathematics",
+            "stream": "PLUMBING",
+            "school_year": "2025/2026",
+            "semester": "FIRST",
+        }
+        enriched, evidence = enrich_missing_required_row("structure", row)
+        self.assertEqual(enriched["classroom"], "Form 4A")
+        self.assertEqual(enriched["subject"], "Mathematics")
+        self.assertEqual(enriched["specialty"], "PLUMBING")
+        self.assertEqual(enriched["academic_year"], "2025/2026")
+        self.assertEqual(enriched["term"], "FIRST")
+        self.assertIn("classroom←class_alias", evidence)
+
+    def test_sections_backfills_name_from_classroom_alias(self):
+        row = {"classroom_name": "Form 2B", "code": "F2B"}
+        enriched, evidence = enrich_missing_required_row("sections", row)
+        self.assertEqual(enriched["name"], "Form 2B")
+        self.assertEqual(enriched["section_code"], "F2B")
+        self.assertIn("name←section_alias", evidence)
+
+    def test_specialties_code_from_name(self):
+        row = {"name": "ELECTRICAL POWER SYSTEMS"}
+        enriched, evidence = enrich_missing_required_row("specialties", row)
+        self.assertTrue(enriched.get("code"))
+        self.assertIn("code←name", evidence)
+
+    def test_schedule_backfills_section_and_times(self):
+        row = {
+            "section_code": "F2A",
+            "day": "Monday",
+            "begin_time": "08:30",
+            "finish_time": "09:30",
+        }
+        enriched, evidence = enrich_missing_required_row("schedule", row)
+        self.assertEqual(enriched["section_external_id"], "F2A")
+        self.assertEqual(enriched["day_of_week"], "Monday")
+        self.assertEqual(enriched["start_time"], "08:30")
+        self.assertEqual(enriched["end_time"], "09:30")
+        self.assertIn("section_external_id←section_alias", evidence)
+
 
 class PreviewLanderErrorEnrichTests(SimpleTestCase):
     def test_lander_error_with_enrich_evidence_is_auto_replay(self):

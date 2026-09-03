@@ -163,8 +163,8 @@ def promote_guardian_directory_link(
 
 def promote_unlinked_guardian_hints(*, school, dry_run: bool = False) -> dict[str, int]:
     """Post-apply sweep: DFV ``parent_name`` hints with no ``StudentGuardian`` yet."""
-    summary = {"promoted": 0, "skipped": 0, "examined": 0}
-    if school is None or dry_run:
+    summary = {"promoted": 0, "skipped": 0, "examined": 0, "would_promote": 0}
+    if school is None:
         return summary
     try:
         from apps.metadata.models import DynamicFieldValue
@@ -207,6 +207,12 @@ def promote_unlinked_guardian_hints(*, school, dry_run: bool = False) -> dict[st
         ).first()
         if student is None:
             summary["skipped"] += 1
+            continue
+        if not (contact.get("name") or "").strip():
+            summary["skipped"] += 1
+            continue
+        if dry_run:
+            summary["would_promote"] += 1
             continue
         phone = (contact.get("phone") or "").strip() or (
             getattr(student, "parent_phone", "") or ""
