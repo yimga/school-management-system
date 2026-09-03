@@ -152,6 +152,56 @@ any locale can't break the inline script's string literals.
 </section>
 {% endif %}
 
+{% if teaching_graph_readiness %}
+<section class="rmc-card mb-4" aria-labelledby="mc-teaching-graph-heading" id="mc-teaching-graph">
+  <h2 id="mc-teaching-graph-heading" class="h5">{% trans "Teaching graph readiness" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Whether grades, teacher portal, and timetable views can work from what this import landed." %}</p>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Students placed" %}</div>
+        <div class="h4 mb-0">{{ teaching_graph_readiness.students_with_class_and_specialty }}</div>
+        {% if teaching_graph_readiness.students_missing_classroom or teaching_graph_readiness.students_missing_specialty %}
+        <p class="small text-warning mb-0 mt-2">
+          {% blocktrans with missing_class=teaching_graph_readiness.students_missing_classroom missing_spec=teaching_graph_readiness.students_missing_specialty %}
+          {{ missing_class }} missing class · {{ missing_spec }} missing specialty
+          {% endblocktrans %}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Gradebook grid cells" %}</div>
+        <div class="h4 mb-0">{{ teaching_graph_readiness.subject_assignments }}</div>
+        <p class="small mb-0 mt-2{% if not teaching_graph_readiness.ready_for_grades %} text-warning{% else %} text-success{% endif %}">
+          {% if teaching_graph_readiness.ready_for_grades %}{% trans "Ready for grade entry" %}{% else %}{% trans "Run repair to provision the teaching grid" %}{% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-3 border rounded h-100">
+        <div class="small text-muted">{% trans "Teacher portal links" %}</div>
+        <div class="h4 mb-0">{{ teaching_graph_readiness.teacher_assignments_active }}</div>
+        <p class="small mb-0 mt-2{% if not teaching_graph_readiness.ready_for_teacher_portal %} text-warning{% else %} text-success{% endif %}">
+          {% if teaching_graph_readiness.ready_for_teacher_portal %}{% trans "Teachers can open their classes" %}{% else %}{% trans "Add teaching hints or run repair" %}{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+  {% if teaching_graph_readiness.schedule_dfv_preserved %}
+  <p class="small text-muted mt-3 mb-0">
+    {% blocktrans with preserved=teaching_graph_readiness.schedule_dfv_preserved materialized=teaching_graph_readiness.schedule_entries_materialized %}
+    Timetable: {{ materialized }} class slots materialized · {{ preserved }} preserved import rows
+    {% endblocktrans %}
+    {% if not teaching_graph_readiness.ready_for_timetable_view %}
+    <span class="text-warning">{% trans "Some timetable rows still need subject and teacher references." %}</span>
+    {% endif %}
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if progress_url and not detecting %}
 {% comment %}
 Kickoff-page live board. Import / repair progress, pipeline, created/updated/held,

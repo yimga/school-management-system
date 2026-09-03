@@ -54,6 +54,22 @@ def assess_teaching_graph_readiness(school) -> dict[str, Any]:
         specialty__isnull=True
     ).count()
 
+    schedule_dfv = 0
+    schedule_entries = 0
+    try:
+        from apps.academics.scheduling import ScheduleEntry
+
+        schedule_dfv = DynamicFieldValue.objects.filter(
+            school=school,
+            entity_type="schedule",
+            field_key="record",
+        ).count()
+        schedule_entries = ScheduleEntry.objects.filter(
+            schedule__academic_year__school=school
+        ).count()
+    except Exception:  # noqa: BLE001 — readiness panel must stay cheap
+        pass
+
     return {
         "students_active": total_students,
         "students_missing_classroom": unplaced_class,
@@ -63,8 +79,11 @@ def assess_teaching_graph_readiness(school) -> dict[str, Any]:
         "teacher_assignments_active": teacher_assign_count,
         "teachers": teachers,
         "staff_with_teaching_hints": hinted,
+        "schedule_dfv_preserved": schedule_dfv,
+        "schedule_entries_materialized": schedule_entries,
         "ready_for_grades": gradeable_pairs > 0 and assignment_count > 0,
         "ready_for_teacher_portal": teacher_assign_count > 0,
+        "ready_for_timetable_view": schedule_entries > 0 or schedule_dfv == 0,
     }
 
 
@@ -266,10 +285,27 @@ def ensure_teaching_graph_closure(
     teacher_links = link_teacher_assignments_from_import_hints(
         school, dry_run=dry_run
     )
+    schedule_materialization: dict[str, Any] = {"skipped": True}
+    try:
+        from .schedule_materializer import materialize_schedule_from_import_dfv
+
+        schedule_materialization = materialize_schedule_from_import_dfv(
+            school, dry_run=dry_run
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "teaching_graph: schedule materialization failed school=%s: %s",
+            getattr(school, "pk", "?"),
+            exc,
+            exc_info=True,
+        )
+        schedule_materialization = {"error": f"{type(exc).__name__}: {exc}"}
+
     return {
         "readiness_before": readiness_before,
         "provision": provision,
         "teacher_links": teacher_links,
+        "schedule_materialization": schedule_materialization,
         "readiness_after": assess_teaching_graph_readiness(school),
     }
 
