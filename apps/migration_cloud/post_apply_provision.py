@@ -233,4 +233,21 @@ def gap_fill_after_apply(*, bundle, outcomes, dry_run: bool = False) -> dict[str
         )
         summary["teaching_graph_error"] = f"{type(exc).__name__}: {exc}"
 
+    try:
+        from apps.migration_cloud.finance_ledger import (
+            ensure_finance_ledger_closure_for_bundle,
+        )
+
+        summary["finance_ledger_closure"] = ensure_finance_ledger_closure_for_bundle(
+            bundle, dry_run=False
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "finance ledger closure failed for bundle %s: %s",
+            getattr(bundle, "pk", "?"),
+            exc,
+            exc_info=True,
+        )
+        summary["finance_ledger_error"] = f"{type(exc).__name__}: {exc}"
+
     return summary

@@ -109,6 +109,8 @@ class FinanceLanderCompletenessTests(TestCase):
         self.assertEqual(inv.student_id, self.student.pk)
         self.assertEqual(inv.notes, "Tuition Q1")
         self.assertEqual(inv.issued_date, date(2025, 9, 1))
+        self.assertEqual(inv.status, Invoice.Status.ISSUED)
+        self.assertEqual(inv.lines.count(), 1)
 
     def test_rerun_is_idempotent(self):
         lander, ctx = FinanceLander(), _ctx(self.school)

@@ -20,12 +20,17 @@ Canonical row shape (source field names)::
         "due_date": "2025-09-30",
         "issue_date": "2025-09-01",    # → Invoice.issued_date
         "description": "Tuition Q1"    # → Invoice.notes
+        "paid_amount": "500.00",       # → historical Payment + ledger (optional)
+        "balance": "750.00",           # alt: total − balance → paid_amount
     }
 """
 
 from __future__ import annotations
 
 from typing import Any, Iterator
+
+from django.core.exceptions import ValidationError
+from django.db import DatabaseError, IntegrityError
 
 from ._helpers import (
     coerce_date,
@@ -86,7 +91,12 @@ class FinanceLander(Lander):
 
         for row in canonical_rows:
             external_id = (row.get("student_external_id") or "").strip()
-            reference = (row.get("reference") or row.get("invoice_reference") or "").strip()
+            reference = (
+                row.get("reference")
+                or row.get("invoice_reference")
+                or row.get("invoice_number")
+                or ""
+            ).strip()
             amount = coerce_decimal(row.get("amount"))
             if not (external_id or student_name_from_row(row)) or not reference or amount is None:
                 record_row_error(
@@ -190,6 +200,29 @@ class FinanceLander(Lander):
                 detect_and_register_assets(
                     ctx=ctx, legacy_id=reference, entity_kind="invoice", row=row,
                 )
+                try:
+                    from apps.migration_cloud.finance_ledger import sync_imported_finance_row
+
+                    sync_imported_finance_row(
+                        obj,
+                        row,
+                        reference=reference,
+                        school=ctx.school,
+                        dry_run=ctx.dry_run,
+                    )
+                except (
+                    ImportError,
+                    DatabaseError,
+                    IntegrityError,
+                    ValidationError,
+                    TypeError,
+                    ValueError,
+                ) as ledger_exc:
+                    record_row_note(
+                        result,
+                        f"finance: ledger sync deferred for {reference}: "
+                        f"{type(ledger_exc).__name__}",
+                    )
             except Exception as exc:  # noqa: BLE001
                 record_row_error(
                     result,
