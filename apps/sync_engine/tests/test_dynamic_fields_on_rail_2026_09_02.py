@@ -78,8 +78,11 @@ class TargetModelVocabularyTests(TestCase):
         self.assertIs(_dfv_target_model("academics.department", config), Department)
 
     def test_opaque_namespaces_resolve_to_nothing(self):
+        # "incident" used to sit in this list; registering the entity on
+        # 2026-09-03 promoted the behavior lander's DFVs from opaque
+        # pass-through to real identity resolution -- the better outcome.
         config = _get_entity_config(include_derived=True)
-        for opaque in ("migration_residual:academics", "migration_artifact", "incident", ""):
+        for opaque in ("migration_residual:academics", "migration_artifact", ""):
             self.assertIsNone(_dfv_target_model(opaque, config), opaque)
 
 

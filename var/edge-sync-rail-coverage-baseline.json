@@ -1,8 +1,8 @@
 {
   "total_models": 326,
-  "rides": 15,
+  "rides": 17,
   "held": 2,
-  "not_yet_count": 309,
+  "not_yet_count": 307,
   "not_yet": [
     "academics.academicstructurenode",
     "academics.behaviorpointledger",
@@ -24,7 +24,6 @@
     "academics.degreeprogram",
     "academics.graduatemilestone",
     "academics.holidaycalendar",
-    "academics.incident",
     "academics.instructionday",
     "academics.instructionshift",
     "academics.lmsassignment",
@@ -213,7 +212,6 @@
     "people.schooltransferbatch",
     "people.specialeducationplan",
     "people.staffcompliancerecord",
-    "people.studentguardian",
     "people.studentpassport",
     "people.studentpassportmembership",
     "people.studentresourcereturn",

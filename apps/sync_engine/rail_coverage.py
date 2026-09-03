@@ -3,15 +3,19 @@
 Why this module exists
 ----------------------
 The edge appliance replicates a small fraction of the product. Measured on
-2026-08-31, updated 2026-09-02: **19 entities ride the delta rail**, of which
-**15 are tenant business models**, against **326 models across the 15 apps in
-``TENANT_APPS``** -- about **4.6%**. The rail side is read from the live entity
+2026-08-31, updated 2026-09-03: **21 entities ride the delta rail**, of which
+**17 are tenant business models**, against **326 models across the 15 apps in
+``TENANT_APPS``** -- about **5.2%**. The rail side is read from the live entity
 registry; the 326 is read from MIGRATION STATE, for reasons ``tenant_models``
-sets out at length. Four of the 19 live in SHARED apps and are counted
+sets out at length. Four of the 21 live in SHARED apps and are counted
 separately from business coverage: ``sync_schedule`` and ``sync_policy``
 (``sync_engine`` -- the rail's own configuration) and
 ``dynamic_field_definition`` / ``dynamic_field_value`` (``metadata`` -- the
-school-defined custom-field vocabulary and data, added 2026-09-02).
+school-defined custom-field vocabulary and data, added 2026-09-02). The
+2026-09-03 additions are the two measured-stranded school-data domains:
+``incident`` (behavior -- two-way, insertable) and ``student_guardian``
+(guardians -- insert-held; contact edits converge, creation stays an identity
+decision).
 
 That number is not, by itself, a defect. Some absences are correct and are
 argued in the repo -- ``finance.Payment`` is held out for two independently
@@ -221,7 +225,6 @@ DECLARATIONS: dict[str, Declaration] = {
     "academics.degreeprogram": _NOT_YET,
     "academics.graduatemilestone": _NOT_YET,
     "academics.holidaycalendar": _NOT_YET,
-    "academics.incident": _NOT_YET,
     "academics.instructionday": _NOT_YET,
     "academics.instructionshift": _NOT_YET,
     "academics.lmsassignment": _NOT_YET,
@@ -257,7 +260,6 @@ DECLARATIONS: dict[str, Declaration] = {
     "people.schooltransferbatch": _NOT_YET,
     "people.specialeducationplan": _NOT_YET,
     "people.staffcompliancerecord": _NOT_YET,
-    "people.studentguardian": _NOT_YET,
     "people.studentpassport": _NOT_YET,
     "people.studentpassportmembership": _NOT_YET,
     "people.studentresourcereturn": _NOT_YET,
