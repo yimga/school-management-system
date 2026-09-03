@@ -37,7 +37,7 @@ from ._helpers import (
     record_id_mapping,
     record_row_error,
 )
-from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .base import Lander, LanderContext, LanderError, LanderResult, get_lander, merge_lander_results, register
 from apps.migration_cloud.ingestion_lexicon import row_looks_like_subject_catalog_entry
 
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
@@ -65,11 +65,17 @@ class SpecialtyLander(Lander):
         result = LanderResult()
         for row in canonical_rows:
             if row_looks_like_subject_catalog_entry(row):
+                academics = get_lander("academics")
+                if academics is not None:
+                    rerouted = academics.land(canonical_rows=iter([dict(row)]), ctx=ctx)
+                    merge_lander_results(result, rerouted)
+                    if rerouted.quarantined == 0:
+                        continue
                 record_row_error(
                     result,
                     row,
                     "specialty: row looks like a subject catalog entry (category/coef/title) — "
-                    "re-upload as subjects_*.xlsx / academics domain",
+                    "auto-routed to academics; remaining failure needs review",
                     reason_code=LANDER_ERROR,
                 )
                 continue

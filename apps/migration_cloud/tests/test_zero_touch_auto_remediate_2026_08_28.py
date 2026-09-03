@@ -44,6 +44,12 @@ class EnrichMissingRequiredTests(SimpleTestCase):
         self.assertEqual(enriched["subject_name"], "MATH101")
         self.assertIn("subject_name←subject_code", evidence)
 
+    def test_grades_student_code_backfill(self):
+        row = {"student_code": "A-12", "subject_name": "Biology", "term": "T1"}
+        enriched, evidence = enrich_missing_required_row("grades", row)
+        self.assertEqual(enriched["student_external_id"], "A-12")
+        self.assertIn("student_external_id←identity_alias", evidence)
+
     def test_no_evidence_when_nothing_to_derive(self):
         row = {"page": "1"}
         _, evidence = enrich_missing_required_row("academics", row)

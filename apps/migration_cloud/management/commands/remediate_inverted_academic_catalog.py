@@ -15,10 +15,8 @@ from __future__ import annotations
 from contextlib import contextmanager
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
 
-from apps.academics.models import Department, Specialty, SpecialtySubject, Subject
-from apps.people.models import StudentProfile, TeacherProfile
+from apps.schools.models import School
 
 
 @contextmanager
@@ -100,34 +98,17 @@ class Command(BaseCommand):
             self._run_for_school(school, options)
 
     def _run_for_school(self, school, options) -> None:
-        subject_names = set(
-            Subject.objects.filter(school=school).values_list("name", flat=True)
+        from apps.migration_cloud.catalog_repair import (
+            apply_inverted_catalog_repair,
+            plan_inverted_catalog_repair,
         )
 
-        plan = {
-            "subjects_promoted_from_departments": [],
-            "phantom_specialties_removed": [],
-            "phantom_departments_removed": [],
-            "curriculum_links_created": 0,
-        }
-
-        # Use .values() so reads stay minimal on healed schemas.
-        for dept in Department.objects.filter(school=school).values("id", "name"):
-            name = dept["name"]
-            if name in subject_names:
-                plan["phantom_departments_removed"].append(name)
-            elif Subject.objects.filter(school=school, name__iexact=name).exists():
-                plan["subjects_promoted_from_departments"].append(name)
-
-        for sp in Specialty.objects.filter(school=school).values("id", "name"):
-            name = sp["name"]
-            if name in subject_names:
-                plan["phantom_specialties_removed"].append(name)
-            elif Subject.objects.filter(school=school, name__iexact=name).exists():
-                plan["phantom_specialties_removed"].append(name)
+        plan = plan_inverted_catalog_repair(school)
 
         self.stdout.write(f"School: {school.name} ({school.subdomain})")
         for key, val in plan.items():
+            if key == "actionable":
+                continue
             if isinstance(val, list):
                 self.stdout.write(f"  {key}: {len(val)}")
                 for item in val[:20]:
@@ -141,23 +122,23 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Dry run — no changes written."))
             return
 
-        with transaction.atomic():
-            removed_specs = self._remove_phantom_specialties(school, subject_names)
-            removed_depts = self._remove_phantom_departments(school, subject_names)
-            links = self._ensure_curriculum_links(school)
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Applied: removed {removed_specs} phantom specialties, "
-                    f"{removed_depts} phantom departments, "
-                    f"created/verified {links} curriculum links."
-                )
+        if not plan.get("actionable"):
+            self.stdout.write(self.style.SUCCESS("No phantom catalog rows detected."))
+            return
+
+        applied = apply_inverted_catalog_repair(school)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Applied: removed {applied['phantom_specialties_removed']} phantom specialties, "
+                f"{applied['phantom_departments_removed']} phantom departments, "
+                f"created/verified {applied['curriculum_links_created']} curriculum links."
             )
+        )
 
     @staticmethod
     def _resolve_school(token: str):
         import uuid
 
-        from apps.schools.models import School
         from django.db.models import Q
 
         filters = Q(subdomain=token) | Q(slug=token)
@@ -172,49 +153,3 @@ class Command(BaseCommand):
         if school is None:
             raise CommandError(f"School not found: {token!r}")
         return school
-
-    @staticmethod
-    def _remove_phantom_specialties(school, subject_names: set[str]) -> int:
-        removed = 0
-        for sp in Specialty.objects.filter(school=school).values("id", "name"):
-            sp_id = sp["id"]
-            name = sp["name"]
-            if name not in subject_names and not Subject.objects.filter(
-                school=school, name__iexact=name
-            ).exists():
-                continue
-            if StudentProfile.objects.filter(school=school, specialty_id=sp_id).exists():
-                continue
-            SpecialtySubject.objects.filter(specialty_id=sp_id).delete()
-            Specialty.objects.filter(pk=sp_id).delete()
-            removed += 1
-        return removed
-
-    @staticmethod
-    def _remove_phantom_departments(school, subject_names: set[str]) -> int:
-        removed = 0
-        for dept in Department.objects.filter(school=school).values("id", "name"):
-            dept_id = dept["id"]
-            name = dept["name"]
-            if name not in subject_names:
-                continue
-            if name.lower() == "general":
-                continue
-            if TeacherProfile.objects.filter(school=school, department_id=dept_id).exists():
-                continue
-            if Specialty.objects.filter(school=school, department_id=dept_id).exists():
-                continue
-            if StudentProfile.objects.filter(
-                school=school, specialty__department_id=dept_id
-            ).exists():
-                continue
-            Department.objects.filter(pk=dept_id).delete()
-            removed += 1
-        return removed
-
-    @staticmethod
-    def _ensure_curriculum_links(school) -> int:
-        from apps.academics.structure_provisioning import ensure_specialty_curriculum
-
-        summary = ensure_specialty_curriculum(school)
-        return int(summary.get("created_links") or 0)

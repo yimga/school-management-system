@@ -53,6 +53,19 @@ class LanderResult:
     notes: list[dict[str, Any]] = field(default_factory=list)
 
 
+def merge_lander_results(target: LanderResult, source: LanderResult) -> None:
+    """Fold one lander's outcome into another (e.g. specialty → academics reroute)."""
+    target.created += source.created
+    target.updated += source.updated
+    target.skipped += source.skipped
+    target.quarantined += source.quarantined
+    target.errors.extend(source.errors)
+    target.error_rows.extend(source.error_rows)
+    target.notes.extend(source.notes)
+    target.created_ids.extend(source.created_ids)
+    target.updated_ids_with_old_values.extend(source.updated_ids_with_old_values)
+
+
 @dataclass
 class LanderContext:
     """Tenant + bundle context handed to every lander invocation."""

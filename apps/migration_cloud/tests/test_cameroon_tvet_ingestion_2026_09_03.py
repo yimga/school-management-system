@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from decimal import Decimal
 
 from django.test import SimpleTestCase, TestCase
@@ -20,6 +21,18 @@ from apps.migration_cloud.landers.academics_lander import AcademicsLander
 from apps.migration_cloud.landers.base import LanderContext
 from apps.migration_cloud.classifiers.domain import DomainCandidate
 from apps.schools.models import School
+
+
+def _school(tag: str, **kwargs) -> School:
+    slug = f"{tag}-{uuid.uuid4().hex[:8]}"
+    defaults = {
+        "name": f"School {slug}",
+        "slug": slug,
+        "subdomain": slug,
+        "country_code": "CM",
+    }
+    defaults.update(kwargs)
+    return School.objects.create(**defaults)
 
 
 class IngestionLexiconShapeTests(SimpleTestCase):
@@ -56,7 +69,7 @@ class IngestionLexiconShapeTests(SimpleTestCase):
 
 
 class SpecialtyLanderGuardTests(SimpleTestCase):
-    def test_rejects_subject_shaped_row(self):
+    def test_subject_shaped_row_detected(self):
         row = {"name": "WORKSHOP", "category": "Professional", "coef": "6"}
         self.assertTrue(row_looks_like_subject_catalog_entry(row))
 
@@ -73,10 +86,8 @@ class SpecialtyLanderGuardTests(SimpleTestCase):
 
 class AcademicsCoefficientLanderTests(TestCase):
     def test_coef_links_specialty_subject_for_general_broadcast(self):
-        school = School.objects.create(
-            name="Coef School",
-            subdomain="coef-school",
-            country_code="CM",
+        school = _school(
+            "coef",
             settings={"grading": {"curriculum_tracks": ["vocational_trade"]}},
         )
         sp_a = Specialty.objects.create(
@@ -116,11 +127,7 @@ class AcademicsCoefficientLanderTests(TestCase):
         return Department.objects.create(school=school, name=name, code=name[:8]).pk
 
     def test_professional_subject_heuristic_links_plumbing(self):
-        school = School.objects.create(
-            name="Heuristic School",
-            subdomain="heur-school",
-            country_code="CM",
-        )
+        school = _school("heur")
         dept = self._dept(school, "PL DEPT")
         sp = Specialty.objects.create(school=school, name="PLUMBING", code="PL", department_id=dept)
         ctx = LanderContext(
@@ -148,10 +155,8 @@ class AcademicsCoefficientLanderTests(TestCase):
         )
 
     def test_school_lexicon_resolves_cm(self):
-        school = School.objects.create(
-            name="Lex",
-            subdomain="lex-school",
-            country_code="CM",
+        school = _school(
+            "lex",
             settings={"grading": {"curriculum_tracks": ["vocational_trade"]}},
         )
         lex = resolve_school_ingestion_lexicon(school)

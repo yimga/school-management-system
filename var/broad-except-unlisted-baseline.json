@@ -337,7 +337,7 @@
     "apps/migration_cloud/artifact_blob_store.py": 9,
     "apps/migration_cloud/asset_pipeline.py": 5,
     "apps/migration_cloud/audit_packet_csv.py": 1,
-    "apps/migration_cloud/auto_remediate.py": 4,
+    "apps/migration_cloud/auto_remediate.py": 5,
     "apps/migration_cloud/celery_tasks.py": 6,
     "apps/migration_cloud/companion_receiver.py": 7,
     "apps/migration_cloud/connectors/plugin_loader.py": 3,

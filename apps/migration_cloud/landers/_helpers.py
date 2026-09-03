@@ -664,9 +664,125 @@ def row_is_pdf_noise_hold(domain: str, source_row: dict | None, artifact: str = 
     return not row_has_domain_identity(domain, source_row)
 
 
+def _enrich_split_combined_name(
+    enriched: dict[str, Any],
+    flat: dict[str, Any],
+    evidence: list[str],
+    *,
+    school=None,
+    transformer_options: dict | None = None,
+) -> None:
+    """Split a combined name column into first/last when either is missing."""
+    first = str(flat.get("first_name") or "").strip()
+    last = str(flat.get("last_name") or "").strip()
+    full = str(
+        flat.get("full_name") or flat.get("name") or flat.get("student_name") or ""
+    ).strip()
+    if full and (not first or not last):
+        if school is not None:
+            from types import SimpleNamespace
+
+            ctx = SimpleNamespace(
+                school=school,
+                transformer_options=transformer_options or {},
+            )
+            fn, _mn, ln = split_name_for(ctx, full)
+        else:
+            parts = full.split()
+            if len(parts) >= 2:
+                fn, ln = " ".join(parts[:-1]), parts[-1]
+            elif parts:
+                fn, ln = parts[0], parts[0]
+            else:
+                fn, ln = "", ""
+        if fn and not first:
+            enriched["first_name"] = fn
+            evidence.append("first_name←full_name")
+        if ln and not last:
+            enriched["last_name"] = ln
+            evidence.append("last_name←full_name")
+
+
+def _enrich_student_identity_keys(
+    enriched: dict[str, Any],
+    flat: dict[str, Any],
+    evidence: list[str],
+    *,
+    school=None,
+    transformer_options: dict | None = None,
+) -> None:
+    """Backfill pupil identity fields from sibling columns on the same row."""
+    ext = str(
+        flat.get("external_id")
+        or flat.get("student_external_id")
+        or flat.get("admission_number")
+        or flat.get("student_code")
+        or flat.get("exam_candidate_number")
+        or ""
+    ).strip()
+    if ext:
+        if not str(flat.get("external_id") or "").strip():
+            enriched["external_id"] = ext
+            evidence.append("external_id←identity_alias")
+        if not str(flat.get("student_external_id") or "").strip():
+            enriched["student_external_id"] = ext
+            evidence.append("student_external_id←identity_alias")
+
+    admission = str(flat.get("admission_number") or "").strip()
+    student_code = str(flat.get("student_code") or "").strip()
+    exam_no = str(flat.get("exam_candidate_number") or "").strip()
+
+    if not str(flat.get("external_id") or flat.get("student_external_id") or "").strip():
+        if admission:
+            enriched["external_id"] = admission
+            enriched["student_external_id"] = admission
+            evidence.append("external_id←admission_number")
+        elif student_code:
+            enriched["external_id"] = student_code
+            enriched["student_external_id"] = student_code
+            evidence.append("external_id←student_code")
+        elif exam_no:
+            enriched["external_id"] = exam_no
+            enriched["student_external_id"] = exam_no
+            evidence.append("external_id←exam_candidate_number")
+
+    first = str(enriched.get("first_name") or flat.get("first_name") or "").strip()
+    last = str(enriched.get("last_name") or flat.get("last_name") or "").strip()
+    if not str(flat.get("external_id") or flat.get("student_external_id") or "").strip():
+        derived = derive_external_id(
+            first_name=first,
+            middle_name=str(flat.get("middle_name") or "").strip(),
+            last_name=last,
+            date_of_birth=flat.get("date_of_birth"),
+            place_of_birth=str(flat.get("place_of_birth") or "").strip(),
+        )
+        if derived:
+            enriched["external_id"] = derived
+            enriched["student_external_id"] = derived
+            evidence.append("external_id←identity_hash")
+
+    _enrich_split_combined_name(
+        enriched,
+        flat,
+        evidence,
+        school=school,
+        transformer_options=transformer_options,
+    )
+
+    first = str(enriched.get("first_name") or flat.get("first_name") or "").strip()
+    last = str(enriched.get("last_name") or flat.get("last_name") or "").strip()
+    full = str(enriched.get("full_name") or flat.get("full_name") or "").strip()
+    if not full and first and last:
+        enriched["full_name"] = f"{first} {last}".strip()
+        evidence.append("full_name←first_name+last_name")
+
+
 def enrich_missing_required_row(
     domain: str,
     row: dict | None,
+    *,
+    school=None,
+    transformer_options: dict | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     """Apply defensible defaults when evidence exists in the same row.
 
@@ -699,30 +815,143 @@ def enrich_missing_required_row(
         elif name and not code:
             enriched["subject_code"] = name[:120]  # magic-number-allow: Subject.name max_length
             evidence.append("subject_code←subject_name")
+        if not str(flat.get("title") or "").strip() and name:
+            enriched["title"] = name
+            evidence.append("title←subject_name")
 
-    elif domain_key in {"students", "enrollment", "grades", "attendance", "behavior"}:
-        ext = str(
-            flat.get("external_id")
-            or flat.get("student_external_id")
-            or flat.get("admission_number")
-            or flat.get("student_code")
+    elif domain_key in {"students", "enrollment", "attendance", "behavior", "alumni"}:
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+
+    elif domain_key == "grades":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        subject = str(
+            flat.get("subject_code")
+            or flat.get("subject")
+            or flat.get("subject_name")
+            or flat.get("title")
+            or flat.get("course_name")
             or ""
         ).strip()
-        admission = str(flat.get("admission_number") or "").strip()
-        if not ext and admission:
-            enriched["external_id"] = admission
-            enriched["student_external_id"] = admission
-            evidence.append("external_id←admission_number")
-        first = str(flat.get("first_name") or "").strip()
-        last = str(flat.get("last_name") or "").strip()
-        full = str(flat.get("full_name") or "").strip()
-        if not full and first and last:
-            enriched["full_name"] = f"{first} {last}".strip()
-            evidence.append("full_name←first_name+last_name")
+        if subject and not str(flat.get("subject_code") or "").strip():
+            enriched["subject_code"] = subject
+            evidence.append("subject_code←subject_label")
+        term = str(flat.get("term") or flat.get("trimestre") or flat.get("semester") or "").strip()
+        if term and not str(flat.get("term") or "").strip():
+            enriched["term"] = term
+            evidence.append("term←period_alias")
+
+    elif domain_key == "guardians":
+        child_ref = str(
+            flat.get("student_external_id")
+            or flat.get("child_external_id")
+            or flat.get("pupil_id")
+            or flat.get("student_id")
+            or flat.get("admission_number")
+            or ""
+        ).strip()
+        if child_ref and not str(flat.get("student_external_id") or "").strip():
+            enriched["student_external_id"] = child_ref
+            evidence.append("student_external_id←child_ref")
+        _enrich_split_combined_name(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+
+    elif domain_key == "staff":
+        ext = str(
+            flat.get("staff_external_id")
+            or flat.get("external_id")
+            or flat.get("employee_id")
+            or flat.get("staff_number")
+            or flat.get("employee_number")
+            or ""
+        ).strip()
+        if not ext:
+            emp = str(flat.get("employee_number") or flat.get("employee_id") or "").strip()
+            if emp:
+                enriched["staff_external_id"] = emp
+                evidence.append("staff_external_id←employee_number")
+        _enrich_split_combined_name(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        first = str(enriched.get("first_name") or flat.get("first_name") or "").strip()
+        last = str(enriched.get("last_name") or flat.get("last_name") or "").strip()
+        if not str(enriched.get("staff_external_id") or flat.get("staff_external_id") or "").strip():
+            derived = derive_external_id(
+                first_name=first,
+                last_name=last,
+                date_of_birth=flat.get("date_of_birth"),
+                place_of_birth=str(flat.get("place_of_birth") or "").strip(),
+                prefix="auto-staff",
+            )
+            if derived:
+                enriched["staff_external_id"] = derived
+                evidence.append("staff_external_id←identity_hash")
+        email = str(flat.get("email") or "").strip()
+        if email and not str(enriched.get("staff_external_id") or "").strip():
+            enriched["staff_external_id"] = f"email-{hashlib.sha256(email.casefold().encode()).hexdigest()[:16]}"
+            evidence.append("staff_external_id←email_hash")
+
+    elif domain_key in {"structure", "sections"}:
+        label = str(
+            flat.get("name")
+            or flat.get("classroom_name")
+            or flat.get("section_name")
+            or flat.get("class_name")
+            or flat.get("room_name")
+            or ""
+        ).strip()
+        if label and not str(flat.get("name") or "").strip():
+            enriched["name"] = label
+            evidence.append("name←section_alias")
+
+    elif domain_key == "specialties":
+        name = str(flat.get("name") or flat.get("title") or "").strip()
+        code = str(flat.get("code") or "").strip()
+        if not name and code:
+            enriched["name"] = code
+            evidence.append("name←code")
+        elif name and not code:
+            enriched["code"] = name[:30]  # magic-number-allow: Specialty.code max_length
+            evidence.append("code←name")
 
     if not evidence:
         return row, []
     return enriched, evidence
+
+
+def normalize_canonical_row(
+    domain: str,
+    row: dict[str, Any],
+    ctx,
+) -> dict[str, Any]:
+    """Apply the same defensible defaults during initial landing as autopilot replay."""
+    enriched, _evidence = enrich_missing_required_row(
+        domain,
+        row,
+        school=getattr(ctx, "school", None),
+        transformer_options=getattr(ctx, "transformer_options", None) or {},
+    )
+    return enriched if _evidence else row
 
 
 # Canonical enrollment_status token → StudentProfile.Status value. Kept here so

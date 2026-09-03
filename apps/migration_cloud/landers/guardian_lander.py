@@ -53,7 +53,7 @@ import hashlib
 from typing import Any, Iterator
 
 from .base import Lander, LanderContext, LanderError, LanderResult, register
-from ._helpers import record_row_error, student_name_from_row
+from ._helpers import normalize_canonical_row, record_row_error, student_name_from_row
 from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
@@ -82,7 +82,10 @@ class GuardianLander(Lander):
         relationship_values = _relationship_values(StudentGuardian)
 
         for row in canonical_rows:
-            student_external_id = (row.get("student_external_id") or "").strip()
+            row = normalize_canonical_row("guardians", row, ctx)
+            student_external_id = (
+                row.get("student_external_id") or row.get("external_id") or ""
+            ).strip()
             first_name = (row.get("first_name") or "").strip()
             last_name = (row.get("last_name") or "").strip()
             user_ref = (row.get("guardian_user_ref") or "").strip()
