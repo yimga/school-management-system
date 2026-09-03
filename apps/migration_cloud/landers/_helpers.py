@@ -1258,8 +1258,10 @@ def explicit_conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
         return ""
     try:
         from apps.migration_cloud.models import ConflictResolution, MigrationConflict
-    except Exception:  # noqa: BLE001
+    except ImportError:
         return ""
+    from django.db import DataError, OperationalError, ProgrammingError
+
     try:
         canonical_model_path = (
             f"{canonical_obj.__class__.__module__}.{canonical_obj.__class__.__name__}"
@@ -1275,7 +1277,9 @@ def explicit_conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
             .first()
         )
         return "" if row is None else str(row.resolution)
-    except Exception:  # noqa: BLE001
+    except (DataError, OperationalError, ProgrammingError):
+        # A best-effort READ: an unreadable conflict table means "no recorded
+        # decision", which fails to the protective default upstream.
         return ""
 
 
