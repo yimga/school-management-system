@@ -999,6 +999,22 @@ MUTATIONS["companion-server-contract"] = Mutation(
     content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
 )
 
+MUTATIONS["platform-back-to-top"] = Mutation(
+    kind="patch",
+    path="templates/admin/base.html",
+    defect=(
+        "the Django admin shell stops mounting the platform chrome bundle, so "
+        "five of its seven scripts never execute on any admin page and the "
+        "back-to-top control renders inside the fixed-height scroll canvas"
+    ),
+    # The include PATH, not any script name inside the partial: the partial's
+    # contents change as chrome is added, and a mutation anchored on one of its
+    # scripts would go stale the next time that script is renamed. This path is
+    # what the gate itself asserts, so the two can only move together.
+    anchor=b"partials/rmc_platform_chrome_scripts.html",
+    replacement=b"partials/rmc_platform_chrome_scripts_gateproof.html",
+)
+
 MUTATIONS["theme-dual-plane-shell"] = Mutation(
     kind="patch",
     path="static/css/rmc-theme-experience-dual-plane.css",
