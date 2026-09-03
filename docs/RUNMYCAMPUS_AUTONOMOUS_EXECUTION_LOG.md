@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - gilead-tech post-import playbook command (batch 1824 - 2026-09-03)
+
+**A. Scope:** One operator entry point for catalog + finance + quarantine closure after 1821–1823 deploy.
+
+**B. Shipped:** `remediate_tenant_post_import --school=<slug>`; `preview_quarantine_autopilot --school=<slug>`.
+
+**C. Proof:** sqlite-memory **2/2 OK**; pre-push green.
+
+**D. Deploy:** `python manage.py remediate_tenant_post_import --school gilead-tech --dry-run` then `--apply`.
+
 ## Slice - Quarantine burndown normalize + enrich replay (batch 1823 - 2026-09-03)
 
 **A. Scope:** Burn held rows on gilead-tech / Mama Novi without re-import — extend normalize-at-land to high-volume landers and widen autopilot enrich replay.
