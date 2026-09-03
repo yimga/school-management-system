@@ -24,6 +24,7 @@ on:
       - "scripts/scan_test_host_fidelity.py"
       - "scripts/scan_dangling_static_reference.py"
       - "scripts/verify_theme_experience_dual_plane_shell.py"
+      - "scripts/verify_platform_back_to_top.py"
       - "static/css/rmc-theme-experience-dual-plane.css"
       - "scripts/audit_no_placeholder.py"
       - "docs/generated/no_placeholder_audit.json"
@@ -858,6 +859,17 @@ jobs:
           }
 
           run_unit u_theme_dual_plane_shell "Dual-plane sheet is covered by the shipped cache generation"
+
+          # 1s, and run by NOTHING until 2026-09-03 -- while
+          # verify_help_center_tiers certified a help tier on the grounds that
+          # this gate's .py file EXISTS. It guards the platform chrome bundle
+          # mounting OUTSIDE .rmc-app-shell on both admin hosts, and the
+          # emit_once keys that stop a shared chrome script re-executing.
+          u_platform_back_to_top() {
+            python scripts/verify_platform_back_to_top.py
+          }
+
+          run_unit u_platform_back_to_top "Admin shells mount platform chrome outside the scroll canvas"
           # A tracked artifact that certified a clean state over a surface it
           # never scanned: no_placeholder_audit.json read 0 findings over 1086
           # templates while 1910 existed, because the script always returned 0

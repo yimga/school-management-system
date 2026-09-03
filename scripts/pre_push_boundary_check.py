@@ -173,6 +173,14 @@ GATES: list[tuple[str, list[str]]] = [
     # -- and until now the only file in this repository that mentioned it was
     # itself, which is the whole C tier in one gate. 1s, stdlib only.
     ("theme-dual-plane-shell", ["verify_theme_experience_dual_plane_shell.py"]),
+    # 1s. Run by nothing until 2026-09-03, which is worse than it sounds:
+    # verify_help_center_tiers certified a help tier on the grounds that this
+    # gate's .py file EXISTS, so the ladder reported the tier satisfied while
+    # the check it names was unreachable -- and had gone red without anyone
+    # seeing it. It guards the platform chrome bundle mounting outside
+    # .rmc-app-shell on both admin hosts, and the emit_once keys that stop a
+    # shared chrome script re-executing.
+    ("platform-back-to-top", ["verify_platform_back_to_top.py"]),
     # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
     # title — operators scrolled past empty rules to reach "Platform Command Center".
     ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),
