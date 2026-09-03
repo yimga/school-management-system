@@ -1859,6 +1859,8 @@ _BASELINE_ADMIN = (
     ("setup_wizards", "Setup wizards", "setup_studio:tenant_wizard_index", "bi-magic", "Admin Panel", None),
     ("people", "Student Profiles", "accounts:backend_student_list", "bi-person-lines-fill", "People & Access", None),
     ("teachers", "Teachers", "accounts:backend_teacher_list", "bi-person-badge", "People & Access", None),
+    ("subjects", "Subjects", "accounts:backend_subject_list", "bi-journal-text", "Academic Management", None),
+    ("specialties", "Specialties", "accounts:backend_specialty_list", "bi-diagram-3", "Academic Management", None),
     ("classrooms", "Classrooms", "accounts:backend_classroom_list", "bi-building", "People & Access", None),
     ("academic_years", "Academic years", "siteconfig:academic_years_setup_evidence", "bi-calendar3", "Academic Management", None),
     ("rbac", "RBAC & Access Control", "accounts:rbac", "bi-diagram-3", "People & Access", None),

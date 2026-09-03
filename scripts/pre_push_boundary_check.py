@@ -127,6 +127,7 @@ GATES: list[tuple[str, list[str]]] = [
     ("include-with-default-context-var", ["scan_include_with_default_context_var.py", "--strict"]),
     ("eager-filter-arg-completion-static", ["verify_eager_filter_arg_completion.py", "--static-only"]),
     ("nav-engine-coverage-static", ["verify_nav_engine_coverage.py", "--static-only"]),
+    ("tier1-academic-people-platform-contract", ["verify_tier1_academic_people_platform_contract.py"]),
     ("report-entity-coverage", ["verify_report_entity_coverage.py"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
     # Approval HTML → live admin: fails if build lock / visible chip / grid drift.
@@ -292,6 +293,15 @@ GATES: list[tuple[str, list[str]]] = [
     # zero, and nothing invoked it before.
     ("finance-payment-atomicity", ["verify_finance_payment_atomicity.py"]),
 
+    # A sovereign box replicates 15 of 326 tenant models. Most of that absence was
+    # never a decision -- eleven tenant apps had zero entities on the rail and zero
+    # written rationale -- so a model could be added and simply never cross the
+    # cloud/box boundary, with nothing anywhere recording that anyone had chosen.
+    # This makes the absence declarable and the declaration mandatory: HELD (with a
+    # rationale and a pointer to where it is argued) or NOT_YET. RIDES is derived
+    # from the live registry and cannot be typed, so registering an entity never
+    # fails this gate -- only failing to SAY something does.
+    ("edge-rail-coverage", ["audit_rail_coverage.py", "--compare"]),
     # --- the meta-gate above the meta-gate (2026-08-28) ----------------------
     # verify_ci_gate_wiring proves a gate is INVOKED. Nothing proved a gate,
     # once invoked, DOES anything -- and three gates in this very list were

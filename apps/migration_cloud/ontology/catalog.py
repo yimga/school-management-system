@@ -609,6 +609,7 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
                 "en": [
                     "role", "position", "title", "job_title", "job",
                     "designation", "rank", "post", "job_role",
+                    "post_function_role", "function_role", "post_function",
                 ],
                 "fr": [
                     "fonction", "poste", "titre", "intitule_poste",
@@ -623,7 +624,10 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["Mathematics", "Languages"],
             synonyms={
-                "en": ["department", "dept", "faculty"],
+                "en": [
+                    "department", "dept", "faculty", "specialty", "speciality",
+                    "specialty_name", "trade", "stream", "filiere",
+                ],
                 "fr": ["departement", "service", "filiere"],
                 "es": ["departamento", "facultad"],
                 "pt": ["departamento", "faculdade"],
@@ -636,7 +640,7 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={
                 "en": [
                     "phone", "number", "telephone", "mobile", "phone_number",
-                    "contact", "contact_number", "tel", "cell", "msisdn",
+                    "telephone_number", "contact", "contact_number", "tel", "cell", "msisdn",
                 ],
                 "fr": ["telephone", "numero", "portable"],
                 "es": ["telefono", "movil", "celular"],
@@ -783,6 +787,18 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["Sciences"],
             synonyms={"en": ["department", "dept", "faculty"]},
+        ),
+        "category": _field(
+            description=(
+                "Subject track category — general, professional, related, or other. "
+                "Maps to ``Subject.category`` on import."
+            ),
+            value_type="enum",
+            value_examples=["General", "Professional", "Related"],
+            synonyms={
+                "en": ["category", "subject_category", "type", "track", "subject_type"],
+                "fr": ["categorie", "type_matiere"],
+            },
         ),
     },
     # --------------------------------------------------------------- specialties

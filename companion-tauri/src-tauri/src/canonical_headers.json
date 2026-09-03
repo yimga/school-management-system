@@ -85,7 +85,10 @@
     "credits",
     "department",
     "name",
-    "code"
+    "code",
+    "title",
+    "description",
+    "category"
   ],
   "sections": [
     "section_external_id",

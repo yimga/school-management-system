@@ -37,10 +37,13 @@ from apps.api.edge_auth import EdgeCredentialAuthentication
 from apps.api.sync_services import apply_changes, apply_deletes, apply_edge_inserts
 from apps.schools.tenant_api_guards import user_may_operate_on_school
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
+from apps.sync_engine import compression
 from apps.sync_engine.edge_outbox import (
     BUNDLE_CONTENT_TYPE,
     SYNC_DIRECTIVE_HEADER,
     SYNC_HIGH_WATER_HEADER,
+    SYNC_LIMIT_PARAM,
+    SYNC_MORE_HEADER,
     SYNC_PARITY_ADVICE_HEADER,
     SYNC_PARITY_BUCKETS_HEADER,
     SYNC_PARITY_DRIFT_HEADER,
@@ -182,6 +185,54 @@ logger = logging.getLogger(__name__)
 # The box already capped what it sends; this is the receiver's own belt-and-braces so a
 # malformed header cannot write an unbounded line into the operator's log.
 _UPGRADE_FAILURE_LOG_MAX_CHARS = 500  # magic-number-allow: logged excerpt of a box failure
+
+#: Ceiling on the page size a box may ask the download for. A box asking for more than
+#: this is asking for the pre-G2 behaviour — one response holding the whole corpus, built
+#: and sorted in memory on the operator — which is the thing paging exists to stop. It is
+#: capped rather than refused: the request is still legitimate, it just gets served in
+#: pages, and the `X-RMC-Sync-More` header tells the box to come back.
+_DEFAULT_PULL_PAGE_MAX_ROWS = 5000  # magic-number-allow: server ceiling on a requested page
+
+
+def _advertise_and_compress(request, resp):
+    """G6: gzip this bundle response, and tell the box we decode a gzip request body.
+
+    Two directions, one place. ``Accept-Encoding``/``Content-Encoding`` covers the cloud
+    -> box bundle; the ``X-RMC-Sync-Accept-Encoding`` advert is what lets the box
+    compress its own PUSH body, which HTTP gives it no way to negotiate. See
+    ``apps.sync_engine.compression`` for why this is done per-view rather than by adding
+    ``GZipMiddleware`` to the project (blast radius, BREACH on the site's HTML, and the
+    streaming interaction the G2 work makes likely).
+    """
+    if compression.enabled():
+        resp[compression.SYNC_ACCEPT_ENCODING_HEADER] = compression.GZIP
+    return compression.compress_response(request, resp)
+
+
+def _requested_page_limit(request):
+    """The box's requested page size, or ``(None, None)`` for "the whole delta".
+
+    Returns ``(limit, error)``. ABSENT MEANS UNPAGED, and that is the compatibility
+    contract: a box built before G2 sends no ``limit``, never reads
+    ``X-RMC-Sync-More``, and would treat a server-defaulted first page as the entire
+    delta — advancing its cursor past rows it never received. A truncated pull is missing
+    records, not a slow sync, so the server may not default this on the box's behalf.
+    """
+    raw = (request.query_params.get(SYNC_LIMIT_PARAM) or "").strip()
+    if not raw:
+        return None, None
+    try:
+        wanted = int(raw)
+    except (TypeError, ValueError):
+        return None, "invalid_limit"
+    if wanted <= 0:
+        return None, "invalid_limit"
+    ceiling = _DEFAULT_PULL_PAGE_MAX_ROWS
+    try:
+        ceiling = max(1, int(getattr(settings, "RMC_SYNC_PULL_PAGE_MAX_ROWS", ceiling)))
+    except (TypeError, ValueError):
+        pass
+    return min(wanted, ceiling), None
 
 
 def _log_upgrade_failure(request, school) -> None:
@@ -340,6 +391,29 @@ class SyncBundleUploadView(APIView):
     authentication_classes = [EdgeCredentialAuthentication, *api_settings.DEFAULT_AUTHENTICATION_CLASSES]
     permission_classes = [IsAuthenticated]
 
+    def finalize_response(self, request, response, *args, **kwargs):
+        """G6 on the push leg: advertise gzip uploads, and gzip the answer.
+
+        The advert (``X-RMC-Sync-Accept-Encoding``) rides EVERY response, success or
+        rejection, because it is the only way the box can learn it may compress its next
+        body — HTTP has no negotiation for a request body's encoding. The answer itself is
+        worth compressing too: it carries a ``results`` entry per row, so on a 500-row
+        page it is the larger half of the exchange on a link the school is paying for.
+
+        Compression happens in a POST-RENDER callback because a DRF ``Response`` has no
+        body yet at this point; rendering is what produces one.
+        """
+        response = super().finalize_response(request, response, *args, **kwargs)
+        if compression.enabled():
+            response[compression.SYNC_ACCEPT_ENCODING_HEADER] = compression.GZIP
+        try:
+            response.add_post_render_callback(
+                lambda rendered: compression.compress_response(request, rendered)
+            )
+        except AttributeError:  # a plain HttpResponse has no callback hook and is already rendered
+            compression.compress_response(request, response)
+        return response
+
     def post(self, request):
         school = getattr(request, "school", None)
         if school is None:
@@ -347,7 +421,17 @@ class SyncBundleUploadView(APIView):
         if not user_may_operate_on_school(request, school):
             return Response({"ok": False, "error": "forbidden"}, status=403)
 
-        data = request.body or b""
+        # G6: the box's bundle may arrive gzipped. It only does so once THIS cloud has
+        # advertised that it decodes one (see `_advertise_and_compress`), so a box talking
+        # to an operator that predates this still sends plain NDJSON. The decode is
+        # bounded — an authenticated box is still an untrusted source of a compression
+        # ratio, and an unbounded inflate here is an out-of-memory for a few kilobytes of
+        # upload. A bad or oversized stream is a 400, not the UnicodeDecodeError 500 that
+        # `verify_and_parse_bundle` would raise on gzip bytes.
+        try:
+            data = compression.request_body(request)
+        except ValueError as exc:
+            return Response({"ok": False, "errors": [str(exc)]}, status=400)
         collected: dict = {}
         rows, errors = verify_and_parse_bundle(
             data, expected_school_id=school.pk, collect=collected
@@ -521,6 +605,19 @@ class SyncBundleDownloadView(APIView):
             if e.strip()
         ]
 
+        # G2. THE PULL LEG USED TO BE UNPAGED AND UNRESUMABLE: one GET, no limit, and on a
+        # first sync (`since` absent) the entire corpus built, sorted and buffered in
+        # memory here before a byte moved. A real box applied 31,043 rows through this
+        # path, and a link that dropped at 90% restarted the whole thing from zero — the
+        # exact failure `file_sync` was given resumable byte ranges to avoid. Rows now get
+        # the same treatment: the box asks for a page, and is told whether more remain.
+        row_limit, limit_error = _requested_page_limit(request)
+        if limit_error:
+            return Response(
+                {"ok": False, "error": limit_error, "detail": "use a positive integer"},
+                status=400,
+            )
+
         # G4 schema handshake. Withhold ONLY what this box's schema cannot accept, and
         # say which and why — instead of shipping rows that die per-row on a column the
         # box does not have, which reads to an operator as an unexplained "12 NOT applied".
@@ -536,8 +633,12 @@ class SyncBundleDownloadView(APIView):
                 # would invert into shipping the whole corpus.
                 resp = HttpResponse(b"", content_type=BUNDLE_CONTENT_TYPE)
                 resp[SYNC_ROW_COUNT_HEADER] = "0"
+                # Nothing is servable, so nothing is queued behind this response either.
+                # Saying so explicitly stops a paging box from looping on an empty page.
+                resp[SYNC_MORE_HEADER] = "0"
                 resp[SYNC_SCHEMA_ADVICE_HEADER] = advice or "schema skew: nothing servable"
                 resp[SYNC_WITHHELD_HEADER] = ",".join(sorted(withheld))
+                _advertise_and_compress(request, resp)
                 # This is the branch where the box needs the upgrade MOST — it can accept
                 # nothing at all until it migrates — so the target must be stamped here
                 # too, not only on the success path below.
@@ -589,10 +690,22 @@ class SyncBundleDownloadView(APIView):
                 logger.debug("parity bucket narrowing failed; serving whole entity", exc_info=True)
                 keep_buckets = None
 
+        if keep_buckets is not None:
+            # PAGING AND THE PARITY REPAIR MUST NOT MEET. The bucket path is the ONE
+            # response whose high-water the runner deliberately ignores (see
+            # `_flush_drifted_entities`: `since=None`, one entity, cursor left alone), so
+            # a partial page here could never be resumed — there is no cursor to resume
+            # from and no second request coming. The rows the page left out would simply
+            # be the rows the repair failed to repair, silently, while reporting success.
+            # The narrowing has already cut this response to the buckets that actually
+            # disagree, which is what keeps it small; the limit is not needed and is
+            # dropped rather than half-honoured.
+            row_limit = None
+
         try:
             data, meta = build_edge_delta_bundle(
                 school, since=since, entities=entities, device_id="cloud",
-                keep_buckets=keep_buckets,
+                keep_buckets=keep_buckets, limit=row_limit,
             )
         except ValueError as exc:  # unknown_entities:[...]
             return Response({"ok": False, "error": str(exc)}, status=400)
@@ -601,6 +714,10 @@ class SyncBundleDownloadView(APIView):
         if meta.get("high_water_iso"):
             resp[SYNC_HIGH_WATER_HEADER] = meta["high_water_iso"]
         resp[SYNC_ROW_COUNT_HEADER] = str(meta.get("row_count", 0))
+        # Stamped on EVERY served bundle, including the unpaged ones, so "no header" can
+        # keep meaning "a cloud that predates paging" rather than being ambiguous with
+        # "this cloud pages but had nothing left".
+        resp[SYNC_MORE_HEADER] = "1" if meta.get("more") else "0"
         if served_buckets:
             resp[SYNC_PARITY_BUCKETS_HEADER] = served_buckets
         if withheld:
@@ -658,7 +775,10 @@ class SyncBundleDownloadView(APIView):
             )
         except Exception:  # noqa: BLE001 — observability must never cost the box its data
             pass
-        return resp
+        # LAST, after every header is on. Compression rewrites the body and its
+        # Content-Length, so anything that still wants to read `resp.content` must
+        # already have run.
+        return _advertise_and_compress(request, resp)
 
 
 __all__ = ["SyncBundleUploadView", "SyncBundleDownloadView"]

@@ -945,17 +945,16 @@ def _read_xlsx(stream, encoding: str) -> tuple[list[list[Any]], list[str], str]:
         ws = wb[wb.sheetnames[0]] if wb.sheetnames else None
         if ws is None:
             return [], [], encoding
-        rows_iter = ws.iter_rows(values_only=True)
-        try:
-            headers_row = next(rows_iter)
-        except StopIteration:
-            return [], [], encoding
-        headers = [str(h) if h is not None else "" for h in headers_row]
-        rows: list[list[Any]] = []
-        for i, row in enumerate(rows_iter):
-            if i >= 200:
+        all_rows: list[list[Any]] = []
+        for i, row in enumerate(ws.iter_rows(values_only=True)):
+            all_rows.append([("" if c is None else c) for c in row])
+            if i >= 24:  # magic-number-allow: spreadsheet-header-scan-window
                 break
-            rows.append([("" if c is None else c) for c in row])
+        from .spreadsheet_headers import split_header_and_data_rows
+
+        header_cells, data_rows_raw = split_header_and_data_rows(all_rows)
+        headers = [str(h) if h is not None else "" for h in header_cells]
+        rows = [[("" if c is None else c) for c in row] for row in data_rows_raw[:200]]
         return rows, headers, encoding
     finally:
         try:

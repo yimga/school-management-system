@@ -636,6 +636,11 @@ jobs:
             python scripts/verify_nav_engine_coverage.py --static-only
           }
 
+          u_tier1_academic_people_platform_contract() {
+            python -m unittest scripts.tests.test_verify_tier1_academic_people_platform_contract -v
+            python scripts/verify_tier1_academic_people_platform_contract.py
+          }
+
           u_template_tag_loads() {
             python scripts/verify_template_tag_loads.py --compare
           }
@@ -809,6 +814,7 @@ jobs:
           run_unit u_template_render_safety "Template render-safety (leaks / unclosed tags / missing refs)"
           run_unit u_include_with_default_context_var "|default/slice/add missing_var (VariableDoesNotExist 500)"
           run_unit u_nav_engine_coverage "Nav Engine coverage (static catalog + projector wiring)"
+          run_unit u_tier1_academic_people_platform_contract "Tier-1 academic/people platform contract (import + UI + sync)"
           run_unit u_template_tag_loads "Template custom tag {% load %} integrity"
           run_unit u_inline_style_off_token "Apple HIG: inline styles off the token system"
           run_unit u_inline_event_handlers "CSP enforce seal: no inline on*= event handlers"

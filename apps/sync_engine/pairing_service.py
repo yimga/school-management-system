@@ -17,9 +17,10 @@ a credential.
 """
 from __future__ import annotations
 
+import json
 import logging
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from apps.sync_engine.models_pairing import (
@@ -38,6 +39,141 @@ def _school_for_slug(slug: str):
         return None
     # tenant-isolation-allow: pairing-resolves-which-school-a-box-claims-before-any-tenant-context-exists
     return School.objects.filter(slug=slug).first()
+
+
+# --------------------------------------------------------------------------- #
+# One box per school (G5)
+# --------------------------------------------------------------------------- #
+ALREADY_PAIRED = "school_already_paired"
+BINDING_CHECK_UNAVAILABLE = "binding_check_unavailable"
+
+
+def _has_edge_scope(bitmap) -> bool:
+    """Whether a stored permission bitmap carries the edge-sync marker.
+
+    Read in Python rather than as a JSON containment lookup: the column is a
+    ``JSONField`` and the containment operator is not portable across the two
+    backends this codebase runs on, while the number of live tokens for one school
+    is single digits. A bitmap that arrives as raw text (an older row, a backend
+    that did not decode it) is decoded here rather than silently failing the check.
+    """
+    from apps.sync_engine.edge_outbox import EDGE_SYNC_SCOPE
+
+    if isinstance(bitmap, str):
+        try:
+            bitmap = json.loads(bitmap)
+        except ValueError:
+            return False
+    try:
+        return EDGE_SYNC_SCOPE in (bitmap or [])
+    except TypeError:
+        return False
+
+
+def bound_edge_device_ids(school) -> set:
+    """Device identities that could authenticate as this school's box RIGHT NOW.
+
+    The same question :func:`edge_outbox.resolve_edge_credential` answers, asked of a
+    whole school instead of one token: a live (unexpired, unrevoked) ``EDGE_SYNC_SCOPE``
+    credential on an unrevoked device. Keeping the guard and the authenticator on ONE
+    source of truth is the point -- a guard that consults a different table than the
+    thing it is guarding disagrees with reality in one direction or the other.
+
+    Deliberately NOT keyed on ``EdgePairingRequest``. A box installed before pairing
+    existed was bound by ``manage.py mint_edge_credential`` and has no request row at
+    all, and that is precisely the population most likely to be handed a second box.
+    """
+    from apps.accounts.models_offline_device import OfflineCapabilityToken
+
+    if school is None:
+        return set()
+    rows = OfflineCapabilityToken.objects.filter(
+        school=school,
+        revoked_at__isnull=True,
+        expires_at__gt=timezone.now(),
+        device__revoked_at__isnull=True,
+    ).values_list("permission_bitmap", "device__device_id")
+    return {
+        str(device_id or "").strip()
+        for bitmap, device_id in rows
+        if _has_edge_scope(bitmap) and str(device_id or "").strip()
+    }
+
+
+def _one_box_refusal_message(school) -> str:
+    """Why this is refused, and what to do instead -- in one sentence a technician can act on.
+
+    The failure this whole pairing design exists to remove is an operator reading a
+    diagnosis four days late. A bare error code on a terminal is the same mistake in a
+    smaller font, so the limitation and the release action are both named here.
+    """
+    name = getattr(school, "name", "") or getattr(school, "slug", "") or "This school"
+    return (
+        f"{name} already has a paired box, and RunMyCampus supports exactly ONE box "
+        "per school. It is refused rather than allowed because the cloud's "
+        "echo-suppression ledger is keyed on (school, entity, row) with no device "
+        "column: a row the first box pushes is recorded as already applied, so a "
+        "second box would be silently starved of it rather than fail. To move this "
+        "school onto a different box, release the existing one first -- revoke its "
+        "device in the operator console at /portal/super/devices/ -- and then pair "
+        "this one. A box re-pairing with the SAME device id is unaffected."
+    )
+
+
+def adoption_conflict(school, device_id: str = ""):
+    """``None`` when this box may be adopted by ``school``; a refusal dict when it may not.
+
+    ``device_id`` is what makes a rebuild survivable: a box that lost its own database
+    is the SAME box, so identity -- not novelty -- is what is checked. A BLANK device id
+    can never match, because two anonymous boxes look identical and ``""`` proves
+    nothing; ``mint_edge_credential`` derives ``edge-<slug>`` for a box that sends
+    none, so the first anonymous box does acquire a real identity on the cloud and the
+    second one simply is not it.
+
+    ``school is None`` is NOT a conflict. An unresolvable slug already has its own,
+    better handling -- ``start_pairing`` opens a visible request so a typo is
+    diagnosable -- and turning that into a refusal would delete the diagnosis.
+
+    FAILS CLOSED. If the binding cannot be read, this refuses with a distinct error
+    rather than assuming the school is free: a refused install is loud and retryable,
+    while a wrongly-permitted second box is the silent divergence this exists to stop.
+    """
+    if school is None:
+        return None
+    try:
+        bound = bound_edge_device_ids(school)
+    except (DatabaseError, ImportError, LookupError, AttributeError, TypeError, ValueError):
+        logger.exception(
+            "sync_engine.pairing: could not read the edge binding for %s -- refusing "
+            "rather than assuming the school is free",
+            getattr(school, "slug", "?"),
+        )
+        return {
+            "error": BINDING_CHECK_UNAVAILABLE,
+            "bound_device_ids": [],
+            "message": (
+                "The cloud could not check whether this school already has a box, so "
+                "pairing was refused rather than risk binding a second one. This is "
+                "safe to retry."
+            ),
+        }
+    if not bound:
+        return None
+    # Compare the identity as it will be STORED, not as it was sent: mint_edge_credential
+    # truncates to the column width, so a longer id is bound in truncated form and has to
+    # match here in the same form or a legitimate re-pair would read as a second box. The
+    # width is read from the field rather than written down, so the two cannot drift.
+    from apps.accounts.models_offline_device import DeviceRegistration
+
+    width = DeviceRegistration._meta.get_field("device_id").max_length
+    identity = str(device_id or "").strip()[:width]
+    if identity and identity in bound:
+        return None  # the same box, re-pairing
+    return {
+        "error": ALREADY_PAIRED,
+        "bound_device_ids": sorted(bound),
+        "message": _one_box_refusal_message(school),
+    }
 
 
 def start_pairing(
@@ -64,6 +200,26 @@ def start_pairing(
     than a 404 the box would report as a connectivity failure.
     """
     school = _school_for_slug(claimed_slug)
+    # Refused BEFORE the ticket is consumed: a ticket is single-use, and spending one
+    # on a request that can never be approved would cost an operator the ticket as
+    # well as the install.
+    conflict = adoption_conflict(school, device_id)
+    if conflict is not None:
+        logger.error(
+            "sync_engine.pairing: REFUSED a second box for %s (device=%r): %s",
+            getattr(school, "slug", "?"),
+            device_id,
+            conflict["error"],
+        )
+        # No request row is written. The message is the whole answer, and an
+        # unauthenticated caller has no standing to learn WHICH box holds the school --
+        # the incumbent's device id stays out of this response deliberately.
+        return {
+            "ok": False,
+            "error": conflict["error"],
+            "message": conflict["message"],
+            "school_resolved": True,
+        }
     ticket_row = _consume_claim_ticket(claim_ticket, school) if claim_ticket else None
     request, raw_secret = EdgePairingRequest.open_request(
         school=school,
@@ -239,6 +395,24 @@ def collect_pairing(*, request_id: str, poll_secret: str) -> dict:
                 locked.user_code,
             )
             return {"ok": False, "status": "error", "error": "incomplete_approval"}
+        # THE fail-closed gate. A claim ticket auto-approves inside `start_pairing` and
+        # never passes through `approve_pairing` at all, so the mint is the last place
+        # a pre-approved second box can be stopped -- and it is the moment the binding
+        # would actually come into existence.
+        conflict = adoption_conflict(school, locked.device_id)
+        if conflict is not None:
+            logger.error(
+                "sync_engine.pairing: REFUSED the credential for %s (%s): %s",
+                locked.user_code,
+                getattr(school, "slug", "?"),
+                conflict["error"],
+            )
+            return {
+                "ok": False,
+                "status": "refused",
+                "error": conflict["error"],
+                "message": conflict["message"],
+            }
         try:
             raw_token, token = mint_edge_credential(
                 school,
@@ -394,6 +568,25 @@ def approve_pairing(*, code: str, approver, school=None) -> dict:
     # THEM, so an operator-approved box is visibly operator-approved forever after.
     if not may_adopt_for(approver, target):
         return {"ok": False, "error": "forbidden", "user_code": request.user_code}
+    # Re-checked here and not merely at `start`, because a request legitimately opened
+    # while the school had no box must not become approvable after another box binds.
+    # Named to the approver, who is an authenticated admin of this school and is the
+    # one person who can act on it.
+    conflict = adoption_conflict(target, request.device_id)
+    if conflict is not None:
+        logger.error(
+            "sync_engine.pairing: REFUSED approval of %s for %s: %s",
+            request.user_code,
+            target.slug,
+            conflict["error"],
+        )
+        return {
+            "ok": False,
+            "error": conflict["error"],
+            "message": conflict["message"],
+            "bound_device_ids": conflict["bound_device_ids"],
+            "user_code": request.user_code,
+        }
 
     request.status = EdgePairingRequest.Status.APPROVED
     request.approved_at = timezone.now()
@@ -476,7 +669,11 @@ def notify_admins_of_pending_pairing(request) -> None:
 
 
 __all__ = [
+    "ALREADY_PAIRED",
+    "BINDING_CHECK_UNAVAILABLE",
+    "adoption_conflict",
     "approve_pairing",
+    "bound_edge_device_ids",
     "mint_claim_ticket",
     "collect_pairing",
     "deny_pairing",
@@ -499,6 +696,23 @@ def mint_claim_ticket(*, school, minted_by, days: int = 14, label: str = "") -> 
         return {"ok": False, "error": "school_required"}
     if not may_adopt_for(minted_by, school):
         return {"ok": False, "error": "forbidden"}
+    # A ticket IS an approval made ahead of time, so pre-authorising the adoption of a
+    # school that already has a box is pre-authorising exactly what the other three
+    # gates refuse. Refused here so an operator finds out while minting, rather than a
+    # technician finding out on site with a ticket that cannot work.
+    conflict = adoption_conflict(school, "")
+    if conflict is not None:
+        logger.error(
+            "sync_engine.pairing: REFUSED minting a claim ticket for %s: %s",
+            school.slug,
+            conflict["error"],
+        )
+        return {
+            "ok": False,
+            "error": conflict["error"],
+            "message": conflict["message"],
+            "bound_device_ids": conflict["bound_device_ids"],
+        }
 
     raw, row = EdgeClaimTicket.mint(
         school=school, created_by=minted_by, days=days, label=label

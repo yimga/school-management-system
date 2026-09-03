@@ -117,6 +117,16 @@ class EdgePairingRequest(models.Model):
     Lives in SHARED_APPS alongside ``schools.School`` and ``accounts.User``, so both
     foreign keys stay on the public side of the tenancy boundary — a SHARED model may
     not reference a TENANT table (see the ``cross-tenancy-fk`` gate).
+
+    ONE PER SCHOOL AT A TIME, enforced in ``pairing_service`` and not by a constraint
+    here. A constraint would be the wrong tool twice over: the rows this table keeps
+    are an audit trail, so a school that has legitimately replaced a box must be able
+    to hold several REDEEMED rows, and the fact that actually binds a box is a live
+    machine credential — which a box installed before this table existed has WITHOUT
+    any row here at all. ``bound_edge_device_ids`` therefore asks the credential, and
+    ``adoption_conflict`` refuses a second binding at four gates. Note that
+    ``device_id`` below is ``blank=True``: a blank id is never treated as proof that
+    two requests come from the same box, because two anonymous boxes look identical.
     """
 
     class Status(models.TextChoices):

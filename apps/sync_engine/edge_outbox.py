@@ -23,6 +23,7 @@ from datetime import datetime, timedelta, timezone as _dt_timezone
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
+from apps.sync_engine import compression
 from apps.sync_engine.gateway_retry import call_with_gateway_retry
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,101 @@ def _parse_iso(value):
     if timezone.is_naive(parsed):
         parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
     return parsed
+
+
+def _row_position(row) -> datetime | None:
+    """The row's place in the GLOBAL chronological order, or ``None`` for "no position".
+
+    One definition, used by both the sort in :func:`build_edge_delta_rows` and the page
+    boundary in :func:`page_delta_rows`. They have to agree exactly: a page cut computed
+    against a different notion of "same timestamp" than the sort used is a split tie
+    group, i.e. rows stranded behind an advanced cursor.
+    """
+    raw = row.get("updated_at")
+    if not raw:
+        return None
+    parsed = parse_datetime(str(raw))
+    if parsed is None:
+        return None
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+    return parsed
+
+
+def _row_sort_key(position):
+    """Total order over :func:`_row_position` values. Positionless rows sort FIRST."""
+    return (position is not None, position or _EPOCH)
+
+
+def page_delta_rows(rows, limit):
+    """The first page of ``rows`` under ``limit``, cut so a page boundary is a CURSOR.
+
+    Returns ``(page, more)``. ``rows`` must already be in the global ``updated_at`` order
+    :func:`build_edge_delta_rows` produces.
+
+    THE PAGE BOUNDARY MAY NEVER SPLIT A GROUP OF ROWS SHARING ONE ``updated_at``.
+    ``get_sync_cursor_for_request`` documents this hole and closes it, for a whole CYCLE,
+    with a 120s overlap: a cycle re-asks from slightly behind its stored high-water, so a
+    twin excluded by ``__gt`` at a page boundary is re-offered on the next cycle. Paging
+    WITHIN one cycle would reopen it far wider than the overlap can close. A first sync
+    pages across years of history in a single cycle, so by the time that cycle ends its
+    cursor is not 120 seconds past the split — it is months past it, and the twin is not
+    delayed, it is lost. The overlap is a repair for a race measured in milliseconds, not
+    a licence to split ties on purpose.
+
+    So the cut lands only ever BETWEEN groups: whole groups are taken while they fit, and
+    the returned page is the prefix ending at the last complete group. Two consequences,
+    both deliberate:
+
+      * A page can be SMALLER than ``limit`` — the trailing partial group is left for the
+        next page rather than half-shipped.
+      * A page can be LARGER than ``limit``, when the FIRST group alone exceeds it. That
+        group has to ship whole or it can never ship at all (the cursor cannot advance
+        past a timestamp without skipping its other members), so ``limit`` is a target,
+        not a ceiling. A bulk import that stamps thousands of rows with one timestamp is
+        the case; it is rare, it is bounded by that one group, and the alternative is a
+        page that is forever empty and a box that never converges.
+
+    A page whose last row has NO position (a null ``updated_at``) is likewise not a valid
+    cursor, so when more rows remain the page is extended through the next group — the
+    positionless rows ship first, together, and the page still ends somewhere the cursor
+    can stand.
+    """
+    rows = list(rows)
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        return rows, False
+    total = len(rows)
+    if limit <= 0 or total <= limit:
+        return rows, False
+
+    keys = [_row_sort_key(_row_position(r)) for r in rows]
+    cut = 0
+    i = 0
+    while i < total:
+        j = i
+        while j < total and keys[j] == keys[i]:
+            j += 1
+        if j <= limit:
+            cut = j
+            i = j
+            continue
+        if cut == 0:
+            # The very first group is bigger than the whole budget. Serve it whole; see
+            # the docstring — the only other option is to never serve it.
+            cut = j
+        break
+
+    if cut < total and keys[cut - 1][0] is False:
+        # The page ends on the positionless group. That is not a place a cursor can
+        # stand, so take the next group too and end on a real timestamp.
+        j = cut
+        while j < total and keys[j] == keys[cut]:
+            j += 1
+        cut = j
+    return rows[:cut], cut < total
+
 
 # Marker stamped into an edge credential's permission_bitmap. resolve_edge_credential
 # REQUIRES it, so a plain offline capability token can't authenticate the sync POST.
@@ -160,23 +256,12 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
     from apps.api.sync_services import enrich_delta_rows_with_fk_referents
 
     rows = enrich_delta_rows_with_fk_referents(rows, school, config)
-    sort_keys = []
-    for row in rows:
-        raw = row.get("updated_at")
-        if not raw:
-            sort_keys.append(None)
-            continue
-        parsed = parse_datetime(str(raw))
-        if parsed is None:
-            sort_keys.append(None)
-            continue
-        if timezone.is_naive(parsed):
-            parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
-        sort_keys.append(parsed)
-    order = sorted(
-        range(len(rows)),
-        key=lambda i: (sort_keys[i] is not None, sort_keys[i] or _EPOCH),
-    )
+    # ONE definition of the order, shared with page_delta_rows. A page cut computed
+    # against a different notion of "same position" than the sort used would split a
+    # group of rows sharing one timestamp, which is precisely the hole a cursor cannot
+    # recover from.
+    sort_keys = [_row_position(row) for row in rows]
+    order = sorted(range(len(rows)), key=lambda i: _row_sort_key(sort_keys[i]))
     rows = [rows[i] for i in order]
     meta = {
         "counts": counts,
@@ -188,14 +273,26 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
 
 
 def build_edge_delta_bundle(
-    school, *, since=None, entities=None, device_id="edge", keep_buckets=None
+    school, *, since=None, entities=None, device_id="edge", keep_buckets=None, limit=None
 ):
     """Package the school's records changed since ``since`` into a signed delta bundle.
 
     Returns ``(bundle_bytes, meta)`` where ``meta`` is
-    ``{"counts", "row_count", "high_water_iso"}``. UPDATE-only rows for the
+    ``{"counts", "row_count", "high_water_iso", "more"}``. UPDATE-only rows for the
     ``apply_changes`` entity set (identity holds because the clone is pk-preserving).
     Raises ``ValueError('unknown_entities:...')`` for an unknown entity filter.
+
+    ``limit`` (G2) serves ONE PAGE instead of the whole delta, cut where a cursor can
+    stand — see :func:`page_delta_rows`. ``None`` means "everything", which is what an
+    un-upgraded box asks for and therefore what it must keep getting: a server-side
+    default page size would silently truncate a peer that has no idea a second page
+    exists, and truncation on the PULL leg is missing records, not a slow sync.
+
+    ``meta["high_water_iso"]`` follows the page, not the corpus. On a partial page it is
+    the page's own last position (everything older is by construction already served);
+    only on the LAST page does it revert to the scan high-water — which is deliberately
+    higher than the last shipped row, because it also covers rows that were scanned and
+    echo-suppressed and whose timestamps the cursor must still clear.
     """
     from apps.sync_engine.delta_bundle import export_delta_bundle
 
@@ -215,6 +312,23 @@ def build_edge_delta_bundle(
         ]
         meta = dict(meta)
         meta["row_count"] = len(rows)
+    more = False
+    if limit is not None:
+        rows, more = page_delta_rows(rows, limit)
+        meta = dict(meta)
+        meta["row_count"] = len(rows)
+        if more:
+            # Advance only over the ground this page actually covers. The scan
+            # high-water belongs to the WHOLE delta and would carry the cursor past
+            # rows that are still queued behind this page.
+            page_high_water = _row_position(rows[-1]) if rows else None
+            meta["high_water"] = page_high_water
+            meta["high_water_iso"] = (
+                page_high_water.isoformat() if page_high_water else None
+            )
+    else:
+        meta = dict(meta)
+    meta["more"] = more
     data = export_delta_bundle(school_id=str(school.id), rows=rows, device_id=device_id or "edge")
     return data, meta
 
@@ -361,38 +475,83 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
     not raised) so the caller can distinguish "operator rejected the bundle" from
     "couldn't reach the operator". A connectivity failure (``URLError``/``OSError``,
     e.g. offline) PROPAGATES — the caller queues the bundle and retries later.
+
+    G6: the body is gzipped ONLY when this operator has advertised that it decodes one
+    (``compression.peer_accepts_gzip``, learned from a header on a response the box was
+    already reading). An operator that predates the advert hands gzip bytes straight to
+    ``verify_and_parse_bundle``, whose ``data.decode("utf-8")`` raises — so guessing is
+    not an option, and the fallback below exists for the one case the advert can be
+    stale: a cloud rolled BACK between the advert and this push.
     """
-    headers = {
+    base_headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": BUNDLE_CONTENT_TYPE,
+        # The receiver's answer carries a `results` entry per row; on a 500-row page that
+        # is the larger half of the exchange on a link where the box is the one paying.
+        **({"Accept-Encoding": compression.GZIP} if compression.enabled() else {}),
     }
     schema_head = local_schema_head_header()
     if schema_head:
-        headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
-    headers.update(local_manifest_headers())
-    def _attempt():
-        req = urllib.request.Request(endpoint, data=data, method="POST", headers=headers)
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
-                return resp.getcode(), resp.read().decode("utf-8", "replace")
-        except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
-            try:
-                return exc.code, exc.read().decode("utf-8", "replace")
-            except (OSError, AttributeError):
-                return exc.code, ""
+        base_headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
+    base_headers.update(local_manifest_headers())
 
-    # A 502/503/504 here is the cloud's PROXY answering while its application did not,
-    # and the commonest cause is simply that the service is cold — measured recovering
-    # inside a minute. Without this retry a box on a cadence records a failed push for a
-    # cloud that is merely waking up, and the operator, whose own browser warmed it,
-    # sees a healthy site and no explanation. 4xx is untouched: that is a decision the
-    # cloud made and must surface immediately.
-    status, body = call_with_gateway_retry(
-        _attempt,
-        on_retry=lambda attempt, total, wait: logger.info(
-            "edge push hit HTTP gateway error; retry %s/%s in %.0fs", attempt + 1, total, wait
-        ),
-    )
+    def _attempt_with(payload, headers):
+        def _attempt():
+            req = urllib.request.Request(
+                endpoint, data=payload, method="POST", headers=headers
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
+                    compression.read_peer_advert(resp.headers, endpoint)
+                    raw = compression.decode_response_body(resp.headers, resp.read())
+                    return resp.getcode(), raw.decode("utf-8", "replace")
+            except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
+                try:
+                    compression.read_peer_advert(exc.headers, endpoint)
+                    raw = compression.decode_response_body(exc.headers, exc.read())
+                    return exc.code, raw.decode("utf-8", "replace")
+                except (OSError, AttributeError):
+                    return exc.code, ""
+
+        # A 502/503/504 here is the cloud's PROXY answering while its application did not,
+        # and the commonest cause is simply that the service is cold — measured recovering
+        # inside a minute. Without this retry a box on a cadence records a failed push for a
+        # cloud that is merely waking up, and the operator, whose own browser warmed it,
+        # sees a healthy site and no explanation. 4xx is untouched: that is a decision the
+        # cloud made and must surface immediately.
+        return call_with_gateway_retry(
+            _attempt,
+            on_retry=lambda attempt, total, wait: logger.info(
+                "edge push hit HTTP gateway error; retry %s/%s in %.0fs", attempt + 1, total, wait
+            ),
+        )
+
+    compressed = False
+    payload, headers = data, base_headers
+    if compression.enabled() and compression.peer_accepts_gzip(endpoint):
+        packed = compression.compress(data)
+        if len(packed) < len(data):
+            payload = packed
+            headers = {**base_headers, "Content-Encoding": compression.GZIP}
+            compressed = True
+    status, body = _attempt_with(payload, headers)
+
+    # THE ADVERT WAS WRONG. Only these three shapes: they are what an operator that does
+    # not decode gzip produces for a gzip body (400 from the bundle verifier, 415 from a
+    # content check, 500 from the UnicodeDecodeError that verifier actually raises). A
+    # gateway 5xx is a cold cloud and belongs to the retry above; a 401/403/409 is a
+    # decision about the bundle and re-sending it uncompressed would only repeat it.
+    #
+    # Re-sending the SAME bytes is safe against a double apply: the replay guard keys on
+    # the bundle nonce, so an operator that did apply this bundle answers the retry with
+    # 409 rather than applying it twice.
+    if compressed and status in (400, 415, 500):
+        logger.warning(
+            "edge push: operator rejected a gzip body (HTTP %s); retrying uncompressed",
+            status,
+        )
+        compression.forget_peer(endpoint)
+        status, body = _attempt_with(data, base_headers)
     try:
         parsed = json.loads(body) if body else {}
     except ValueError:
@@ -404,6 +563,14 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
 # pull cursor without re-parsing the bundle body. Row-count is informational.
 SYNC_HIGH_WATER_HEADER = "X-RMC-Sync-High-Water"
 SYNC_ROW_COUNT_HEADER = "X-RMC-Sync-Row-Count"
+# G2 paging. "1" when the delta the box asked for did not fit in the page it was served,
+# so the box must come back for more before it is caught up. A box that predates paging
+# never sends `limit`, is never served a partial page, and never sees this header; a
+# cloud that predates it never sends it, and the box then treats one page as the whole
+# delta — which is exactly today's behaviour and therefore always safe to fall back to.
+SYNC_MORE_HEADER = "X-RMC-Sync-More"
+#: Query parameter carrying the box's requested page size on the download.
+SYNC_LIMIT_PARAM = "limit"
 # Schema handshake (G4). The box states which migration each synced app is on; the cloud
 # answers with what it withheld and why. Both are advisory headers rather than a
 # negotiation round trip, so the handshake costs no extra request.
@@ -450,6 +617,7 @@ def pull_bundle(
     collect: dict | None = None,
     parity: str = "",
     parity_buckets: str = "",
+    limit=None,
 ):
     """GET a signed delta bundle DOWN from the operator (cloud->box pull, box side).
 
@@ -463,8 +631,14 @@ def pull_bundle(
     PROPAGATES so the caller leaves its cursor put and retries later.
 
     Pass ``collect=`` a mutable dict to also receive out-of-band response metadata (the
-    cloud->box directive). Kept out of the return tuple so existing 3-tuple callers —
+    cloud->box directive, whether MORE rows remain, and the server's ``Date`` for the
+    clock-offset measurement). Kept out of the return tuple so existing 3-tuple callers —
     including the tested pull command — are untouched.
+
+    ``limit=`` asks for at most that many rows (G2). The caller must then read
+    ``collect["more"]`` and come back for the next page from the high-water it was just
+    handed; see ``sync_runner._drain_pull_pages``. Omitting it asks for the whole delta,
+    which is what every box did before paging existed.
 
     ``parity=`` is a PRE-COMPUTED digest header (``sync_engine.parity.encode_digests``).
     It is passed in rather than computed here on purpose: this function is the transport,
@@ -484,9 +658,23 @@ def pull_bundle(
     # parameter and serves the whole entity, which is correct and merely bigger.
     if parity_buckets and len(ents) == 1 and not query.get("since"):
         query["parity_buckets"] = parity_buckets
+    # G2: ask for ONE PAGE. Omitted entirely when the caller passes nothing, so the
+    # request a box made before paging existed is byte-identical to the one it makes now.
+    if limit is not None:
+        try:
+            wanted = int(limit)
+        except (TypeError, ValueError):
+            wanted = 0
+        if wanted > 0:
+            query[SYNC_LIMIT_PARAM] = wanted
     url = endpoint + (("?" + urlencode(query)) if query else "")
 
     headers = {"Authorization": f"Bearer {token}", "Accept": BUNDLE_CONTENT_TYPE}
+    # G6: NDJSON is highly compressible and this is the biggest body on the rail. urllib
+    # will NOT inflate the answer for us — see compression.decode_response_body, which is
+    # the other half of asking and without which every bundle would arrive corrupt.
+    if compression.enabled():
+        headers["Accept-Encoding"] = compression.GZIP
     # Tell the cloud which schema this box is on, so it can withhold the entities this
     # box could not apply anyway INSTEAD of shipping rows that die per-row with no
     # explanation. Advisory: a cloud that predates the handshake simply ignores it.
@@ -510,10 +698,14 @@ def pull_bundle(
     parity_advice = None
     manifest_target = None
     manifest_advice = None
+    more = None
+    server_date = None
+    local_sent = None
+    local_received = None
 
     def _read_meta(source):
         nonlocal advice, withheld, parity_drift, parity_advice
-        nonlocal manifest_target, manifest_advice
+        nonlocal manifest_target, manifest_advice, more, server_date
         if not source:
             return
         advice = source.get(SYNC_SCHEMA_ADVICE_HEADER)
@@ -522,21 +714,32 @@ def pull_bundle(
         parity_advice = source.get(SYNC_PARITY_ADVICE_HEADER)
         manifest_target = source.get(SYNC_MANIFEST_TARGET_HEADER)
         manifest_advice = source.get(SYNC_MANIFEST_ADVICE_HEADER)
+        more = source.get(SYNC_MORE_HEADER)
+        # G7: every cycle already carries the cloud's own idea of "now" on a header HTTP
+        # requires it to send. Nothing was reading it, so no box knew how far its clock
+        # had drifted from the side its cursors are compared against.
+        server_date = source.get("Date")
+        compression.read_peer_advert(source, endpoint)
 
     def _attempt():
-        nonlocal high_water, directive
+        nonlocal high_water, directive, local_sent, local_received
+        local_sent = timezone.now()
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
                 high_water = resp.headers.get(SYNC_HIGH_WATER_HEADER)
                 directive = resp.headers.get(SYNC_DIRECTIVE_HEADER)
                 _read_meta(resp.headers)
-                return resp.getcode(), resp.read()
+                payload = resp.read()
+                local_received = timezone.now()
+                return resp.getcode(), compression.decode_response_body(resp.headers, payload)
         except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
             try:
                 high_water = exc.headers.get(SYNC_HIGH_WATER_HEADER) if exc.headers else None
                 directive = exc.headers.get(SYNC_DIRECTIVE_HEADER) if exc.headers else None
                 _read_meta(exc.headers)
-                return exc.code, exc.read()
+                payload = exc.read()
+                local_received = timezone.now()
+                return exc.code, compression.decode_response_body(exc.headers, payload)
             except (OSError, AttributeError):
                 return exc.code, b""
 
@@ -561,6 +764,18 @@ def pull_bundle(
         collect["parity_advice"] = (parity_advice or "").strip()
         collect["manifest_target"] = (manifest_target or "").strip()
         collect["manifest_advice"] = (manifest_advice or "").strip()
+        # G2. Absent header => False: a cloud that predates paging serves the whole delta
+        # in one body, and "no more" is the truthful reading of that.
+        collect["more"] = str(more or "").strip().lower() in ("1", "true", "yes")
+        # G7. The RAW header plus the two local readings that bracket it, so the offset
+        # can be computed against the MIDPOINT of the round trip rather than against the
+        # moment the body finished arriving — otherwise a slow link reads as a skewed
+        # clock, and a real skew on a slow link reads as a bigger one than it is.
+        collect["clock"] = {
+            "server_date": (server_date or "").strip(),
+            "local_sent": local_sent,
+            "local_received": local_received,
+        }
     return status, body, high_water
 
 
@@ -611,6 +826,8 @@ __all__ = [
     "BUNDLE_CONTENT_TYPE",
     "SYNC_HIGH_WATER_HEADER",
     "SYNC_ROW_COUNT_HEADER",
+    "SYNC_MORE_HEADER",
+    "SYNC_LIMIT_PARAM",
     "SYNC_DIRECTIVE_HEADER",
     "SYNC_SCHEMA_HEAD_HEADER",
     "SYNC_SCHEMA_ADVICE_HEADER",
@@ -622,6 +839,7 @@ __all__ = [
     "wait_for_changes",
     "build_edge_delta_rows",
     "build_edge_delta_bundle",
+    "page_delta_rows",
     "mint_edge_credential",
     "resolve_edge_credential",
     "post_bundle",

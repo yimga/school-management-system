@@ -1581,6 +1581,9 @@ def _xlsx_rows(raw_bytes: bytes) -> tuple[list[Any], Iterator[Any]]:
     ``([], iter(()))`` when openpyxl is unavailable or the file is unreadable,
     so apply degrades to zero rows instead of raising. The workbook is held
     open until the data iterator is exhausted (read-only, streaming).
+
+    Title/banner rows before the real column headers are skipped via
+    :mod:`apps.migration_cloud.spreadsheet_headers`.
     """
     try:
         from openpyxl import load_workbook  # type: ignore[import-not-found]
@@ -1595,14 +1598,23 @@ def _xlsx_rows(raw_bytes: bytes) -> tuple[list[Any], Iterator[Any]]:
         _close_quietly(wb)
         return [], iter(())
     rows_iter = ws.iter_rows(values_only=True)
+    prefix: list[Any] = []
     try:
-        header_row = next(rows_iter)
+        for _ in range(25):  # magic-number-allow: spreadsheet-header-scan-window
+            prefix.append(next(rows_iter))
     except StopIteration:
+        pass
+    if not prefix:
         _close_quietly(wb)
         return [], iter(())
+    from .spreadsheet_headers import split_header_and_data_rows
+
+    header_row, buffered_data = split_header_and_data_rows(prefix)
 
     def _gen() -> Iterator[Any]:
         try:
+            for row in buffered_data:
+                yield row
             for row in rows_iter:
                 yield row
         finally:
@@ -1629,10 +1641,18 @@ def _xls_rows(raw_bytes: bytes) -> tuple[list[Any], Iterator[Any]]:
     sh = wb.sheet_by_index(0)
     if sh.nrows == 0:
         return [], iter(())
-    header_row = [sh.cell_value(0, c) for c in range(sh.ncols)]
+    scan = min(sh.nrows, 25)  # magic-number-allow: spreadsheet-header-scan-window
+    prefix = [
+        [sh.cell_value(r, c) for c in range(sh.ncols)]
+        for r in range(scan)
+    ]
+    from .spreadsheet_headers import pick_header_row_index
+
+    header_idx = pick_header_row_index(prefix)
+    header_row = prefix[header_idx]
 
     def _gen() -> Iterator[Any]:
-        for r in range(1, sh.nrows):
+        for r in range(header_idx + 1, sh.nrows):
             yield [sh.cell_value(r, c) for c in range(sh.ncols)]
 
     return header_row, _gen()

@@ -399,6 +399,187 @@ def _max_pages_per_cycle() -> int:
     return max(1, int(getattr(settings, "RMC_EDGE_SYNC_MAX_PAGES_PER_CYCLE", 20) or 20))
 
 
+def _pull_page_size() -> int:
+    """Rows per PULLED page (G2) — the download's equivalent of ``_page_size()``.
+
+    The push leg has paged since the backlog work; the pull leg did not, and the
+    asymmetry was not a design, it was an omission. One GET with no limit meant a first
+    sync built, sorted and buffered the whole corpus on the operator and streamed it as
+    one body; a link that dropped at 90% restarted from zero, forever.
+
+    Its own setting rather than a reuse of ``RMC_SYNC_BUNDLE_MAX_ROWS``: that number is
+    the UPLOAD receiver's rejection threshold — a cap it enforces on somebody else's
+    bundle — while this is a request the box makes of the cloud. They default to the same
+    500 because the same link and the same apply path are on the other end of both, but
+    an operator tuning one has no reason to be moving the other.
+    """
+    default = _page_size()
+    try:
+        return max(1, int(getattr(settings, "RMC_EDGE_SYNC_PULL_PAGE_ROWS", default) or default))
+    except (TypeError, ValueError):
+        return default
+
+
+def _max_pull_pages_per_cycle() -> int:
+    """Ceiling on pages PULLED in one cycle, so a cycle cannot run forever.
+
+    Hitting it is not a failure, for exactly the reason the push ceiling is not: the pull
+    cursor advanced over every page that was applied, so the next cycle resumes where
+    this one stopped. A box 31,043 rows behind converges over a handful of cycles instead
+    of holding one request open until something times out.
+    """
+    default = _max_pages_per_cycle()
+    try:
+        return max(
+            1,
+            int(
+                getattr(settings, "RMC_EDGE_SYNC_MAX_PULL_PAGES_PER_CYCLE", default)
+                or default
+            ),
+        )
+    except (TypeError, ValueError):
+        return default
+
+
+class PullDrainOutcome(NamedTuple):
+    """What the extra pull pages of one cycle added. See :func:`_drain_pull_pages`."""
+
+    pages: int
+    rows: int
+    cursor: object
+    skipped_reasons: dict
+    missing_parents: dict
+    notes: list
+    errors: list
+    #: True when the cycle stopped with the cloud still holding rows for this box —
+    #: the ceiling, a stalled high-water, or a failed page. Not a failure on its own;
+    #: the next cycle resumes from the cursor. Reported so a caller never has to read
+    #: a bounded cycle as a completed one.
+    more_pending: bool
+
+
+def _drain_pull_pages(
+    school, endpoint, token, user, *, since, more, result
+) -> PullDrainOutcome:
+    """Keep pulling pages until the cloud says none remain, or the ceiling is reached.
+
+    The FIRST page is pulled by ``run_sync_cycle`` itself (it carries the directive, the
+    schema/manifest handshakes and the parity digest, none of which should be repeated per
+    page). This drains the rest.
+
+    ADVANCE ONLY ON SUCCESS, per page. The cursor moves after a page VERIFIES and
+    APPLIES, never before, so a link that drops mid-drain leaves the position on the last
+    page that actually landed and the next cycle resumes from there. That is the whole
+    point: an interrupted pull must cost the pages it did not get, not the ones it did.
+
+    THREE INDEPENDENT STOPS, because a paging loop that trusts the peer is a hang:
+
+      * the cloud says no more remain;
+      * the page ceiling is reached (reported, not swallowed);
+      * the cursor did not MOVE. A page whose high-water is absent, unparseable, or not
+        strictly newer than the position we asked from would make the next request
+        identical to the one just made — an infinite loop serving the same rows. It is
+        also the only shape in which a server-side paging bug could cost data rather than
+        time, so it stops the drain and says so instead of hoping.
+
+    Never raises: a drain failure must leave the cycle exactly as the first page left it.
+    """
+    from django.utils.dateparse import parse_datetime
+
+    from apps.sync_engine import edge_outbox
+    from apps.sync_engine.edge_inbox import apply_pulled_bundle
+    from apps.sync_engine.models import EdgeSyncCursor, set_sync_cursor
+
+    pages = 0
+    rows = 0
+    reasons: dict = {}
+    parents: dict = {}
+    notes: list = []
+    errors: list = []
+    cursor = since
+    limit = _pull_page_size()
+    ceiling = _max_pull_pages_per_cycle()
+
+    while more:
+        if pages + 1 >= ceiling:
+            notes.append(
+                f"more cloud rows remain; stopped at the {ceiling}-page pull ceiling "
+                "and the next cycle resumes from the cursor"
+            )
+            break
+        if cursor is None:
+            # Nowhere to resume from. Asking again with `since=None` would re-serve the
+            # page just applied, forever.
+            notes.append(
+                "more cloud rows remain but the page carried no high-water; "
+                "stopping so the next cycle can re-ask from the stored cursor"
+            )
+            break
+        collected: dict = {}
+        try:
+            status, body, high_water = edge_outbox.pull_bundle(
+                endpoint,
+                token,
+                since=cursor,
+                entities=None,
+                collect=collected,
+                limit=limit,
+            )
+        except OSError as exc:
+            # Named, not blanket. ``pull_bundle`` documents that a CONNECTIVITY failure
+            # propagates (``URLError`` is an ``OSError``) so the caller can leave its
+            # cursor put — which is exactly what going offline halfway through a drain
+            # is, and it must read as "resume next cycle", not as a crash. Anything
+            # else is a bug and belongs to the pull leg's own wrapper, where it is
+            # reported rather than swallowed behind a plausible-looking note.
+            errors.append(f"pull page {pages + 2} failed: {exc}")
+            break
+        if status != 200:
+            from apps.sync_engine.connectivity_probe import format_http_rejection
+
+            errors.append(format_http_rejection("pull", status, body))
+            break
+        applied = apply_pulled_bundle(school, user, body, origin="cloud-pull")
+        if not applied.get("ok"):
+            errors.append(f"pull verification failed: {applied.get('errors')}")
+            break
+
+        pages += 1
+        received = int(applied.get("received") or 0)
+        rows += received
+        result["pulled"] += received
+        result["created"] += int(applied.get("created") or 0)
+        result["upserted"] += int(applied.get("upserted") or 0)
+        result["deleted"] += int(applied.get("deleted") or 0)
+        result["conflicts"] += int(applied.get("conflicts") or 0)
+        result["skipped"] += int(applied.get("skipped") or 0)
+        for reason, count in (applied.get("skipped_reasons") or {}).items():
+            reasons[reason] = reasons.get(reason, 0) + int(count or 0)
+        parents.update(applied.get("skipped_missing_parents") or {})
+
+        parsed = parse_datetime(high_water) if high_water else None
+        if parsed is not None and timezone.is_naive(parsed):
+            parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+        if parsed is None or parsed <= cursor:
+            notes.append(
+                f"stopped paging the pull after {pages} extra page(s): the cloud's "
+                "high-water did not advance, so another request would re-serve the same "
+                "rows"
+            )
+            break
+        set_sync_cursor(school, EdgeSyncCursor.PULL, parsed)
+        cursor = parsed
+        more = bool(collected.get("more"))
+
+    if pages:
+        notes.insert(0, f"pulled {rows} more row(s) in {pages} extra page(s)")
+    # `more` is only cleared by a page whose response said so. Every break above leaves
+    # it True, which is exactly the honest answer: we stopped, the cloud had not finished.
+    return PullDrainOutcome(
+        pages, rows, cursor, reasons, parents, notes, errors, bool(more) or bool(errors)
+    )
+
+
 def _chunk(rows, size):
     for start in range(0, len(rows), size):
         yield rows[start : start + size]
@@ -505,6 +686,15 @@ def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
         "held_for_upgrade": False,
         "upgrade_target": "",
         "upgrade_available": "",
+        # G2: how many pages the pull leg took this cycle, and whether the cloud still
+        # had rows queued when the cycle stopped. `pull_more_pending` True is not a
+        # failure — it is a box converging in steps — but a caller that cannot see it
+        # would read a bounded cycle as a completed one.
+        "pull_pages": 0,
+        "pull_more_pending": False,
+        # G7: the measured wall-clock offset between this box and the cloud, in seconds
+        # (positive = this box is AHEAD). None when the response carried no usable Date.
+        "clock_offset_seconds": None,
         "message": "",
         "error": "",
     }
@@ -928,7 +1118,33 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
             entities=None,
             collect=collected,
             parity=parity_header,
+            # G2: ONE PAGE. The remaining pages are drained below, each one advancing the
+            # cursor only after it has verified and applied.
+            limit=_pull_page_size(),
         )
+
+        # G7: the cloud stamped its own idea of "now" on the response HTTP already
+        # required it to send, so the drift between the two clocks costs nothing to
+        # measure and — until now — was never measured at all. Every cursor in this
+        # engine is a wall-clock position compared across both sides, so a box whose
+        # clock has drifted further than the cursor overlap is silently losing rows
+        # while reporting clean cycles.
+        try:
+            from apps.sync_engine import clock_offset
+
+            reading = clock_offset.observe(school, collected.get("clock"))
+            if reading is not None:
+                result["clock_offset_seconds"] = reading["offset_seconds"]
+                skew_note = clock_offset.describe(reading)
+                if skew_note:
+                    notes.append(skew_note)
+        except (ImportError, AttributeError, TypeError, ValueError, KeyError):
+            # Named rather than blanket: the measurement is one header parse and some
+            # datetime arithmetic, and `clock_offset` already swallows a malformed Date
+            # internally. A diagnostic must never cost the box its data — but a blanket
+            # here would also hide a real bug in the measurement behind the same
+            # safe-looking silence.
+            logger.debug("could not measure the clock offset", exc_info=True)
 
         # A cloud operator cannot reach into this box, so a "resync everything" request
         # arrives as a header on the box's OWN download. Honour it by rewinding both
@@ -1066,10 +1282,46 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                                 parsed, timezone.get_current_timezone()
                             )
                         set_sync_cursor(school, EdgeSyncCursor.PULL, parsed)
+                    result["pull_pages"] = 1
+
+                    # G2: that was ONE PAGE. Keep pulling until the cloud says nothing
+                    # remains, advancing the cursor per page so an interrupted drain
+                    # costs only the pages it did not get.
+                    #
+                    # Placed HERE — after the cursor advance, before the missing-parent
+                    # repair and the parity flush — on purpose. Both of those may rewind
+                    # or re-target the cursor to heal something, and a drain running
+                    # afterwards would push the cursor forward again and quietly cancel
+                    # the repair. It is the same ordering rule the resync rewind above
+                    # follows, which is also why the drain never runs when `resyncing`:
+                    # the next cycle is about to replay the corpus anyway.
+                    skipped_reasons = dict(applied.get("skipped_reasons") or {})
+                    missing_parents = dict(applied.get("skipped_missing_parents") or {})
+                    if bool(collected.get("more")) and not resyncing:
+                        drained = _drain_pull_pages(
+                            school,
+                            endpoint,
+                            token,
+                            user,
+                            since=parsed,
+                            more=True,
+                            result=result,
+                        )
+                        result["pull_pages"] += drained.pages
+                        for _reason, _count in drained.skipped_reasons.items():
+                            skipped_reasons[_reason] = (
+                                skipped_reasons.get(_reason, 0) + _count
+                            )
+                        missing_parents.update(drained.missing_parents)
+                        notes.extend(drained.notes)
+                        errors.extend(drained.errors)
+                        result["pull_more_pending"] = drained.more_pending
                     note = (
                         f"pulled {result['pulled']} (created {result['created']}, "
                         f"upserted {result['upserted']}, conflicts {result['conflicts']})"
                     )
+                    if result["pull_pages"] > 1:
+                        note += f" over {result['pull_pages']} page(s)"
                     if result["deleted"]:
                         # Named explicitly. A cycle that removed records must never be
                         # summarised only as "pulled N" - the one number an operator has
@@ -1078,15 +1330,18 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     if result["skipped"]:
                         # Named reasons, not just a count: "3 not applied" sends an operator
                         # hunting, "missing_reference x3" says which rail is broken and why.
-                        reasons = applied.get("skipped_reasons") or {}
+                        # MERGED ACROSS PAGES: a refusal on page 4 is the same refusal it
+                        # would have been on page 1, and reporting only the first page's
+                        # would understate a paged cycle in exactly the direction that
+                        # hides a broken rail.
                         detail = ", ".join(
-                            f"{k} x{v}" for k, v in sorted(reasons.items())
+                            f"{k} x{v}" for k, v in sorted(skipped_reasons.items())
                         )
                         note += f"; {result['skipped']} NOT applied"
                         if detail:
                             note += f" ({detail})"
                     notes.append(note)
-                    if (applied.get("skipped_reasons") or {}).get("missing_reference"):
+                    if skipped_reasons.get("missing_reference"):
                         # Rewinding LAST, after the high-water advance above, so the rewind
                         # is what survives this cycle. The parent LABELS ride along so the
                         # decision can tell a parent a replay would deliver from one no
@@ -1095,7 +1350,7 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                         # rewind into a request for the one table the parent lives in.
                         notes.append(_request_replay_for_missing_parents(
                             school,
-                            applied.get("skipped_missing_parents") or {},
+                            missing_parents,
                             endpoint=endpoint,
                             token=token,
                             user=user,

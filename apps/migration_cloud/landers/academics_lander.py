@@ -25,6 +25,7 @@ Canonical row shape (source field names)::
 
 from __future__ import annotations
 
+import re
 from typing import Any, Iterator
 
 from ._helpers import (
@@ -40,6 +41,24 @@ from ._helpers import (
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 from .reason_codes import SOURCE_DELETION
+
+_CATEGORY_ALIASES: dict[str, str] = {
+    "general": "GENERAL",
+    "generale": "GENERAL",
+    "professional": "PROFESSIONAL",
+    "professionnel": "PROFESSIONAL",
+    "professionnelle": "PROFESSIONAL",
+    "related": "RELATED",
+    "other": "OTHER",
+}
+
+
+def _resolve_subject_category(raw: object) -> str | None:
+    token = str(raw or "").strip().lower()
+    if not token:
+        return None
+    compact = re.sub(r"[^a-z]+", "", token)
+    return _CATEGORY_ALIASES.get(token) or _CATEGORY_ALIASES.get(compact)
 
 
 class AcademicsLander(Lander):
@@ -101,17 +120,40 @@ class AcademicsLander(Lander):
 
             try:
                 credits = coerce_decimal(row.get("credits"))
+                category = _resolve_subject_category(
+                    row.get("category") or row.get("subject_category")
+                )
+                create_kwargs: dict[str, Any] = {}
+                if credits is not None and "credits" in subject_fields:
+                    create_kwargs["credits"] = credits
+                if category and "category" in subject_fields:
+                    create_kwargs["category"] = category
+                if code and "code" in subject_fields:
+                    create_kwargs["code"] = code[:30]  # magic-number-allow: Subject.code max_length
                 obj, created = get_or_create_named(
                     model=Subject,
                     school=ctx.school,
                     name=name[:120],  # magic-number-allow: Subject.name CharField max_length
-                    create_kwargs=lambda c=credits: (
-                        {"credits": c} if c is not None and "credits" in subject_fields else {}
-                    ),
+                    create_kwargs=(lambda ck=create_kwargs: ck) if create_kwargs else None,
                     result=result,
                 )
+                updates: dict[str, Any] = {}
+                if category and "category" in subject_fields and obj.category != category:
+                    updates["category"] = category
+                if code and "code" in subject_fields:
+                    trimmed = code[:30]  # magic-number-allow: Subject.code max_length
+                    if trimmed and obj.code != trimmed:
+                        updates["code"] = trimmed
+                if credits is not None and "credits" in subject_fields and obj.credits != credits:
+                    updates["credits"] = credits
+                if updates:
+                    for field, value in updates.items():
+                        setattr(obj, field, value)
+                    obj.save(update_fields=list(updates.keys()))
                 if created:
                     result.created += 1
+                elif updates:
+                    result.updated += 1
                 else:
                     result.skipped += 1
                 record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="academics")

@@ -703,6 +703,103 @@ def _force_immediate_constraints():
         logger.warning("could not switch FK constraints to IMMEDIATE", exc_info=True)
 
 
+# Refusal codes that are NOT a stuck row and must never become a dead letter.
+#
+#   "conflict" already has a durable per-row store (siteconfig.SyncConflict) and a screen
+#   with resolution buttons on it. A second record of the same row would double the count
+#   an operator reads and would make the stuck-row list mostly conflicts, which is the one
+#   thing a human IS already being asked about.
+_NON_DEAD_LETTER_REASONS = frozenset({"conflict"})
+
+
+def _record_apply_outcomes(school_id, keys_by_index, results, *, sync_origin):
+    """Turn this apply's per-row statuses into durable dead letters. Never raises.
+
+    THE DEFECT THIS CLOSES. Every refusal below is reported as a per-row status and then
+    dropped: the receiver sums them into ``EdgeSyncRun.skipped`` and the individual rows
+    cease to exist anywhere. A box that refuses the SAME 39 rows on all 687 cycles of a
+    day therefore reads as "26,598 not applied" and no operator, screen or monitor can
+    recover the 39 from that number. See :class:`apps.sync_engine.models.SyncDeadLetter`.
+
+    WHY HERE AND NOT IN THE RECEIVER. This is where the reason is known. The receivers
+    (the box's pull inbox and the cloud's upload view) see only ``{"error": "..."}`` after
+    the fact, and there are two of them - recording in one would have left the other rail
+    silent, which is exactly the asymmetry ``tally_skipped_rows`` was written to end.
+    Recording at the refusal covers BOTH directions from one place.
+
+    AFTER the apply transaction, never inside it. A write inside that block that failed
+    would mark the whole transaction for rollback, so a bookkeeping error would destroy a
+    bundle that had otherwise applied cleanly - observability taking down the thing it
+    observes. Each write also takes its own savepoint (see ``record_dead_letter``), so an
+    enclosing transaction in a CALLER cannot be poisoned either.
+
+    ONLY THE SYNC RAIL. ``sync_origin`` is None for an online DeltaSyncAPI call, where a
+    404 or a 403 is an answer to a live request that the caller is holding, not a row
+    silently stuck on a rail nobody is watching.
+
+    ``keys_by_index`` is ``{result_index: (entity_type, local_pk, client_offline_id)}``.
+    Paired by INDEX, never by matching the message text: two rows refused with the same
+    reason are indistinguishable by message, and pairing on it would collapse them onto
+    one record and lose every row but the last.
+    """
+    if not sync_origin or not school_id or not results or not keys_by_index:
+        return
+    try:
+        from apps.sync_engine.models import clear_dead_letters, record_dead_letter
+
+        for res in results:
+            key = keys_by_index.get(res.get("index"))
+            if not key:
+                continue
+            entity_type, local_pk, coid = key
+            if not entity_type or not local_pk:
+                continue
+            status = res.get("status")
+            if status in (200, 201):
+                # It landed. Whatever it was stuck on, it is not stuck now.
+                clear_dead_letters(school_id, entity_type, local_pk)
+                continue
+            data = res.get("data") or {}
+            reason = str(data.get("error") or "unknown")
+            if reason in _NON_DEAD_LETTER_REASONS:
+                continue
+            # The refusal's own remainder - which parent, which field, which error - in
+            # the order a triaging human reads it. `error` is already the reason.
+            detail = "; ".join(
+                f"{k}={v}" for k, v in sorted(data.items()) if k != "error" and v not in (None, "")
+            )
+            record_dead_letter(
+                school_id,
+                entity_type,
+                local_pk,
+                reason,
+                detail=detail,
+                origin=sync_origin,
+                client_offline_id=coid or "",
+            )
+    except Exception:  # noqa: BLE001 - dead-letter bookkeeping must never break a cycle
+        logger.debug("could not record sync apply outcomes", exc_info=True)
+
+
+def _delete_row_keys(rows) -> dict:
+    """``{index: (entity_type, local_pk, client_offline_id)}`` for a DELETE row list.
+
+    A deletion row identifies its target by pk when it has one and by the offline anchor
+    when it does not - the same either/or ``apply_deletes`` itself uses to find the row -
+    so the dead letter is keyed on whichever of the two actually names it.
+    """
+    return {
+        idx: (
+            (item.get("entity_type") or "").strip().lower(),
+            str(item["id"])
+            if item.get("id") is not None
+            else (item.get("client_offline_id") or "").strip(),
+            (item.get("client_offline_id") or "").strip(),
+        )
+        for idx, item in enumerate(rows or ())
+    }
+
+
 def _create_from_cloud_pull(
     school_id, user, entity_type, model, allowed, pk, changes, client_updated_at, fk_seen
 ):
@@ -902,21 +999,27 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
         # be the worst of both: a partial wipe plus an error. The far side keeps its
         # tombstones, so once an operator has decided the deletions are intended, raising
         # the cap (or a full resync) applies them - nothing is lost by refusing.
-        return {
-            "deleted": 0,
-            "results": [
-                {
-                    "index": i,
-                    "status": 409,
-                    "data": {
-                        "error": "delete_flood_guard",
-                        "count": len(rows),
-                        "max_deletes": cap,
-                    },
-                }
-                for i, _ in enumerate(rows)
-            ],
-        }
+        #
+        # Dead-lettered like any other refusal, and this one especially: the guard refuses
+        # the SAME bundle on every cycle until a human raises the cap or resyncs, which is
+        # exactly the permanent self-repeating stall that a per-cycle count renders as a
+        # growing number instead of "the same deletions, still refused".
+        flood_results = [
+            {
+                "index": i,
+                "status": 409,
+                "data": {
+                    "error": "delete_flood_guard",
+                    "count": len(rows),
+                    "max_deletes": cap,
+                },
+            }
+            for i, _ in enumerate(rows)
+        ]
+        _record_apply_outcomes(
+            school_id, _delete_row_keys(rows), flood_results, sync_origin=sync_origin
+        )
+        return {"deleted": 0, "results": flood_results}
 
     deleted = 0
     results: list[dict] = []
@@ -1028,6 +1131,9 @@ def apply_deletes(school_id, user, rows, *, sync_origin=None):
         deleted += 1
         results.append({"index": idx, "status": 200, "data": {"deleted": True}})
 
+    _record_apply_outcomes(
+        school_id, _delete_row_keys(rows), results, sync_origin=sync_origin
+    )
     return {"deleted": deleted, "results": results}
 
 
@@ -1813,6 +1919,20 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
     # Caller's ORIGINAL order, whatever dependency order the rows were processed in.
     results = [results_by_index[i] for i in sorted(results_by_index)]
     conflicts.sort(key=lambda c: c["index"])
+    # OUTSIDE the transaction above, deliberately — see _record_apply_outcomes.
+    _record_apply_outcomes(
+        school_id,
+        {
+            idx: (
+                (item.get("entity_type") or "").strip().lower(),
+                "" if item.get("id") is None else str(item.get("id")),
+                (item.get("client_offline_id") or "").strip(),
+            )
+            for idx, item in enumerate(items)
+        },
+        results,
+        sync_origin=sync_origin,
+    )
     return {
         "success_count": success_count,
         "results": results,
@@ -2128,4 +2248,20 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
         results_by_index[idx] = {"index": idx, "status": 201 if was_created else 200, "data": data}
 
     results = [results_by_index[i] for i in range(len(rows))]
+    # Keyed on the OFFLINE ANCHOR, not the row's `id`: an insert row carries the BOX's
+    # local pk, which means nothing on the far side and is reassigned on arrival, so it
+    # cannot identify the same row across two cycles. The anchor can, and does.
+    _record_apply_outcomes(
+        school_id,
+        {
+            idx: (
+                (item.get("entity_type") or "").strip().lower(),
+                (item.get("client_offline_id") or "").strip(),
+                (item.get("client_offline_id") or "").strip(),
+            )
+            for idx, item in enumerate(rows)
+        },
+        results,
+        sync_origin=sync_origin,
+    )
     return {"created": created, "updated": updated, "results": results}

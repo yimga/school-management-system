@@ -50,6 +50,8 @@ _ALIAS_TO_ROLE_NAME: dict[str, str] = {
     "censor": "CENSOR",
     "censeur": "CENSOR",
     "bursar": "BURSAR",
+    "partner": "BURSAR",
+    "bursarpartner": "BURSAR",
     "intendant": "BURSAR",
     "econome": "BURSAR",
     "accountant": "ACCOUNTANT",
