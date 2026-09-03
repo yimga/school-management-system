@@ -1044,6 +1044,34 @@ MUTATIONS["no-placeholder-copy"] = Mutation(
 )
 
 
+MUTATIONS["operator-siteconfig-cp-shell"] = Mutation(
+    kind="create",
+    path=f"apps/siteconfig/views{_PROOF}_stem_kwarg.py",
+    defect=(
+        "a view calls render_siteconfig_stem() with a keyword the function does "
+        "not accept -- no **kwargs absorbs it, so it is a TypeError 500 on every "
+        "request. apps/schools/views_tenant_self_offboarding.py did exactly this "
+        "with page_title= from 2026-05-22 until 2026-09-02, on a view no test "
+        "covers, while the gate spent that time reporting 17 findings about "
+        "pages that render correctly"
+    ),
+    # create, not patch: the gate walks apps/ for call sites, so a new file
+    # carrying the defect cannot go stale the way a byte anchor would. The
+    # harness marks it intent-to-add, which the walk does not need but the
+    # git-ls-files scanners around it do.
+    content=(
+        b'"""Planted by verify_gates_can_fail; not a real view."""'
+        + chr(10).encode()
+        + b"from apps.siteconfig.control_plane_render import render_siteconfig_stem"
+        + (chr(10) * 3).encode()
+        + b"def gateproof_view(request):"
+        + chr(10).encode()
+        + b'    return render_siteconfig_stem(request, "user_preferences", {}, page_title="x")'
+        + chr(10).encode()
+    ),
+)
+
+
 # DEAD verdicts that have been INDEPENDENTLY CONFIRMED, with the evidence that
 # confirmed them.
 #

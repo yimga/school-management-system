@@ -55,6 +55,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
     # can see it.
     ("scripts/verify_companion_server_contract.py", "ci.yml"),
+    # Added 2026-09-02. Run by nothing since it was written: absent from every
+    # workflow, from pre_push_boundary_check and from the test suite, while the
+    # execution log recorded a May hand-run of it as evidence the surface was OK.
+    ("scripts/verify_operator_siteconfig_cp_shell.py", "ci.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts

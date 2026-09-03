@@ -124,6 +124,8 @@ jobs:
         run: python scripts/scan_blank_unique_text_fields.py
       - name: Companion siblings must call server paths that exist
         run: python scripts/verify_companion_server_contract.py
+      - name: Operator siteconfig CP shell (stem kwargs, body partials by routing)
+        run: python scripts/verify_operator_siteconfig_cp_shell.py
       - name: Unit tests for the two field/migration shape gates
         run: |
           python -m unittest scripts.tests.test_scan_blank_unique_text_fields -v

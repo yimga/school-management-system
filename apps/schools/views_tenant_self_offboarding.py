@@ -86,7 +86,7 @@ def tenant_offboarding_page(request):
             "has_export": bool(export_path),
             "offboarding_playbook_api_url": offboarding_playbook_api_url,
         },
-        page_title="Close school account",
+        cp_title="Close school account",
     )
 
 
