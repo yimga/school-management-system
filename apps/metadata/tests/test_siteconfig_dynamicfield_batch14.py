@@ -10,13 +10,16 @@ from apps.schools.models import School
 
 
 class SiteconfigDynamicFieldSyncRetirementTests(TestCase):
-    def test_run_full_sync_is_noop_with_retirement_warning(self):
+    def test_run_full_sync_is_a_quiet_noop(self):
+        # Phase 5b retirement is expected on every deploy, so the no-op stopped
+        # emitting its "0168" warning (commit 9b2492435, quiet predeploy seed
+        # noise); what this test protects is that it stays a NO-OP.
         stats = run_full_sync(dry_run=False)
         self.assertEqual(stats.definition_rows_seen, 0)
         self.assertEqual(stats.value_rows_seen, 0)
         self.assertEqual(stats.definitions_upserted, 0)
         self.assertEqual(stats.values_upserted, 0)
-        self.assertTrue(any("0168" in w for w in stats.warnings))
+        self.assertEqual(stats.warnings, [])
 
 
 class MetadataDynamicFieldMapTests(TestCase):
