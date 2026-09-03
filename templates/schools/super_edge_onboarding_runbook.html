@@ -8,7 +8,7 @@
 {% block cp_title %}{% trans "Edge Onboarding Runbook" %}{% if selected_school %} — {{ selected_school.name }}{% endif %}{% endblock %}
 
 {% block cp_content %}
-<div class="rmc-page p-4 p-lg-6" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto">
+<div class="rmc-page p-4 p-lg-6" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 
   <nav class="rmc-section-nav rmc-page-fold-nav mb-3" aria-label="{% trans 'Onboarding sections' %}">
@@ -20,15 +20,7 @@
     {% endif %}
   </nav>
 
-  <header class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
-    <div>
-      <h1 class="h4 mb-1">{% trans "Edge Onboarding Runbook" %}</h1>
-      <p class="text-muted small mb-0">
-        {% trans "Ordered bring-up for an offline / sovereign box. This page previews the source tenant — it is not the box." %}
-      </p>
-    </div>
-    <a href="{{ dashboard_url }}" class="rmc-btn rmc-btn--ghost">{% trans "Back to Super Dashboard" %}</a>
-  </header>
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="edge_onboarding_runbook" center_eyebrow=_("Platform operators") center_title=_("Edge Onboarding Runbook") center_purpose=_("Ordered bring-up for an offline / sovereign box. This page previews the source tenant — it is not the box.") primary_url=dashboard_url primary_label=_("Back to Super Dashboard") %}
 
   <section class="rmc-card rounded-2xl border mb-4 p-4" id="edge-onboarding-selector" data-rmc-section-anchor>
     <h2 class="h6 text-uppercase text-muted">{% trans "Select a school" %}</h2>
