@@ -5,15 +5,86 @@ Help-center tier ladder gate: Great (1339–1340) + Category-defining (1341–13
 
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+ROOT_DIR = ROOT
 
 
 def _ok(rel: str, needle: str) -> bool:
     path = ROOT / rel
     return path.is_file() and needle in path.read_text(encoding="utf-8", errors="replace")
+
+
+#: Gates this ladder certifies that cannot pass without a seeded global KB corpus.
+#: The precondition is NAMED here and CHECKED below rather than sniffed out of a
+#: gate's output, so "this checkout has no seed data" can never be confused with
+#: "the product is broken" -- and, just as important, can never be used to wave
+#: away a real failure once the corpus IS present.
+_KB_CORPUS_GATES = frozenset(
+    {
+        "scripts/verify_workflow_kb_corpus.py",
+        "scripts/verify_workflow_kb_corpus_quality.py",
+        "scripts/verify_workflow_kb_editorial.py",
+    }
+)
+
+PASS, FAIL, SKIP = "PASS", "FAIL", "SKIP"
+
+
+def _kb_corpus_seeded() -> bool | None:
+    """True/False if we can tell, None if Django itself will not come up."""
+    try:
+        import django
+
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+        django.setup()
+        from apps.portal.models_kb import KBArticle
+
+        return KBArticle.objects.filter(school__isnull=True).exists()
+    except Exception:
+        return None
+
+
+def _gate(rel: str, timeout: int = 300) -> tuple[str, str]:
+    """Run another gate and honour its exit code.
+
+    Returns (PASS | FAIL | SKIP, detail). SKIP IS NEVER PASS -- that distinction
+    is the whole point of this rewrite. "Could not tell" must not read as
+    "satisfied", which is exactly what `.is_file()` did: it reported this tier
+    green while the verifier it names exited 1.
+
+    The repo already draws this line the same way: pre_push_boundary_check.py
+    renders a gate's exit-2 as SKIP precisely so an unrunnable check never reads
+    as a passing one.
+    """
+    path = ROOT_DIR / rel
+    if not path.is_file():
+        return FAIL, f"{rel} does not exist"
+    if rel in _KB_CORPUS_GATES and _kb_corpus_seeded() is not True:
+        return SKIP, f"{rel} needs a seeded global KB corpus (manage.py seed_workflow_kb_corpus)"
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(path)],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return SKIP, f"{rel} exceeded {timeout}s (machine load, not a verdict)"
+    except OSError as exc:
+        return SKIP, f"{rel} could not be launched: {exc}"
+    if proc.returncode == 0:
+        return PASS, ""
+    tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()
+    detail = tail[-1] if tail else f"exit {proc.returncode}"
+    return FAIL, f"{rel} exits {proc.returncode}: {detail}"
 
 
 def main() -> int:
@@ -148,7 +219,7 @@ def main() -> int:
         # Batch 1485 — honest 10x finish (corpus, hub merge, auto-draft, inline AI)
         ("1485-workflow-corpus-module", (ROOT / "apps/portal/workflow_kb_corpus.py").is_file()),
         ("1485-seed-corpus-cmd", (ROOT / "apps/portal/management/commands/seed_workflow_kb_corpus.py").is_file()),
-        ("1485-verify-corpus", (ROOT / "scripts/verify_workflow_kb_corpus.py").is_file()),
+        ("1485-verify-corpus", _gate("scripts/verify_workflow_kb_corpus.py")),
         ("1485-hub-merge-lane", _ok("templates/feedback/help_center.html", "help_center_support_lane")),
         ("1485-support-hub-redirect", _ok("apps/portal/views_support.py", "feedback:help_center")),
         ("1485-portal-help-entry", _ok("apps/feedback/services.py", '"portal_help": "feedback:help_center"')),
@@ -161,7 +232,7 @@ def main() -> int:
         ("1486-audit-corpus-module", (ROOT / "apps/portal/workflow_kb_corpus_audit.py").is_file()),
         ("1486-all-corpus-merge", _ok("apps/portal/workflow_kb_corpus.py", "ALL_WORKFLOW_KB_CORPUS")),
         ("1486-audit-refresh-cmd", (ROOT / "scripts/refresh_workflow_help_kb_audit_kb_status.py").is_file()),
-        ("1486-auto-draft-posture", (ROOT / "scripts/verify_help_auto_draft_posture.py").is_file()),
+        ("1486-auto-draft-posture", _gate("scripts/verify_help_auto_draft_posture.py")),
         # The admin's help-centre link moved in 4bc5375fa (Admin navigation v3):
         # app_list.html lost it and the new templates/admin/sidebar_v3_body.html
         # gained it. The check kept naming the old file, so it has been failing on
@@ -176,37 +247,59 @@ def main() -> int:
                 "templates/admin/app_list.html",
             )
         )),
-        ("1486-admin-super-bridge", (ROOT / "scripts/verify_admin_super_help_nav_bridge.py").is_file()),
+        ("1486-admin-super-bridge", _gate("scripts/verify_admin_super_help_nav_bridge.py")),
         # Batch 1487 — editorial high-stakes runbooks + admin/super nav convergence
         ("1487-editorial-corpus", (ROOT / "apps/portal/workflow_kb_corpus_editorial.py").is_file()),
-        ("1487-editorial-verify", (ROOT / "scripts/verify_workflow_kb_editorial.py").is_file()),
+        ("1487-editorial-verify", _gate("scripts/verify_workflow_kb_editorial.py")),
         ("1487-nav-convergence-module", (ROOT / "apps/schools/manager_nav_convergence.py").is_file()),
-        ("1487-nav-convergence-verify", (ROOT / "scripts/verify_manager_nav_convergence.py").is_file()),
+        ("1487-nav-convergence-verify", _gate("scripts/verify_manager_nav_convergence.py")),
         ("1487-cp-nav-convergence", _ok(
             "apps/schools/manager_nav_convergence.py",
             "build_manager_complete_sidebar_groups",
         )),
         # Batch 1500 — enriched corpus + complete sidebar + platform back-to-top
         ("1500-corpus-enrich", (ROOT / "apps/portal/workflow_kb_corpus_enrich.py").is_file()),
-        ("1500-corpus-quality-verify", (ROOT / "scripts/verify_workflow_kb_corpus_quality.py").is_file()),
+        ("1500-corpus-quality-verify", _gate("scripts/verify_workflow_kb_corpus_quality.py")),
         ("1500-complete-sidebar-partial", (ROOT / "templates/partials/manager_complete_sidebar_nav.html").is_file()),
         ("1500-complete-sidebar-context", (
             _ok("apps/siteconfig/context_processors.py", "MANAGER_COMPLETE_SIDEBAR_NAV")
             and _ok("apps/siteconfig/context_processors.py", "build_manager_complete_sidebar_groups")
         )),
-        ("1500-back-to-top-verify", (ROOT / "scripts/verify_platform_back_to_top.py").is_file()),
+        ("1500-back-to-top-verify", _gate("scripts/verify_platform_back_to_top.py")),
         ("1500-back-to-top-idempotent", _ok(
             "static/js/_pages/components__back_to_top.js",
             "data-rmc-mounted",
         )),
     ]
-    failed = [cid for cid, ok in checks if not ok]
+    # A check is either a bool (a file/substring assertion) or a (verdict, detail)
+    # pair from _gate. Skips are counted and NAMED, never folded into the pass
+    # count: a ladder that says "142 checks" while seven of them were unrunnable
+    # is claiming coverage it does not have.
+    failed: list[str] = []
+    skipped: list[str] = []
+    for cid, result in checks:
+        if isinstance(result, tuple):
+            verdict, detail = result
+            if verdict == FAIL:
+                failed.append(f"{cid}: {detail}")
+            elif verdict == SKIP:
+                skipped.append(f"{cid}: {detail}")
+        elif not result:
+            failed.append(cid)
+
+    for line in skipped:
+        print(f"  SKIP {line}", file=sys.stderr)
     if failed:
         print(f"verify_help_center_tiers: FAIL ({len(failed)})", file=sys.stderr)
         for cid in failed:
             print(f"  - {cid}", file=sys.stderr)
         return 1
-    print(f"verify_help_center_tiers: HELP_CENTER_TIERS_PASS ({len(checks)} checks)")
+    verified = len(checks) - len(skipped)
+    suffix = f", {len(skipped)} skipped" if skipped else ""
+    print(
+        f"verify_help_center_tiers: HELP_CENTER_TIERS_PASS "
+        f"({verified} of {len(checks)} checks verified{suffix})"
+    )
     return 0
 
 

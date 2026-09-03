@@ -999,6 +999,22 @@ MUTATIONS["companion-server-contract"] = Mutation(
     content=b'const GATEPROOF = "/api/v1/gateproof/never-mounted/";\n',
 )
 
+MUTATIONS["platform-back-to-top"] = Mutation(
+    kind="patch",
+    path="templates/admin/base.html",
+    defect=(
+        "the Django admin shell stops mounting the platform chrome bundle, so "
+        "five of its seven scripts never execute on any admin page and the "
+        "back-to-top control renders inside the fixed-height scroll canvas"
+    ),
+    # The include PATH, not any script name inside the partial: the partial's
+    # contents change as chrome is added, and a mutation anchored on one of its
+    # scripts would go stale the next time that script is renamed. This path is
+    # what the gate itself asserts, so the two can only move together.
+    anchor=b"partials/rmc_platform_chrome_scripts.html",
+    replacement=b"partials/rmc_platform_chrome_scripts_gateproof.html",
+)
+
 MUTATIONS["theme-dual-plane-shell"] = Mutation(
     kind="patch",
     path="static/css/rmc-theme-experience-dual-plane.css",
@@ -1039,6 +1055,34 @@ MUTATIONS["no-placeholder-copy"] = Mutation(
         b"{% comment %}Planted by verify_gates_can_fail; not a real page.{% endcomment %}"
         + chr(10).encode()
         + b"<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>"
+        + chr(10).encode()
+    ),
+)
+
+
+MUTATIONS["operator-siteconfig-cp-shell"] = Mutation(
+    kind="create",
+    path=f"apps/siteconfig/views{_PROOF}_stem_kwarg.py",
+    defect=(
+        "a view calls render_siteconfig_stem() with a keyword the function does "
+        "not accept -- no **kwargs absorbs it, so it is a TypeError 500 on every "
+        "request. apps/schools/views_tenant_self_offboarding.py did exactly this "
+        "with page_title= from 2026-05-22 until 2026-09-02, on a view no test "
+        "covers, while the gate spent that time reporting 17 findings about "
+        "pages that render correctly"
+    ),
+    # create, not patch: the gate walks apps/ for call sites, so a new file
+    # carrying the defect cannot go stale the way a byte anchor would. The
+    # harness marks it intent-to-add, which the walk does not need but the
+    # git-ls-files scanners around it do.
+    content=(
+        b'"""Planted by verify_gates_can_fail; not a real view."""'
+        + chr(10).encode()
+        + b"from apps.siteconfig.control_plane_render import render_siteconfig_stem"
+        + (chr(10) * 3).encode()
+        + b"def gateproof_view(request):"
+        + chr(10).encode()
+        + b'    return render_siteconfig_stem(request, "user_preferences", {}, page_title="x")'
         + chr(10).encode()
     ),
 )

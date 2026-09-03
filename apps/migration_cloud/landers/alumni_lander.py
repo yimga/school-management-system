@@ -199,6 +199,9 @@ def _persist_alumni_extras(
     """
     try:
         from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
+        from apps.metadata.services import upsert_dynamic_field_value
+
+        from ._helpers import dfv_import_source_ref
     except Exception as exc:  # noqa: BLE001
         record_row_note(result, f"alumni extras: metadata models unavailable: {type(exc).__name__}")
         return
@@ -215,20 +218,26 @@ def _persist_alumni_extras(
                 school=ctx.school,
                 defaults={"label": f"Alumni {key}"[:255], "data_type": "json"},
             )
-            # school belongs in the LOOKUP: DynamicFieldValue.unique_together is
-            # [school, entity_type, entity_id, field_key] and metadata is a SHARED
-            # app, so omitting it matches ANOTHER tenant's row and update_or_create
-            # overwrites its value and re-parents it.
-            DynamicFieldValue.objects.update_or_create(
+            # school stays in the LOOKUP (inside the guarded writer): metadata is
+            # a SHARED app, so an unscoped lookup matches ANOTHER tenant's row. The
+            # guard also keeps a value a person set by hand from being clobbered by
+            # a re-import -- entity_type "student" is exactly where the tenant EAV
+            # forms write, so that collision is real here, not theoretical.
+            _obj, _created, _preserved = upsert_dynamic_field_value(
                 school=ctx.school,
                 entity_type="student",
                 entity_id=str(alumni_pk)[:64],
                 field_key=key[:120],
-                defaults=filter_to_model_fields(
-                    {"value_json": {"v": str(value)[:1024]}},
-                    DynamicFieldValue,
-                ),
+                value_json={"v": str(value)[:1024]},
+                source="import",
+                source_ref=dfv_import_source_ref(ctx),
             )
+            if _preserved:
+                record_row_note(
+                    result,
+                    f"alumni extras: kept {key[:120]!r} a person set; the import "
+                    "does not outrank it",
+                )
         except Exception as exc:  # noqa: BLE001 — best-effort, recorded
             record_row_note(
                 result,

@@ -1243,6 +1243,46 @@ def record_row_note(result, message: str, row: Any = None) -> None:
         pass
 
 
+def explicit_conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
+    """The operator's RECORDED decision for this object in this bundle, or "".
+
+    ``conflict_resolution_for`` collapses "no decision" into its OVERWRITE
+    default, which is right for the ordinary field idiom (import refreshes,
+    PRESERVE is the opt-out). A caller whose default is PROTECT -- the subject
+    category, where "off the default" is the only proxy for a deliberate edit --
+    needs the absence of a decision distinguished from the decision, or the
+    default would reinstate exactly the silent overturn the protection exists
+    to stop.
+    """
+    if canonical_obj is None:
+        return ""
+    try:
+        from apps.migration_cloud.models import ConflictResolution, MigrationConflict
+    except ImportError:
+        return ""
+    from django.db import DataError, OperationalError, ProgrammingError
+
+    try:
+        canonical_model_path = (
+            f"{canonical_obj.__class__.__module__}.{canonical_obj.__class__.__name__}"
+        )
+        row = (
+            MigrationConflict.objects.filter(
+                bundle_id=ctx.bundle_id,
+                canonical_model=canonical_model_path,
+                canonical_pk=str(getattr(canonical_obj, "pk", "")),
+            )
+            .exclude(resolution=ConflictResolution.PENDING)
+            .order_by("-resolved_at")
+            .first()
+        )
+        return "" if row is None else str(row.resolution)
+    except (DataError, OperationalError, ProgrammingError):
+        # A best-effort READ: an unreadable conflict table means "no recorded
+        # decision", which fails to the protective default upstream.
+        return ""
+
+
 def conflict_resolution_for(*, ctx, canonical_obj: Any) -> str:
     """Look up a resolved-conflict decision for this row, if any.
 
@@ -1539,6 +1579,18 @@ def resolve_or_provision_user(
     return user, ""
 
 
+def dfv_import_source_ref(ctx) -> str:
+    """A locator for THIS import as a DynamicFieldValue provenance stamp.
+
+    Bundle and artifact ids are deployment-local, which is fine: the stamp answers
+    "which import wrote this, HERE" for the re-import guard and for an operator
+    reading the row -- it is never used to resolve identity across deployments.
+    """
+    bundle = getattr(ctx, "bundle_id", "") or ""
+    artifact = getattr(ctx, "artifact_id", "") or ""
+    return f"bundle:{bundle}/artifact:{artifact}"[:120]
+
+
 def persist_dfv_extras(
     *, ctx, entity_type: str, entity_id: Any, extras: dict[str, Any], result=None,
 ) -> None:
@@ -1558,8 +1610,11 @@ def persist_dfv_extras(
                 f"{entity_type} extras: metadata models unavailable: {type(exc).__name__}",
             )
         return
+    from apps.metadata.services import upsert_dynamic_field_value
+
     for field_key, value in clean.items():
         try:
+            _preserved = False
             with row_savepoint():  # isolate each DFV write from the atomic apply
                 DynamicFieldDefinition.objects.get_or_create(
                     entity_type=entity_type,
@@ -1567,25 +1622,31 @@ def persist_dfv_extras(
                     school=getattr(ctx, "school", None),
                     defaults={"label": field_key.replace("_", " ").title(), "data_type": "json"},
                 )
-                # `school` belongs in the LOOKUP, not in defaults.
-                # DynamicFieldValue.Meta.unique_together is
-                # ["school", "entity_type", "entity_id", "field_key"], so a lookup
-                # of (entity_type, entity_id, field_key) alone matches ANY school's
-                # row -- metadata is a SHARED app, one table for every tenant, and
-                # entity_id is the target's pk as a string, which collides across
-                # tenants as a matter of course. update_or_create then overwrote
-                # that other school's value AND re-parented the row by writing
-                # `school` from defaults. The get_or_create immediately above
-                # already scopes by school; this call did not.
-                DynamicFieldValue.objects.update_or_create(
+                # `school` stays in the LOOKUP (inside the guarded writer), never
+                # in defaults -- metadata is a SHARED app, one table for every
+                # tenant, and entity_id is the target's pk as a string, which
+                # collides across tenants as a matter of course.
+                #
+                # GUARDED write. Measured 2026-09-02: the bare update_or_create
+                # here overwrote unconditionally, so re-uploading a file silently
+                # clobbered values a person had corrected by hand (the tenant EAV
+                # forms, the admin break-glass screen and set_dynamic_field_value
+                # all stamp "human"). A deliberate edit is that school's decision
+                # and an import does not outrank it -- kept, and said out loud.
+                _obj, _created, _preserved = upsert_dynamic_field_value(
                     school=getattr(ctx, "school", None),
                     entity_type=entity_type,
                     entity_id=str(entity_id)[:64],
                     field_key=field_key,
-                    defaults=filter_to_model_fields(
-                        {"value_json": {"v": value}},
-                        DynamicFieldValue,
-                    ),
+                    value_json={"v": value},
+                    source="import",
+                    source_ref=dfv_import_source_ref(ctx),
+                )
+            if _preserved and result is not None:
+                record_row_note(
+                    result,
+                    f"{entity_type}[{str(entity_id)[:64]}].{field_key}: kept the "
+                    "value a person set; the import does not outrank it",
                 )
         except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
             if result is not None:

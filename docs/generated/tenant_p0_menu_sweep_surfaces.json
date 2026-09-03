@@ -1,7 +1,7 @@
 {
   "generated_by": "scripts/generate_tenant_p0_menu_sweep_surfaces.py",
   "schema_version": 1,
-  "surface_count": 19,
+  "surface_count": 22,
   "surfaces": [
     {
       "item_id": "teacher_home",
@@ -129,6 +129,30 @@
       "role": "ADMIN",
       "url": "/authentication/backend/students/",
       "url_name": "accounts:backend_student_list",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "teachers",
+      "label": "admin-teachers",
+      "role": "ADMIN",
+      "url": "/authentication/backend/teachers/",
+      "url_name": "accounts:backend_teacher_list",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "classrooms",
+      "label": "admin-classrooms",
+      "role": "ADMIN",
+      "url": "/authentication/backend/classrooms/",
+      "url_name": "accounts:backend_classroom_list",
+      "user": "demo.admin"
+    },
+    {
+      "item_id": "academic_years",
+      "label": "admin-academic_years",
+      "role": "ADMIN",
+      "url": "/siteconfig/reports/academic-years-setup/",
+      "url_name": "siteconfig:academic_years_setup_evidence",
       "user": "demo.admin"
     },
     {

@@ -34,6 +34,43 @@ ADMIN_ALWAYS_POLICY_MARKERS = (
     "data-rmc-back-to-top-policy', 'always'",
 )
 
+# Shared chrome assets that more than one template emits, and the {% emit_once %}
+# key every emission of them must carry. emit_once is per-request FIRST-WINS and it
+# only dedupes emissions that carry the key, so a second, UNGUARDED <script src> for
+# the same asset elsewhere on the page is NOT suppressed: the browser downloads and
+# RE-EXECUTES it (double-bound handlers + wasted parse). That is the exact bug
+# emit_once was introduced to prevent, and it had already recurred twice --
+# marketing/base_marketing.html emitted rmc-page-fold-standards.js one line after
+# including the guarded chrome-scripts partial, and studio_os/studio_embed_minimal.html
+# emitted rmc-scroll-container.js one line before including components/back_to_top.html.
+# Before this check nothing under scripts/ mentioned emit_once at all, so a regression
+# of the dedupe contract was invisible to every gate in the repo.
+EMIT_ONCE_GUARDED_SCRIPTS = {
+    "js/rmc-page-fold-standards.js": "js-page-fold-standards",
+    "js/rmc-scroll-container.js": "js-scroll-container",
+}
+
+
+def _emit_once_dedupe_failures() -> list[str]:
+    """Every <script src> for a shared chrome asset must carry its emit_once key."""
+    found: list[str] = []
+    for path in sorted((ROOT / "templates").rglob("*.html")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for asset, key in EMIT_ONCE_GUARDED_SCRIPTS.items():
+            if asset not in text:
+                continue
+            guards = ('emit_once "%s"' % key, "emit_once '%s'" % key)
+            for lineno, line in enumerate(text.replace("\r\n", "\n").split("\n"), 1):
+                if "<script" not in line or asset not in line:
+                    continue
+                if any(guard in line for guard in guards):
+                    continue
+                found.append(
+                    "%s:%d: <script src=%s> carries no emit_once key %r -- it re-executes wherever another template emits the same asset"
+                    % (path.relative_to(ROOT).as_posix(), lineno, asset, key)
+                )
+    return found
+
 
 def main() -> int:
     failures: list[str] = []
@@ -115,6 +152,8 @@ def main() -> int:
             failures.append("back-to-top template missing scroll percent chip")
     else:
         failures.append("missing back_to_top.html component")
+
+    failures.extend(_emit_once_dedupe_failures())
 
     if failures:
         print("verify_platform_back_to_top: FAIL", file=sys.stderr)

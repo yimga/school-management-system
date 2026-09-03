@@ -55,6 +55,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # silent by construction (best-effort fetches, `if (resp.ok)`), so only a gate
     # can see it.
     ("scripts/verify_companion_server_contract.py", "ci.yml"),
+    # Added 2026-09-02. Run by nothing since it was written: absent from every
+    # workflow, from pre_push_boundary_check and from the test suite, while the
+    # execution log recorded a May hand-run of it as evidence the surface was OK.
+    ("scripts/verify_operator_siteconfig_cp_shell.py", "ci.yml"),
     # Added 2026-08-31. The marketing axe ratchet reports zero for two very
     # different reasons -- the surface is clean, or the sweep is not looking at
     # it -- and in CI those are indistinguishable. This coverage gate asserts
@@ -314,6 +318,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # generation still covers the wave the stylesheet declares. Before this entry
     # the only file in the repository that named it was itself.
     ("scripts/verify_theme_experience_dual_plane_shell.py", "architectural-boundaries.yml"),
+    # Added 2026-09-03. Zero hits across every workflow, the pre-push hook,
+    # this registry, the mutation registry and package.json -- while
+    # verify_help_center_tiers listed it as evidence for a tier by asserting
+    # the file exists.
+    ("scripts/verify_platform_back_to_top.py", "architectural-boundaries.yml"),
     # A SHARED model may never FK a TENANT table. Nothing else can catch it:
     # the Postgres CI job runs USE_DJANGO_TENANTS="0" (one schema, so the FK
     # resolves) and SQLite cannot create tenant schemas — while production runs

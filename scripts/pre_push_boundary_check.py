@@ -173,6 +173,14 @@ GATES: list[tuple[str, list[str]]] = [
     # -- and until now the only file in this repository that mentioned it was
     # itself, which is the whole C tier in one gate. 1s, stdlib only.
     ("theme-dual-plane-shell", ["verify_theme_experience_dual_plane_shell.py"]),
+    # 1s. Run by nothing until 2026-09-03, which is worse than it sounds:
+    # verify_help_center_tiers certified a help tier on the grounds that this
+    # gate's .py file EXISTS, so the ladder reported the tier satisfied while
+    # the check it names was unreachable -- and had gone red without anyone
+    # seeing it. It guards the platform chrome bundle mounting outside
+    # .rmc-app-shell on both admin hosts, and the emit_once keys that stop a
+    # shared chrome script re-executing.
+    ("platform-back-to-top", ["verify_platform_back_to_top.py"]),
     # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
     # title — operators scrolled past empty rules to reach "Platform Command Center".
     ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),
@@ -504,6 +512,14 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
             "0",
         ],
     ),
+    # Wired 2026-09-02. It had never been run: not by this file, not by a
+    # workflow, not by a test. docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md
+    # records it as "OK (22 stems, 35 partials)" from a hand-run in May; run
+    # again on 2026-09-02 it printed 17 findings, every one of them false,
+    # while missing a real TypeError 500 on /school/studio/offboarding/ that
+    # had been live since the page was written. The noise and the miss are
+    # both what an unrun gate decays into.
+    ("operator-siteconfig-cp-shell", ["verify_operator_siteconfig_cp_shell.py"]),
 ]
 
 # Per-gate wall-clock ceiling, overridable with RMC_PREPUSH_GATE_TIMEOUT_S.

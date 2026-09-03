@@ -13,9 +13,10 @@ The edge appliance replicates **about 4.6%** of the tenant model surface.
 
 | | |
 |---|---|
-| Entities on the delta rail | **17** |
+| Entities on the delta rail | **19** |
 | …of which are tenant business models | **15** |
 | …of which are the rail's OWN config (`sync_engine.SyncSchedule`, `sync_engine.SyncPolicy`, a SHARED app) | **2** |
+| …of which are the school-defined custom-field EAV pair (`metadata.DynamicFieldDefinition`, `metadata.DynamicFieldValue`, a SHARED app; added 2026-09-02) | **2** |
 | Models across the 15 apps in `TENANT_APPS` | **326** |
 | Coverage | **15 / 326 = 4.6%** |
 
@@ -122,9 +123,15 @@ somebody writing "must not ride" and then wiring it.
 | `studio_os` | 1 | 0 | 0 | 1 | — nothing — |
 | **total** | **326** | **15** | **2** | **309** | **4.6%** |
 
-Plus two rail entities in the SHARED `sync_engine` app — `sync_schedule` and
-`sync_policy` — which are the rail's own configuration, not school data. They are
-reported separately so business coverage is not overstated by two.
+Plus four rail entities in SHARED apps, reported separately so business
+coverage is not overstated: `sync_schedule` and `sync_policy` (`sync_engine` —
+the rail's own configuration) and `dynamic_field_definition` /
+`dynamic_field_value` (`metadata` — school-defined custom fields, added
+2026-09-02). Custom-field VALUES name their target row by pk string, so bundle
+rows carry the target's sync anchor and every apply path resolves it
+anchor-first; an unresolvable target is refused (`dfv_target_unresolved`), never
+attached by integer coincidence. Platform-wide definitions (`school=NULL`) do
+not ride — they are seeded by code on both sides.
 
 **Eleven apps have nothing on the rail:** `portal`, `schoolops`, `reports`,
 `communication`, `feedback`, `analytics`, `payroll`, `school_events`,

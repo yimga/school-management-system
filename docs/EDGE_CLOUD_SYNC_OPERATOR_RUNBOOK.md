@@ -36,7 +36,12 @@ Source of truth: `_get_entity_config(include_derived=True)` in `apps/api/sync_se
 
 **Two-way synced (Class-A operational entities):**
 `student` (incl. `specialty_id`), `classroom`, `attendance`, `applicant`, `student_note`,
-`academic_year`, `term`, `department`.
+`academic_year`, `term`, `department`, `specialty`, `subject`, `specialty_subject`,
+`subject_assignment`, `evaluation`, `invoice` (both protected: cloud wins on conflict),
+`teacher` (insert-held, see below), `sync_schedule`, `sync_policy`, and — since
+2026-09-02 — the school-defined custom-field pair `dynamic_field_definition` /
+`dynamic_field_value` (school-scoped rows only; a value's target row is resolved
+anchor-first on apply and refused when unresolvable).
 
 **Excluded on purpose — do NOT expect sync to move these:**
 
@@ -48,9 +53,12 @@ Source of truth: `_get_entity_config(include_derived=True)` in `apps/api/sync_se
   converge two-way; a teacher that exists only on the cloud will **never** reach the box
   by sync, however long you wait. Use **Step 2b** below. (Per-field direction rules,
   including down-only pay columns, are in `docs/EDGE_SYNC_IDENTITY_HOLD.md`.)
-- **Grades / marks** (`Evaluation`) — not on the two-way rail.
-- **Specialty / trade catalog, documents, and most master data** — loaded by the bulk
-  importer + the sovereign seed, not by delta sync.
+- **Grades / marks** (`Evaluation`) and **invoices** ride, but as PROTECTED entities:
+  the cloud wins every conflict, and a box edit that disagrees becomes a Sync Center
+  review item, never a silent overwrite.
+- **Documents and most master data** — loaded by the bulk importer + the sovereign
+  seed, not by delta sync. (The specialty / trade catalog itself now rides:
+  `specialty`, `subject`, `specialty_subject`, `subject_assignment`.)
 - Governance columns like `academic_year.is_locked` / `enable_gce_registration` — the
   cloud owns these; a box can never reopen a year the cloud locked (MEMORY M29).
 

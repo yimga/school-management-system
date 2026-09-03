@@ -43,22 +43,54 @@ def _stringify(cell: Any) -> str:
     return str(cell)
 
 
+_BANNER_SCAN_LIMIT = 5  # leading rows examined for a title-banner shape
+
+
+def _trim_banner_rows(rows: "list[list[str]]") -> "list[list[str]]":
+    """Drop leading title-banner rows so the real header row comes FIRST.
+
+    A hand-kept workbook opens with a merged school-name line and often a
+    subtitle -- rows with exactly ONE non-empty cell -- sitting above a header
+    row with several. Downstream, line one of the TSV IS the header row, so a
+    banner becomes the sole "header", every real column loses its name, and the
+    whole sheet classifies as nothing (measured on a live staff directory:
+    50 rows of names, roles and phones under a one-cell school-name banner).
+
+    A single-cell row is treated as a banner ONLY when a multi-cell row follows
+    within the first few rows: a genuinely one-column sheet never has one, so
+    it is untouched, and rows beyond the leading window are never dropped.
+    """
+    limit = min(len(rows), _BANNER_SCAN_LIMIT)
+    first_multi = None
+    for i in range(limit):
+        if sum(1 for c in rows[i] if c.strip()) >= 2:
+            first_multi = i
+            break
+    if not first_multi:  # 0 = header already first; None = one-column sheet
+        return rows
+    if all(sum(1 for c in rows[i] if c.strip()) == 1 for i in range(first_multi)):
+        return rows[first_multi:]
+    return rows
+
 def _sheet_to_tsv(ws) -> str:
     """Serialise a worksheet to TSV, skipping fully-blank rows. ``""`` if empty.
 
     Uses ``csv.writer`` (tab delimiter) so cell values containing tabs, quotes
     or newlines are properly quoted and survive the downstream CSV reader.
     """
-    buf = io.StringIO()
-    writer = csv.writer(buf, delimiter="\t", lineterminator="\n")
-    wrote_any = False
+    rows = []
     for row in ws.iter_rows(values_only=True):
         cells = [_stringify(c) for c in row]
         if not any(c.strip() for c in cells):
             continue  # skip fully-blank row (common trailing padding)
-        writer.writerow(cells)
-        wrote_any = True
-    return buf.getvalue() if wrote_any else ""
+        rows.append(cells)
+    rows = _trim_banner_rows(rows)
+    if not rows:
+        return ""
+    buf = io.StringIO()
+    writer = csv.writer(buf, delimiter="\t", lineterminator="\n")
+    writer.writerows(rows)
+    return buf.getvalue()
 
 
 def count_nonempty_sheets(source) -> int:
@@ -174,16 +206,19 @@ def _xls_sheet_to_tsv(sheet) -> str:
     Mirrors :func:`_sheet_to_tsv` (openpyxl) so an ``.xls`` sheet lands in the
     identical TSV shape the rest of the pipeline expects.
     """
-    buf = io.StringIO()
-    writer = csv.writer(buf, delimiter="\t", lineterminator="\n")
-    wrote_any = False
+    rows = []
     for r in range(sheet.nrows):
         cells = [_stringify(sheet.cell_value(r, c)) for c in range(sheet.ncols)]
         if not any(c.strip() for c in cells):
             continue  # skip fully-blank row (common trailing padding)
-        writer.writerow(cells)
-        wrote_any = True
-    return buf.getvalue() if wrote_any else ""
+        rows.append(cells)
+    rows = _trim_banner_rows(rows)
+    if not rows:
+        return ""
+    buf = io.StringIO()
+    writer = csv.writer(buf, delimiter="\t", lineterminator="\n")
+    writer.writerows(rows)
+    return buf.getvalue()
 
 
 def _as_bytes_arg(source) -> bytes | None:

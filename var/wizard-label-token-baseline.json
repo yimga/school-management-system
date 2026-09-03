@@ -1,0 +1,274 @@
+{
+  "gate": "wizard-label-token-reachability",
+  "script": "scripts/scan_wizard_json_schema_drift.py",
+  "established": "2026-09-03",
+  "summary": "A wizard label is only translatable if a translator can reach it. 37 of 38 wizard label_tokens are wizards.* slugs with NO catalog entry anywhere, so they render title-cased English on all 21 locales forever. The rule this replaced asserted the opposite: it required label_token to START WITH 'wizards.', which flagged the single wizard (mfa_setup) whose label IS a real msgid and passed the 37 that are structurally untranslatable.",
+  "ratchet": "This list may only SHRINK. An unreachable label not listed here fails the gate; a listed label that becomes reachable fails the gate until it is deleted from this file; an entry with no reason fails the gate.",
+  "reachable_today": [
+    {
+      "wizard_key": "mfa_setup",
+      "label_token": "Set up two-factor authentication"
+    }
+  ],
+  "unreachable": [
+    {
+      "wizard_key": "academic_year_setup",
+      "label_token": "wizards.academic_year_setup.label",
+      "renders_as": "Academic Year Setup",
+      "reason": "'wizards.academic_year_setup.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Academic Year Setup'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/academic_year_setup.json"
+    },
+    {
+      "wizard_key": "account_migration",
+      "label_token": "wizards.account_migration.label",
+      "renders_as": "Account Migration",
+      "reason": "'wizards.account_migration.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Account Migration'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/account_migration.json"
+    },
+    {
+      "wizard_key": "ai_helpcenter_knowledge_injection",
+      "label_token": "wizards.ai_helpcenter_knowledge_injection.label",
+      "renders_as": "AI Helpcenter Knowledge Injection",
+      "reason": "'wizards.ai_helpcenter_knowledge_injection.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'AI Helpcenter Knowledge Injection'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/ai_helpcenter_knowledge_injection.json"
+    },
+    {
+      "wizard_key": "alumni_engagement_pipeline",
+      "label_token": "wizards.alumni_engagement_pipeline.label",
+      "renders_as": "Alumni Engagement Pipeline",
+      "reason": "'wizards.alumni_engagement_pipeline.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Alumni Engagement Pipeline'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/alumni_engagement_pipeline.json"
+    },
+    {
+      "wizard_key": "cashless_campus_pos",
+      "label_token": "wizards.cashless_campus_pos.label",
+      "renders_as": "Cashless Campus POS",
+      "reason": "'wizards.cashless_campus_pos.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Cashless Campus POS'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/cashless_campus_pos.json"
+    },
+    {
+      "wizard_key": "cross_platform_whitelabel_branding",
+      "label_token": "wizards.cross_platform_whitelabel_branding.label",
+      "renders_as": "Cross Platform Whitelabel Branding",
+      "reason": "'wizards.cross_platform_whitelabel_branding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Cross Platform Whitelabel Branding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/cross_platform_whitelabel_branding.json"
+    },
+    {
+      "wizard_key": "custom_domain_setup",
+      "label_token": "wizards.custom_domain_setup.label",
+      "renders_as": "Custom Domain Setup",
+      "reason": "'wizards.custom_domain_setup.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Custom Domain Setup'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/custom_domain_setup.json"
+    },
+    {
+      "wizard_key": "dynamic_multi_campus_scheduling",
+      "label_token": "wizards.dynamic_multi_campus_scheduling.label",
+      "renders_as": "Dynamic Multi Campus Scheduling",
+      "reason": "'wizards.dynamic_multi_campus_scheduling.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Dynamic Multi Campus Scheduling'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/dynamic_multi_campus_scheduling.json"
+    },
+    {
+      "wizard_key": "dynamic_safeguarding_incident_medical",
+      "label_token": "wizards.dynamic_safeguarding_incident_medical.label",
+      "renders_as": "Dynamic Safeguarding Incident Medical",
+      "reason": "'wizards.dynamic_safeguarding_incident_medical.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Dynamic Safeguarding Incident Medical'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/dynamic_safeguarding_incident_medical.json"
+    },
+    {
+      "wizard_key": "edge_location_onboarding",
+      "label_token": "wizards.edge_location_onboarding.label",
+      "renders_as": "Edge Location Onboarding",
+      "reason": "'wizards.edge_location_onboarding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Edge Location Onboarding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/edge_location_onboarding.json"
+    },
+    {
+      "wizard_key": "exam_schedule_orchestration",
+      "label_token": "wizards.exam_schedule_orchestration.label",
+      "renders_as": "Exam Schedule Orchestration",
+      "reason": "'wizards.exam_schedule_orchestration.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Exam Schedule Orchestration'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/exam_schedule_orchestration.json"
+    },
+    {
+      "wizard_key": "human_capital_shift_substitute_market",
+      "label_token": "wizards.human_capital_shift_substitute_market.label",
+      "renders_as": "Human Capital Shift Substitute Market",
+      "reason": "'wizards.human_capital_shift_substitute_market.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Human Capital Shift Substitute Market'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/human_capital_shift_substitute_market.json"
+    },
+    {
+      "wizard_key": "institutional_performance_board_reporting",
+      "label_token": "wizards.institutional_performance_board_reporting.label",
+      "renders_as": "Institutional Performance Board Reporting",
+      "reason": "'wizards.institutional_performance_board_reporting.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Institutional Performance Board Reporting'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/institutional_performance_board_reporting.json"
+    },
+    {
+      "wizard_key": "jit_operator_compliance_safeguarding",
+      "label_token": "wizards.jit_operator_compliance_safeguarding.label",
+      "renders_as": "Jit Operator Compliance Safeguarding",
+      "reason": "'wizards.jit_operator_compliance_safeguarding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Jit Operator Compliance Safeguarding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/jit_operator_compliance_safeguarding.json"
+    },
+    {
+      "wizard_key": "legacy_data_extraction_pipeline",
+      "label_token": "wizards.legacy_data_extraction_pipeline.label",
+      "renders_as": "Legacy Data Extraction Pipeline",
+      "reason": "'wizards.legacy_data_extraction_pipeline.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Legacy Data Extraction Pipeline'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/legacy_data_extraction_pipeline.json"
+    },
+    {
+      "wizard_key": "library_inventory_management",
+      "label_token": "wizards.library_inventory_management.label",
+      "renders_as": "Library Inventory Management",
+      "reason": "'wizards.library_inventory_management.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Library Inventory Management'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/library_inventory_management.json"
+    },
+    {
+      "wizard_key": "local_first_fintech_tax_matrix",
+      "label_token": "wizards.local_first_fintech_tax_matrix.label",
+      "renders_as": "Local First Fintech Tax Matrix",
+      "reason": "'wizards.local_first_fintech_tax_matrix.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Local First Fintech Tax Matrix'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/local_first_fintech_tax_matrix.json"
+    },
+    {
+      "wizard_key": "localized_activity_asset_marketplace",
+      "label_token": "wizards.localized_activity_asset_marketplace.label",
+      "renders_as": "Localized Activity Asset Marketplace",
+      "reason": "'wizards.localized_activity_asset_marketplace.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Localized Activity Asset Marketplace'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/localized_activity_asset_marketplace.json"
+    },
+    {
+      "wizard_key": "localized_field_trip_coordinator",
+      "label_token": "wizards.localized_field_trip_coordinator.label",
+      "renders_as": "Localized Field Trip Coordinator",
+      "reason": "'wizards.localized_field_trip_coordinator.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Localized Field Trip Coordinator'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/localized_field_trip_coordinator.json"
+    },
+    {
+      "wizard_key": "multi_campus_local_sovereignty",
+      "label_token": "wizards.multi_campus_local_sovereignty.label",
+      "renders_as": "Multi Campus Local Sovereignty",
+      "reason": "'wizards.multi_campus_local_sovereignty.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Multi Campus Local Sovereignty'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/multi_campus_local_sovereignty.json"
+    },
+    {
+      "wizard_key": "omnichannel_communication_routing",
+      "label_token": "wizards.omnichannel_communication_routing.label",
+      "renders_as": "Omnichannel Communication Routing",
+      "reason": "'wizards.omnichannel_communication_routing.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Omnichannel Communication Routing'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/omnichannel_communication_routing.json"
+    },
+    {
+      "wizard_key": "parent_contact_preferences",
+      "label_token": "wizards.parent_contact_preferences.label",
+      "renders_as": "Parent Contact Preferences",
+      "reason": "'wizards.parent_contact_preferences.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Parent Contact Preferences'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/parent_contact_preferences.json"
+    },
+    {
+      "wizard_key": "parent_link_child",
+      "label_token": "wizards.parent_link_child.label",
+      "renders_as": "Parent Link Child",
+      "reason": "'wizards.parent_link_child.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Parent Link Child'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/parent_link_child.json"
+    },
+    {
+      "wizard_key": "parent_onboarding",
+      "label_token": "wizards.parent_onboarding.label",
+      "renders_as": "Parent Onboarding",
+      "reason": "'wizards.parent_onboarding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Parent Onboarding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/parent_onboarding.json"
+    },
+    {
+      "wizard_key": "parent_payment_setup",
+      "label_token": "wizards.parent_payment_setup.label",
+      "renders_as": "Parent Payment Setup",
+      "reason": "'wizards.parent_payment_setup.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Parent Payment Setup'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/parent_payment_setup.json"
+    },
+    {
+      "wizard_key": "personal_graduation_pathway_elective",
+      "label_token": "wizards.personal_graduation_pathway_elective.label",
+      "renders_as": "Personal Graduation Pathway Elective",
+      "reason": "'wizards.personal_graduation_pathway_elective.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Personal Graduation Pathway Elective'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/personal_graduation_pathway_elective.json"
+    },
+    {
+      "wizard_key": "polymorphic_grading_curricula",
+      "label_token": "wizards.polymorphic_grading_curricula.label",
+      "renders_as": "Polymorphic Grading Curricula",
+      "reason": "'wizards.polymorphic_grading_curricula.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Polymorphic Grading Curricula'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/polymorphic_grading_curricula.json"
+    },
+    {
+      "wizard_key": "report_card_template_studio",
+      "label_token": "wizards.report_card_template_studio.label",
+      "renders_as": "Report Card Template Studio",
+      "reason": "'wizards.report_card_template_studio.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Report Card Template Studio'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/report_card_template_studio.json"
+    },
+    {
+      "wizard_key": "self_healing_observability_guard",
+      "label_token": "wizards.self_healing_observability_guard.label",
+      "renders_as": "Self Healing Observability Guard",
+      "reason": "'wizards.self_healing_observability_guard.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Self Healing Observability Guard'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/self_healing_observability_guard.json"
+    },
+    {
+      "wizard_key": "staff_onboarding",
+      "label_token": "wizards.staff_onboarding.label",
+      "renders_as": "Staff Onboarding",
+      "reason": "'wizards.staff_onboarding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Staff Onboarding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/staff_onboarding.json"
+    },
+    {
+      "wizard_key": "student_course_selection",
+      "label_token": "wizards.student_course_selection.label",
+      "renders_as": "Student Course Selection",
+      "reason": "'wizards.student_course_selection.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Student Course Selection'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/student_course_selection.json"
+    },
+    {
+      "wizard_key": "student_password_rotation",
+      "label_token": "wizards.student_password_rotation.label",
+      "renders_as": "Student Password Rotation",
+      "reason": "'wizards.student_password_rotation.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Student Password Rotation'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/student_password_rotation.json"
+    },
+    {
+      "wizard_key": "student_self_onboarding",
+      "label_token": "wizards.student_self_onboarding.label",
+      "renders_as": "Student Self Onboarding",
+      "reason": "'wizards.student_self_onboarding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Student Self Onboarding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/student_self_onboarding.json"
+    },
+    {
+      "wizard_key": "super_create_school",
+      "label_token": "wizards.super_create_school.label",
+      "renders_as": "Super Create School",
+      "reason": "'wizards.super_create_school.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Super Create School'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/super_create_school.json"
+    },
+    {
+      "wizard_key": "teacher_attendance_intake",
+      "label_token": "wizards.teacher_attendance_intake.label",
+      "renders_as": "Teacher Attendance Intake",
+      "reason": "'wizards.teacher_attendance_intake.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Teacher Attendance Intake'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/teacher_attendance_intake.json"
+    },
+    {
+      "wizard_key": "teacher_gradebook_setup",
+      "label_token": "wizards.teacher_gradebook_setup.label",
+      "renders_as": "Teacher Gradebook Setup",
+      "reason": "'wizards.teacher_gradebook_setup.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Teacher Gradebook Setup'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/teacher_gradebook_setup.json"
+    },
+    {
+      "wizard_key": "teacher_self_onboarding",
+      "label_token": "wizards.teacher_self_onboarding.label",
+      "renders_as": "Teacher Self Onboarding",
+      "reason": "'wizards.teacher_self_onboarding.label' is not a msgid in any of the 21 shipped catalogs, so gettext() returns it unchanged and humanize_wizard_token falls through to title-casing the slug: every locale renders 'Teacher Self Onboarding'. There is nothing for a translator to translate. Fixing it is an i18n architecture decision -- emit wizards.* tokens into the catalog from sync_i18n_catalog, or carry real English msgids as mfa_setup does -- and belongs to the operator, not to this gate.",
+      "source": "apps/setup_studio/wizards/teacher_self_onboarding.json"
+    }
+  ]
+}
