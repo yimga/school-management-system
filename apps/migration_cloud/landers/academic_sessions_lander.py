@@ -87,10 +87,11 @@ class AcademicSessionsLander(Lander):
             ) from exc
 
         result = LanderResult()
+        # lander-stream-allow: two-pass-oneroster-session-parent-resolution
         rows = [
             normalize_canonical_row("academic_sessions", row, ctx)
             for row in canonical_rows
-        ]  # lander-stream-allow: two-pass-oneroster-session-parent-resolution
+        ]
         school = getattr(ctx, "school", None)
         year_fields = model_field_names(AcademicYear)
         term_fields = model_field_names(Term)

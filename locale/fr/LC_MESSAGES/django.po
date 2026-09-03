@@ -69702,3 +69702,83 @@ msgstr ""
 msgid ""
 "{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
 msgstr ""
+
+msgid "Academic catalog readiness"
+msgstr ""
+
+msgid "Active enrollments"
+msgstr ""
+
+msgid ""
+"All closure checks pass — catalog, teaching graph, people directory, "
+"finance, and quarantine are ready."
+msgstr ""
+
+msgid ""
+"Each active student should have one ACTIVE enrollment for the current year."
+msgstr ""
+
+msgid "Enrollment SOT synced"
+msgstr ""
+
+msgid "Guardian directory links"
+msgstr ""
+
+msgid "Guardian sidebar populated"
+msgstr ""
+
+msgid "No subject↔specialty inversion detected"
+msgstr ""
+
+msgid "People directory readiness"
+msgstr ""
+
+msgid "Phantom departments"
+msgstr ""
+
+msgid "Phantom specialties"
+msgstr ""
+
+msgid "Post-import playbook status"
+msgstr ""
+
+msgid "Promote parent hints or import guardians.csv"
+msgstr ""
+
+msgid "Run remediate_inverted_academic_catalog"
+msgstr ""
+
+msgid "Run remediate_people_directory"
+msgstr ""
+
+msgid "Sample phantom specialty names: {{ names }}"
+msgstr ""
+
+msgid ""
+"Some closure steps still need attention. Run remediate_tenant_post_import or"
+" use the readiness panels below."
+msgstr ""
+
+msgid "Students missing enrollment row"
+msgstr ""
+
+msgid "Subjects promoted from departments"
+msgstr ""
+
+msgid ""
+"Whether enrollments and guardian links match imported student placements."
+msgstr ""
+
+msgid ""
+"Whether subjects and specialties landed in the right catalog tables (common "
+"CM/TVET inversion)."
+msgstr ""
+
+msgid "of {{ total }} active students"
+msgstr ""
+
+msgid "{{ held }} held row(s) still pending in this bundle."
+msgstr ""
+
+msgid "{{ hints }} parent hint(s) not yet promoted"
+msgstr ""
