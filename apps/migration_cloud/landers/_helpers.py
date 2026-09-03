@@ -717,6 +717,7 @@ def _enrich_student_identity_keys(
         or flat.get("student_external_id")
         or flat.get("admission_number")
         or flat.get("student_code")
+        or flat.get("pupil_id")
         or flat.get("exam_candidate_number")
         or ""
     ).strip()
@@ -819,7 +820,7 @@ def enrich_missing_required_row(
             enriched["title"] = name
             evidence.append("title←subject_name")
 
-    elif domain_key in {"students", "enrollment", "attendance", "behavior", "alumni"}:
+    elif domain_key in {"students", "attendance", "behavior", "alumni"}:
         _enrich_student_identity_keys(
             enriched,
             flat,
@@ -827,6 +828,68 @@ def enrich_missing_required_row(
             school=school,
             transformer_options=transformer_options,
         )
+
+    elif domain_key == "enrollment":
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        section = str(
+            flat.get("section_code")
+            or flat.get("classroom_name")
+            or flat.get("section_name")
+            or flat.get("class_id")
+            or flat.get("class_name")
+            or ""
+        ).strip()
+        if section and not str(flat.get("section_code") or "").strip():
+            enriched["section_code"] = section
+            evidence.append("section_code←section_alias")
+        specialty = str(
+            flat.get("specialty")
+            or flat.get("specialty_name")
+            or flat.get("stream")
+            or flat.get("trade")
+            or ""
+        ).strip()
+        if specialty and not str(flat.get("specialty") or "").strip():
+            enriched["specialty"] = specialty
+            evidence.append("specialty←specialty_alias")
+
+    elif domain_key in {
+        "transport_assignments",
+        "hostel_assignments",
+        "cafeteria_assignments",
+    }:
+        _enrich_student_identity_keys(
+            enriched,
+            flat,
+            evidence,
+            school=school,
+            transformer_options=transformer_options,
+        )
+        route = str(
+            flat.get("route")
+            or flat.get("route_name")
+            or flat.get("bus_route")
+            or ""
+        ).strip()
+        if route and not str(flat.get("route") or "").strip():
+            enriched["route"] = route
+            evidence.append("route←route_alias")
+        room = str(
+            flat.get("room")
+            or flat.get("room_name")
+            or flat.get("hostel_room")
+            or flat.get("dormitory")
+            or ""
+        ).strip()
+        if room and not str(flat.get("room") or "").strip():
+            enriched["room"] = room
+            evidence.append("room←room_alias")
 
     elif domain_key == "grades":
         _enrich_student_identity_keys(

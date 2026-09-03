@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Assignment normalize + closure status (batch 1827 - 2026-09-03)
+
+**A. Scope:** Quarantine burndown for transport/hostel/cafeteria assignment rows; operator triage snapshot before/after post-import playbook.
+
+**B. Shipped:** enrollment/assignment enrich aliases (`pupil_id`, route/room); `normalize_canonical_row` on three assignment landers; `closure_status.py` + `migration_closure_status --school=<slug>`.
+
+**C. Proof:** sqlite-memory **21/21 OK**.
+
+**D. Deploy:** `python manage.py migration_closure_status --school gilead-tech` before/after `remediate_tenant_post_import --apply`.
+
 ## Slice - Schedule normalize + people directory playbook (batch 1826 - 2026-09-03)
 
 **A. Scope:** Enrollment/guardian directory closure after import; schedule quarantine burndown via enrich-at-land.

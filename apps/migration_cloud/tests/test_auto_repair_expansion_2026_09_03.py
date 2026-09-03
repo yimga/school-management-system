@@ -108,6 +108,32 @@ class EnrichMissingRequiredExpansionTests(SimpleTestCase):
         self.assertEqual(enriched["end_time"], "09:30")
         self.assertIn("section_external_id←section_alias", evidence)
 
+    def test_enrollment_backfills_section_and_specialty(self):
+        row = {
+            "pupil_id": "P-77",
+            "class_name": "Form 3A",
+            "stream": "ELECTRICAL",
+        }
+        enriched, evidence = enrich_missing_required_row("enrollment", row)
+        self.assertEqual(enriched["student_external_id"], "P-77")
+        self.assertEqual(enriched["section_code"], "Form 3A")
+        self.assertEqual(enriched["specialty"], "ELECTRICAL")
+        self.assertIn("student_external_id←identity_alias", evidence)
+
+    def test_transport_assignment_backfills_route_and_pupil_id(self):
+        row = {"pupil_id": "STU-12", "bus_route": "Route B"}
+        enriched, evidence = enrich_missing_required_row("transport_assignments", row)
+        self.assertEqual(enriched["student_external_id"], "STU-12")
+        self.assertEqual(enriched["route"], "Route B")
+        self.assertIn("route←route_alias", evidence)
+
+    def test_hostel_assignment_backfills_room_alias(self):
+        row = {"admission_number": "ADM-1", "hostel_room": "Block A / 12"}
+        enriched, evidence = enrich_missing_required_row("hostel_assignments", row)
+        self.assertEqual(enriched["student_external_id"], "ADM-1")
+        self.assertEqual(enriched["room"], "Block A / 12")
+        self.assertIn("room←room_alias", evidence)
+
 
 class PreviewLanderErrorEnrichTests(SimpleTestCase):
     def test_lander_error_with_enrich_evidence_is_auto_replay(self):
