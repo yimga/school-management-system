@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,6 +54,45 @@ def _feedback_gate_db() -> Path:
     return ROOT / ".django_test_dbs" / "feedback_help_gate.sqlite3"
 
 
+_LOG_LINE_RE = re.compile(r"^(?:DEBUG|INFO|WARNING|ERROR|CRITICAL)\s+\d{4}-\d{2}-\d{2}\b")
+_ELAPSED_RE = re.compile(r"\b\d+\.\d+s\b")
+_RAN_RE = re.compile(r"^Ran (\d+) tests? in ", re.MULTILINE)
+_VERDICT_RE = re.compile(r"^(OK|FAILED)\b", re.MULTILINE)
+_FAILED_TEST_RE = re.compile(r"^(?:FAIL|ERROR):\s+(\S+)(?:\s+\((\S+)\))?", re.MULTILINE)
+
+
+def _stable_lines(stdout: str | None, stderr: str | None, *, keep: int = 3) -> str:
+    """Verdict lines from a subprocess -- never its raw captured output.
+
+    Django log lines carry a wall-clock timestamp and unittest prints an elapsed
+    time, so embedding captured stdout rewrote this tracked artifact every run.
+    """
+    lines = [line.strip() for line in f"{stdout or ''}\n{stderr or ''}".splitlines()]
+    kept = [
+        line
+        for line in lines
+        if line
+        and not _LOG_LINE_RE.match(line)
+        and "request_id=" not in line
+        and not _ELAPSED_RE.search(line)
+    ]
+    return " | ".join(kept[-keep:])[:400]
+
+
+def _test_summary(combined: str) -> str:
+    """Stable summary of a Django test run: counts, verdict, failing test ids."""
+    ran = _RAN_RE.findall(combined)
+    verdict = _VERDICT_RE.findall(combined)
+    failed = sorted({hit[1] or hit[0] for hit in _FAILED_TEST_RE.findall(combined)})
+    parts = [
+        f"ran={ran[-1] if ran else 'unknown'}",
+        f"result={verdict[-1] if verdict else 'UNKNOWN'}",
+    ]
+    if failed:
+        parts.append("failed=" + ",".join(failed))
+    return " ".join(parts)[:400]
+
+
 def _run_tests(labels: list[str], *, timeout: int = 900) -> tuple[bool, str]:
     # Reuse migrated gate DB from sibling verifiers when present; --fresh only if none exists.
     gate_db = _pick_gate_db()
@@ -79,7 +118,6 @@ def _run_tests(labels: list[str], *, timeout: int = 900) -> tuple[bool, str]:
             env=env,
         )
         combined = ((proc.stdout or "") + (proc.stderr or "")).strip()
-        tail = combined[-800:]
         # Windows: teardown may fail to unlink sqlite (WinError 32) after tests reported OK.
         teardown_lock = (
             proc.returncode != 0
@@ -87,9 +125,9 @@ def _run_tests(labels: list[str], *, timeout: int = 900) -> tuple[bool, str]:
             and "WinError 32" in combined
             and "\nOK\n" in combined
         )
-        return proc.returncode == 0 or teardown_lock, tail
+        return proc.returncode == 0 or teardown_lock, _test_summary(combined)
     except (subprocess.TimeoutExpired, OSError) as exc:
-        return False, str(exc)
+        return False, f"runner error: {type(exc).__name__}"
 
 
 def main() -> int:
@@ -248,7 +286,7 @@ def main() -> int:
         "14",
         "No dead href=# in operator shell chrome",
         scan_proc.returncode == 0,
-        (scan_proc.stdout or scan_proc.stderr or "").strip()[-400:],
+        _stable_lines(scan_proc.stdout, scan_proc.stderr),
     )
 
     add(
@@ -287,7 +325,7 @@ def main() -> int:
         "18",
         "_pages/ interaction audit green",
         pages_proc.returncode == 0,
-        (pages_proc.stdout or pages_proc.stderr or "").strip()[-400:],
+        _stable_lines(pages_proc.stdout, pages_proc.stderr),
     )
 
     mount_proc = subprocess.run(
@@ -301,7 +339,7 @@ def main() -> int:
         "19",
         "React mount bundles + API fetch URLs",
         mount_proc.returncode == 0,
-        (mount_proc.stdout or mount_proc.stderr or "").strip()[-400:],
+        _stable_lines(mount_proc.stdout, mount_proc.stderr),
     )
 
     if os.environ.get("RMC_VERIFY_INTERACTION_SKIP_TESTS") == "1":
@@ -348,26 +386,36 @@ def main() -> int:
                     env=feedback_env,
                 )
                 feedback_ok = proc.returncode == 0
-                feedback_tail = ((proc.stdout or "") + (proc.stderr or "")).strip()[-400:]
+                feedback_tail = _test_summary(
+                    ((proc.stdout or "") + (proc.stderr or "")).strip()
+                )
             except (subprocess.TimeoutExpired, OSError) as exc:
-                feedback_ok, feedback_tail = False, str(exc)
+                feedback_ok = False
+                feedback_tail = f"runner error: {type(exc).__name__}"
         tests_ok = fast_ok and feedback_ok
-        test_tail = f"fast: {fast_tail[-200:]}\nfeedback: {feedback_tail[-200:]}"
+        test_tail = f"fast: {fast_tail} | feedback: {feedback_tail}"
     add("17", "Contract tests green", tests_ok, test_tail or "django tests")
 
     failures = [r for r in rows if not r.ok]
+    ordered = sorted(
+        rows,
+        key=lambda r: (0, int(r.check_id), "") if r.check_id.isdigit() else (1, 0, r.check_id),
+    )
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
         "verdict": "INTERACTION_INTEGRITY_PASS" if not failures else "INTERACTION_INTEGRITY_FAIL",
         "pass_count": sum(1 for r in rows if r.ok),
         "fail_count": len(failures),
         "rows": [
             {"id": r.check_id, "label": r.label, "status": "PASS" if r.ok else "FAIL", "proof": r.proof}
-            for r in rows
+            for r in ordered
         ],
     }
     GENERATED.parent.mkdir(parents=True, exist_ok=True)
-    GENERATED.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    # write_bytes, not write_text: on Windows text mode translates "\n" to CRLF and
+    # docs/generated/*.json is `eol=lf`, which left the path permanently dirty.
+    GENERATED.write_bytes(
+        (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    )
 
     print(f"verify_interaction_integrity_completion: {payload['verdict']}")
     print(f"  PASS {payload['pass_count']} / FAIL {payload['fail_count']}")

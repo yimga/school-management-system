@@ -125,7 +125,10 @@ def main() -> int:
             "unbounded_collection",
             ["python", "scripts/verify_unbounded_collection_surfaces.py"],
         ),
-        ("large_collection", ["python", "scripts/audit_large_collection_surfaces.py"]),
+        (
+            "large_collection",
+            ["python", "scripts/audit_large_collection_surfaces.py", "--compare"],
+        ),
     ]
     assets = [
         "static/css/rmc-cp-v8-layout-contract.css",
@@ -182,7 +185,12 @@ def main() -> int:
             failed.append((name, _excerpt(out)))
         if name == "unbounded_collection" and "UNBOUNDED_COLLECTION_SURFACE_PASS" not in out:
             failed.append((name, _excerpt(out)))
-        if name == "large_collection" and "LARGE_COLLECTION_SURFACE_PASS" not in out:
+        # Ratcheted, not zero. 37 tables render an unbounded collection and are
+        # recorded in var/large-collection-unbounded-baseline.json; the property
+        # enforced here is that no NEW one appeared and no listed one was quietly
+        # fixed without correcting the count. Demanding zero kept this gate red
+        # forever, which is how it ended up with no runners at all.
+        if name == "large_collection" and "LARGE_COLLECTION_RATCHET_OK" not in out:
             failed.append((name, _excerpt(out)))
 
     if failed:

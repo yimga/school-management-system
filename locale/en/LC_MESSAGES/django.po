@@ -74157,3 +74157,34 @@ msgid ""
 "{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
 msgstr ""
 "{{ missing_class }} missing class · {{ missing_spec }} missing specialty"
+
+msgid "Draft invoices with totals"
+msgstr "Draft invoices with totals"
+
+msgid "Finance ledger readiness"
+msgstr "Finance ledger readiness"
+
+msgid "Issued without ledger post"
+msgstr "Issued without ledger post"
+
+msgid "Ledger backfill needed"
+msgstr "Ledger backfill needed"
+
+msgid "Ledger posts complete"
+msgstr "Ledger posts complete"
+
+msgid "No invisible draft fees"
+msgstr "No invisible draft fees"
+
+msgid "Run repair or remediate_finance_ledger_closure"
+msgstr "Run repair or remediate_finance_ledger_closure"
+
+msgid "Select conflict: {{ entity }} {{ ident }}"
+msgstr "Select conflict: {{ entity }} {{ ident }}"
+
+msgid ""
+"Whether imported fee rows are visible to the bursar (issued invoices, lines,"
+" and ledger posts)."
+msgstr ""
+"Whether imported fee rows are visible to the bursar (issued invoices, lines,"
+" and ledger posts)."
