@@ -1,8 +1,7 @@
 """Detect the real header row when a worksheet leads with title/banner rows.
 
 African school exports often open with one or two merged title lines
-(``GILEAD TECHNICAL HIGH SCHOOL … TELEPHONE DIRECTORY``) before the real
-column headers. Treating row 0 as the header mis-maps every column and
+(``SCHOOL NAME … TELEPHONE DIRECTORY``) before the real column headers. Treating row 0 as the header mis-maps every column and
 quarantines the roster.
 """
 

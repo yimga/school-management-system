@@ -66732,3 +66732,23 @@ msgid ""
 "{{ count }} row syncs; only its unmapped columns stay here{% plural %}{{ "
 "count }} rows sync; only their unmapped columns stay here"
 msgstr ""
+
+msgid "No imported staff rows found to promote."
+msgstr ""
+
+msgid "No staff roles needed promotion (%(count)s already correct)."
+msgstr ""
+
+msgid "Promote imported staff roles"
+msgstr ""
+
+msgid "Promoted imported roles for %(count)s staff member(s)."
+msgstr ""
+
+msgid ""
+"Re-applies directory role labels (Principal, Bursar, HOD, …) onto staff "
+"accounts imported before role mapping shipped."
+msgstr ""
+
+msgid "Verify imported catalog data before sync:"
+msgstr ""
