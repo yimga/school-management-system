@@ -66827,3 +66827,11 @@ msgstr ""
 
 msgid "{{ hints }} parent hint(s) not yet promoted"
 msgstr ""
+
+msgid ""
+"Apply suggested record type to {{ counter }} file{% plural %}Apply suggested"
+" record types to {{ counter }} files"
+msgstr ""
+
+msgid "Use suggested: {{ label }}"
+msgstr ""

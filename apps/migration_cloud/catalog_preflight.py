@@ -495,6 +495,86 @@ def artifact_catalog_hint(artifact: MigrationArtifact, *, school) -> str:
     return " ".join(finding.get("messages") or [])
 
 
+def catalog_findings_by_artifact_id(bundle: MigrationBundle) -> dict[int, dict[str, Any]]:
+    """Structured preflight rows keyed by artifact pk (for review UI actions)."""
+    report = catalog_preflight_report(bundle)
+    by_artifact_id: dict[int, dict[str, Any]] = {}
+    for row in report.get("artifacts") or []:
+        if not isinstance(row, dict):
+            continue
+        try:
+            artifact_id = int(row.get("artifact_id"))
+        except (TypeError, ValueError):
+            continue
+        by_artifact_id[artifact_id] = row
+    return by_artifact_id
+
+
+def apply_catalog_recommendations(
+    bundle: MigrationBundle,
+    *,
+    min_severity: str = "advisory",
+    artifact_id: int | None = None,
+) -> int:
+    """Set ``assigned_domain`` from catalog shape when it disagrees with the tag.
+
+    Returns the number of artifacts updated. When *artifact_id* is set, only
+    that file is considered (single-row apply from the review UI).
+    """
+    from apps.migration_cloud.accelerators.runmycampus_canonical import (
+        is_valid_canonical_domain,
+    )
+    from apps.migration_cloud.models import MigrationArtifact
+
+    school = getattr(bundle, "school", None)
+    if school is None:
+        return 0
+
+    report = assess_bundle_catalog_routing(bundle)
+    severity_rank = {"ok": 0, "advisory": 1, "critical": 2}
+    min_rank = severity_rank.get(min_severity, 1)
+    changed = 0
+
+    for finding in report.get("artifacts") or []:
+        if not isinstance(finding, dict):
+            continue
+        try:
+            pk = int(finding.get("artifact_id"))
+        except (TypeError, ValueError):
+            continue
+        if artifact_id is not None and pk != artifact_id:
+            continue
+        recommended = str(finding.get("recommended_domain") or "").strip()
+        assigned = str(finding.get("assigned_domain") or "").strip()
+        severity = str(finding.get("severity") or "ok")
+        if severity_rank.get(severity, 0) < min_rank:
+            continue
+        if not recommended or recommended == assigned:
+            continue
+        if not is_valid_canonical_domain(recommended):
+            continue
+        subj_shape = bool(finding.get("looks_like_subject_catalog"))
+        spec_shape = bool(finding.get("looks_like_specialty_catalog"))
+        if spec_shape and not subj_shape and recommended == "academics":
+            continue
+        if subj_shape and not spec_shape and recommended == "specialties":
+            continue
+        if not subj_shape and not spec_shape:
+            continue
+        art = MigrationArtifact.objects.filter(pk=pk, bundle=bundle).first()
+        if art is None or art.assigned_domain == recommended:
+            continue
+        art.assigned_domain = recommended
+        art.save(update_fields=["assigned_domain", "updated_at"])
+        changed += 1
+
+    if changed:
+        from apps.migration_cloud.domain_overrides import invalidate_catalog_preflight_cache
+
+        invalidate_catalog_preflight_cache(bundle)
+    return changed
+
+
 def catalog_hints_by_artifact_id(bundle: MigrationBundle) -> dict[int, str]:
     """One-pass catalog hints for the review table (avoids N× preflight on GET).
 

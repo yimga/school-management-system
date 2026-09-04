@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import io
+import uuid
 
 from django.test import TestCase
 
 from apps.migration_cloud.catalog_preflight import (
     apply_blocked_by_catalog,
+    apply_catalog_recommendations,
     artifact_catalog_hint,
     assess_bundle_catalog_routing,
+    catalog_findings_by_artifact_id,
     catalog_hints_by_artifact_id,
     preflight_artifact_catalog,
     review_notice,
@@ -40,9 +43,11 @@ def _xlsx_profile(*, headers: list[str], rows: list[tuple]) -> dict:
 
 class CatalogPreflightArtifactTests(TestCase):
     def setUp(self):
+        slug = f"preflight-{uuid.uuid4().hex[:8]}"
         self.school = School.objects.create(
             name="Preflight School",
-            subdomain="preflight-school",
+            slug=slug,
+            subdomain=slug,
             country_code="CM",
             settings={"grading": {"curriculum_tracks": ["vocational_trade"]}},
         )
@@ -211,3 +216,24 @@ class CatalogPreflightArtifactTests(TestCase):
         hints = catalog_hints_by_artifact_id(self.bundle)
         self.assertIn(art.pk, hints)
         self.assertIn("Matières", hints[art.pk])
+
+    def test_apply_catalog_recommendations_retags_misclassified_subject_file(self):
+        art = self._artifact(
+            filename="specialties_20260118.csv",
+            domain="specialties",
+            headers=["TITLE", "CATEGORY", "COEF"],
+            rows=[("WORKSHOP", "Professional", "4")],
+        )
+        changed = apply_catalog_recommendations(self.bundle)
+        art.refresh_from_db()
+        self.assertEqual(changed, 1)
+        self.assertEqual(art.assigned_domain, "academics")
+
+    def test_sync_operator_domains_without_rewind_keeps_mapped(self):
+        from apps.migration_cloud.domain_overrides import sync_operator_assigned_domains
+
+        self.bundle.status = BundleStatus.MAPPED
+        self.bundle.save(update_fields=["status", "updated_at"])
+        sync_operator_assigned_domains(self.bundle, rewind_status=False)
+        self.bundle.refresh_from_db()
+        self.assertEqual(self.bundle.status, BundleStatus.MAPPED)

@@ -620,6 +620,15 @@ persistent data failure routes to correction rather than an endless retry.
 <section class="rmc-card mb-4" aria-labelledby="mc-review-heading">
   <h2 id="mc-review-heading" class="h5">{% trans "We detected these files" %}</h2>
   <p class="text-muted small">{% trans "Auto-detected from your upload. If a record type is wrong, correct it below and we'll re-detect." %}</p>
+  {% if catalog_fixable_count %}
+  <form method="post" action="{{ review_url }}" class="mb-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="apply_catalog_recommendations">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">
+      {% blocktrans count counter=catalog_fixable_count %}Apply suggested record type to {{ counter }} file{% plural %}Apply suggested record types to {{ counter }} files{% endblocktrans %}
+    </button>
+  </form>
+  {% endif %}
 
   {% if artifact_rows %}
   <form method="post" action="{{ review_url }}">
@@ -662,13 +671,27 @@ persistent data failure routes to correction rather than an endless retry.
             <td>
               <label class="visually-hidden" for="dom-{{ row.id }}">{% trans "Record type for this file" %}</label>
               <select id="dom-{{ row.id }}" name="assigned_domain_{{ row.id }}" class="form-select form-select-sm">
-                <option value="auto"{% if not row.assigned %} selected{% endif %}>{% trans "Auto-detect" %}</option>
+                <option value="auto"{% if not row.assigned and not row.catalog_fixable %} selected{% endif %}>{% trans "Auto-detect" %}</option>
                 {% for choice in domain_choices %}
-                <option value="{{ choice.slug }}"{% if row.assigned == choice.slug %} selected{% endif %}>{{ choice.label }}</option>
+                <option value="{{ choice.slug }}"{% if row.assigned == choice.slug %} selected{% elif row.catalog_fixable and row.catalog_recommended == choice.slug %} selected{% elif not row.assigned and not row.catalog_fixable and row.detected_domain == choice.slug %} selected{% endif %}>{{ choice.label }}</option>
                 {% endfor %}
               </select>
             </td>
           </tr>
+          {% if row.catalog_fixable %}
+          <tr>
+            <td colspan="5" class="pt-0 pb-2">
+              <form method="post" action="{{ review_url }}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="apply_catalog_recommendation">
+                <input type="hidden" name="artifact_id" value="{{ row.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-light">
+                  {% blocktrans with label=row.catalog_recommended_label %}Use suggested: {{ label }}{% endblocktrans %}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endif %}
           {% if row.hint %}
           <tr>
             <td colspan="5" class="small text-muted">

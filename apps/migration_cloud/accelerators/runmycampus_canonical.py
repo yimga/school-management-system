@@ -61,6 +61,11 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "specialties.csv": "specialties",
     "specialty.csv": "specialties",
     "filieres.csv": "specialties",
+    "subjects.csv": "academics",
+    "subject.csv": "academics",
+    "matieres.csv": "academics",
+    "matiere.csv": "academics",
+    "courses.csv": "academics",
     "enrollment.csv": "enrollment",
     "enrollments.csv": "enrollment",
     "sections.csv": "sections",
@@ -340,6 +345,9 @@ DOMAIN_FILENAME_HINTS: tuple[tuple[str, str], ...] = (
     ("specialt", "specialties"),
     ("specialit", "specialties"),
     ("filiere", "specialties"),
+    ("matiere", "academics"),
+    ("matieres", "academics"),
+    ("matière", "academics"),
     # Subject/course catalogs → academics (Subject model), NOT sections
     # (Classroom). Class/section filenames stay on sections.
     ("subject", "academics"),

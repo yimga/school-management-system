@@ -312,7 +312,14 @@ def resolve_school_ingestion_lexicon(school) -> IngestionLexicon:
 
 
 def _header_set(normalized_headers: Iterable[str]) -> frozenset[str]:
-    return frozenset(h.strip().lower() for h in normalized_headers if h)
+    cleaned: set[str] = set()
+    for h in normalized_headers:
+        if not h:
+            continue
+        token = h.strip().lower().lstrip("\ufeff")
+        if token:
+            cleaned.add(token)
+    return frozenset(cleaned)
 
 
 def is_subject_catalog_shape(
@@ -321,6 +328,12 @@ def is_subject_catalog_shape(
 ) -> bool:
     """True when headers/content look like a *subject* master (Matières), not trades."""
     headers = _header_set(normalized_headers)
+    # NAME/CODE/DEPT filière exports must not flip to Matières because row text
+    # contains trade words (PLUMBING, ELECTRICAL, …) — header shape wins.
+    if is_specialty_catalog_shape(headers, None) and not (
+        headers & {"title", "category", "subject_category", "coef", "coefficient"}
+    ):
+        return False
     if headers & _SUBJECT_CATALOG_HEADERS:
         if "category" in headers or "subject_category" in headers:
             return True
@@ -386,6 +399,8 @@ def apply_catalog_shape_adjustments(
             conf = min(0.99, conf + 0.35)
         elif subj_shape and domain in ("specialties", "sections", "behavior"):
             conf = max(0.0, conf - 0.40)
+        elif subj_shape and domain in ("reports", "students", "staff"):
+            conf = max(0.0, conf - 0.45)
         if spec_shape and domain == "specialties":
             conf = min(0.99, conf + 0.30)
         elif spec_shape and domain == "academics":

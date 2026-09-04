@@ -34,6 +34,8 @@ class CanonicalDomainHelperTests(SimpleTestCase):
             "parents.csv": "guardians",
             "courses.csv": "academics",
             "subjects.csv": "academics",
+            "matieres.csv": "academics",
+            "matiere_2026.xlsx": "academics",
             "classes_10a.csv": "sections",
             "sections_fall.csv": "sections",
             "invoices_q1.csv": "finance",

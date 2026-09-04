@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Catalog routing auto-fix + review apply (batch 1838 - 2026-09-04)
+
+**A. Scope:** Close file-detection gap — Matières (subject catalog) mis-tagged as filières/reports/students on Gilead/TrackSystem uploads; operator had no one-click fix on Review & Import.
+
+**B. Shipped:** `catalog_preflight.apply_catalog_recommendations`; `domain_overrides.py` sync + cache invalidation (`rewind_status` for review vs pipeline); pipeline auto-apply after map without status rewind; Review & Import bulk/single apply actions + `catalog_fixable_count`; francophone filename hints in `runmycampus_canonical.py` + `migration-cloud-intake.js`; `classify_domain` shape override; ingestion lexicon BOM-safe headers + filière-not-matières guard; apply guards against demoting filière catalogs; TrackSystem synonyms; `test_catalog_review_apply_2026_09_04.py`; unique-slug test fixes.
+
+**C. Proof:** sqlite-memory catalog routing suite **67/67 OK**; `pre_push_boundary_check.py` **PASS**.
+
+**D. Deploy:** Re-run import review on Gilead bundle or click “Apply suggested record types”; production playbook unchanged from 1837.
+
 ## Slice - Playbook slug alias unification (batch 1837 - 2026-09-04)
 
 **A. Scope:** Close audit gap — `gilead-tech` alias worked for quarantine commands but failed on playbook steps 1–4 because each step command duplicated school lookup without the alias map.

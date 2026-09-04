@@ -36,6 +36,17 @@ def _school(tag: str, **kwargs) -> School:
 
 
 class IngestionLexiconShapeTests(SimpleTestCase):
+    def test_specialty_catalog_not_misread_as_subject_via_trade_vocabulary(self):
+        headers = {"name", "code", "department"}
+        rows = [{"name": "PLUMBING", "code": "PL", "department": "PLUMBING"}]
+        self.assertTrue(is_specialty_catalog_shape(headers, rows))
+        self.assertFalse(is_subject_catalog_shape(headers, rows))
+
+    def test_bom_prefixed_headers_still_shape_as_specialty_catalog(self):
+        headers = {"\ufeffname", "code", "department"}
+        self.assertTrue(is_specialty_catalog_shape(headers, None))
+        self.assertFalse(is_subject_catalog_shape(headers, None))
+
     def test_subject_catalog_shape_from_headers(self):
         self.assertTrue(
             is_subject_catalog_shape({"title", "description", "category", "coef"})

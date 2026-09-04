@@ -74276,3 +74276,13 @@ msgstr "{{ held }} held row(s) still pending in this bundle."
 
 msgid "{{ hints }} parent hint(s) not yet promoted"
 msgstr "{{ hints }} parent hint(s) not yet promoted"
+
+msgid ""
+"Apply suggested record type to {{ counter }} file{% plural %}Apply suggested"
+" record types to {{ counter }} files"
+msgstr ""
+"Apply suggested record type to {{ counter }} file{% plural %}Apply suggested"
+" record types to {{ counter }} files"
+
+msgid "Use suggested: {{ label }}"
+msgstr "Use suggested: {{ label }}"
