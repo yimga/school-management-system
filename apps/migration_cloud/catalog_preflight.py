@@ -27,6 +27,7 @@ from .ingestion_lexicon import (
     compile_offline_ingestion_manifest_for_school,
     preflight_subject_vs_specialty_routing,
     resolve_school_ingestion_lexicon,
+    _header_set,
 )
 from .models import MigrationArtifact, MigrationBundle
 
@@ -36,6 +37,7 @@ _DOMAIN_LABELS = {
     "academics": "Subjects (Matières)",
     "specialties": "Specialties (Filières)",
     "structure": "School structure",
+    "staff": "Teachers / Staff",
 }
 
 _TITLE_HEADER_TOKENS = frozenset({
@@ -53,6 +55,25 @@ def _resolved_domain(artifact: MigrationArtifact) -> str:
     candidates = artifact.inferred_domain if isinstance(artifact.inferred_domain, list) else []
     top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
     return str(top.get("domain") or "").strip()
+
+
+def _normalized_headers_from_artifact(artifact: MigrationArtifact) -> frozenset[str]:
+    """Prefer profiler ``normalized`` tokens; fall back to slugged display names."""
+    profile = artifact.profile if isinstance(artifact.profile, dict) else {}
+    columns = profile.get("columns") or []
+    tokens: list[str] = []
+    for col in columns:
+        if not isinstance(col, dict):
+            continue
+        norm = str(col.get("normalized") or "").strip()
+        if norm:
+            tokens.append(norm)
+        name = str(col.get("name") or "").strip()
+        if name:
+            tokens.append(name)
+    if not tokens:
+        tokens = _artifact_headers(artifact)
+    return _header_set(tokens)
 
 
 def _artifact_headers(artifact: MigrationArtifact) -> list[str]:
@@ -223,13 +244,14 @@ def preflight_artifact_catalog(
     headers = _artifact_headers(artifact)
     if not headers:
         return None
+    norm_headers = _normalized_headers_from_artifact(artifact)
 
     manifest = manifest or compile_offline_ingestion_manifest_for_school(school)
     lexicon = resolve_school_ingestion_lexicon(school)
     sample_rows = _sample_rows_from_profile(artifact)
     mappings = _artifact_mappings(artifact)
     report = preflight_subject_vs_specialty_routing(
-        headers,
+        norm_headers,
         manifest=manifest,
         sample_rows=sample_rows or None,
     )
@@ -237,6 +259,7 @@ def preflight_artifact_catalog(
     recommended = str(report.get("recommended_domain") or "").strip()
     subj_shape = bool(report.get("looks_like_subject_catalog"))
     spec_shape = bool(report.get("looks_like_specialty_catalog"))
+    staff_dir = bool(report.get("looks_like_staff_directory"))
 
     warnings: list[str] = []
     reasoning: list[str] = []
@@ -247,7 +270,7 @@ def preflight_artifact_catalog(
         and assigned
         and assigned not in ("auto", "")
         and recommended != assigned
-        and (subj_shape or spec_shape)
+        and (subj_shape or spec_shape or staff_dir)
     ):
         severity = _severity_for_mismatch(
             assigned=assigned,
@@ -255,6 +278,8 @@ def preflight_artifact_catalog(
             subj_shape=subj_shape,
             lexicon=lexicon,
         )
+        if assigned == "custom_fields" and recommended == "staff":
+            severity = "critical"
         rec_label = _DOMAIN_LABELS.get(recommended, recommended)
         cur_label = _DOMAIN_LABELS.get(assigned, assigned)
         if recommended == "academics":
@@ -270,6 +295,12 @@ def preflight_artifact_catalog(
                 "This file looks like a trade / filière catalog. "
                 f"Tag it as {rec_label}, not {cur_label}."
             )
+        elif recommended == "staff":
+            warnings.append(
+                "This file looks like a staff telephone directory (name, role, phone). "
+                f"Tag it as {rec_label}, not {cur_label}."
+            )
+            reasoning.append("Header shape matched staff telephone directory.")
         else:
             warnings.append(
                 f"Catalog shape suggests record type “{recommended}”, but this file "
@@ -301,6 +332,7 @@ def preflight_artifact_catalog(
         "recommended_domain": recommended,
         "looks_like_subject_catalog": subj_shape,
         "looks_like_specialty_catalog": spec_shape,
+        "looks_like_staff_directory": staff_dir,
         "header_entity_map": report.get("header_entity_map") or {},
         "severity": severity,
         "messages": warnings,
@@ -493,6 +525,89 @@ def artifact_catalog_hint(artifact: MigrationArtifact, *, school) -> str:
     if not finding:
         return ""
     return " ".join(finding.get("messages") or [])
+
+
+def catalog_findings_by_artifact_id(bundle: MigrationBundle) -> dict[int, dict[str, Any]]:
+    """Structured preflight rows keyed by artifact pk (for review UI actions)."""
+    report = catalog_preflight_report(bundle)
+    by_artifact_id: dict[int, dict[str, Any]] = {}
+    for row in report.get("artifacts") or []:
+        if not isinstance(row, dict):
+            continue
+        try:
+            artifact_id = int(row.get("artifact_id"))
+        except (TypeError, ValueError):
+            continue
+        by_artifact_id[artifact_id] = row
+    return by_artifact_id
+
+
+def apply_catalog_recommendations(
+    bundle: MigrationBundle,
+    *,
+    min_severity: str = "advisory",
+    artifact_id: int | None = None,
+) -> int:
+    """Set ``assigned_domain`` from catalog shape when it disagrees with the tag.
+
+    Returns the number of artifacts updated. When *artifact_id* is set, only
+    that file is considered (single-row apply from the review UI).
+    """
+    from apps.migration_cloud.accelerators.runmycampus_canonical import (
+        is_valid_canonical_domain,
+    )
+    from apps.migration_cloud.models import MigrationArtifact
+
+    school = getattr(bundle, "school", None)
+    if school is None:
+        return 0
+
+    report = assess_bundle_catalog_routing(bundle)
+    severity_rank = {"ok": 0, "advisory": 1, "critical": 2}
+    min_rank = severity_rank.get(min_severity, 1)
+    changed = 0
+
+    for finding in report.get("artifacts") or []:
+        if not isinstance(finding, dict):
+            continue
+        try:
+            pk = int(finding.get("artifact_id"))
+        except (TypeError, ValueError):
+            continue
+        if artifact_id is not None and pk != artifact_id:
+            continue
+        recommended = str(finding.get("recommended_domain") or "").strip()
+        assigned = str(finding.get("assigned_domain") or "").strip()
+        severity = str(finding.get("severity") or "ok")
+        if severity_rank.get(severity, 0) < min_rank:
+            continue
+        if not recommended or recommended == assigned:
+            continue
+        if not is_valid_canonical_domain(recommended):
+            continue
+        subj_shape = bool(finding.get("looks_like_subject_catalog"))
+        spec_shape = bool(finding.get("looks_like_specialty_catalog"))
+        staff_dir = bool(finding.get("looks_like_staff_directory"))
+        if spec_shape and not subj_shape and recommended == "academics":
+            continue
+        if subj_shape and not spec_shape and recommended == "specialties":
+            continue
+        if staff_dir and recommended in ("academics", "specialties"):
+            continue
+        if not subj_shape and not spec_shape and not staff_dir:
+            continue
+        art = MigrationArtifact.objects.filter(pk=pk, bundle=bundle).first()
+        if art is None or art.assigned_domain == recommended:
+            continue
+        art.assigned_domain = recommended
+        art.save(update_fields=["assigned_domain", "updated_at"])
+        changed += 1
+
+    if changed:
+        from apps.migration_cloud.domain_overrides import invalidate_catalog_preflight_cache
+
+        invalidate_catalog_preflight_cache(bundle)
+    return changed
 
 
 def catalog_hints_by_artifact_id(bundle: MigrationBundle) -> dict[int, str]:

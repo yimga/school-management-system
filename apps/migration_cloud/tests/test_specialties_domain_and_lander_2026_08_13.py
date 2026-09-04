@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import io
 import types
+import uuid
 
 from django.test import TestCase
 
@@ -186,9 +187,19 @@ class SpecialtiesApplyTests(TestCase):
         from apps.academics.models import Department, Specialty
         from apps.schools.models import School
 
-        school = School.objects.create(name="TVET Spec", subdomain="tvet-spec")
+        slug = f"tvet-spec-{uuid.uuid4().hex[:8]}"
+        school = School.objects.create(
+            name="TVET Spec", slug=slug, subdomain=slug,
+        )
         bundle = _make_spec_bundle(school, idem="spec-apply")
         advance_bundle(bundle_id=bundle.pk, use_accelerator=True)
+        bundle.refresh_from_db()
+        domain = (
+            ((bundle.discovery_summary or {}).get("per_artifact_domain") or {})
+            .get("specialties.xlsx", {})
+            .get("domain")
+        )
+        self.assertEqual(domain, "specialties", f"after advance got {domain!r}")
         apply_bundle(bundle_id=bundle.pk, workers=1)
 
         # Exclude the "General" specialty the post-apply gap-fill (S) ensures as

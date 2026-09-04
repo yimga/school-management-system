@@ -74277,6 +74277,16 @@ msgstr "{{ held }} held row(s) still pending in this bundle."
 msgid "{{ hints }} parent hint(s) not yet promoted"
 msgstr "{{ hints }} parent hint(s) not yet promoted"
 
+msgid ""
+"Apply suggested record type to {{ counter }} file{% plural %}Apply suggested"
+" record types to {{ counter }} files"
+msgstr ""
+"Apply suggested record type to {{ counter }} file{% plural %}Apply suggested"
+" record types to {{ counter }} files"
+
+msgid "Use suggested: {{ label }}"
+msgstr "Use suggested: {{ label }}"
+
 msgid "%(name)s was created. They cannot sign in until you invite them."
 msgstr "%(name)s was created. They cannot sign in until you invite them."
 
@@ -74328,6 +74338,9 @@ msgstr ""
 "Reset {count} staff member(s) to Support staff? They will hold no capability"
 " until given a role."
 
+msgid "Select all guardians on this page"
+msgstr "Select all guardians on this page"
+
 msgid "Select all staff on this page"
 msgstr "Select all staff on this page"
 
@@ -74353,6 +74366,3 @@ msgstr ""
 
 msgid "{{ counter }} time{% plural %}{{ counter }} times"
 msgstr "{{ counter }} time{% plural %}{{ counter }} times"
-
-msgid "Select all guardians on this page"
-msgstr "Select all guardians on this page"

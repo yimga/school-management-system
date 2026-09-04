@@ -105,10 +105,18 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
         chosen = _reconcile_with_filename(
             filename, top.domain, {c.domain: c.confidence for c in ranked}
         )
+        chosen, method = _reconcile_with_catalog_shape(
+            school=school,
+            normalized_headers=normalized_headers,
+            sample_rows=sample_rows,
+            chosen=chosen,
+            ranked=ranked,
+            method="overlap" if chosen == top.domain else "overlap+filename",
+        )
         return {
             "chosen": chosen,
             "candidates": [c.__dict__ for c in ranked[:5]],
-            "method": "overlap" if chosen == top.domain else "overlap+filename",
+            "method": method,
         }
 
     # AI tiebreaker over the top-3 shortlist + 'custom_fields' escape.
@@ -153,6 +161,46 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
         ])][:5],
         "method": "fallback",
     }
+
+
+def _reconcile_with_catalog_shape(
+    *,
+    school,
+    normalized_headers: set[str],
+    sample_rows: list[dict[str, Any]],
+    chosen: str,
+    ranked: list[DomainCandidate],
+    method: str,
+) -> tuple[str, str]:
+    """When column shape is unambiguous Matières vs Filières, trust shape over filename."""
+    if school is None or not chosen:
+        return chosen, method
+    from apps.migration_cloud.ingestion_lexicon import (
+        is_specialty_catalog_shape,
+        is_staff_directory_shape,
+        is_subject_catalog_shape,
+    )
+
+    subj = is_subject_catalog_shape(normalized_headers, sample_rows or None)
+    spec = is_specialty_catalog_shape(normalized_headers, sample_rows or None)
+    staff_dir = is_staff_directory_shape(normalized_headers, sample_rows or None)
+    score_map = {c.domain: float(c.confidence) for c in ranked}
+    if staff_dir and chosen in ("academics", "specialties", "custom_fields", "students"):
+        if float(score_map.get("staff") or 0.0) >= 0.20:
+            return "staff", "overlap+staff_directory_shape"
+    if subj and not spec and chosen in (
+        "specialties",
+        "sections",
+        "reports",
+        "students",
+        "staff",
+    ):
+        if float(score_map.get("academics") or 0.0) >= 0.20:
+            return "academics", "overlap+catalog_shape"
+    if spec and not subj and chosen in ("academics", "sections", "students", "reports"):
+        if float(score_map.get("specialties") or 0.0) >= 0.20:
+            return "specialties", "overlap+catalog_shape"
+    return chosen, method
 
 
 def _uniquely_owned_fields() -> dict[str, str]:

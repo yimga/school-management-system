@@ -12,6 +12,7 @@ from apps.migration_cloud.ingestion_lexicon import (
     apply_catalog_shape_adjustments,
     build_ingestion_lexicon,
     compile_offline_ingestion_manifest,
+    is_staff_directory_shape,
     is_subject_catalog_shape,
     is_specialty_catalog_shape,
     resolve_school_ingestion_lexicon,
@@ -36,6 +37,17 @@ def _school(tag: str, **kwargs) -> School:
 
 
 class IngestionLexiconShapeTests(SimpleTestCase):
+    def test_specialty_catalog_not_misread_as_subject_via_trade_vocabulary(self):
+        headers = {"name", "code", "department"}
+        rows = [{"name": "PLUMBING", "code": "PL", "department": "PLUMBING"}]
+        self.assertTrue(is_specialty_catalog_shape(headers, rows))
+        self.assertFalse(is_subject_catalog_shape(headers, rows))
+
+    def test_bom_prefixed_headers_still_shape_as_specialty_catalog(self):
+        headers = {"\ufeffname", "code", "department"}
+        self.assertTrue(is_specialty_catalog_shape(headers, None))
+        self.assertFalse(is_subject_catalog_shape(headers, None))
+
     def test_subject_catalog_shape_from_headers(self):
         self.assertTrue(
             is_subject_catalog_shape({"title", "description", "category", "coef"})
@@ -45,6 +57,49 @@ class IngestionLexiconShapeTests(SimpleTestCase):
     def test_specialty_catalog_shape(self):
         self.assertTrue(is_specialty_catalog_shape({"name", "code", "department"}))
         self.assertFalse(is_subject_catalog_shape({"name", "code", "department"}))
+
+    def test_telephone_directory_not_misread_as_subject_catalog(self):
+        headers = {"name", "post_function_role", "specialty", "telephone_number"}
+        rows = [
+            {
+                "name": "ROLAND TAZOH NONGNI",
+                "post_function_role": "PROPRIETOR",
+                "specialty": "ACCOUNTING",
+                "telephone_number": None,
+            },
+            {
+                "name": "FONONG REUBEN TEKUM",
+                "post_function_role": "PRINCIPAL",
+                "specialty": "MATHEMATICS",
+                "telephone_number": "6 76 31 98 28",
+            },
+        ]
+        self.assertTrue(is_staff_directory_shape(headers, rows))
+        self.assertFalse(is_subject_catalog_shape(headers, rows))
+
+    def test_telephone_directory_staff_stays_above_classifier_threshold(self):
+        ranked = [
+            DomainCandidate("staff", 0.722, ["name", "role", "phone"], ""),
+            DomainCandidate("specialties", 0.525, ["department"], ""),
+        ]
+        headers = {"name", "post_function_role", "specialty", "telephone_number"}
+        rows = [
+            {
+                "name": "A",
+                "post_function_role": "PROPRIETOR",
+                "specialty": "PLUMBING",
+                "telephone_number": "123",
+            },
+        ]
+        school = School(country_code="CM", settings={})
+        adjusted = apply_catalog_shape_adjustments(
+            ranked,
+            normalized_headers=headers,
+            sample_rows=rows,
+            school=school,
+        )
+        self.assertEqual(adjusted[0].domain, "staff")
+        self.assertGreaterEqual(adjusted[0].confidence, 0.70)
 
     def test_catalog_shape_boosts_academics_over_specialties(self):
         ranked = [

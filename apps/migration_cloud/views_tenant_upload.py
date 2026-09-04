@@ -242,41 +242,10 @@ def _advance(bundle_id) -> None:
 
 
 def _sync_tenant_domain_overrides(bundle) -> None:
-    """Push per-file tenant corrections into the pipeline override map and remount.
+    """Push per-file tenant corrections into the pipeline override map and remount."""
+    from apps.migration_cloud.domain_overrides import sync_operator_assigned_domains
 
-    Tenant review writes ``artifact.assigned_domain``, but ``advance_bundle`` only
-    honors ``discovery_summary.operator_assigned_domains``, and is a no-op once
-    status is already ``MAPPED``. Sync the map and rewind to ``PROFILED`` so
-    classify + map re-run with the tenant's tags (P1-Override).
-    """
-    summary = dict(bundle.discovery_summary or {})
-    operator = dict(summary.get("operator_assigned_domains") or {})
-    for artifact in bundle.artifacts.all():
-        tag = (artifact.assigned_domain or "").strip()
-        path_key = artifact.path_within_bundle or ""
-        name_key = artifact.filename or ""
-        if tag and is_valid_canonical_domain(tag):
-            if path_key:
-                operator[path_key] = tag
-            if name_key:
-                operator[name_key] = tag
-        else:
-            if path_key:
-                operator.pop(path_key, None)
-            if name_key:
-                operator.pop(name_key, None)
-    summary["operator_assigned_domains"] = operator
-    bundle.discovery_summary = summary
-    update_fields = ["discovery_summary", "updated_at"]
-    if bundle.status in (
-        BundleStatus.CLASSIFIED,
-        BundleStatus.MAPPED,
-        BundleStatus.READY,
-    ):
-        # Rewind so Phase U3/U4 run again with operator tags.
-        bundle.status = BundleStatus.PROFILED
-        update_fields.append("status")
-    bundle.save(update_fields=update_fields)
+    sync_operator_assigned_domains(bundle)
 
 
 # Seconds a still-PENDING apply-outbox row may sit before the review page tells
@@ -1192,8 +1161,13 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
     @safe_500
     def post(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
-        if request.POST.get("action") == "save_transform_prefs":
+        action = (request.POST.get("action") or "").strip()
+        if action == "save_transform_prefs":
             return self._post_save_transform_prefs(request, bundle)
+        if action == "apply_catalog_recommendations":
+            return self._post_apply_catalog_recommendations(request, bundle)
+        if action == "apply_catalog_recommendation":
+            return self._post_apply_catalog_recommendation(request, bundle)
 
         changed = 0
         for artifact in bundle.artifacts.all():
@@ -1247,6 +1221,39 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             )
         else:
             messages.info(request, "No changes to apply.")
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+    def _post_apply_catalog_recommendations(self, request, bundle):
+        from apps.migration_cloud.catalog_preflight import apply_catalog_recommendations
+
+        changed = apply_catalog_recommendations(bundle)
+        if changed:
+            _sync_tenant_domain_overrides(bundle)
+            _advance(bundle.pk)
+            messages.success(
+                request,
+                f"Applied suggested record types to {changed} file(s) and re-detected.",
+            )
+        else:
+            messages.info(request, "No catalog tag corrections were needed.")
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+    def _post_apply_catalog_recommendation(self, request, bundle):
+        from apps.migration_cloud.catalog_preflight import apply_catalog_recommendations
+
+        raw_id = (request.POST.get("artifact_id") or "").strip()
+        try:
+            artifact_id = int(raw_id)
+        except (TypeError, ValueError):
+            messages.error(request, "Could not apply the suggestion for that file.")
+            return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+        changed = apply_catalog_recommendations(bundle, artifact_id=artifact_id)
+        if changed:
+            _sync_tenant_domain_overrides(bundle)
+            _advance(bundle.pk)
+            messages.success(request, "Applied the suggested record type and re-detected.")
+        else:
+            messages.info(request, "That file already uses the suggested record type.")
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
 
     def _apply_name_order(self, request, bundle) -> int:
@@ -1421,19 +1428,40 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         # import, instead of the auto-map being silent.
         per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
         catalog_hints: dict[int, str] = {}
+        catalog_findings: dict[int, dict] = {}
+        catalog_fixable_count = 0
         if bundle.school_id:
             try:
                 from django.db import OperationalError, ProgrammingError
 
-                from .catalog_preflight import catalog_hints_by_artifact_id
+                from .catalog_preflight import (
+                    catalog_findings_by_artifact_id,
+                    catalog_hints_by_artifact_id,
+                )
 
                 catalog_hints = catalog_hints_by_artifact_id(bundle)
+                catalog_findings = catalog_findings_by_artifact_id(bundle)
+                catalog_fixable_count = sum(
+                    1
+                    for row in catalog_findings.values()
+                    if str(row.get("recommended_domain") or "").strip()
+                    and str(row.get("recommended_domain") or "").strip()
+                    != str(row.get("assigned_domain") or "").strip()
+                    and str(row.get("severity") or "ok") in ("advisory", "critical")
+                )
             except (ImportError, AttributeError, TypeError, ValueError, ProgrammingError, OperationalError):
                 catalog_hints = {}
+                catalog_findings = {}
+        from .catalog_preflight import _DOMAIN_LABELS as _CATALOG_DOMAIN_LABELS
+
         for artifact in bundle.artifacts.all():
             candidates = artifact.inferred_domain if isinstance(artifact.inferred_domain, list) else []
             top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
-            detected = (artifact.assigned_domain or top.get("domain", "") or "").strip()
+            inferred = (top.get("domain", "") or "").strip()
+            assigned = (artifact.assigned_domain or "").strip()
+            effective_domain = assigned or inferred
+            finding = catalog_findings.get(artifact.pk) or {}
+            recommended = str(finding.get("recommended_domain") or "").strip()
             artifact_maps = per_artifact.get(artifact.path_within_bundle or "") or []
             mapping_rows = _column_mapping_rows(artifact_maps)
             catalog_hint = catalog_hints.get(artifact.pk, "")
@@ -1449,8 +1477,9 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                     "format": artifact.get_detected_format_display(),
                     "rows": artifact.row_count,
                     "columns": artifact.column_count,
-                    "assigned": artifact.assigned_domain,
-                    "detected_domain": top.get("domain", ""),
+                    "assigned": assigned or None,
+                    "detected_domain": effective_domain,
+                    "inferred_domain": inferred,
                     "confidence_pct": (
                         round(float(top.get("confidence")) * 100)
                         if top.get("confidence") is not None
@@ -1460,9 +1489,19 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                     "quarantined": artifact.quarantined,
                     "quarantine_reason": artifact.quarantine_reason,
                     "hint": combined_hint,
-                    "dfv_only": detected in ("payroll", "compliance"),
+                    "catalog_recommended": recommended,
+                    "catalog_recommended_label": _CATALOG_DOMAIN_LABELS.get(
+                        recommended, recommended.replace("_", " ").title()
+                    ),
+                    "catalog_severity": str(finding.get("severity") or ""),
+                    "catalog_fixable": bool(
+                        recommended
+                        and recommended != (assigned or inferred)
+                        and str(finding.get("severity") or "ok") in ("advisory", "critical")
+                    ),
+                    "dfv_only": effective_domain in ("payroll", "compliance"),
                     "mappings": mapping_rows,
-                    "field_choices": _field_choices_for_domain(detected),
+                    "field_choices": _field_choices_for_domain(effective_domain),
                 }
             )
         flight = _import_flight(bundle)
@@ -1510,6 +1549,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "page_title": "Review & import",
             "bundle": bundle,
             "artifact_rows": rows,
+            "catalog_fixable_count": catalog_fixable_count,
             "domain_choices": canonical_domain_choices(),
             "name_order_choices": NAME_ORDER_CHOICES,
             "name_order_selected": selected_name_order(bundle),

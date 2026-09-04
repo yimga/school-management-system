@@ -419,9 +419,17 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
         bundle.save(update_fields=["mapping_summary", "updated_at"])
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"ai_calls": summary["ai_calls"]})
         try:
-            from .catalog_preflight import persist_catalog_preflight
+            from .catalog_preflight import persist_catalog_preflight, apply_catalog_recommendations
 
             persist_catalog_preflight(bundle)
+            changed = apply_catalog_recommendations(bundle)
+            if changed:
+                from .domain_overrides import sync_operator_assigned_domains
+
+                sync_operator_assigned_domains(bundle, rewind_status=False)
+                bundle.refresh_from_db()
+                refresh_bundle_inference(bundle_id=bundle.pk, use_accelerator=use_accelerator)
+                persist_catalog_preflight(bundle)
         except Exception:  # noqa: BLE001 — preflight must never block mapping
             logger.debug("pipeline: catalog preflight persist failed", exc_info=True)
         bundle.refresh_from_db()

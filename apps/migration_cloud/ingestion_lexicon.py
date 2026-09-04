@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
@@ -41,6 +42,19 @@ _SUBJECT_CATALOG_HEADERS = frozenset({
 
 _SPECIALTY_CATALOG_HEADERS = frozenset({
     "specialty_name", "specialty_code", "speciality_name", "filiere", "sigle",
+})
+
+# Hand-kept staff telephone directories (NAME + POST/ROLE + SPECIALTY + PHONE).
+_STAFF_DIRECTORY_ROLE_HEADERS = frozenset({
+    "role", "post", "post_function_role", "function", "function_role",
+    "job_title", "designation", "position", "post_function", "cadre",
+})
+_STAFF_DIRECTORY_PHONE_HEADERS = frozenset({
+    "phone", "telephone", "telephone_number", "tel", "mobile", "contact",
+    "phone_number", "tel_no", "mobile_number", "cell", "msisdn",
+})
+_STAFF_DIRECTORY_DEPT_HEADERS = frozenset({
+    "specialty", "speciality", "department", "dept", "faculty", "filiere",
 })
 
 # Countries with curated hand-tuned lexicon blocks (override regional template).
@@ -311,8 +325,56 @@ def resolve_school_ingestion_lexicon(school) -> IngestionLexicon:
     return build_ingestion_lexicon(cc, institution_profile=profile)
 
 
+def _slug_header(raw: str) -> str:
+    """Match profiler slugging so raw and normalized headers agree."""
+    s = (raw or "").strip().lower().lstrip("\ufeff")
+    folded = "".join(
+        ch for ch in unicodedata.normalize("NFKD", s) if not unicodedata.combining(ch)
+    )
+    if re.search(r"[^\x00-\x7f]", folded):
+        return s
+    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", folded)).strip("_")
+
+
 def _header_set(normalized_headers: Iterable[str]) -> frozenset[str]:
-    return frozenset(h.strip().lower() for h in normalized_headers if h)
+    cleaned: set[str] = set()
+    for h in normalized_headers:
+        if not h:
+            continue
+        token = h.strip().lower().lstrip("\ufeff")
+        if token:
+            cleaned.add(token)
+        slug = _slug_header(h)
+        if slug:
+            cleaned.add(slug)
+    return frozenset(cleaned)
+
+
+def is_staff_directory_shape(
+    normalized_headers: Iterable[str],
+    sample_rows: list[dict[str, Any]] | None = None,
+) -> bool:
+    """True for NAME + role/post + phone staff telephone directories.
+
+    African schools export these with title rows and trade names in the
+    SPECIALTY column (the teacher's department, not a Matières catalog).
+    """
+    del sample_rows  # shape is header-driven; row trade vocab must not override
+    headers = _header_set(normalized_headers)
+    if "name" not in headers:
+        return False
+    if not (headers & _STAFF_DIRECTORY_PHONE_HEADERS):
+        return False
+    has_role = bool(headers & _STAFF_DIRECTORY_ROLE_HEADERS)
+    has_dept = bool(headers & _STAFF_DIRECTORY_DEPT_HEADERS)
+    if not (has_role or has_dept):
+        return False
+    # Pure subject masters carry category/coef/matière headers, not post/role.
+    if headers & {"category", "subject_category", "coef", "coefficient", "matiere"}:
+        return False
+    if headers & {"subject_name", "title", "description"} and not has_role:
+        return False
+    return True
 
 
 def is_subject_catalog_shape(
@@ -321,6 +383,15 @@ def is_subject_catalog_shape(
 ) -> bool:
     """True when headers/content look like a *subject* master (Matières), not trades."""
     headers = _header_set(normalized_headers)
+    # Staff telephone directories list trade names in SPECIALTY — not Matières.
+    if is_staff_directory_shape(headers, sample_rows):
+        return False
+    # NAME/CODE/DEPT filière exports must not flip to Matières because row text
+    # contains trade words (PLUMBING, ELECTRICAL, …) — header shape wins.
+    if is_specialty_catalog_shape(headers, None) and not (
+        headers & {"title", "category", "subject_category", "coef", "coefficient"}
+    ):
+        return False
     if headers & _SUBJECT_CATALOG_HEADERS:
         if "category" in headers or "subject_category" in headers:
             return True
@@ -377,15 +448,20 @@ def apply_catalog_shape_adjustments(
     lexicon = resolve_school_ingestion_lexicon(school)
     subj_shape = is_subject_catalog_shape(normalized_headers, sample_rows)
     spec_shape = is_specialty_catalog_shape(normalized_headers, sample_rows)
+    staff_dir = is_staff_directory_shape(normalized_headers, sample_rows)
 
     adjusted: list[Any] = []
     for candidate in ranked:
         conf = float(getattr(candidate, "confidence", 0.0) or 0.0)
         domain = getattr(candidate, "domain", "")
-        if subj_shape and domain == "academics":
+        if staff_dir and domain == "staff":
+            conf = min(0.99, conf + 0.30)
+        elif subj_shape and domain == "academics":
             conf = min(0.99, conf + 0.35)
         elif subj_shape and domain in ("specialties", "sections", "behavior"):
             conf = max(0.0, conf - 0.40)
+        elif subj_shape and domain in ("reports", "students", "staff"):
+            conf = max(0.0, conf - 0.45)
         if spec_shape and domain == "specialties":
             conf = min(0.99, conf + 0.30)
         elif spec_shape and domain == "academics":
@@ -499,11 +575,21 @@ def preflight_subject_vs_specialty_routing(
     norm = _header_set(headers)
     subj = is_subject_catalog_shape(norm, sample_rows)
     spec = is_specialty_catalog_shape(norm, sample_rows)
+    staff_dir = is_staff_directory_shape(norm, sample_rows)
     entity_map = classify_headers_offline(headers, manifest)
+    if staff_dir:
+        recommended = "staff"
+    elif subj and not spec:
+        recommended = "academics"
+    elif spec:
+        recommended = "specialties"
+    else:
+        recommended = ""
     return {
         "looks_like_subject_catalog": subj,
         "looks_like_specialty_catalog": spec,
-        "recommended_domain": "academics" if subj and not spec else ("specialties" if spec else ""),
+        "looks_like_staff_directory": staff_dir,
+        "recommended_domain": recommended,
         "header_entity_map": entity_map,
         "country_code": manifest.get("country_code"),
         "weight_type": manifest.get("weight_type"),

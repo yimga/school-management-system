@@ -69783,6 +69783,14 @@ msgstr ""
 msgid "{{ hints }} parent hint(s) not yet promoted"
 msgstr ""
 
+msgid ""
+"Apply suggested record type to {{ counter }} file{% plural %}Apply suggested"
+" record types to {{ counter }} files"
+msgstr ""
+
+msgid "Use suggested: {{ label }}"
+msgstr ""
+
 msgid "%(name)s was created. They cannot sign in until you invite them."
 msgstr ""
 
@@ -69828,6 +69836,9 @@ msgid ""
 " until given a role."
 msgstr ""
 
+msgid "Select all guardians on this page"
+msgstr ""
+
 msgid "Select all staff on this page"
 msgstr ""
 
@@ -69851,7 +69862,4 @@ msgid ""
 msgstr ""
 
 msgid "{{ counter }} time{% plural %}{{ counter }} times"
-msgstr ""
-
-msgid "Select all guardians on this page"
 msgstr ""
