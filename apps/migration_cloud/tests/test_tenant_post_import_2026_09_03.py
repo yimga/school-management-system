@@ -101,6 +101,48 @@ class SchoolSlugAliasResolutionTests(TestCase):
         self.assertEqual(resolved.pk, bundle.pk)
 
 
+class PlaybookCommandsAliasResolutionTests(TestCase):
+    """Every step of remediate_tenant_post_import must honor slug aliases."""
+
+    @override_settings(TENANT_SLUG_LOOKUP_ALIASES={"gilead-tech": "gilead-school"})
+    def test_all_playbook_resolve_schools_honor_alias(self):
+        school = School.objects.create(
+            name="Gilead Technical High School",
+            slug="gilead-school",
+            subdomain="gilead-school",
+            country_code="CM",
+        )
+        from apps.migration_cloud.management.commands.migration_closure_status import (
+            Command as ClosureCommand,
+        )
+        from apps.migration_cloud.management.commands.remediate_finance_ledger_closure import (
+            Command as FinanceCommand,
+        )
+        from apps.migration_cloud.management.commands.remediate_inverted_academic_catalog import (
+            Command as CatalogCommand,
+        )
+        from apps.migration_cloud.management.commands.remediate_people_directory import (
+            Command as PeopleCommand,
+        )
+        from apps.migration_cloud.management.commands.remediate_teaching_graph_closure import (
+            Command as TeachingCommand,
+        )
+
+        for command_cls in (
+            ClosureCommand,
+            CatalogCommand,
+            TeachingCommand,
+            PeopleCommand,
+            FinanceCommand,
+        ):
+            resolved = command_cls()._resolve_school("gilead-tech")
+            self.assertEqual(
+                resolved.pk,
+                school.pk,
+                msg=f"{command_cls.__name__} did not resolve alias",
+            )
+
+
 class RemediateTenantPostImportNoBundleTests(TestCase):
     def test_dry_run_exits_clean_when_school_has_no_bundle(self):
         school = _school("no-bundle-orch")

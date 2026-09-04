@@ -190,13 +190,37 @@ def format_bundle_choices(*, limit: int = 15) -> str:
 
 def resolve_school_from_slug(slug: str):
     """Tenant ``School`` for a slug/subdomain token, or ``None``."""
+    return _resolve_school_from_token(slug, allow_pk=False)
+
+
+def resolve_school_from_token(token: str):
+    """Tenant ``School`` by pk, uuid, slug, subdomain, or alias map — or ``None``."""
+    return _resolve_school_from_token(token, allow_pk=True)
+
+
+def _resolve_school_from_token(token: str, *, allow_pk: bool):
     from django.conf import settings
 
     from apps.schools.models import School
 
-    token = str(slug or "").strip()
+    token = str(token or "").strip()
     if not token:
         return None
+    if allow_pk:
+        if token.isdigit():
+            school = School.objects.filter(pk=int(token)).first()
+            if school is not None:
+                return school
+        try:
+            import uuid
+
+            uuid.UUID(token)
+        except (ValueError, TypeError, AttributeError):
+            pass
+        else:
+            school = School.objects.filter(pk=token).first()
+            if school is not None:
+                return school
     aliases = getattr(settings, "TENANT_SLUG_LOOKUP_ALIASES", None) or {}
     canonical = str(aliases.get(token.lower(), token))
     return (

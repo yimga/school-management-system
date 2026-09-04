@@ -91,17 +91,8 @@ class Command(BaseCommand):
                 self.stdout.write(f"After: {after}")
 
     def _resolve_school(self, token: str) -> School:
-        token = str(token or "").strip()
-        if not token:
-            raise CommandError("--school is required.")
-        for lookup in (
-            {"pk": token} if token.isdigit() else None,
-            {"subdomain": token},
-            {"slug": token},
-        ):
-            if lookup is None:
-                continue
-            school = School.objects.filter(**lookup).first()
-            if school is not None:
-                return school
-        raise CommandError(f"School not found for {token!r}.")
+        from apps.migration_cloud.management.school_resolution import (
+            resolve_school_or_error,
+        )
+
+        return resolve_school_or_error(token)

@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Playbook slug alias unification (batch 1837 - 2026-09-04)
+
+**A. Scope:** Close audit gap — `gilead-tech` alias worked for quarantine commands but failed on playbook steps 1–4 because each step command duplicated school lookup without the alias map.
+
+**B. Shipped:** `resolve_school_from_token` in `quarantine_resolution.py`; shared `management/school_resolution.resolve_school_or_error`; wired into `migration_closure_status`, `remediate_inverted_academic_catalog`, `remediate_teaching_graph_closure`, `remediate_people_directory`, `remediate_finance_ledger_closure`; `PlaybookCommandsAliasResolutionTests` covering all five.
+
+**C. Proof:** sqlite-memory Migration Cloud Sept suites **50/50 OK**; `pre_push_boundary_check.py` green; Gilead lint + classification **PASS**.
+
+**D. Deploy:** Unchanged from 1836 — set `RMC_TENANT_SLUG_LOOKUP_ALIASES` on Render, then `remediate_tenant_post_import --school gilead-tech --dry-run` resolves every step.
+
 ## Slice - Production deploy + review HTTP E2E (batch 1836 - 2026-09-03)
 
 **A. Scope:** Wire slug-alias env for Render deploy; prove Review & Import renders all post-import closure panels over HTTP.
