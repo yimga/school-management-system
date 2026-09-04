@@ -80,7 +80,7 @@
     ["transport_assignment", "transport_assignments"], ["hostel_assignment", "hostel_assignments"],
     ["cafeteria_assignment", "cafeteria_assignments"], ["meal_plan_assignment", "cafeteria_assignments"],
     ["student", "students"], ["pupil", "students"], ["learner", "students"],
-    ["teacher", "staff"], ["staff", "staff"], ["employee", "staff"], ["faculty", "staff"],
+    ["teacher", "staff"], ["telephone", "staff"], ["phonebook", "staff"], ["staff", "staff"], ["employee", "staff"], ["faculty", "staff"],
     ["parent", "guardians"], ["guardian", "guardians"], ["contact", "guardians"],
     ["enrol", "enrollment"], ["enroll", "enrollment"], ["registration", "enrollment"],
     ["specialt", "specialties"], ["specialit", "specialties"], ["filiere", "specialties"],

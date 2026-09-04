@@ -177,12 +177,17 @@ def _reconcile_with_catalog_shape(
         return chosen, method
     from apps.migration_cloud.ingestion_lexicon import (
         is_specialty_catalog_shape,
+        is_staff_directory_shape,
         is_subject_catalog_shape,
     )
 
     subj = is_subject_catalog_shape(normalized_headers, sample_rows or None)
     spec = is_specialty_catalog_shape(normalized_headers, sample_rows or None)
+    staff_dir = is_staff_directory_shape(normalized_headers, sample_rows or None)
     score_map = {c.domain: float(c.confidence) for c in ranked}
+    if staff_dir and chosen in ("academics", "specialties", "custom_fields", "students"):
+        if float(score_map.get("staff") or 0.0) >= 0.20:
+            return "staff", "overlap+staff_directory_shape"
     if subj and not spec and chosen in (
         "specialties",
         "sections",

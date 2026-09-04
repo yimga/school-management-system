@@ -331,6 +331,8 @@ DOMAIN_FILENAME_HINTS: tuple[tuple[str, str], ...] = (
     ("pupil", "students"),
     ("learner", "students"),
     ("teacher", "staff"),
+    ("telephone", "staff"),
+    ("phonebook", "staff"),
     ("staff", "staff"),
     ("employee", "staff"),
     ("faculty", "staff"),

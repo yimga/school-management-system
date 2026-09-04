@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import types
+import uuid
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -33,6 +34,18 @@ MAMA_NOVI = Path(
 )
 
 
+def _school(name: str, **kwargs) -> School:
+    slug = f"{name}-{uuid.uuid4().hex[:8]}"
+    defaults = {
+        "name": name,
+        "slug": slug,
+        "subdomain": slug,
+        "country_code": "CM",
+    }
+    defaults.update(kwargs)
+    return School.objects.create(**defaults)
+
+
 class SpreadsheetHeaderDetectionTests(TestCase):
     def test_gilead_directory_title_rows_skipped(self):
         title_rows = [
@@ -45,10 +58,8 @@ class SpreadsheetHeaderDetectionTests(TestCase):
 
 class AcademicsCategoryLanderTests(TestCase):
     def test_category_lands_and_reimport_respects_deliberate_values(self):
-        school = School.objects.create(
-            name="Cat School",
-            subdomain="cat-school",
-            country_code="CM",
+        school = _school(
+            "Cat School",
         )
         ctx = LanderContext(
             school=school,
@@ -132,23 +143,24 @@ class TelephoneDirectoryImportTests(TestCase):
             ["NAME", "POST / FUNCTION / Role", "SPECIALTY", "TELEPHONE NUMBER"],
         )
 
-        school = School.objects.create(
-            name="Gilead Directory",
-            subdomain="gilead-directory",
-            country_code="CM",
+        school = _school(
+            "Gilead Directory",
             settings={"migration_gap_fill_provisioning": True},
         )
         bundle = MigrationBundle.objects.create(
             label="tel-dir",
             intake_method=IntakeMethod.FILE_UPLOAD,
-            idempotency_key="tel-dir-e2e",
+            idempotency_key=f"tel-dir-e2e-{uuid.uuid4().hex}",
             status=BundleStatus.INGESTING,
             school=school,
         )
+        real_name = (
+            "GILEAD TECHNICAL HIGH SCHOOL 2026-20297 TELEPHONE DIRECTORY.xlsx"
+        )
         art = MigrationArtifact.objects.create(
             bundle=bundle,
-            path_within_bundle="telephone_directory.xlsx",
-            filename="telephone_directory.xlsx",
+            path_within_bundle=real_name,
+            filename=real_name,
             detected_format=ArtifactFormat.XLSX,
             byte_size=len(data),
             sha256="c" * 64,
@@ -159,7 +171,7 @@ class TelephoneDirectoryImportTests(TestCase):
         bundle.refresh_from_db()
         domain = (
             ((bundle.discovery_summary or {}).get("per_artifact_domain") or {})
-            .get("telephone_directory.xlsx", {})
+            .get(real_name, {})
             .get("domain")
         )
         self.assertEqual(domain, "staff", bundle.discovery_summary)
@@ -186,11 +198,7 @@ class MamaNoviSubjectsCategoryTests(TestCase):
             self.skipTest("Mama Novi subjects fixture not on this machine")
 
         raw = src.read_bytes()
-        school = School.objects.create(
-            name="Gilead Subjects",
-            subdomain="gilead-subjects-cat",
-            country_code="CM",
-        )
+        school = _school("Gilead Subjects")
         bundle = MigrationBundle.objects.create(
             label="subjects-cat",
             intake_method=IntakeMethod.FILE_UPLOAD,
@@ -222,11 +230,7 @@ class MamaNoviSubjectsCategoryTests(TestCase):
 
 class BackendTeacherListPhoneRoleTests(TestCase):
     def test_csv_export_includes_phone_and_role(self):
-        school = School.objects.create(
-            name="Teacher CSV",
-            subdomain="teacher-csv",
-            country_code="CM",
-        )
+        school = _school("Teacher CSV")
         dept = Department.objects.create(school=school, name="MATHEMATICS", code="DPT-M")
         user = User.objects.create_user(
             username="principal1",
@@ -283,10 +287,8 @@ class MamaNoviFullBundleTests(TransactionTestCase):
         if missing:
             self.skipTest(f"Mama Novi fixtures missing: {', '.join(missing)}")
 
-        school = School.objects.create(
-            name="Gilead Full Bundle",
-            subdomain="gilead-full-bundle",
-            country_code="CM",
+        school = _school(
+            "Gilead Full Bundle",
             settings={"migration_gap_fill_provisioning": True},
         )
         bundle = MigrationBundle.objects.create(
