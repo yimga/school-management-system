@@ -6,7 +6,7 @@ import io
 import types
 from pathlib import Path
 
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.models import (
@@ -57,7 +57,7 @@ def _add_xlsx(bundle, filename: str) -> None:
     store.capture_artifact_blob(art, _payload(raw))
 
 
-class MamaNoviThreeFileImportTests(TransactionTestCase):
+class MamaNoviThreeFileImportTests(TestCase):
     def test_all_three_files_classify_and_land_without_mass_quarantine(self):
         if not (MAMA_NOVI / "student_2026.xlsx").is_file():
             self.skipTest("Mama Novi fixture files not present on this machine")

@@ -30,7 +30,7 @@ from unittest.mock import patch
 
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
-from django.test import TestCase, TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -285,7 +285,7 @@ class TenantResetPasswordNotPersistedTests(TestCase):
     ROOT_URLCONF="config.manager_urls",
     SESSION_PINNING_ENABLED=False,
 )
-class OperatorResetPasswordNotPersistedTests(TransactionTestCase):
+class OperatorResetPasswordNotPersistedTests(TestCase):
     """DEFECT 3 — the operator-team twin must not persist the cleartext either."""
 
     def setUp(self):

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
@@ -20,7 +20,7 @@ _T_HOST = "abs-sec.runmycampus.com"
     MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
     SESSION_PINNING_ENABLED=False,
 )
-class AbsoluteSecurityExportTests(TransactionTestCase):
+class AbsoluteSecurityExportTests(TestCase):
     databases = {"default"}
 
     def setUp(self):

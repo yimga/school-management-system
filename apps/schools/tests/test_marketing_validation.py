@@ -16,7 +16,6 @@ from django.test import (
     Client,
     SimpleTestCase,
     TestCase,
-    TransactionTestCase,
     override_settings,
 )
 from django.core.management import call_command, get_commands
@@ -37,7 +36,7 @@ def _store_rendered_templates_without_context_copy(store, signal, sender, templa
     store["context"].append(context)
 
 
-class MarketingPublicRouteTransactionCase(TransactionTestCase):
+class MarketingPublicRouteTransactionCase(TestCase):
     """Committed writes keep file-backed SQLite public route sweeps moving."""
 
 

@@ -8,7 +8,7 @@ import uuid
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -26,7 +26,7 @@ _MANAGER_HOST = "manager.runmycampus.com"
     ROOT_URLCONF="config.manager_urls",
     SESSION_PINNING_ENABLED=False,
 )
-class SuperOffboardingHttpTests(TransactionTestCase):
+class SuperOffboardingHttpTests(TestCase):
     def setUp(self):
         self.password = "testpass123"
         self.user = User.objects.create_user(

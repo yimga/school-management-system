@@ -3,7 +3,7 @@ Phase 8 Task 5: Internationalization Tests
 Test localization, translations, regional reports
 """
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 from django.utils import timezone
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -130,7 +130,7 @@ class LocalizationServiceTestCase(TestCase):
         self.assertEqual(formatted, "12,345.68")
 
 
-class RegionalReportGeneratorTestCase(TransactionTestCase):
+class RegionalReportGeneratorTestCase(TestCase):
     """Test RegionalReportGenerator class"""
 
     def test_generate_regional_report(self):

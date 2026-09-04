@@ -7,7 +7,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.landers.student_lander import _extract_guardian_hint
@@ -122,7 +122,7 @@ def _xlsx_bytes(headers, rows):
     return buf.getvalue()
 
 
-class GuardianHintIngestEndToEndTests(TransactionTestCase):
+class GuardianHintIngestEndToEndTests(TestCase):
     def test_parent_name_persists_and_lands_in_guardian_directory(self):
         from apps.accounts.models import User
         from apps.metadata.models import DynamicFieldValue

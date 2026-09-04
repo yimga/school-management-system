@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from unittest import mock
 
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -24,7 +24,7 @@ _PASSWORD = "x" * 8
     SESSION_PINNING_ENABLED=False,
     OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
 )
-class FounderDashboardTests(TransactionTestCase):
+class FounderDashboardTests(TestCase):
     def setUp(self):
         self.username = f"founder_mark_{uuid.uuid4().hex[:8]}"
         self.user = User.objects.create_user(

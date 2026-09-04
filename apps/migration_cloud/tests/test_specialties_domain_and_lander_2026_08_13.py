@@ -17,7 +17,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.accelerators.runmycampus_canonical import (
@@ -179,7 +179,7 @@ class SpecialtiesClassifyTests(TestCase):
         self.assertEqual(domain, "specialties", f"got {domain!r}")
 
 
-class SpecialtiesApplyTests(TransactionTestCase):
+class SpecialtiesApplyTests(TestCase):
     def test_specialties_land_with_departments(self):
         from apps.migration_cloud.orchestrator import apply_bundle
         from apps.migration_cloud.pipeline import advance_bundle

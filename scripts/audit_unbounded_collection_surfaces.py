@@ -295,7 +295,10 @@ def main() -> int:
         payload["by_kind"][f.kind] = payload["by_kind"].get(f.kind, 0) + 1
 
     REPORT.parent.mkdir(parents=True, exist_ok=True)
-    REPORT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    # write_bytes with an explicit \n: Path.write_text is TEXT mode and emits
+    # CRLF on Windows, which docs/generated/*.json (eol=lf) then reports as
+    # perpetually modified, breaking every rebase.
+    REPORT.write_bytes((json.dumps(payload, indent=2) + "\n").encode("utf-8"))
 
     if args.update_baseline:
         BASELINE.parent.mkdir(parents=True, exist_ok=True)

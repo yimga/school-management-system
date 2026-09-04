@@ -13,7 +13,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.models import (
@@ -77,7 +77,7 @@ def _ingest_tvet_bundle(school, idem: str):
     return bundle
 
 
-class ReportCardScaffoldTests(TransactionTestCase):
+class ReportCardScaffoldTests(TestCase):
     def test_gap_fill_seeds_country_terms_and_grading_scale(self):
         from apps.academics.models import Term
         from apps.academics.structure_provisioning import _resolve_term_structure
@@ -106,7 +106,7 @@ class ReportCardScaffoldTests(TransactionTestCase):
         )
 
 
-class ReportCardGeneratesAfterMigrationTests(TransactionTestCase):
+class ReportCardGeneratesAfterMigrationTests(TestCase):
     def test_report_card_generates_for_a_migrated_student(self):
         from apps.academics.models import Subject, SubjectAssignment, Term
         from apps.accounts.models import User

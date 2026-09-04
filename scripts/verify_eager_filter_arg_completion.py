@@ -123,6 +123,10 @@ def _run(
             env=env,
         )
         out = ((proc.stdout or "") + (proc.stderr or "")).strip()
+        # Normalise unittest run-timing so the captured proof is deterministic:
+        # "Ran 8 tests in 0.825s" varies per run and re-dirties the committed
+        # artifact (docs/generated/*.json, eol=lf) on every push through the hook.
+        out = re.sub(r"(Ran \d+ tests? in )[\d.]+s", r"\1Ns", out)
         return proc.returncode, out[-1200:] if out else ""
     except subprocess.TimeoutExpired:
         return 1, "timeout"
@@ -522,7 +526,8 @@ def main() -> int:
     failed = [r for r in rows if not r.ok]
     passed = [r for r in rows if r.ok]
     payload = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        # No generated_at: a wall-clock timestamp has no reader and re-dirties
+        # the committed artifact on every run (docs/generated/*.json, eol=lf).
         "static_only": bool(args.static_only),
         "pass_count": len(passed),
         "fail_count": len(failed),
@@ -532,7 +537,11 @@ def main() -> int:
         "rows": [asdict(r) for r in rows],
     }
     GENERATED.parent.mkdir(parents=True, exist_ok=True)
-    GENERATED.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    # write_bytes with an explicit \n: Path.write_text is TEXT mode and emits
+    # CRLF on Windows, which docs/generated/*.json (eol=lf) then reports as
+    # perpetually modified, breaking every rebase. This gate runs in the
+    # pre-push hook, so the churn hit every push.
+    GENERATED.write_bytes((json.dumps(payload, indent=2) + "\n").encode("utf-8"))
 
     if args.json:
         print(json.dumps(payload, indent=2))

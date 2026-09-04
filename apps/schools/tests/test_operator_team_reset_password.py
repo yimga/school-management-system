@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import authenticate
 from django.core.cache import cache
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -31,7 +31,7 @@ _TEMP = "KnownTemp-9x7QkZ2"  # deterministic via patched generate_temp_password
     ROOT_URLCONF="config.manager_urls",
     SESSION_PINNING_ENABLED=False,
 )
-class OperatorTeamResetPasswordTests(TransactionTestCase):
+class OperatorTeamResetPasswordTests(TestCase):
     def setUp(self):
         self.password = "actorpass123"
         self.actor = User.objects.create_user(

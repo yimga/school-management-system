@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.test_utils.http_clients import MANAGER_TEST_DEFAULTS, login_manager_client
@@ -17,7 +17,7 @@ _MGR = "manager.runmycampus.com"
     **MANAGER_TEST_DEFAULTS,
     ALLOWED_HOSTS=["testserver", "127.0.0.1", "localhost", _MGR, "*"],
 )
-class OperatorControlPlaneShellTests(TransactionTestCase):
+class OperatorControlPlaneShellTests(TestCase):
     databases = {"default"}
 
     def setUp(self):

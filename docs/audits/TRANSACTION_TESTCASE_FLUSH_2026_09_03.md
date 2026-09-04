@@ -1,6 +1,6 @@
 # TransactionTestCase flushes the whole database - audit 2026-09-03
 
-**Status: OPEN. One instance fixed, the class is not closed.**
+**Status: CLOSED for 32 of 33 classes. One stays, with its reason measured and recorded below.**
 
 ## What happens
 
@@ -38,87 +38,61 @@ for a red test - look at the row counts.
 semantics; it arrived as a `TransactionTestCase` in the bulk "Ship v3.33 platform wave"
 commit, so the choice was never reasoned.
 
-## Still open: 28 files, 33 classes
+## Reviewed: 33 classes, 32 converted, 1 stays
 
-Measured 2026-09-03 against `origin/main`. 40 files declare a `TransactionTestCase`; 11
-are justified by real transaction semantics (threads, async/channels, `select_for_update`,
-`on_commit`, explicit `atomic`, raw schema work, `IntegrityError`, `serialized_rollback`).
-The rest carry **no such marker at all**:
+Every class was reviewed individually and verified by A/B against an identical
+seeded database -- **each module run in isolation with its own fresh copy**,
+because these are precisely the classes that flush, so a shared run would let
+module 1 decide module 27's verdict.
 
-- `apps/feedback/tests/base.py`
-  - `FeedbackTestCase`
-- `apps/migration_cloud/tests/test_bundle_84_repair_simulation_2026_08_21.py`
-  - `Bundle84RepairSimulationTests`
-- `apps/migration_cloud/tests/test_derived_report_skip_2026_08_13.py`
-  - `ReportApplyLandsZeroTests`
-- `apps/migration_cloud/tests/test_gap_fill_and_classroom_2026_08_13.py`
-  - `GapFillAndClassroomEndToEndTests`
-- `apps/migration_cloud/tests/test_gilead_ingest_ui_slice_2026_09_02.py`
-  - `TelephoneDirectoryImportTests`
-  - `MamaNoviSubjectsCategoryTests`
-  - `MamaNoviFullBundleTests`
-- `apps/migration_cloud/tests/test_guardian_hint_2026_08_13.py`
-  - `GuardianHintIngestEndToEndTests`
-- `apps/migration_cloud/tests/test_mama_novi_three_file_import_2026_08_21.py`
-  - `MamaNoviThreeFileImportTests`
-- `apps/migration_cloud/tests/test_report_card_readiness_2026_08_13.py`
-  - `ReportCardScaffoldTests`
-  - `ReportCardGeneratesAfterMigrationTests`
-- `apps/migration_cloud/tests/test_rollback_completeness_2026_08_15.py`
-  - `EnrollmentRollbackRestoresPriorValuesTests`
-  - `FailedNonAtomicBundleRollsBackCommittedRowsTests`
-- `apps/migration_cloud/tests/test_specialties_domain_and_lander_2026_08_13.py`
-  - `SpecialtiesApplyTests`
-- `apps/migration_cloud/tests/test_student_specialty_link_2026_08_13.py`
-  - `StudentSpecialtyEndToEndTests`
-- `apps/migration_cloud/tests/test_teacher_teaching_hints_2026_08_13.py`
-  - `TeacherTeachingHintsEndToEndTests`
-- `apps/migration_cloud/tests/test_trade_report_card_end_to_end_2026_08_13.py`
-  - `TradeStudentReportCardEndToEndTests`
-- `apps/people/tests/test_offline_credential_posture_2026_08_31.py`
-  - `OperatorResetPasswordNotPersistedTests`
-- `apps/schools/tests/test_founder_dashboard.py`
-  - `FounderDashboardTests`
-- `apps/schools/tests/test_marketing_validation.py`
-  - `MarketingPublicRouteTransactionCase`
-- `apps/schools/tests/test_operator_team_reset_password.py`
-  - `OperatorTeamResetPasswordTests`
-- `apps/schools/tests/test_super_dashboard_http.py`
-  - `SuperDashboardHttpTests`
-- `apps/schools/tests/test_super_offboarding_http.py`
-  - `SuperOffboardingHttpTests`
-- `apps/security/tests/test_absolute_security_enforcement.py`
-  - `AbsoluteSecurityExportTests`
-- `apps/security/tests/test_security_enforcement.py`
-  - `ComplianceExportEnforcementTests`
-  - `SecuritySurfaceDashboardTests`
-- `apps/siteconfig/test_i18n.py`
-  - `RegionalReportGeneratorTestCase`
-- `apps/siteconfig/tests/test_operator_control_plane_shell.py`
-  - `OperatorControlPlaneShellTests`
-- `apps/siteconfig/tests/test_palette_generate_view.py`
-  - `PaletteGenerateViewTests`
-- `apps/siteconfig/tests/test_theme_builder.py`
-  - `ThemeBuilderTests`
-- `apps/siteconfig/tests/test_theme_experience_hub.py`
-  - `ThemeExperienceHubTests`
-- `apps/siteconfig/tests/test_theme_experience_plane_isolation.py`
-  - `ThemeExperiencePlaneIsolationTests`
-- `apps/studio_os/tests/test_studio_os_world_class_experience.py`
-  - `StudioOsWorldClassExperienceTests`
+| pass | modules | green | red |
+|---|---:|---:|---:|
+| before conversion | 28 | 20 | 8 |
+| after conversion  | 28 | 20 | 8 |
 
-Excluded as deliberate: `apps/test_utils/tenant_hosts.py::TenantHostTransactionTestCase`
-is a named base class, intentionally a `TransactionTestCase`.
+The 8 reds are pre-existing and unrelated; they kept **identical pass/fail
+counts**, not merely identical exit codes -- a new failure hiding inside an
+already-red module would have changed the count.
 
-**The absence of a marker is a signal to review, not proof it is safe to convert.** Some
-of these may have been made `TransactionTestCase` because they failed under `TestCase`
-for reasons this heuristic cannot see. Each needs its own A/B.
+### The one that stays: `MamaNoviFullBundleTests`
+
+`apps/migration_cloud/tests/test_gilead_ingest_ui_slice_2026_09_02.py`.
+
+It drives a real bundle apply, and `apps/migration_cloud/orchestrator.py` runs
+its waves in a `ThreadPoolExecutor` (spawned ~line 576, collected ~588). Under
+`TestCase` the outer test holds an open transaction on its connection while the
+worker threads open their own, and `_create_audit_run` dies with:
+
+```
+sqlite3.OperationalError: database is locked
+```
+
+Measured: converted -> that failure; reverted -> 6 passed. **This module still
+flushes the seeded catalog at teardown, so order it last.** The other two
+classes in the same file convert cleanly and did.
+
+### Two traps worth keeping
+
+**The justifier heuristic cannot see the code under test.** This file has no
+`threading` import -- the threads are in the orchestrator it calls. A file-level
+grep will always miss that shape, which is why each class needed its own run
+rather than a scan.
+
+**Converting a class must always guarantee the new base is importable.** The
+first cut only rewrote the import when `TransactionTestCase` had no remaining
+use -- and a *docstring* mention counted as a use, so
+`test_rollback_completeness_2026_08_15.py` got a converted class with no
+`TestCase` import and failed collection with `NameError`. That looked exactly
+like a genuine transaction-semantics requirement and was not one; with the
+import fixed it passes 2/2. Removing the old name is the optional half.
 
 ## The systemic fix, and why it was NOT applied
 
 `flush` re-emits `post_migrate`, and this repo already exploits that for exactly one row.
 Moving the rest of the catalog seeding into an idempotent `post_migrate` receiver would
-make every flush self-heal and close all 33 at once, without touching a single test.
+make every flush self-heal, which is what would let the one remaining class stop
+matting -- it cannot be converted, so only a self-healing seed removes its blast
+radius.
 
 It is deliberately not attempted here. Re-seeding this catalog mid-investigation
 previously turned 0 failures into **2** in the grade-approval cluster, because some tests

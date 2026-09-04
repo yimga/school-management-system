@@ -13,7 +13,7 @@ from __future__ import annotations
 import io
 import types
 
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
 from apps.migration_cloud import artifact_blob_store as store
 from apps.migration_cloud.landers.student_lander import _norm_spec, _resolve_specialty_fuzzy
@@ -85,7 +85,7 @@ def _add_artifact(bundle, path, filename, headers, rows, sha):
     store.capture_artifact_blob(art, _payload(data))
 
 
-class StudentSpecialtyEndToEndTests(TransactionTestCase):
+class StudentSpecialtyEndToEndTests(TestCase):
     def test_student_placed_on_specialty(self):
         from apps.migration_cloud.orchestrator import apply_bundle
         from apps.migration_cloud.pipeline import advance_bundle
