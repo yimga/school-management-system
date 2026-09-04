@@ -84,6 +84,21 @@ def record_refused_insert(
         return None
     try:
         from apps.people.models_provisioning import ProvisioningRequest
+        from apps.schools.models import School
+
+        # Ask whether the school is real BEFORE writing, because on PostgreSQL
+        # the answer does not arrive in time otherwise. Django declares this FK
+        # DEFERRABLE INITIALLY DEFERRED: an insert naming a school that is not
+        # there succeeds, the savepoint below releases cleanly, and this function
+        # returns a row and reports success. The violation is raised at COMMIT --
+        # outside the try, inside the CALLER's transaction, where it stops being
+        # a queue write that failed and becomes the whole sync cycle that failed,
+        # which is the one outcome the docstring above promises to prevent. A
+        # savepoint cannot catch a deferred constraint, so it has to be a
+        # question asked first. On SQLite the same input raises here and is
+        # swallowed, so this costs one query to make the promise true on both.
+        if not School.objects.filter(pk=school_id).exists():
+            return None
 
         payload = sanitize_payload(values)
         if entity_type == "student_guardian":
