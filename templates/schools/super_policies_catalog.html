@@ -35,6 +35,7 @@
         <caption class="visually-hidden">{% trans "Policy Bundles" %}</caption>
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "Code" %}</th>
             <th scope="col">{% trans "Name" %}</th>
             <th scope="col">{% trans "Country scope" %}</th>
@@ -46,6 +47,7 @@
         <tbody>
           {% for b in bundles %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td>{{ b.code|default:"—" }}</td>
             <td>{{ b.name }}</td>
             <td>{{ b.country_scope|default:"*" }}</td>

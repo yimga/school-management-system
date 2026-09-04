@@ -19,8 +19,8 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.permissions import (
-    user_can_access_ops_clinic,
     user_can_access_ops_extended_modules,
+    user_can_access_ops_module,
 )
 from apps.people.models import TeacherProfile
 from apps.schools.mixins import require_feature, require_school
@@ -151,7 +151,7 @@ def ops_hub(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("library"))
 @require_feature("library")
 @require_http_methods(["GET", "POST"])
 def ops_library(request):
@@ -192,7 +192,7 @@ def ops_library(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("transport"))
 @require_feature("transport")
 @require_http_methods(["GET", "POST"])
 def ops_transport(request):
@@ -228,7 +228,7 @@ def ops_transport(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("inventory"))
 @require_feature("inventory")
 @require_http_methods(["GET", "POST"])
 def ops_inventory(request):
@@ -506,7 +506,7 @@ def ops_inventory(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("canteen"))
 @require_feature("canteen")
 @require_http_methods(["GET", "POST"])
 def ops_canteen(request):
@@ -544,7 +544,7 @@ def ops_canteen(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_clinic)
+@user_passes_test(user_can_access_ops_module("clinic"))
 @require_feature("clinic")
 @require_http_methods(["GET"])
 def ops_clinic(request):
@@ -568,7 +568,7 @@ def ops_clinic(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("timetabling"))
 @require_feature("timetabling")
 @require_http_methods(["GET"])
 def ops_timetabling(request):
@@ -825,7 +825,7 @@ def ops_substitutes(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("visitor_log"))
 @require_school
 @require_feature("visitor_log")
 @require_http_methods(["GET", "POST"])
@@ -886,7 +886,7 @@ def ops_visitor_log(request):
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("facilities_ops"))
 @require_school
 @require_feature("facilities_ops")
 @require_http_methods(["GET", "POST"])
@@ -1159,7 +1159,7 @@ def _pos_sales_summary_json_response(request, school) -> HttpResponse:
 
 
 @login_required
-@user_passes_test(user_can_access_ops_extended_modules)
+@user_passes_test(user_can_access_ops_module("pos_stub"))
 @require_school
 @require_feature("pos_stub")
 @require_http_methods(["GET", "POST"])

@@ -93,6 +93,7 @@
               <thead>
                 <tr>
                   <th scope="col" class="rmc-list-bulk-th"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-select-all aria-label="{% trans 'Select all students on this page' %}"></th>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Admission number" %}</th>
                   <th scope="col">{% trans "Classroom" %}</th>
@@ -113,6 +114,7 @@
                     data-rmc-row-actions='[{"label":"{% trans "360"|escapejs %}","href":"{{ student_detail_url|escapejs }}","variant":"primary"}]'
                     data-rmc-bulk-href="{{ student_detail_url }}">
                   <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ student.id }}" data-rmc-bulk-label="{{ student.first_name }} {{ student.last_name }}" aria-label="{% blocktrans with name=student.first_name %}Select {{ name }}{% endblocktrans %}"></td>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td>
                     <div class="d-flex align-items-center">
                       <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">

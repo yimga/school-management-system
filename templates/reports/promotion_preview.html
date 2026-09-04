@@ -70,6 +70,7 @@
           <caption class="visually-hidden">{% trans "Promotion preview" %}</caption>
           <thead class="table-light">
             <tr>
+              {% include "components/_list_row_number_head.html" %}
               <th scope="col">{% trans "Classroom" %}</th>
               <th scope="col">{% trans "Student" %}</th>
               <th scope="col">{% trans "Annual avg" %}</th>
@@ -80,6 +81,7 @@
           <tbody>
             {% for row in rows %}
             <tr>
+              {% include "components/_list_row_number_cell.html" %}
               <td>{{ row.classroom.name }}</td>
               <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
               <td>{{ row.annual_average|default:"—" }}</td>

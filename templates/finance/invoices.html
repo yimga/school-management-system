@@ -122,6 +122,7 @@
       <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <thead class="table-light">
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "Reference" %}</th>
             <th scope="col">{% trans "Type" %}</th>
             <th scope="col">{% trans "Status" %}</th>
@@ -144,6 +145,7 @@
                 data-rmc-row-title="{{ inv.reference|default:inv.id }}"
                 data-rmc-row-subtitle="{{ inv.get_status_display }}"
                 data-rmc-row-meta='{"{% trans "Balance" %}":"{{ inv.balance_amount|format_currency|escapejs }}","{% trans "Due" %}":"{{ inv.due_date|format_date|default:"-"|escapejs }}"}'>
+              {% include "components/_list_row_number_cell.html" %}
               <td>
                 <a href="{% url 'finance:invoice_detail' inv.id %}">
                   {{ inv.reference|default:inv.id }}

@@ -47,9 +47,13 @@
         <div class="card-body">
           {% if teachers %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Teachers" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
+          {% url 'accounts:backend_teacher_list' as teacher_list_base_url %}
+          {% url 'accounts:backend_staff_bulk_role' as staff_bulk_role_url %}
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Teachers" data-rmc-row-detail-table="1" data-rmc-list-bulk="1" data-rmc-bulk-export-base="{{ teacher_list_base_url }}" data-rmc-bulk-actions='[{"id":"ask","label":"{% trans "Ask copilot"|escapejs %}","kind":"copilot","variant":"primary"},{"id":"export-selected","label":"{% trans "Export selected CSV"|escapejs %}","kind":"export-ids","href":"{{ teacher_list_base_url|escapejs }}"},{"id":"role-driver","label":"{% trans "Mark as Driver"|escapejs %}","kind":"post","url":"{{ staff_bulk_role_url|escapejs }}","payload":{"role":"DRIVER"},"confirm":"{% trans "Set {count} staff member(s) to Driver?"|escapejs %}"},{"id":"role-security","label":"{% trans "Mark as Security"|escapejs %}","kind":"post","url":"{{ staff_bulk_role_url|escapejs }}","payload":{"role":"SECURITY"},"confirm":"{% trans "Set {count} staff member(s) to Security Officer?"|escapejs %}"},{"id":"role-coordinator","label":"{% trans "Mark as Coordinator"|escapejs %}","kind":"post","url":"{{ staff_bulk_role_url|escapejs }}","payload":{"role":"COORDINATOR"},"confirm":"{% trans "Set {count} staff member(s) to Coordinator?"|escapejs %}"},{"id":"role-support","label":"{% trans "Reset to Support staff"|escapejs %}","kind":"post","variant":"danger","url":"{{ staff_bulk_role_url|escapejs }}","payload":{"role":"SUPPORT_STAFF"},"confirm":"{% trans "Reset {count} staff member(s) to Support staff? They will hold no capability until given a role."|escapejs %}"}]' data-rmc-table-5col="1">
               <thead>
                 <tr>
+                  <th scope="col" class="rmc-list-bulk-th"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-select-all aria-label="{% trans 'Select all staff on this page' %}"></th>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Staff ID" %}</th>
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Email" %}</th>
@@ -66,6 +70,8 @@
                     data-rmc-row-title="{{ teacher.user.get_full_name|default:teacher.user.username }}"
                     data-rmc-row-subtitle="{{ teacher.staff_id|default:'—' }}"
                     data-rmc-row-meta='{"{% trans "Department" %}":"{{ teacher.department.name|default:"—"|escapejs }}","{% trans "Email" %}":"{{ teacher.user.email|default:"—"|escapejs }}","{% trans "Phone" %}":"{{ teacher.phone|default:"—"|escapejs }}","{% trans "Role" %}":"{{ teacher.user.get_role_display|default:"—"|escapejs }}"}'>
+                  <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ teacher.id }}" data-rmc-bulk-label="{{ teacher.user.get_full_name|default:teacher.user.username }}" aria-label="{% blocktrans with name=teacher.user.username %}Select {{ name }}{% endblocktrans %}"></td>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td>{{ teacher.staff_id|default:"-" }}</td>
                   <td>{{ teacher.user.get_full_name|default:teacher.user.username }}</td>
                   <td>{{ teacher.user.email|default:"-" }}</td>

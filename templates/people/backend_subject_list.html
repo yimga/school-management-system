@@ -39,6 +39,7 @@ Mirrors people/backend_classroom_list.html (search + CSV + pagination).{% endcom
             <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Subjects' %}">
               <thead>
                 <tr>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Category" %}</th>
                   <th scope="col">{% trans "Credits" %}</th>
@@ -47,6 +48,7 @@ Mirrors people/backend_classroom_list.html (search + CSV + pagination).{% endcom
               <tbody>
                 {% for s in subjects %}
                 <tr>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td>{{ s.name }}</td>
                   <td>{{ s.get_category_display|default:"—" }}</td>
                   <td>{{ s.credits|default:"—" }}</td>

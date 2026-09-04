@@ -38,8 +38,20 @@ from apps.schools.models import School
 class UnresolvableStaffRoleTests(SimpleTestCase):
     def test_unmapped_label_is_named_not_defaulted(self):
         self.assertEqual(unresolvable_staff_role("Canteen Vendor"), ROLE_UNMAPPED)
-        self.assertEqual(unresolvable_staff_role("Bus Driver"), ROLE_UNMAPPED)
         self.assertEqual(unresolvable_staff_role("Mystery Title"), ROLE_UNMAPPED)
+
+    def test_bus_driver_is_no_longer_unmappable(self):
+        """This example moved OUT of the test above on 2026-09-04.
+
+        It was the canonical unreadable title here, and that was the defect
+        rather than the fixture: a school has drivers, so the right answer was
+        never "hold the row", it was "the system has no word for this job".
+        DRIVER now exists, so the label resolves -- and the test that used it as
+        an example of unmappability had to say so instead of quietly losing a
+        case.
+        """
+        self.assertIsNone(unresolvable_staff_role("Bus Driver"))
+        self.assertEqual(resolve_staff_role("Bus Driver"), "DRIVER")
 
     def test_forbidden_label_is_named_forbidden(self):
         self.assertEqual(unresolvable_staff_role("SUPERADMIN"), ROLE_FORBIDDEN)
@@ -157,7 +169,19 @@ class TeacherTokenIsNotInertTests(TestCase):
         self.assertTrue(other.has_feature_permission("reception.manage"))
 
 
-class StaffLanderHoldsUnmappedRoleTests(TestCase):
+class StaffLanderRefusesThePrivilegeNotThePersonTests(TestCase):
+    """Two different answers for two different problems (changed 2026-09-04).
+
+    An UNMAPPED label names a job this system has no word for. Holding it kept
+    the privilege out and the person out with it -- a real 49-row directory lost
+    its coordinator, its driver and its security officer entirely. Those rows now
+    LAND on SUPPORT_STAFF, which grants nothing, and carry a note.
+
+    A FORBIDDEN label is a different kind of claim: the cell said SUPERADMIN, or
+    PARENT, or STUDENT. That is still held, and the test at the bottom of this
+    class is unchanged.
+    """
+
     def setUp(self):
         self.school = School.objects.create(
             name="Deny All School",
@@ -179,8 +203,7 @@ class StaffLanderHoldsUnmappedRoleTests(TestCase):
             canonical_rows=iter([dict(r) for r in rows]), ctx=self.ctx
         )
 
-    def test_unmapped_role_row_is_held_and_nothing_is_provisioned(self):
-        before = User.objects.count()
+    def test_unmapped_role_row_lands_holding_nothing(self):
         res = self._land(
             {
                 "staff_external_id": "EMP-X1",
@@ -188,32 +211,39 @@ class StaffLanderHoldsUnmappedRoleTests(TestCase):
                 "role": "Canteen Vendor",
             }
         )
-        self.assertEqual(res.quarantined, 1, res.errors)
-        self.assertEqual(res.created, 0)
-        self.assertEqual(User.objects.count(), before, "no account may be minted")
-        self.assertFalse(
-            TeacherProfile.objects.filter(
-                school=self.school, staff_id="EMP-X1"
-            ).exists()
-        )
+        self.assertEqual(res.quarantined, 0, res.errors)
+        self.assertEqual(res.created, 1)
+        profile = TeacherProfile.objects.get(school=self.school, staff_id="EMP-X1")
+        # The person exists. The privilege does not: SUPPORT_STAFF is the base
+        # identity, and the two codes below are what the TEACHER default used to
+        # hand out for exactly this row.
+        self.assertEqual(profile.user.role, User.Role.SUPPORT_STAFF)
+        self.assertFalse(profile.user.has_feature_permission("attendance.manage"))
+        self.assertFalse(profile.user.has_feature_permission("grades.enter"))
 
-    def test_hold_declares_its_reason_and_keeps_the_row_for_replay(self):
+    def test_the_unreadable_title_is_reported_as_a_note_not_a_rejection(self):
         res = self._land(
             {
                 "staff_external_id": "EMP-X2",
                 "full_name": "TABI GRACE",
-                "role": "Bus Driver",
+                "role": "Chief Vibes Officer",
             }
         )
-        self.assertEqual(len(res.error_rows), 1, res.errors)
-        held = res.error_rows[0]
-        self.assertEqual(held["reason_code"], "invalid_ref")
-        self.assertEqual(held["reason_source"], "declared")
-        self.assertEqual(held["field"], "role")
-        self.assertTrue(held["row"], "the source row must survive for replay")
-        self.assertIn("Bus Driver", held["error"])
+        # Not an error row: nothing was rejected, so nothing belongs in the queue
+        # of rows somebody must reconcile before the import is usable.
+        self.assertEqual(len(res.error_rows), 0, res.errors)
+        notes = [n["note"] for n in res.notes]
+        self.assertTrue(
+            any("Chief Vibes Officer" in n for n in notes),
+            "the source title must survive so a person can correct it: %r" % notes,
+        )
+        self.assertTrue(
+            any("SUPPORT_STAFF" in n for n in notes),
+            "the note must say what the person was given instead: %r" % notes,
+        )
 
     def test_one_unreadable_row_does_not_halt_the_import(self):
+        """Unchanged in intent; the unreadable row is now imported, not held."""
         res = self._land(
             {
                 "staff_external_id": "EMP-X3",
@@ -231,18 +261,23 @@ class StaffLanderHoldsUnmappedRoleTests(TestCase):
                 "role": "Teacher",
             },
         )
-        self.assertEqual(res.quarantined, 1, res.errors)
-        self.assertEqual(res.created, 2)
+        self.assertEqual(res.quarantined, 0, res.errors)
+        self.assertEqual(res.created, 3)
         bursar = TeacherProfile.objects.get(school=self.school, staff_id="EMP-B9")
         self.assertEqual(bursar.user.role, User.Role.BURSAR)
+        wizard = TeacherProfile.objects.get(school=self.school, staff_id="EMP-X3")
+        self.assertEqual(wizard.user.role, User.Role.SUPPORT_STAFF)
 
-    def test_blank_role_still_lands_on_the_callers_default(self):
+    def test_blank_role_lands_on_a_default_that_grants_nothing(self):
         res = self._land(
             {"staff_external_id": "EMP-N1", "full_name": "EBOT JOSEPH"}
         )
         self.assertEqual(res.quarantined, 0, res.errors)
         profile = TeacherProfile.objects.get(school=self.school, staff_id="EMP-N1")
-        self.assertEqual(profile.user.role, User.Role.TEACHER)
+        # Was TEACHER until 2026-09-04, which meant a payroll export with no
+        # role column minted a school-wide attendance and grade reader per row.
+        self.assertEqual(profile.user.role, User.Role.SUPPORT_STAFF)
+        self.assertFalse(profile.user.has_feature_permission("attendance.manage"))
 
     def test_superadmin_claim_is_held_not_silently_downgraded(self):
         res = self._land(
@@ -311,7 +346,7 @@ class StaffRoleDispositionSummaryTests(TestCase):
         self.assertEqual(found["role_mapped"], 0)
         self.assertEqual(
             found["default_token"],
-            User.Role.TEACHER,
+            User.Role.SUPPORT_STAFF,
             "the reader must be told WHAT they got two of",
         )
 
@@ -333,9 +368,9 @@ class StaffRoleDispositionSummaryTests(TestCase):
         self.assertEqual(found["role_mapped"], 2)
 
     def test_the_tally_closes_over_every_disposition(self):
-        # One row down each exit: read, defaulted, held-unmapped,
-        # held-forbidden, skipped-as-non-staff, and rejected before the role
-        # cell was ever reached.
+        # One row down each exit: read, defaulted, based-unmapped (imported on
+        # SUPPORT_STAFF), held-forbidden, skipped-as-non-staff, and rejected
+        # before the role cell was ever reached.
         self._land(
             {"staff_external_id": "EMP-C1", "full_name": "A ONE", "role": "Bursar"},
             {"staff_external_id": "EMP-C2", "full_name": "B TWO"},
@@ -352,7 +387,7 @@ class StaffRoleDispositionSummaryTests(TestCase):
         buckets = {
             "role_mapped": 1,
             "role_defaulted_blank": 1,
-            "role_held_unmapped": 1,
+            "role_based_unmapped": 1,
             "role_held_forbidden": 1,
             "role_skipped_non_staff": 1,
             "role_not_evaluated": 1,

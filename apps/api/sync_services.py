@@ -165,6 +165,11 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
 # have to be invented to satisfy a required non-portable relation. Refusing explicitly
 # beats letting the insert reach the database and die on an IntegrityError every cycle,
 # which reports a confusing constraint error instead of the actual reason.
+# Imported lazily inside the refusal branch would be tidier, but this module is
+# already imported at request time and the service imports no models at module
+# scope, so a top-level import here costs nothing and keeps the branch readable.
+from apps.people.provisioning_service import record_refused_insert  # noqa: E402
+
 _INSERT_HELD_ENTITIES: dict[str, str] = {
     # The second sentence used to read "create the staff member on the cloud and the
     # profile will sync down". It is not true and it was measured not to be: this same
@@ -2612,7 +2617,27 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
         # Entities that converge as UPDATES but may not be CREATED across the rail. Refused
         # here, with the reason, rather than being attempted and dying on a required
         # non-portable relation — which would report an opaque IntegrityError every cycle.
+        #
+        # The refusal is correct and unchanged. What changed on 2026-09-04 is that it
+        # now goes SOMEWHERE. This is the box->cloud direction, so the row is a person
+        # who exists on a box and cannot exist here without an account — and until now
+        # the answer was to say no, every cycle, to nobody. A rebuilt Gilead box was
+        # measured refusing the same 39 teachers on all 687 cycles of one day; the rail
+        # behaved exactly as designed and the staff simply never existed on the cloud.
+        #
+        # A ProvisioningRequest is the missing half: the DATA rides up (a name, a staff
+        # id, a phone), no credential does, nothing is granted on arrival, and a human
+        # here can answer the question. That is precisely the "explicitly an
+        # authentication flow ... never implicit in a bundle apply" shape that
+        # docs/EDGE_SYNC_IDENTITY_HOLD.md names as the condition for closing this gap.
         if entity_type in _INSERT_HELD_ENTITIES:
+            queued = record_refused_insert(
+                school_id=school_id,
+                entity_type=entity_type,
+                client_offline_id=coid,
+                values=changes,
+                requested_role=str(changes.get("role") or ""),
+            )
             results_by_index[idx] = {
                 "index": idx,
                 "status": 409,
@@ -2620,6 +2645,17 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                     "error": "insert_held_for_entity",
                     "entity_type": entity_type,
                     "reason": _INSERT_HELD_ENTITIES[entity_type],
+                    # The box can now tell an operator "submitted for approval, asked N
+                    # times" instead of repeating a refusal with no next step.
+                    "provisioning_request": (
+                        {
+                            "id": queued.pk,
+                            "status": queued.status,
+                            "times_seen": queued.times_seen,
+                        }
+                        if queued is not None
+                        else None
+                    ),
                 },
             }
             continue

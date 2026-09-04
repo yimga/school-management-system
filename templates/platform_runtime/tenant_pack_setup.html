@@ -245,10 +245,12 @@
     <div class="rmc-tpw-table-wrap" data-rmc-native-table="1">
       <table class="rmc-tpw-table">
         <caption class="visually-hidden">{% trans "Installed tenant-safe packs" %}</caption>
+        <thead><tr>{% include "components/_list_row_number_head.html" %}
         <thead><tr><th scope="col">{% trans "Pack" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Version" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Updated" %}</th><th scope="col">{% trans "Actions" %}</th></tr></thead>
         <tbody>
           {% for row in installations %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td><strong>{{ row.pack_key }}</strong></td>
             <td>{{ row.pack_type|cut:"_pack"|cut:"_template"|title }}</td>
             <td>{{ row.installed_version|default:row.version }}</td>

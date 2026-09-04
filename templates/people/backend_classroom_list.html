@@ -63,6 +63,7 @@
             <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Classrooms' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
               <thead>
                 <tr>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans_term "Academic year" key="academic_year" %}</th>
                   <th scope="col">{% trans_term "Department" key="department" %}</th>
@@ -77,6 +78,7 @@
                     data-rmc-row-title="{{ c.name }}"
                     data-rmc-row-subtitle="{{ c.code|default:'—' }}"
                     data-rmc-row-meta='{"{% trans "Academic year" %}":"{{ c.academic_year.name|default:"—"|escapejs }}","{% trans "Department" %}":"{{ c.department.name|default:"—"|escapejs }}"}'>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td>
                     <a href="{% url 'accounts:backend_classroom_detail' c.pk %}">{{ c.name }}</a>
                     {% if c.code %}<div class="small text-muted">{{ c.code }}</div>{% endif %}

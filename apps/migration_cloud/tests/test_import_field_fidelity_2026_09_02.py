@@ -37,6 +37,7 @@ from apps.migration_cloud.staff_role_map import (
     ROLE_FORBIDDEN,
     ROLE_UNMAPPED,
     resolve_staff_role,
+    staff_role_segments,
     unresolvable_staff_role,
 )
 from apps.migration_cloud.xlsx_explode import _trim_banner_rows, explode_workbook
@@ -74,18 +75,48 @@ class CompoundRoleCellTests(SimpleTestCase):
         self.assertEqual(resolve_staff_role("TEACHER /DRIVER"), User.Role.TEACHER)
         self.assertIsNone(unresolvable_staff_role("TEACHER /DRIVER"))
 
-    def test_two_roles_in_one_cell_stay_held(self):
-        # SECRETARY vs IT_ADMIN: the sheet did not say which. Held, not chosen.
+    def test_two_roles_in_one_cell_take_the_first(self):
+        """Was "stay held" until 2026-09-04. The rule changed; the safety did not.
+
+        SECRETARY vs IT_ADMIN: holding the cell kept BLAISE FABRICE out of the
+        system entirely rather than give them either. First-segment-wins reads
+        the sheet the way it is written -- the leading post is the substantive
+        one -- and grants exactly what a single-value cell would have granted,
+        so nothing is over-given. The segment that did not win is reported by
+        staff_role_segments and recorded as a note by the lander, so the second
+        role stays a decision a person makes on purpose.
+        """
+        self.assertIsNone(unresolvable_staff_role("ADMINISTRATIVE ASSISTANT / IT"))
         self.assertEqual(
-            unresolvable_staff_role("ADMINISTRATIVE ASSISTANT / IT"), ROLE_UNMAPPED
+            resolve_staff_role("ADMINISTRATIVE ASSISTANT / IT"), User.Role.SECRETARY
         )
+        self.assertIn("IT_ADMIN", staff_role_segments("ADMINISTRATIVE ASSISTANT / IT"))
 
     def test_forbidden_segment_forbids_the_whole_cell(self):
         self.assertEqual(unresolvable_staff_role("STUDENT/TEACHER"), ROLE_FORBIDDEN)
 
-    def test_plainly_unmappable_support_titles_stay_held(self):
-        for label in ("DRIVER", "SECURITY", "COORDINATOR"):
-            self.assertEqual(unresolvable_staff_role(label), ROLE_UNMAPPED, label)
+    def test_support_titles_the_system_could_not_name_now_resolve(self):
+        """These three were the measured casualties, and are why the roles exist.
+
+        DRIVER / SECURITY / COORDINATOR were held on a real 49-row directory --
+        correctly, because User.Role could not name any of them and TEACHER
+        carries attendance.manage and grades.enter. The fix was to give the
+        system the words, not to loosen the guard.
+        """
+        for label, expected in (
+            ("DRIVER", User.Role.DRIVER),
+            ("SECURITY", User.Role.SECURITY),
+            ("COORDINATOR", User.Role.COORDINATOR),
+        ):
+            with self.subTest(label=label):
+                self.assertIsNone(unresolvable_staff_role(label), label)
+                self.assertEqual(resolve_staff_role(label), expected)
+
+    def test_a_title_nothing_can_name_is_still_unmapped(self):
+        """The guard still fires -- adding vocabulary did not make it permissive."""
+        for label in ("Canteen Vendor", "Chief Vibes Officer", "Mystery Title"):
+            with self.subTest(label=label):
+                self.assertEqual(unresolvable_staff_role(label), ROLE_UNMAPPED, label)
 
 
 class StaffHeaderResolutionTests(SimpleTestCase):

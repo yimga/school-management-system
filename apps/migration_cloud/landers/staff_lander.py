@@ -8,8 +8,13 @@ the profile), keyed the upsert on ``staff_external_id`` (not a real field →
 imported count was pinned to 0 — the same class already fixed for guardians.
 
 The lander now RESOLVES-or-PROVISIONS the staff ``User`` (workbook ``role``
-mapped onto ``User.Role`` — bursar/HOD/admin/… — with TEACHER as the safe
-fallback; SUPERADMIN is never granted). Password stays unusable so activation
+mapped onto ``User.Role`` — bursar/HOD/admin/… — with SUPPORT_STAFF as the
+safe fallback; SUPERADMIN is never granted). The fallback was TEACHER until
+2026-09-04, which was not safe at all: TEACHER carries attendance.manage and
+grades.enter, so every unreadable or blank title was a silent privilege grant.
+SUPPORT_STAFF grants nothing, which is what lets an unreadable title be
+IMPORTED rather than held — the person exists and is editable, and no
+capability was invented for them. Password stays unusable so activation
 rides invite/reset. Then it creates the
 ``TeacherProfile(user=…, school=…, staff_id=external_id)`` keyed on the OneToOne
 user. Real profile fields (``staff_id``/``position_title``/``phone``/
@@ -57,14 +62,12 @@ from ._helpers import (
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
-# Canonical role SOT (Django-free module, so it is safe to import at module level
-# unlike the ORM imports below). The bare "TEACHER" literal must not be inlined:
-# scan_role_strings.py enforces that the token comes from here or User.Role.
-from apps.platform_runtime.role_registry import ROLE_TEACHER
 from apps.migration_cloud.staff_role_map import (
     ROLE_FORBIDDEN,
+    ROLE_SUPPORT_STAFF,
     apply_imported_staff_role,
     resolve_staff_role,
+    staff_role_segments,
     unresolvable_staff_role,
 )
 from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
@@ -207,7 +210,15 @@ class StaffLander(Lander):
         # Prefer the ORM-layer SOT (User.Role TextChoices); fall back to the
         # registry constant if a swapped user model has no Role enum. Mirrors
         # guardian_lander's hasattr idiom -- neither branch inlines the token.
-        default_staff_role = User.Role.TEACHER if hasattr(User, "Role") else ROLE_TEACHER
+        #
+        # SUPPORT_STAFF, not TEACHER, since 2026-09-04. A blank role cell claims
+        # no privilege, so the import must grant none -- and TEACHER is a grant
+        # (attendance.manage, grades.enter, via the AccessRole the post_save
+        # attaches). A 400-row role-less sheet used to mint 400 teachers. It now
+        # mints 400 editable people who can reach nothing until someone says so.
+        default_staff_role = (
+            User.Role.SUPPORT_STAFF if hasattr(User, "Role") else ROLE_SUPPORT_STAFF
+        )
         # Role-decision tally. Every row lands in EXACTLY ONE bucket and the
         # buckets sum to rows_total -- a partial tally would be worse than none
         # here, because a row that took the default and a row whose label we
@@ -215,7 +226,16 @@ class StaffLander(Lander):
         role_tally = {
             "role_mapped": 0,
             "role_defaulted_blank": 0,
-            "role_held_unmapped": 0,
+            # role_held_unmapped was renamed on 2026-09-04, when a label this
+            # system cannot name stopped being held and started landing on
+            # SUPPORT_STAFF. The old name would now be false: nothing is held, a
+            # person was created who holds nothing. A bucket that misreports the
+            # disposition is worse than no bucket, because it is the number an
+            # operator uses to decide whether anyone needs to go and look.
+            #
+            # role_held_forbidden keeps its name because it keeps its meaning: a
+            # cell claiming SUPERADMIN is still refused outright.
+            "role_based_unmapped": 0,
             "role_held_forbidden": 0,
             "role_skipped_non_staff": 0,
             "role_not_evaluated": 0,
@@ -280,24 +300,41 @@ class StaffLander(Lander):
                 role_tally["role_skipped_non_staff"] += 1
                 result.skipped += 1
                 continue
-            # Deny-All on a privilege we could not read. A label that mapped
-            # to nothing used to collapse onto default_staff_role (TEACHER),
-            # and TEACHER is NOT inert: the post_save in apps/accounts/
-            # signals.py attaches the TEACHER AccessRole, whose seeded codes
-            # include attendance.manage and grades.enter. So a 'Canteen
-            # Vendor' or 'Bus Driver' row was provisioned as a school-wide
-            # attendance and grade-audit reader -- and is_staff_setup_role
-            # then let them activate that account themselves. Hold the row:
-            # no user, no membership, no profile. record_row_error keeps the
-            # source row so it replays once someone maps the label, and the
-            # loop continues, so one unreadable title cannot stall an import.
+            # Deny the PRIVILEGE, not the PERSON. A label that maps to nothing
+            # must never collapse onto TEACHER -- TEACHER is not inert: the
+            # post_save in apps/accounts/signals.py attaches the TEACHER
+            # AccessRole, whose seeded codes include attendance.manage and
+            # grades.enter, so a 'Canteen Vendor' or 'Bus Driver' row became a
+            # school-wide attendance and grade-audit reader, and
+            # is_staff_setup_role then let them activate that account
+            # themselves.
+            #
+            # Until 2026-09-04 the answer was to HOLD the row: no user, no
+            # membership, no profile. That kept the privilege out, but it also
+            # kept the PERSON out -- a real 49-row directory lost its
+            # coordinator, its driver and its security officer entirely, and
+            # what the operator got was an error to reconcile by hand rather
+            # than four staff records to correct in place.
+            #
+            # The row now LANDS on SUPPORT_STAFF, the base identity that holds
+            # no capability at all. Nothing is granted that the sheet did not
+            # state -- SUPPORT_STAFF states nothing -- and the person exists,
+            # carries their source title, and is editable. The unreadable label
+            # is kept as a note, not an error: the import did not fail, it
+            # deferred one decision, and record_row_note is where a decision
+            # someone should make but nobody must reconcile belongs.
             role_problem = unresolvable_staff_role(role_label)
-            if role_problem is not None:
-                role_tally[
-                    "role_held_forbidden"
-                    if role_problem == ROLE_FORBIDDEN
-                    else "role_held_unmapped"
-                ] += 1
+            if role_problem == ROLE_FORBIDDEN:
+                # STILL HELD, and deliberately not relaxed alongside the rest of
+                # this branch. An unmapped label is a job this system cannot
+                # name -- a driver, a cook -- and the answer to that is to make
+                # the person exist. A FORBIDDEN label is different in kind: the
+                # cell named SUPERADMIN, PARENT, STUDENT or EMPLOYER, which a
+                # staff sheet may never grant. That is a privilege claim, and a
+                # spreadsheet that makes one is either wrong or is an attempt,
+                # so it stays a row a person must look at rather than something
+                # quietly imported under a different name.
+                role_tally["role_held_forbidden"] += 1
                 record_row_error(
                     result,
                     row,
@@ -308,18 +345,57 @@ class StaffLander(Lander):
                     field="role",
                 )
                 continue
-            staff_role = resolve_staff_role(
-                role_label, default=default_staff_role
-            )
-            # A BLANK role cell keeps flowing to the caller's default, on
-            # purpose: holding a payroll export that simply has no role column
-            # would be worse than the disease. But the default is TEACHER and
-            # TEACHER is a privilege grant, so a 400-row role-less sheet mints
-            # 400 teachers with nothing on screen saying so. Count it.
-            if role_label.strip():
-                role_tally["role_mapped"] += 1
+            if role_problem is not None:
+                role_tally["role_based_unmapped"] += 1
+                record_row_note(
+                    result,
+                    f"staff {external_id}: source role {role_label!r} is not a"
+                    f" role this system can grant ({role_problem}); imported as"
+                    f" {ROLE_SUPPORT_STAFF}, which grants nothing. Edit the"
+                    " staff member to give them the right role.",
+                    row=row,
+                )
+                staff_role = default_staff_role
+                role_disposition_counted = True
             else:
-                role_tally["role_defaulted_blank"] += 1
+                role_disposition_counted = False
+                staff_role = resolve_staff_role(
+                    role_label, default=default_staff_role
+                )
+                # A compound cell ("ADMINISTRATIVE ASSISTANT / IT") names more
+                # than one post. The FIRST is granted, by staff_role_segments'
+                # documented order; the rest are recorded rather than granted,
+                # because a second privilege nobody chose is exactly the thing
+                # this branch exists to avoid. The note names them so an owner
+                # can add the role in one deliberate act.
+                extra_segments = [
+                    seg
+                    for seg in staff_role_segments(role_label)
+                    if seg != staff_role and seg != ROLE_FORBIDDEN
+                ]
+                if extra_segments:
+                    record_row_note(
+                        result,
+                        f"staff {external_id}: source role {role_label!r} also"
+                        f" names {', '.join(extra_segments)}. Imported as"
+                        f" {staff_role}; add the other role deliberately if it"
+                        " is meant.",
+                        row=row,
+                    )
+            # A BLANK role cell flows to the caller's default, which is now
+            # SUPPORT_STAFF and grants nothing -- so a role-less payroll export
+            # imports every person without granting anybody anything. It is
+            # still counted, because "we chose this for you" and "the sheet said
+            # so" must not wear the same shape from the outside.
+            #
+            # Guarded: a row whose label was unreadable already took its bucket
+            # above. Counting it again here would break the one property this
+            # tally promises -- that the buckets sum to rows_total.
+            if not role_disposition_counted:
+                if role_label.strip():
+                    role_tally["role_mapped"] += 1
+                else:
+                    role_tally["role_defaulted_blank"] += 1
 
             if ctx.dry_run:
                 result.created += 1
@@ -624,11 +700,18 @@ def _record_staff_role_disposition(
 ) -> None:
     """Publish the role-decision tally onto the bundle's mapping_summary.
 
-    A blank role cell still flows to the caller's default -- that behaviour is
-    deliberate. What was missing is that it was SILENT: the default is TEACHER,
-    TEACHER is a privilege grant (see the deny-all note in the land loop), so a
-    role-less payroll import mints teachers at scale with nothing saying so.
-    ``role_defaulted_blank`` is that number.
+    A blank role cell flows to the caller's default -- that behaviour is
+    deliberate. What was missing is that it was SILENT, and until 2026-09-04 the
+    default was TEACHER, which is a privilege grant (see the deny-all note in the
+    land loop), so a role-less payroll import minted teachers at scale with
+    nothing saying so. The default is now SUPPORT_STAFF, which grants nothing,
+    and ``role_defaulted_blank`` is still the number of people it was chosen for.
+
+    ``role_based_unmapped`` / ``role_based_forbidden`` count rows whose label
+    this system could not honour. They are IMPORTED, on the same base role, and
+    the label is kept as a note -- so these are not a backlog anyone must clear
+    before the data is usable, they are a list of people whose job title someone
+    should confirm.
 
     The tally CLOSES. Every row is in exactly one bucket and the buckets sum to
     ``rows_total``; ``balanced`` publishes whether they actually did, so a new

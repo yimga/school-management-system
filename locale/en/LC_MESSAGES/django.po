@@ -74276,3 +74276,83 @@ msgstr "{{ held }} held row(s) still pending in this bundle."
 
 msgid "{{ hints }} parent hint(s) not yet promoted"
 msgstr "{{ hints }} parent hint(s) not yet promoted"
+
+msgid "%(name)s was created. They cannot sign in until you invite them."
+msgstr "%(name)s was created. They cannot sign in until you invite them."
+
+msgid "%(name)s was declined. The box will stop asking."
+msgstr "%(name)s was declined. The box will stop asking."
+
+msgid "Access requests"
+msgstr "Access requests"
+
+msgid "Asked"
+msgstr "Asked"
+
+msgid "Decline"
+msgstr "Decline"
+
+msgid "Mark as Coordinator"
+msgstr "Mark as Coordinator"
+
+msgid "Mark as Driver"
+msgstr "Mark as Driver"
+
+msgid "Mark as Security"
+msgstr "Mark as Security"
+
+msgid ""
+"No access requests. A box that creates staff offline will show them here."
+msgstr ""
+"No access requests. A box that creates staff offline will show them here."
+
+msgid ""
+"People created on an offline box who need an account here. Nothing was "
+"created for them: approving is what brings the account into existence, and "
+"they still cannot sign in until you invite them."
+msgstr ""
+"People created on an offline box who need an account here. Nothing was "
+"created for them: approving is what brings the account into existence, and "
+"they still cannot sign in until you invite them."
+
+msgid "Reason for declining"
+msgstr "Reason for declining"
+
+msgid "Reset to Support staff"
+msgstr "Reset to Support staff"
+
+msgid ""
+"Reset {count} staff member(s) to Support staff? They will hold no capability"
+" until given a role."
+msgstr ""
+"Reset {count} staff member(s) to Support staff? They will hold no capability"
+" until given a role."
+
+msgid "Select all staff on this page"
+msgstr "Select all staff on this page"
+
+msgid "Set {count} staff member(s) to Coordinator?"
+msgstr "Set {count} staff member(s) to Coordinator?"
+
+msgid "Set {count} staff member(s) to Driver?"
+msgstr "Set {count} staff member(s) to Driver?"
+
+msgid "Set {count} staff member(s) to Security Officer?"
+msgstr "Set {count} staff member(s) to Security Officer?"
+
+msgid "Student this guardian belongs to"
+msgstr "Student this guardian belongs to"
+
+msgid "box called them"
+msgstr "box called them"
+
+msgid ""
+"{{ counter }} request waiting.{% plural %}{{ counter }} requests waiting."
+msgstr ""
+"{{ counter }} request waiting.{% plural %}{{ counter }} requests waiting."
+
+msgid "{{ counter }} time{% plural %}{{ counter }} times"
+msgstr "{{ counter }} time{% plural %}{{ counter }} times"
+
+msgid "Select all guardians on this page"
+msgstr "Select all guardians on this page"

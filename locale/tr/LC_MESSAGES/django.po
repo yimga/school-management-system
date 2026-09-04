@@ -66916,3 +66916,76 @@ msgstr ""
 
 msgid "{{ hints }} parent hint(s) not yet promoted"
 msgstr ""
+
+msgid "%(name)s was created. They cannot sign in until you invite them."
+msgstr ""
+
+msgid "%(name)s was declined. The box will stop asking."
+msgstr ""
+
+msgid "Access requests"
+msgstr ""
+
+msgid "Asked"
+msgstr ""
+
+msgid "Decline"
+msgstr ""
+
+msgid "Mark as Coordinator"
+msgstr ""
+
+msgid "Mark as Driver"
+msgstr ""
+
+msgid "Mark as Security"
+msgstr ""
+
+msgid ""
+"No access requests. A box that creates staff offline will show them here."
+msgstr ""
+
+msgid ""
+"People created on an offline box who need an account here. Nothing was "
+"created for them: approving is what brings the account into existence, and "
+"they still cannot sign in until you invite them."
+msgstr ""
+
+msgid "Reason for declining"
+msgstr ""
+
+msgid "Reset to Support staff"
+msgstr ""
+
+msgid ""
+"Reset {count} staff member(s) to Support staff? They will hold no capability"
+" until given a role."
+msgstr ""
+
+msgid "Select all staff on this page"
+msgstr ""
+
+msgid "Set {count} staff member(s) to Coordinator?"
+msgstr ""
+
+msgid "Set {count} staff member(s) to Driver?"
+msgstr ""
+
+msgid "Set {count} staff member(s) to Security Officer?"
+msgstr ""
+
+msgid "Student this guardian belongs to"
+msgstr ""
+
+msgid "box called them"
+msgstr ""
+
+msgid ""
+"{{ counter }} request waiting.{% plural %}{{ counter }} requests waiting."
+msgstr ""
+
+msgid "{{ counter }} time{% plural %}{{ counter }} times"
+msgstr ""
+
+msgid "Select all guardians on this page"
+msgstr ""

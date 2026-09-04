@@ -78,6 +78,20 @@ TENANT_STAFF_SPINE_IDS: tuple[str, ...] = (
 )
 
 TENANT_STAFF_SPINE: tuple[NavSpec, ...] = (
+    # Added 2026-09-04 with the identity handshake. The queue is where a box's
+    # request to create a person gets answered, and a queue nobody can navigate
+    # to is the same defect it was built to fix -- a refusal with nowhere to go.
+    NavSpec(
+        id="access_requests",
+        label="Access requests",
+        url_name="accounts:provisioning_queue",
+        icon="bi-person-plus",
+        planes=("tenant",),
+        nav_class="spine",
+        section="People & Access",
+        cmd_kind="navigate",
+        cmd_scope="tenant_admin",
+    ),
     NavSpec(
         id="teachers",
         label="Teachers",

@@ -92,6 +92,7 @@
       <caption class="visually-hidden">{% trans "My Marks" %}</caption>
       <thead class="gradebook-thead-sticky">
         <tr>
+          {% include "components/_list_row_number_head.html" %}
           <th scope="col">{% trans "Student" %}</th>
           <th scope="col">{% trans "Subject" %}</th>
           <th scope="col">{% trans "Class" %}</th>
@@ -108,6 +109,7 @@
               data-rmc-row-title="{{ e.student.last_name }}, {{ e.student.first_name }}"
               data-rmc-row-subtitle="{{ e.student.student_code }}"
               data-rmc-row-meta='{"Updated":"{{ e.updated_at|escapejs }}","Subject":"{{ e.subject_assignment.subject.name|escapejs }}","Class":"{{ e.subject_assignment.classroom.name|escapejs }}","Specialty":"{{ e.subject_assignment.specialty.name|escapejs }}","Term":"{{ e.term.get_name_display|escapejs }}","Seq1":"{{ e.seq1_score|default:e.test1|escapejs }}","Seq2":"{{ e.seq2_score|default:e.test2|escapejs }}","Mock":"{{ e.mock_score|escapejs }}","Practical":"{{ e.practical_score|escapejs }}"{% if rosetta_target %},"Rosetta":"{% if row.rosetta.ok %}{{ row.rosetta.display|escapejs }}{% endif %}"{% endif %},"Remarks":"{{ e.remarks|escapejs }}"}'>
+            {% include "components/_list_row_number_cell.html" %}
             <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
             <td>{{ e.subject_assignment.subject.name }}</td>
             <td>{{ e.subject_assignment.classroom.name }}</td>

@@ -50,6 +50,7 @@
     <caption class="visually-hidden">{% blocktrans with sub_id=subscription.id %}Audit — webhook subscription #{{ sub_id }}{% endblocktrans %}</caption>
     <thead>
       <tr>
+        {% include "components/_list_row_number_head.html" %}
         <th scope="col">{% trans "ID" %}</th>
         <th scope="col">{% trans "Event" %}</th>
         <th scope="col">{% trans "Status" %}</th>
@@ -66,6 +67,7 @@
     <tbody>
       {% for r in rows %}
       <tr>
+        {% include "components/_list_row_number_cell.html" %}
         <td>{{ r.id }}</td>
         <td><code class="rmc-kbd">{{ r.event_type }}</code></td>
         <td>

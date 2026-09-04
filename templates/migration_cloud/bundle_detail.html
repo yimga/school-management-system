@@ -162,6 +162,7 @@
       <caption class="visually-hidden">{% trans "Artifacts" %}</caption>
       <thead>
         <tr>
+          {% include "components/_list_row_number_head.html" %}
           <th scope="col">{% trans "Path" %}</th>
           <th scope="col">{% trans "Format" %}</th>
           <th scope="col">{% trans "Rows" %}</th>
@@ -172,6 +173,7 @@
       <tbody>
         {% for a in artifacts %}
         <tr>
+          {% include "components/_list_row_number_cell.html" %}
           <td>{{ a.path_within_bundle }}</td>
           <td>{{ a.detected_format }}</td>
           <td>{{ a.row_count|default:"—" }}</td>

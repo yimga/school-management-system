@@ -30,6 +30,7 @@
     <caption class="visually-hidden">{% trans "Webhook delivery log" %}</caption>
     <thead>
       <tr>
+        {% include "components/_list_row_number_head.html" %}
         <th scope="col">{% trans "ID" %}</th>
         <th scope="col">{% trans "Sub" %}</th>
         <th scope="col">{% trans "Event" %}</th>
@@ -45,6 +46,7 @@
     <tbody>
       {% for r in rows %}
       <tr>
+        {% include "components/_list_row_number_cell.html" %}
         <td>{{ r.id }}</td>
         <td>{{ r.subscription_id }}</td>
         <td><code class="rmc-kbd">{{ r.event_type }}</code></td>

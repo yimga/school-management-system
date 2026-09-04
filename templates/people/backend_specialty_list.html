@@ -48,6 +48,7 @@ are visible. Mirrors people/backend_classroom_list.html.{% endcomment %}
             <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Specialties' %}">
               <thead>
                 <tr>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Code" %}</th>
                   <th scope="col">{% trans "Department" %}</th>
@@ -56,6 +57,7 @@ are visible. Mirrors people/backend_classroom_list.html.{% endcomment %}
               <tbody>
                 {% for sp in specialties %}
                 <tr>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td>{{ sp.name }}</td>
                   <td>{{ sp.code|default:"—" }}</td>
                   <td>{{ sp.department.name|default:"—" }}</td>

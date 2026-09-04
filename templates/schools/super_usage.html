@@ -26,6 +26,7 @@
             <caption class="visually-hidden">{% trans "Per-school API usage & quotas" %}</caption>
             <thead class="table-light">
               <tr>
+                {% include "components/_list_row_number_head.html" %}
                 <th scope="col">{% trans "School" %}</th>
                 <th scope="col">{% trans "Students" %}</th>
                 <th scope="col">{% trans "API usage (sample)" %}</th>
@@ -36,6 +37,7 @@
             <tbody>
               {% for school in schools %}
               <tr>
+                {% include "components/_list_row_number_cell.html" %}
                 <td>
                   <strong>{{ school.name }}</strong>
                   <br><span class="text-muted small">{{ school.slug }}</span>

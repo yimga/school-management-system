@@ -55,6 +55,7 @@
         <caption class="visually-hidden">{% trans "Health status" %}</caption>
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "App" %}</th>
             <th scope="col">{% trans "School" %}</th>
             <th scope="col">{% trans "Phase" %}</th>
@@ -66,6 +67,7 @@
         <tbody>
           {% for inst in installations %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td>
                 <details class="rmc-row-disclosure">
                   <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
