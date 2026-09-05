@@ -824,6 +824,21 @@ class TenantWizardView(LoginRequiredMixin, View):
                 from apps.setup_studio.wizard_extras import resolve_wizard_label
 
                 for s in get_suggestions(wizard.wizard_key, audience=user_audience):
+                    # A chip must only offer a wizard this user can actually open.
+                    # `get_suggestions` filters on the suggestion's own
+                    # audience_constraint, which says who may SEE the chip -- it
+                    # never consults the TARGET wizard's audience array. When the
+                    # two disagree the chip renders and the click lands on
+                    # `_user_can_run_wizard` -> False -> redirect('/'), so the
+                    # suggested next step bounces the user off the flow. The
+                    # registry entries are corrected, and this keeps a future
+                    # mismatch from reaching a screen.
+                    try:
+                        target = wizard_engine.get_wizard(s.target_wizard_key)
+                    except wizard_engine.WizardNotFound:
+                        continue
+                    if user_audience not in target.audience:
+                        continue
                     next_suggestions.append({
                         "target_wizard_key": s.target_wizard_key,
                         "label_token": s.label_token,
