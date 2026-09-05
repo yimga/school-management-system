@@ -172,6 +172,83 @@ def render_admission_number(
     )
 
 
+#: The shape each built-in strategy renders, as a template. Kept beside
+#: render_admission_number so the two cannot drift: the renderer builds a number
+#: from these and admission_number_pattern_for builds the regex from the SAME ones.
+_STRATEGY_TEMPLATES = {
+    "FULL": "{year_2digit}{school_code}{node_code}{seq_4digit}{spec_code}{class_segment}",
+    "YEAR_SEQ": "{year_2digit}{school_code}{node_code}{seq_4digit}",
+    "SEQ_ONLY": "{node_code}{seq_4digit}",
+}
+
+#: What each placeholder can contain. Deliberately permissive at the edges --
+#: node_code and the spec/class segments are legitimately EMPTY on many schools,
+#: so a {0,n} bound is correct and a {1,n} bound would reject real numbers.
+_PLACEHOLDER_CLASSES = {
+    "year_2digit": r"[0-9]{2}",
+    "school_code": r"[A-Z0-9]{1,10}",
+    "seq_4digit": r"[0-9]{3,8}",
+    "spec_code": r"[A-Z0-9]{0,6}",
+    "class_segment": r"[A-Z0-9]{0,8}",
+    "node_code": r"[A-Z0-9]{0,8}",
+}
+
+#: Numbers issued before the templated shape existed. Still accepted when a school
+#: has set no explicit pattern, so re-saving an existing student cannot fail on a
+#: number this platform itself issued.
+_LEGACY_DASHED = r"[0-9]{2}-[A-Z0-9]{2,10}-[0-9]{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}"
+
+
+def admission_number_pattern_for(policy: Dict[str, Any]) -> str:
+    """The regex an admission number must match, derived from the shape it is GIVEN.
+
+    render_admission_number's docstring states the contract: "A format the school
+    validates against has to be the format the school is given." The validator broke
+    it. When a school set no explicit admission_number_pattern, the model fell back to
+    a hardcoded regex that assumes the FULL strategy -- so any school on TEMPLATE,
+    YEAR_SEQ or SEQ_ONLY had its OWN auto-generated number rejected by its own
+    validator, and "leave blank to auto-generate" could never succeed. Measured on a
+    live school whose template is {year_2digit}{school_code}{seq_4digit}: the platform
+    issued 25GS0001 and then refused to save it.
+
+    An explicit pattern always wins -- a school that has written one has decided.
+    Otherwise the pattern is built from the same template (or strategy template) the
+    renderer uses, so the two answer about one shape.
+    """
+    explicit = (policy.get("admission_number_pattern") or "").strip()
+    if explicit:
+        return explicit
+
+    template = (policy.get("admission_number_template") or "").strip()
+    if template and not _template_is_renderable(template):
+        # render_admission_number falls through to the strategy on an unknown
+        # placeholder, so the pattern has to fall through in exactly the same place.
+        template = ""
+    if not template:
+        strategy = policy.get("admission_number_strategy") or "FULL"
+        template = _STRATEGY_TEMPLATES.get(strategy) or _STRATEGY_TEMPLATES["FULL"]
+
+    return "(^%s$|^%s$)" % (_regex_from_template(template), _LEGACY_DASHED)
+
+
+def _template_is_renderable(template: str) -> bool:
+    """True when every placeholder in the template is one the renderer offers."""
+    names = set(re.findall(r"\{([a-z0-9_]+)\}", template))
+    return bool(names) and names <= set(_PLACEHOLDER_CLASSES)
+
+
+def _regex_from_template(template: str) -> str:
+    """Turn a shape template into the regex that accepts what it renders."""
+    out = []
+    pos = 0
+    for match in re.finditer(r"\{([a-z0-9_]+)\}", template):
+        out.append(re.escape(template[pos : match.start()]))
+        out.append(_PLACEHOLDER_CLASSES.get(match.group(1), r"[A-Z0-9]{0,12}"))
+        pos = match.end()
+    out.append(re.escape(template[pos:]))
+    return "".join(out)
+
+
 def preview_admission_number(
     school,
     *,

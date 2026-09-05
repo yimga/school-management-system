@@ -74369,3 +74369,6 @@ msgstr "{{ counter }} time{% plural %}{{ counter }} times"
 
 msgid "Decide"
 msgstr "Decide"
+
+msgid "Create records"
+msgstr "Create records"

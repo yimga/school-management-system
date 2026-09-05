@@ -108,6 +108,34 @@ class StudentProfileAdminForm(forms.ModelForm):
 
 
 class TeacherProfileAdmin(ModelAdmin):
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Offer only users this profile may actually be linked to.
+
+        TeacherProfile.clean() rejects any other role, so an unfiltered dropdown is a
+        list of choices the form will refuse -- the same shape of defect as the
+        admission number that was generated and then rejected. The currently linked
+        user is always kept, so editing a teacher whose role changed later does not
+        silently drop the link.
+        """
+        if db_field.name == "user":
+            from django.db.models import Q
+
+            roles = [str(r) for r in TeacherProfile.eligible_user_roles()]
+            base = kwargs.get("queryset")
+            if base is None:
+                base = db_field.remote_field.model._default_manager.all()
+            keep = Q(role__in=roles)
+            current = getattr(request, "_rmc_teacher_user_id", None)
+            if current:
+                keep = keep | Q(pk=current)
+            kwargs["queryset"] = base.filter(keep)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Remember the linked user so the filter above can keep it."""
+        request._rmc_teacher_user_id = getattr(obj, "user_id", None)
+        return super().get_form(request, obj, **kwargs)
+
     list_display = (
         "teacher_display_in_list",
         "staff_id",

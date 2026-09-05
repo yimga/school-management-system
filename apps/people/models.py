@@ -265,13 +265,24 @@ class TeacherProfile(models.Model):
             ),
         ]
 
-    def clean(self):
-        # Ensure the linked user is a teacher-aligned role
-        allowed_roles = {
+    @staticmethod
+    def eligible_user_roles():
+        """Roles a TeacherProfile may be linked to. ONE definition, deliberately.
+
+        clean() enforces this and the admin filters its user dropdown with it. When
+        the two were separate the dropdown offered every user on the platform -- 24
+        of them on a live school, 22 of which this same clean() then refused -- so
+        the only way to discover a choice was invalid was to submit it.
+        """
+        return {
             User.Role.TEACHER,
             getattr(User.Role, "DEPT_LEAD", User.Role.TEACHER),
             getattr(User.Role, "LEADERSHIP", User.Role.TEACHER),
         }
+
+    def clean(self):
+        # Ensure the linked user is a teacher-aligned role
+        allowed_roles = self.eligible_user_roles()
         # Guard on user_id (the raw FK column), NOT self.user: during a
         # TeacherCreateForm ModelForm _post_clean the instance is validated
         # BEFORE the view attaches the user, and accessing the OneToOne
@@ -842,17 +853,25 @@ class StudentProfile(models.Model):
     def clean(self):
         """Validate admission number format from policy (admission_number_pattern)."""
         if self.admission_number:
+            # The school this row belongs to, falling back to its own FK: reading
+            # the policy for the WRONG school hands back platform defaults, and the
+            # number was rendered from the school's own shape.
             school = (
                 getattr(self.academic_year, "school", None)
                 if getattr(self, "academic_year", None)
                 else None
-            )
+            ) or getattr(self, "school", None)
             admissions = self._get_admissions_policy(school)
-            pattern = (admissions.get("admission_number_pattern") or "").strip()
-            if not pattern:
-                new_style = r"^\d{2}[A-Z0-9]{2,10}\d{4}[A-Z0-9]{2,6}[A-Z0-9]{1,4}$"
-                legacy = r"^\d{2}-[A-Z0-9]{2,10}-\d{4}-[A-Z0-9]{2,6}-[A-Z0-9]{1,4}$"
-                pattern = rf"({new_style}|{legacy})"
+            # Derived from the SAME template/strategy the number was rendered from.
+            # This used to hardcode the FULL shape whenever a school had set no
+            # explicit pattern, so a school on TEMPLATE / YEAR_SEQ / SEQ_ONLY had its
+            # own auto-generated number refused and "leave blank to auto-generate"
+            # could never succeed.
+            from apps.siteconfig.identifier_policy_service import (
+                admission_number_pattern_for,
+            )
+
+            pattern = admission_number_pattern_for(admissions)
             if not re.match(pattern, self.admission_number):
                 raise ValidationError(
                     {

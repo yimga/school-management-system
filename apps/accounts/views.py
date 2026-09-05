@@ -3558,6 +3558,14 @@ def backend_dashboard(request):
         "quick_teacher_create_url": _safe_reverse("accounts:backend_teacher_create")
         if _safe_reverse("accounts:backend_teacher_create") != "#"
         else _safe_reverse("admin:people_teacherprofile_add"),
+        # Classroom had no quick-create URL at all, and the teacher one was
+        # computed but consumed by ZERO templates -- so the only way to add a
+        # teacher or a classroom was to leave the product and use /admin/.
+        "quick_classroom_create_url": _safe_reverse(
+            "accounts:backend_classroom_create"
+        )
+        if _safe_reverse("accounts:backend_classroom_create") != "#"
+        else _safe_reverse("admin:academics_classroom_add"),
         "breadcrumbs": [
             {
                 "title": "Backend",
