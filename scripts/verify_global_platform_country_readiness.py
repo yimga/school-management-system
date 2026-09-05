@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -26,17 +27,48 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
+#: How long a child verifier may take. Was hardcoded at 180s, which is shorter than
+#: one of its own children legitimately needs on a loaded machine:
+#: verify_sovereign_offline_foundation measured 7m04s wall for 0.06s of user time --
+#: entirely contention, on a box where several agents run suites at once. The gate
+#: then aborted a push for a resource result while asserting nothing about the 249
+#: countries it exists to check.
+_CHILD_TIMEOUT_S = int(os.environ.get("RMC_GATE_CHILD_TIMEOUT_S", "600"))
+
+#: The runner renders exit 2 as SKIP rather than PASS or FAIL.
+_INCONCLUSIVE_EXIT_CODE = 2
+
+
 def _run_script(name: str) -> tuple[int, str]:
-    r = subprocess.run(
+    """Run a child verifier. Returns (code, summary); code None means it timed out."""
+    proc = subprocess.Popen(
         [sys.executable, str(REPO_ROOT / "scripts" / name)],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
-        timeout=180,
         cwd=str(REPO_ROOT),
     )
-    out = (r.stdout or r.stderr or "").strip()
-    last = out.splitlines()[-1] if out else f"exit {r.returncode}"
-    return r.returncode, last
+    try:
+        out, _ = proc.communicate(timeout=_CHILD_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        # Kill the TREE. subprocess kills only the direct child, and a grandchild
+        # holding the stdout pipe blocks the read on an EOF that never arrives.
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                capture_output=True,
+                check=False,
+            )
+        else:
+            proc.kill()
+        try:
+            proc.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            pass
+        return None, f"timed out after {_CHILD_TIMEOUT_S}s"
+    out = (out or "").strip()
+    last = out.splitlines()[-1] if out else f"exit {proc.returncode}"
+    return proc.returncode, last
 
 
 def _static_client_failures() -> list[str]:
@@ -135,9 +167,12 @@ def main() -> int:
         gate_scripts.append("verify_global_local_first_ingestion_chain.py")
         gate_scripts.append("verify_tenant_customer_250_country_matrix.py")
 
+    timed_out: list[str] = []
     for script in gate_scripts:
         code, summary = _run_script(script)
-        if code != 0:
+        if code is None:
+            timed_out.append(f"{script}: {summary}")
+        elif code != 0:
             failures.append(f"{script}: {summary}")
 
     if failures:
@@ -145,6 +180,16 @@ def main() -> int:
         for f in failures:
             print(f"  {f}")
         return 1
+
+    if timed_out:
+        # Inconclusive, not broken. A child that could not finish asserts nothing
+        # about the 249-country baseline, and reporting that as a structural failure
+        # is how a gate gets overridden by the next person who meets it.
+        print("GLOBAL_PLATFORM_COUNTRY_READINESS_INCONCLUSIVE")
+        for t in timed_out:
+            print(f"  {t}")
+        print("  Raise RMC_GATE_CHILD_TIMEOUT_S or re-run on a quiet machine.")
+        return _INCONCLUSIVE_EXIT_CODE
 
     print(
         "GLOBAL_PLATFORM_COUNTRY_READINESS_PASS "
