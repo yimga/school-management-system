@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.core.exceptions import ValidationError
+from django.db import Error as DatabaseError
 from django.db import transaction
 from django.utils import timezone
 
@@ -127,7 +129,15 @@ def record_refused_insert(
                     fields += ["payload", "requested_role"]
                 row.save(update_fields=fields)
         return row
-    except Exception:  # noqa: BLE001 — a queue write never breaks a sync cycle
+    except (DatabaseError, ValidationError, ValueError, TypeError, KeyError):
+        # Named rather than bare, and the narrowing is a design decision, not a
+        # concession to the linter. These are the failure modes a hostile or
+        # malformed row can actually produce: a database that says no, a value
+        # the field rejects, a payload the wrong shape. Swallowing those keeps
+        # the promise above -- the refusal is still correct and the cycle still
+        # finishes. Anything OUTSIDE this set is a defect in this module, and a
+        # defect that silently returns None is a defect nobody ever finds; it
+        # should surface where it can be seen and fixed.
         return None
 
 

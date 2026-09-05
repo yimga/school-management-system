@@ -2,10 +2,35 @@
   "by_surface": {
     "operator": 11,
     "shared": 13,
-    "tenant": 13
+    "tenant": 14
   },
-  "finding_count": 37,
+  "finding_count": 38,
   "findings": [
+    {
+      "bound_declaration_reason": null,
+      "bound_slice_evidence": "apps/people/views_provisioning.py in provisioning_queue: Paginator(...)",
+      "collection": "requests",
+      "columns": 5,
+      "file": "templates/people/provisioning_queue.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": true,
+      "has_real_pagination": true,
+      "line": 50,
+      "loop": "for req in requests",
+      "reasons": [
+        "2 form(s) inside repeated rows",
+        "3 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 2,
+      "row_inputs": 3,
+      "score": 7,
+      "surface": "tenant"
+    },
     {
       "bound_declaration_reason": null,
       "bound_slice_evidence": null,
@@ -944,6 +969,31 @@
   "top_findings": [
     {
       "bound_declaration_reason": null,
+      "bound_slice_evidence": "apps/people/views_provisioning.py in provisioning_queue: Paginator(...)",
+      "collection": "requests",
+      "columns": 5,
+      "file": "templates/people/provisioning_queue.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": true,
+      "has_real_pagination": true,
+      "line": 50,
+      "loop": "for req in requests",
+      "reasons": [
+        "2 form(s) inside repeated rows",
+        "3 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page."
+      ],
+      "row_actions": 2,
+      "row_controls_individuated": false,
+      "row_forms": 2,
+      "row_inputs": 3,
+      "score": 7,
+      "surface": "tenant"
+    },
+    {
+      "bound_declaration_reason": null,
       "bound_slice_evidence": null,
       "collection": "last_actions",
       "columns": 7,
@@ -1544,31 +1594,6 @@
         "Add pagination or virtualization for large collections."
       ],
       "row_actions": 1,
-      "row_controls_individuated": false,
-      "row_forms": 0,
-      "row_inputs": 0,
-      "score": 3,
-      "surface": "shared"
-    },
-    {
-      "bound_declaration_reason": null,
-      "bound_slice_evidence": null,
-      "collection": "summary.recent",
-      "columns": 6,
-      "file": "templates/super/ai_line_intent_coverage.html",
-      "has_paginate_scroll_policy": true,
-      "has_pagination": false,
-      "has_real_pagination": false,
-      "line": 57,
-      "loop": "for r in summary.recent",
-      "reasons": [
-        "6 columns",
-        "no pagination and no verified row bound"
-      ],
-      "recommendations": [
-        "Add pagination or virtualization for large collections."
-      ],
-      "row_actions": 0,
       "row_controls_individuated": false,
       "row_forms": 0,
       "row_inputs": 0,

@@ -2621,8 +2621,8 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
         # The refusal is correct and unchanged. What changed on 2026-09-04 is that it
         # now goes SOMEWHERE. This is the box->cloud direction, so the row is a person
         # who exists on a box and cannot exist here without an account — and until now
-        # the answer was to say no, every cycle, to nobody. A rebuilt Gilead box was
-        # measured refusing the same 39 teachers on all 687 cycles of one day; the rail
+        # the answer was to say no, every cycle, to nobody. One rebuilt box was measured
+        # refusing the same 39 teachers on all 687 cycles of a single day; the rail
         # behaved exactly as designed and the staff simply never existed on the cloud.
         #
         # A ProvisioningRequest is the missing half: the DATA rides up (a name, a staff

@@ -137,6 +137,27 @@ _HELD_PAYMENT = _held(
     ),
 )
 
+_HELD_PROVISIONINGREQUEST = _held(
+    rationale=(
+        "This model exists BECAUSE identity does not ride the rail, so putting it on "
+        "the rail would undo the thing it was built to do. A ProvisioningRequest is a "
+        "box asking a human on the cloud to create an account; the answer is an "
+        "authorisation decision. If the row synced, a box could write its own request, "
+        "and -- worse in the other direction -- could receive, alter, or re-open the "
+        "APPROVED/DECLINED status of one. A rail that can edit approval records is a "
+        "rail that grants access, which is the exact property "
+        "docs/EDGE_SYNC_IDENTITY_HOLD.md exists to deny. "
+        "Nothing is stranded by holding it: the box already has the person (it created "
+        "them locally), and what it needs back is the User, which arrives by the "
+        "cloud->box staff_portability path once a human approves. The request itself is "
+        "cloud-side bookkeeping about a decision, not shared operational data. "
+        "The 409 response carries id/status/times_seen so a box can still SHOW an "
+        "operator where the question went -- read-only, in the reply, never as a row it "
+        "can write."
+    ),
+    argued_in="docs/EDGE_SYNC_IDENTITY_HOLD.md",
+)
+
 _HELD_PAYMENTPROOFUPLOAD = _held(
     rationale=(
         "Held with finance.Payment and for the first of the same reasons: it has no "
@@ -255,6 +276,7 @@ DECLARATIONS: dict[str, Declaration] = {
     "people.informationtag": _NOT_YET,
     "people.passportdocument": _NOT_YET,
     "people.passportschoolinvite": _NOT_YET,
+    "people.provisioningrequest": _HELD_PROVISIONINGREQUEST,
     "people.recordmergeoperation": _NOT_YET,
     "people.retentionalert": _NOT_YET,
     "people.schooltransferbatch": _NOT_YET,
