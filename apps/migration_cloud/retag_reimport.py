@@ -172,7 +172,7 @@ def force_reimport_applied_bundle(
             blockers=["financial_guardrail_failed"],
         )
     bundle.refresh_from_db()
-    return RepairResult(
+    repair_result = RepairResult(
         ok=bundle.status in (BundleStatus.APPLIED, BundleStatus.RECONCILED),
         ran=True,
         message=(
@@ -185,6 +185,19 @@ def force_reimport_applied_bundle(
         updated=result.total_updated,
         quarantined=result.total_quarantined,
     )
+    if repair_result.ok and getattr(bundle, "school", None) is not None:
+        try:
+            from django.db import DatabaseError
+
+            from apps.migration_cloud.post_import_graph_closure import (
+                run_post_import_graph_closure,
+            )
+
+            run_post_import_graph_closure(bundle.school, bundle=bundle, dry_run=False)
+            repair_result.message += " Import graph closure ran automatically."
+        except (ImportError, DatabaseError, TypeError, ValueError):
+            pass
+    return repair_result
 
 
 def retag_and_reimport_bundle(

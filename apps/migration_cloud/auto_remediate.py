@@ -403,18 +403,18 @@ def auto_reroute_misclassified_catalog_rows(bundle, *, user=None) -> dict[str, A
 
 
 def auto_ensure_teaching_graph_closure(bundle, *, user=None) -> dict[str, Any]:
-    """Provision SubjectAssignment grid and link TeacherAssignment from import hints."""
+    """Placement, enrollment sync, then teaching grid — full import graph closure."""
     school = getattr(bundle, "school", None)
     if not school:
         return {"skipped": True, "reason": "no_school"}
 
     from .post_apply_provision import _gap_fill_enabled
-    from .teaching_graph import ensure_teaching_graph_closure_for_bundle
+    from .post_import_graph_closure import run_post_import_graph_closure
 
     if not _gap_fill_enabled(school):
         return {"skipped": True, "reason": "gap_fill_disabled"}
 
-    outcome = ensure_teaching_graph_closure_for_bundle(bundle, dry_run=False)
+    outcome = run_post_import_graph_closure(school, bundle=bundle, dry_run=False)
     summary = dict(getattr(bundle, "mapping_summary", None) or {})
     summary["teaching_graph_closure"] = {
         **outcome,

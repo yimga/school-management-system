@@ -45,12 +45,48 @@ class Command(BaseCommand):
             help="Quarantine bundle id (defaults to newest for --school).",
         )
         parser.add_argument("--json", action="store_true", dest="as_json")
+        parser.add_argument(
+            "--strict",
+            action="store_true",
+            help="Exit 1 when import graph layers have gaps (same as verify_tenant_import_closure).",
+        )
+        parser.add_argument(
+            "--classroom-probe",
+            default="",
+            help='Optional classroom name substring for acceptance probe.',
+        )
 
     def handle(self, *args, **options):
         school = self._resolve_school(options["school"])
         bundle = self._resolve_bundle(school, options.get("bundle_id"))
 
         with _tenant_schema(school):
+            if options["strict"]:
+                from apps.migration_cloud.closure_status import (
+                    build_import_graph_health_report,
+                    evaluate_import_closure_findings,
+                )
+
+                report = build_import_graph_health_report(
+                    school,
+                    bundle=bundle,
+                    classroom_probe=options.get("classroom_probe") or "",
+                )
+                findings = evaluate_import_closure_findings(report)
+                if options["as_json"]:
+                    import json
+
+                    self.stdout.write(
+                        json.dumps({**report, "findings": findings}, indent=2, default=str)
+                    )
+                else:
+                    self._print_health_report(report, findings)
+                if findings:
+                    raise CommandError(
+                        "Import graph closure gaps: " + "; ".join(findings[:5])
+                    )
+                return
+
             report = build_migration_closure_report(school, bundle=bundle)
 
         if options["as_json"]:
@@ -100,6 +136,19 @@ class Command(BaseCommand):
             )
         else:
             self.stdout.write("\nQuarantine: no bundle resolved for this school.")
+
+    def _print_health_report(self, report, findings):
+        self.stdout.write(f"School: {report['school']}")
+        self.stdout.write(f"Import graph ready: {report.get('import_graph_ready')}")
+        layers = report.get("import_graph_layers") or {}
+        for name, layer in layers.items():
+            if isinstance(layer, dict) and name != "classroom_probe":
+                status = "OK" if layer.get("ok") else "GAP"
+                self.stdout.write(f"  [{status}] {name}: {layer}")
+        if findings:
+            self.stdout.write("\nFindings:")
+            for item in findings:
+                self.stdout.write(f"  - {item}")
 
     def _resolve_school(self, token: str) -> School:
         from apps.migration_cloud.management.school_resolution import (

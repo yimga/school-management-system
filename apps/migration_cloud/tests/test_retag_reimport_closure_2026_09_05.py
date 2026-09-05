@@ -203,3 +203,4 @@ class BundleReviewRetagUiTests(TestCase):
         html = response.content.decode()
         self.assertIn('value="post_import_closure"', html)
         self.assertIn("Connect classrooms, enrollments, and teaching grid", html)
+        self.assertIn("Import graph health", html)

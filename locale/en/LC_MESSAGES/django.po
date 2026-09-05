@@ -74396,3 +74396,56 @@ msgstr ""
 "telephone directory stored as custom fields). Updating the tag alone does "
 "not move rows into Teachers, Students, or Classrooms — you must re-import "
 "with the corrected types."
+
+msgid ""
+"All import graph layers pass — teachers, placement, enrollments, teaching "
+"grid, and quarantine are wired."
+msgstr ""
+"All import graph layers pass — teachers, placement, enrollments, teaching "
+"grid, and quarantine are wired."
+
+msgid "Classroom placement"
+msgstr "Classroom placement"
+
+msgid "Counts"
+msgstr "Counts"
+
+msgid "Detection / re-import"
+msgstr "Detection / re-import"
+
+msgid "Gap"
+msgstr "Gap"
+
+msgid "Grades / evaluations"
+msgstr "Grades / evaluations"
+
+msgid "Import graph health"
+msgstr "Import graph health"
+
+msgid "Layer"
+msgstr "Layer"
+
+msgid "None yet"
+msgstr "None yet"
+
+msgid "Re-import needed"
+msgstr "Re-import needed"
+
+msgid "Record types changed after apply"
+msgstr "Record types changed after apply"
+
+msgid ""
+"Some import graph layers still have gaps. Use Re-import or Connect below, "
+"then re-check this panel."
+msgstr ""
+"Some import graph layers still have gaps. Use Re-import or Connect below, "
+"then re-check this panel."
+
+msgid "{{ n }} evaluation row(s)"
+msgstr "{{ n }} evaluation row(s)"
+
+msgid "{{ n }} student(s) without classroom"
+msgstr "{{ n }} student(s) without classroom"
+
+msgid "{{ t }} teachers · {{ s }} students"
+msgstr "{{ t }} teachers · {{ s }} students"

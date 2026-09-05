@@ -1292,15 +1292,14 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         if school is None:
             messages.error(request, "This import is not bound to a school.")
             return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
-        from apps.migration_cloud.enrollment_sync import sync_all_enrollments_for_school
-        from apps.migration_cloud.student_placement_backfill import (
-            backfill_student_classrooms_for_school,
+        from apps.migration_cloud.post_import_graph_closure import (
+            run_post_import_graph_closure,
         )
-        from apps.migration_cloud.teaching_graph import ensure_teaching_graph_closure
 
-        classrooms = backfill_student_classrooms_for_school(school, dry_run=False)
-        enrollments = sync_all_enrollments_for_school(school, dry_run=False)
-        graph = ensure_teaching_graph_closure(school, dry_run=False)
+        outcome = run_post_import_graph_closure(school, bundle=bundle, dry_run=False)
+        classrooms = outcome.get("classroom_backfill") or {}
+        enrollments = outcome.get("enrollment_sync") or {}
+        graph = outcome.get("teaching_graph") or {}
         messages.success(
             request,
             (
@@ -1882,13 +1881,21 @@ def _build_migration_closure_summary(bundle):
             BundleStatus.RECONCILED,
         ):
             return None
-        from apps.migration_cloud.closure_status import build_migration_closure_report
+        from apps.migration_cloud.closure_status import build_import_graph_health_report
 
-        report = build_migration_closure_report(school, bundle=bundle)
+        report = build_import_graph_health_report(school, bundle=bundle)
         quarantine = report.get("quarantine") or {}
+        layers = report.get("import_graph_layers") or {}
         return {
             "playbook_ready": bool(report.get("playbook_ready")),
+            "import_graph_ready": bool(report.get("import_graph_ready")),
             "held_rows_pending": int(quarantine.get("held_rows_pending") or 0),
+            "layers": layers,
+            "teachers": (layers.get("people") or {}).get("teachers"),
+            "students_active": (layers.get("people") or {}).get("students_active"),
+            "missing_classroom": (layers.get("placement") or {}).get("missing_classroom"),
+            "evaluation_rows": (layers.get("grades") or {}).get("evaluation_rows"),
+            "needs_reimport": (layers.get("detection") or {}).get("needs_reimport"),
         }
     except Exception:  # noqa: BLE001 — panel must never break review
         logger.debug(

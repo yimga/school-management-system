@@ -153,18 +153,89 @@ any locale can't break the inline script's string literals.
 {% endif %}
 
 {% if migration_closure_summary %}
-<section class="rmc-card mb-4{% if migration_closure_summary.playbook_ready %} border-success{% else %} border-warning{% endif %}" aria-labelledby="mc-closure-summary-heading" id="mc-closure-summary">
-  <h2 id="mc-closure-summary-heading" class="h5">{% trans "Post-import playbook status" %}</h2>
-  {% if migration_closure_summary.playbook_ready %}
-  <p class="text-success mb-0">{% trans "All closure checks pass — catalog, teaching graph, people directory, finance, and quarantine are ready." %}</p>
+<section class="rmc-card mb-4{% if migration_closure_summary.import_graph_ready %} border-success{% else %} border-warning{% endif %}" aria-labelledby="mc-closure-summary-heading" id="mc-closure-summary">
+  <h2 id="mc-closure-summary-heading" class="h5">{% trans "Import graph health" %}</h2>
+  {% if migration_closure_summary.import_graph_ready %}
+  <p class="text-success mb-2">{% trans "All import graph layers pass — teachers, placement, enrollments, teaching grid, and quarantine are wired." %}</p>
   {% else %}
-  <p class="text-warning mb-2">{% trans "Some closure steps still need attention. Run remediate_tenant_post_import or use the readiness panels below." %}</p>
+  <p class="text-warning mb-2">{% trans "Some import graph layers still have gaps. Use Re-import or Connect below, then re-check this panel." %}</p>
+  {% endif %}
+  <div class="table-responsive">
+    <table class="table table-sm rmc-data-table mb-2">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Layer" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Counts" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if migration_closure_summary.needs_reimport %}
+        <tr>
+          <td>{% trans "Detection / re-import" %}</td>
+          <td><span class="badge text-bg-warning">{% trans "Re-import needed" %}</span></td>
+          <td class="small text-muted">{% trans "Record types changed after apply" %}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td>{% trans "Detection / re-import" %}</td>
+          <td><span class="badge text-bg-success">{% trans "OK" %}</span></td>
+          <td class="small text-muted">—</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td>{% trans "People" %}</td>
+          <td>
+            {% if migration_closure_summary.teachers %}
+            <span class="badge text-bg-success">{% trans "OK" %}</span>
+            {% else %}
+            <span class="badge text-bg-warning">{% trans "Gap" %}</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {% blocktrans with t=migration_closure_summary.teachers s=migration_closure_summary.students_active %}
+            {{ t }} teachers · {{ s }} students
+            {% endblocktrans %}
+          </td>
+        </tr>
+        <tr>
+          <td>{% trans "Classroom placement" %}</td>
+          <td>
+            {% if migration_closure_summary.missing_classroom %}
+            <span class="badge text-bg-warning">{% trans "Gap" %}</span>
+            {% else %}
+            <span class="badge text-bg-success">{% trans "OK" %}</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {% blocktrans with n=migration_closure_summary.missing_classroom %}
+            {{ n }} student(s) without classroom
+            {% endblocktrans %}
+          </td>
+        </tr>
+        <tr>
+          <td>{% trans "Grades / evaluations" %}</td>
+          <td>
+            {% if migration_closure_summary.evaluation_rows %}
+            <span class="badge text-bg-success">{% trans "OK" %}</span>
+            {% else %}
+            <span class="badge text-bg-secondary">{% trans "None yet" %}</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {% blocktrans with n=migration_closure_summary.evaluation_rows %}
+            {{ n }} evaluation row(s)
+            {% endblocktrans %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <p class="small text-muted mb-0">
     {% blocktrans with held=migration_closure_summary.held_rows_pending %}
     {{ held }} held row(s) still pending in this bundle.
     {% endblocktrans %}
   </p>
-  {% endif %}
 </section>
 {% endif %}
 
