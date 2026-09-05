@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.db import DatabaseError
+
 
 def _class_label_for_student(student) -> str:
     attrs = getattr(student, "custom_attributes", None) or {}
@@ -78,14 +80,14 @@ def backfill_student_classrooms_for_school(school, *, dry_run: bool = False) -> 
         try:
             _link_student_classroom(student, row, ctx, model_fields, result)
             student.refresh_from_db()
-        except Exception:  # noqa: BLE001
+        except (DatabaseError, TypeError, ValueError):
             summary["failed"] += 1
             continue
         if getattr(student, "classroom_id", None) and student.classroom_id != before_id:
             summary["placed"] += 1
             try:
                 sync_enrollment_from_student_profile(student)
-            except Exception:  # noqa: BLE001
+            except (ImportError, DatabaseError, TypeError, ValueError):
                 pass
         else:
             summary["skipped"] += 1

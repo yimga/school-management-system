@@ -2,13 +2,18 @@
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
 from unittest import mock
 
-from django.conf import settings
-from django.test import SimpleTestCase, TestCase
+from django.contrib.messages.storage.fallback import FallbackStorage
+from django.test import RequestFactory, SimpleTestCase, TestCase
 
-from apps.migration_cloud.models import BundleStatus, MigrationArtifact, MigrationBundle
+from apps.accounts.models import User
+from apps.migration_cloud.models import (
+    BundleStatus,
+    IntakeMethod,
+    MigrationArtifact,
+    MigrationBundle,
+)
 from apps.migration_cloud.retag_reimport import (
     bundle_needs_reimport_after_retag,
     retag_and_reimport_bundle,
@@ -17,7 +22,13 @@ from apps.migration_cloud.student_placement_backfill import (
     _class_label_for_student,
     backfill_student_classrooms_for_school,
 )
-from apps.schools.models import School
+from apps.migration_cloud.views_tenant_upload import TenantMigrationReviewView
+from apps.schools.models import School, SchoolMembership
+
+_MOCK_REVERSE = mock.patch(
+    "apps.migration_cloud.views_tenant_upload._connector_reverse",
+    side_effect=lambda request, name, **kwargs: f"/mock/{name}/",
+)
 
 
 class BundleNeedsReimportTests(SimpleTestCase):
@@ -118,11 +129,77 @@ class StudentPlacementBackfillTests(TestCase):
         self.assertEqual(summary["skipped"], 1)
 
 
-class BundleReviewTemplateTests(SimpleTestCase):
-    def test_reimport_and_closure_actions_present(self):
-        path = Path(settings.BASE_DIR) / "templates/migration_cloud/connector/bundle_review.html"
-        text = path.read_text(encoding="utf-8")
-        self.assertIn('value="retag_reimport"', text)
-        self.assertIn("catalog_reimport_needed", text)
-        self.assertIn('value="post_import_closure"', text)
-        self.assertIn("Connect classrooms, enrollments, and teaching grid", text)
+class BundleReviewRetagUiTests(TestCase):
+    def setUp(self):
+        slug = f"retag-ui-{uuid.uuid4().hex[:8]}"
+        self.school = School.objects.create(
+            name="Retag UI School",
+            slug=slug,
+            subdomain=slug,
+            is_active=True,
+        )
+        self.admin = User.objects.create_user(
+            username=f"retag-ui-{uuid.uuid4().hex[:8]}",
+            password="x",
+            role=User.Role.ADMIN,
+        )
+        SchoolMembership.objects.create(
+            user=self.admin,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
+        self.bundle = MigrationBundle.objects.create(
+            school=self.school,
+            label="mis-tagged-staff",
+            intake_method=IntakeMethod.FILE_UPLOAD,
+            idempotency_key=f"retag-ui-{uuid.uuid4().hex}",
+            status=BundleStatus.APPLIED,
+            discovery_summary={
+                "per_artifact_domain": {
+                    "telephone.xlsx": {"domain": "custom_fields"},
+                }
+            },
+        )
+        MigrationArtifact.objects.create(
+            bundle=self.bundle,
+            filename="telephone.xlsx",
+            path_within_bundle="telephone.xlsx",
+            assigned_domain="staff",
+            quarantined=False,
+        )
+        self.factory = RequestFactory()
+
+    def _get_review(self):
+        request = self.factory.get(
+            "/school/setup/migration-cloud/bundle/review/",
+            HTTP_SEC_FETCH_DEST="document",
+        )
+        request.user = self.admin
+        request.school = self.school
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        return TenantMigrationReviewView.as_view()(request, bundle_id=self.bundle.pk)
+
+    @_MOCK_REVERSE
+    def test_reimport_banner_emits_post_action(self, _reverse):
+        response = self._get_review()
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('value="retag_reimport"', html)
+        self.assertIn("Record types were corrected but data has not been re-imported yet", html)
+
+    @_MOCK_REVERSE
+    def test_post_import_closure_button_when_graph_incomplete(self, _reverse):
+        readiness = mock.Mock(
+            ready_for_grades=False,
+            ready_for_timetable_view=True,
+        )
+        with mock.patch(
+            "apps.migration_cloud.views_tenant_upload._build_teaching_graph_readiness",
+            return_value=readiness,
+        ):
+            response = self._get_review()
+        html = response.content.decode()
+        self.assertIn('value="post_import_closure"', html)
+        self.assertIn("Connect classrooms, enrollments, and teaching grid", html)

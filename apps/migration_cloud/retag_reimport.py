@@ -35,7 +35,7 @@ def bundle_needs_reimport_after_retag(bundle: MigrationBundle) -> bool:
         from apps.migration_cloud.catalog_preflight import assess_bundle_catalog_routing
 
         report = assess_bundle_catalog_routing(bundle)
-    except Exception:  # noqa: BLE001
+    except (ImportError, AttributeError, TypeError, ValueError):
         report = {"artifacts": []}
     for finding in report.get("artifacts") or []:
         if not isinstance(finding, dict):
