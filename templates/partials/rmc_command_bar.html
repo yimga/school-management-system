@@ -52,7 +52,7 @@
   </div>
 </div>
 <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-command-bar-i18n">{
-  "openLabel": "{% trans 'Open command bar' %}",
-  "closeLabel": "{% trans 'Close command bar' %}",
-  "noResults": "{% trans 'No matching commands.' %}"
+  "openLabel": "{% filter escapejs %}{% trans 'Open command bar' %}{% endfilter %}",
+  "closeLabel": "{% filter escapejs %}{% trans 'Close command bar' %}{% endfilter %}",
+  "noResults": "{% filter escapejs %}{% trans 'No matching commands.' %}{% endfilter %}"
 }</script>

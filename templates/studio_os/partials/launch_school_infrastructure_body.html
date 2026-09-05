@@ -139,8 +139,8 @@
 </section>
 <script type="application/json" id="page-data-studio_os__partials__launch_school_infrastructure_body-1">{
   "url_studio_os_school_infrastructure_preview_api": "{% url 'studio_os:school_infrastructure_preview_api' %}",
-  "trans_rollback_is_flagged_as_supported_for_this_template_platform_governed": "{% trans "Rollback is flagged as supported for this template (platform-governed)." %}",
-  "trans_rollback_disabled_for_tenant_apply_use_platform_rollback_when_available": "{% trans "Rollback disabled for tenant apply; use platform rollback when available." %}",
-  "trans_tenant_apply_may_be_supported_for_this_template_in_future_releases": "{% trans "Tenant apply may be supported for this template in future releases." %}",
-  "trans_one_click_tenant_apply_is_not_enabled_request_changes_via_your_platform_administrator": "{% trans "One-click tenant apply is not enabled; request changes via your platform administrator." %}"
+  "trans_rollback_is_flagged_as_supported_for_this_template_platform_governed": "{% filter escapejs %}{% trans "Rollback is flagged as supported for this template (platform-governed)." %}{% endfilter %}",
+  "trans_rollback_disabled_for_tenant_apply_use_platform_rollback_when_available": "{% filter escapejs %}{% trans "Rollback disabled for tenant apply; use platform rollback when available." %}{% endfilter %}",
+  "trans_tenant_apply_may_be_supported_for_this_template_in_future_releases": "{% filter escapejs %}{% trans "Tenant apply may be supported for this template in future releases." %}{% endfilter %}",
+  "trans_one_click_tenant_apply_is_not_enabled_request_changes_via_your_platform_administrator": "{% filter escapejs %}{% trans "One-click tenant apply is not enabled; request changes via your platform administrator." %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/studio_os__partials__launch_school_infrastructure_body-1.js' %}"></script>

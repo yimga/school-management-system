@@ -299,13 +299,13 @@
   </div>
 
   <script type="application/json" id="page-data-siteconfig__partials__reportcard_builder_inner-1">{
-  "trans_draft_status": "{% trans 'Draft status' %}",
-  "trans_unsaved_changes": "{% trans 'Unsaved changes' %}",
-  "trans_draft_status_2": "{% trans 'Draft status' %}",
-  "trans_saved": "{% trans 'Saved' %}",
-  "trans_live_preview": "{% trans 'Live preview' %}",
-  "trans_not_loaded": "{% trans 'Not loaded' %}",
-  "trans_live_preview_2": "{% trans 'Live preview' %}",
+  "trans_draft_status": "{% filter escapejs %}{% trans 'Draft status' %}{% endfilter %}",
+  "trans_unsaved_changes": "{% filter escapejs %}{% trans 'Unsaved changes' %}{% endfilter %}",
+  "trans_draft_status_2": "{% filter escapejs %}{% trans 'Draft status' %}{% endfilter %}",
+  "trans_saved": "{% filter escapejs %}{% trans 'Saved' %}{% endfilter %}",
+  "trans_live_preview": "{% filter escapejs %}{% trans 'Live preview' %}{% endfilter %}",
+  "trans_not_loaded": "{% filter escapejs %}{% trans 'Not loaded' %}{% endfilter %}",
+  "trans_live_preview_2": "{% filter escapejs %}{% trans 'Live preview' %}{% endfilter %}",
   "var_preview_default_style_slug_escapejs": "{{ preview_default_style_slug|escapejs|escapejs }}"
 }</script><script src="{% static 'js/_pages/siteconfig__partials__reportcard_builder_inner-1.js' %}"></script>
   

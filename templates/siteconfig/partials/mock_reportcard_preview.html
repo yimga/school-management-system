@@ -107,7 +107,7 @@
   "url_siteconfig_reportcard_style_embed_preview_2": "{% url 'siteconfig:reportcard_style_embed_preview' 'STYLE_PLACEHOLDER' 'annual' %}",
   "url_siteconfig_reportcard_style_pdf": "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'term' %}",
   "url_siteconfig_reportcard_style_pdf_2": "{% url 'siteconfig:reportcard_style_pdf' 'STYLE_PLACEHOLDER' 'annual' %}",
-  "trans_open_annual_pdf": "{% trans 'Open annual PDF' %}",
-  "trans_open_term_pdf": "{% trans 'Open term PDF' %}"
+  "trans_open_annual_pdf": "{% filter escapejs %}{% trans 'Open annual PDF' %}{% endfilter %}",
+  "trans_open_term_pdf": "{% filter escapejs %}{% trans 'Open term PDF' %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/siteconfig__partials__mock_reportcard_preview-1.js' %}"></script>
 {% endif %}

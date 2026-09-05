@@ -16,6 +16,6 @@
   <p class="small text-muted mt-2 mb-0 d-none was-helpful-thanks">{% trans "Thanks for your feedback." %}</p>
 </div>
 <script type="application/json" id="page-data-components__was_this_helpful-1">{
-  "trans_thanks_for_your_feedback": "{% trans "Thanks for your feedback!" %}",
-  "trans_feedback_will_improve": "{% trans "We'll use your feedback to improve." %}"
+  "trans_thanks_for_your_feedback": "{% filter escapejs %}{% trans "Thanks for your feedback!" %}{% endfilter %}",
+  "trans_feedback_will_improve": "{% filter escapejs %}{% trans "We'll use your feedback to improve." %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/components__was_this_helpful-1.js' %}"></script>

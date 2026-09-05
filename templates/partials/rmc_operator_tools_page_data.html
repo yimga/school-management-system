@@ -37,7 +37,7 @@ Pairs with rmc-operator-tools-tray.js on manager / control-plane shells.
     "messages": "{% filter escapejs %}{% url 'accounts:user_messages' %}{% endfilter %}"
   },
   "counts": {
-    "incidents": {% if platform_incidents %}{{ platform_incidents|length }}{% elif attention_school_count %}{{ attention_school_count }}{% else %}0{% endif %}
+    "incidents": {% if platform_incidents %}{{ platform_incidents|length|escapejs }}{% elif attention_school_count %}{{ attention_school_count|escapejs }}{% else %}0{% endif %}
   },
   "page": {{ TOOLS_TRAY_PAGE_JSON|default:"{}"|safe }}
 }</script>

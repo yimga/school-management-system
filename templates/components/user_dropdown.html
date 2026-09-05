@@ -358,7 +358,7 @@ JSON data island so the inline executable script can be removed
 {% endcomment %}
 <script type="application/json" id="user-dropdown-config">{
   "profileUrl": "{% url 'accounts:user_profile' %}",
-  "preferencesUrl": "{% url 'siteconfig:user_preferences' as p %}{{ p }}",
+  "preferencesUrl": "{% url 'siteconfig:user_preferences' as p %}{{ p|escapejs }}",
   "logoutUrl": "{% url 'accounts:logout' %}"
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
