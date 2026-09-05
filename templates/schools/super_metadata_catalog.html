@@ -87,6 +87,7 @@
       <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-scroll-policy="paginate" aria-label="Metadata catalog entities and field impact" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "Entity" %}</th>
             <th scope="col">{% trans "Name" %}</th>
             <th scope="col" class="text-end">{% trans "Fields" %}</th>
@@ -97,6 +98,7 @@
         <tbody>
           {% for ent in entities %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td><code>{{ ent.code }}</code></td>
             <td>{{ ent.name }}</td>
             <td class="text-end">{{ ent.field_count }}</td>

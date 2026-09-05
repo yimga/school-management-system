@@ -44,6 +44,7 @@
             <caption class="visually-hidden">{% trans "School Health Monitor" %}</caption>
             <thead class="table-light">
               <tr>
+                {% include "components/_list_row_number_head.html" %}
                 <th scope="col">{% trans "School" %}</th>
                 <th scope="col">{% trans "Slug" %}</th>
                 <th scope="col">{% trans "Sector" %}</th>
@@ -69,6 +70,7 @@
                   data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ tenant_360_url|escapejs }}","variant":"primary"}]'
                   data-rmc-fleet-state="{{ t.fleet_status.fleet_state|default:'' }}"
                   data-rmc-fleet-tier="{{ t.fleet_status.heatmap_tier|default:'' }}">
+                {% include "components/_list_row_number_cell.html" %}
                 <td><strong>{{ t.name }}</strong></td>
                 <td><code>{{ t.slug }}</code></td>
                 <td>{{ t.primary_sector|default:"—" }}</td>

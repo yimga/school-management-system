@@ -1,0 +1,140 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% comment %}Access requests: the human half of the edge identity handshake.
+
+A box cannot create a person who needs a login -- the sync rail refuses it, and
+that refusal is correct, because a rail that mints identities is a rail that
+grants access. This screen is where the refusal becomes a question somebody can
+answer. Approving creates the account carrying the box's own anchor, so the next
+sync recognises the two rows as one person instead of duplicating them.
+
+"Asked N times" is on the row on purpose. A box re-submits every cycle; one that
+has asked 687 times is the number that makes a person act.{% endcomment %}
+{% block backend_title %}{% trans "Access requests" %} - Backend{% endblock %}
+
+{% block backend_page %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <div class="row">
+    <div class="col-12">
+      <div class="mb-2">
+        <h1 class="h3 mb-1">{% trans "Access requests" %}</h1>
+        <p class="text-muted small mb-0">{% trans "People created on an offline box who need an account here. Nothing was created for them: approving is what brings the account into existence, and they still cannot sign in until you invite them." %}</p>
+      </div>
+
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} py-2 small">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="get" class="card card-body bg-light mb-3 page-family-filter-row">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-4">
+            <label for="req-status" class="form-label small">{% trans "Status" %}</label>
+            <select id="req-status" name="status" class="form-select form-select-sm" data-rmc-submit-on-change>
+              <option value="">{% trans "All" %}</option>
+              {% for value, label in status_choices %}
+              <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-8">
+            <p class="small text-muted mb-0">{% blocktrans count counter=pending_count %}{{ counter }} request waiting.{% plural %}{{ counter }} requests waiting.{% endblocktrans %}</p>
+          </div>
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Access requests">
+            <thead>
+              <tr>
+                {% include "components/_list_row_number_head.html" %}
+                <th scope="col">{% trans "Person" %}</th>
+                <th scope="col">{% trans "Kind" %}</th>
+                <th scope="col">{% trans "Asked" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Decision" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in requests %}
+              <tr>
+                {% include "components/_list_row_number_cell.html" %}
+                <td>
+                  <div class="fw-semibold">{{ req.display_name }}</div>
+                  <div class="small text-muted">
+                    {% if req.payload.staff_id %}{{ req.payload.staff_id }}{% endif %}
+                    {% if req.payload.phone %} · {{ req.payload.phone }}{% endif %}
+                    {% if req.requested_role %} · {% trans "box called them" %} {{ req.requested_role }}{% endif %}
+                  </div>
+                  {% if req.payload.student_candidate_note %}
+                  <div class="small text-warning-emphasis">{{ req.payload.student_candidate_note }}</div>
+                  {% endif %}
+                </td>
+                <td class="small">{{ req.entity_type }}</td>
+                <td class="small" title="{{ req.first_seen_at }}">{% blocktrans count counter=req.times_seen %}{{ counter }} time{% plural %}{{ counter }} times{% endblocktrans %}</td>
+                <td><span class="rmc-badge{% if req.status == 'PENDING' %} rmc-badge--warning{% elif req.status == 'APPROVED' %} rmc-badge--success{% endif %}">{{ req.get_status_display }}</span></td>
+                <td>
+                  {% if req.status == 'PENDING' %}
+                  <details>
+                    <summary class="btn btn-sm btn-outline-primary">{% trans "Decide" %}</summary>
+                  <form method="post" action="{% url 'accounts:provisioning_approve' req.pk %}" class="d-flex flex-wrap gap-1 align-items-center mb-1">
+                    {% csrf_token %}
+                    <select name="role" class="form-select form-select-sm w-auto" aria-label="{% trans 'Role to grant' %}">
+                      {% for value, label in assignable_roles %}
+                      <option value="{{ value }}" {% if req.requested_role == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                    {% if req.entity_type == 'student_guardian' %}
+                    {# The box's student number does not name the same child here, so a person picks it. #}
+                    <input type="text" name="student_id" class="form-control form-control-sm w-auto" style="max-width:11rem"
+                           placeholder="{% trans 'Student ID' %}"
+                           value="{{ req.payload.student_candidate_pk|default:'' }}"
+                           aria-label="{% trans 'Student this guardian belongs to' %}">
+                    {% endif %}
+                    <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
+                  </form>
+                  <form method="post" action="{% url 'accounts:provisioning_decline' req.pk %}" class="d-flex gap-1">
+                    {% csrf_token %}
+                    <input type="text" name="reason" class="form-control form-control-sm w-auto" style="max-width:11rem" placeholder="{% trans 'Reason (optional)' %}" aria-label="{% trans 'Reason for declining' %}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Decline" %}</button>
+                  </form>
+                  </details>
+                  {% else %}
+                  <div class="small text-muted">
+                    {% if req.decided_by %}{{ req.decided_by.get_full_name|default:req.decided_by.username }}{% endif %}
+                    {% if req.decided_at %} · {{ req.decided_at|date:"Y-m-d" }}{% endif %}
+                    {% if req.decline_reason %}<div>{{ req.decline_reason }}</div>{% endif %}
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">{% trans "No access requests. A box that creates staff offline will show them here." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if page_obj %}
+        <div class="card-footer">
+          <nav aria-label="{% trans 'Pagination' %}">
+            <ul class="pagination pagination-sm mb-0 rmc-pagination">
+              {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link rmc-pagination__link" href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}">{% trans "Previous" %}</a></li>
+              {% endif %}
+              <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+              {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link rmc-pagination__link" href="?page={{ page_obj.next_page_number }}&status={{ selected_status }}">{% trans "Next" %}</a></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

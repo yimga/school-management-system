@@ -816,6 +816,63 @@ OPS_CLINIC_ROLE_CODES: frozenset[str] = frozenset(
     {"ADMIN", "LEADERSHIP", "PRINCIPAL"}
 )
 
+# The staff who actually RUN each ops module, added to the broad ops roles for
+# that module only (2026-09-04).
+#
+# Before this, the only way into any of these screens was to already be an
+# ADMIN / LEADERSHIP / PRINCIPAL / IT_ADMIN / HOD / DEAN. So the librarian could
+# not open the library, the nurse could not open the clinic, and the storekeeper
+# could not see the stores -- the modules existed and the jobs existed and the
+# two could not be connected. Granting these people the broad ops role instead
+# would have been the wrong repair: it opens every OTHER module too, which is
+# how a driver ends up reading the visitor log.
+#
+# Per-module, therefore, and additive: nobody loses access they had.
+OPS_MODULE_EXTRA_ROLE_CODES: dict[str, frozenset[str]] = {
+    "library": frozenset({"LIBRARIAN"}),
+    "transport": frozenset({"DRIVER"}),
+    "inventory": frozenset({"STOREKEEPER", "LAB_TECHNICIAN"}),
+    "canteen": frozenset({"CATERING_STAFF"}),
+    "pos_stub": frozenset({"CATERING_STAFF"}),
+    "clinic": frozenset({"NURSE"}),
+    "visitor_log": frozenset({"SECURITY", "RECEPTIONIST"}),
+    "facilities_ops": frozenset({"MAINTENANCE"}),
+    "timetabling": frozenset({"COORDINATOR"}),
+}
+
+# Modules whose BASE role set is narrower than general ops. The clinic holds
+# health data, so it keeps its own smaller set and the nurse is added to that,
+# not to the wider one.
+_OPS_MODULE_BASE_CODES: dict[str, frozenset[str]] = {
+    "clinic": OPS_CLINIC_ROLE_CODES,
+}
+
+
+def user_can_access_ops_module(module: str):
+    """Build the ``@user_passes_test`` predicate for one ops module.
+
+    Returns a callable, so it is used as
+    ``@user_passes_test(user_can_access_ops_module("library"))`` -- evaluated
+    once at import time, like any other decorator argument.
+
+    An unknown module name falls back to the broad ops roles, which is the
+    behaviour every one of these views had before: a typo loses the module's own
+    staff, it never opens the view to somebody who was locked out of it.
+    """
+    base = _OPS_MODULE_BASE_CODES.get(module, OPS_EXTENDED_MODULE_ROLE_CODES)
+    codes = base | OPS_MODULE_EXTRA_ROLE_CODES.get(module, frozenset())
+
+    def _check(user) -> bool:
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+            return True
+        return api_user_has_any_role(user, codes)
+
+    _check.__name__ = "user_can_access_ops_module_%s" % module
+    _check.__doc__ = "Ops module %r: %s" % (module, ", ".join(sorted(codes)))
+    return _check
+
 
 def user_can_access_ops_extended_modules(user) -> bool:
     """

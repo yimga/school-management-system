@@ -256,7 +256,15 @@ try:
         backend_applicant_enroll,
         alumni_list,
     )
-    from apps.people.views_backend_bulk import backend_student_bulk_status
+    from apps.people.views_backend_bulk import (
+        backend_staff_bulk_role,
+        backend_student_bulk_status,
+    )
+    from apps.people.views_provisioning import (
+        provisioning_approve,
+        provisioning_decline,
+        provisioning_queue,
+    )
 
     BACKEND_PEOPLE_AVAILABLE = True
 except ImportError:
@@ -1007,6 +1015,34 @@ urlpatterns = [
         "backend/students/bulk/status/",
         backend_student_bulk_status,
         name="backend_student_bulk_status",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/staff/bulk/role/",
+        backend_staff_bulk_role,
+        name="backend_staff_bulk_role",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/access-requests/",
+        provisioning_queue,
+        name="provisioning_queue",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/access-requests/<int:pk>/approve/",
+        provisioning_approve,
+        name="provisioning_approve",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/access-requests/<int:pk>/decline/",
+        provisioning_decline,
+        name="provisioning_decline",
     )
     if BACKEND_PEOPLE_AVAILABLE
     else None,

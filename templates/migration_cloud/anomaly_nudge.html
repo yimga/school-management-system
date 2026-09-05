@@ -194,6 +194,7 @@
             <caption class="visually-hidden">{% trans "Low-confidence mappings" %}</caption>
             <thead>
               <tr>
+                {% include "components/_list_row_number_head.html" %}
                 <th scope="col">{% trans "Artifact" %}</th>
                 <th scope="col">{% trans "Source column" %}</th>
                 <th scope="col">{% trans "Canonical" %}</th>
@@ -205,6 +206,7 @@
             <tbody>
               {% for m in low_conf_mappings %}
               <tr>
+                {% include "components/_list_row_number_cell.html" %}
                 <td>{{ m.artifact }}</td>
                 <td>{{ m.source_column }}</td>
                 <td>{{ m.canonical_field }}</td>

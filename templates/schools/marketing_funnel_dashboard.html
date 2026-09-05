@@ -89,9 +89,11 @@
       <!-- large-collection-allow: dashboard-widget-capped-list -->
 <table class="table table-sm table-bordered">
         <caption class="visually-hidden">{% trans "Tenant lifecycle (recent schools sample)" %}</caption>
+        <thead><tr>{% include "components/_list_row_number_head.html" %}
         <thead><tr><th scope="col">{% trans "State" %}</th><th scope="col">{% trans "Schools (sample)" %}</th></tr></thead>
         <tbody>
           {% for k, v in growth.lifecycle_distribution_sample.items %}
+          <tr>{% include "components/_list_row_number_cell.html" %}
           <tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>
           {% endfor %}
         </tbody>

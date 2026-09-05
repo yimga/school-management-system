@@ -1,9 +1,9 @@
 {
   "version": "2026-06-02",
-  "generated_utc": "2026-09-02T19:58:38Z",
+  "generated_utc": "2026-09-05T00:26:33Z",
   "enhanced": {
     "path": "static/css/portal-shell-enhanced.min.css",
-    "bytes": 855743,
+    "bytes": 856050,
     "sources": [
       {
         "path": "static/css/rmc-bulk-actions.css",
@@ -167,8 +167,8 @@
       },
       {
         "path": "static/css/rmc-list-bulk-select.css",
-        "sha256": "a0e6022974ec9b41afccdd30a7ace2238e1cb00595e0114f4d9aa39ea1ada772",
-        "bytes": 4527
+        "sha256": "13c8481a79e1b3c8611548f60196f8b42306a5a6b562348933b4d0a7568beab2",
+        "bytes": 5393
       },
       {
         "path": "static/css/rmc-account-security-chip.css",

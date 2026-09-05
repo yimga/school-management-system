@@ -72,6 +72,7 @@
         <table class="table table-hover align-middle mb-0 table-family rmc-data-table" aria-label="Access requests: reference, type, requester, status, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead>
             <tr>
+              {% include "components/_list_row_number_head.html" %}
               <th scope="col"><span class="visually-hidden">{% trans "Select" %}</span></th>
               <th scope="col">{% trans "Reference" %}</th>
               <th scope="col">{% trans "Type" %}</th>
@@ -84,6 +85,7 @@
           <tbody>
             {% for req in requests %}
               <tr>
+                {% include "components/_list_row_number_cell.html" %}
                 <td>
                   {% if req.status == 'PENDING' %}
                   <input class="form-check-input" type="checkbox" name="request_ids" value="{{ req.id }}"

@@ -2105,3 +2105,6 @@ from apps.people.models_identifier_sequence import (  # noqa: E402,F401
     AdmissionNumberSequence,
     allocate_admission_seq,
 )
+from apps.people.models_provisioning import (  # noqa: E402,F401
+    ProvisioningRequest,
+)

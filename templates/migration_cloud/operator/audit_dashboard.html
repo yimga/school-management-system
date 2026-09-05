@@ -59,6 +59,7 @@
     <caption class="visually-hidden">{{ page_title|default:"Audit log" }}</caption>
     <thead>
       <tr>
+        {% include "components/_list_row_number_head.html" %}
         <th scope="col">{% trans "Event" %}</th>
         <th scope="col">{% trans "Tenant" %}</th>
         <th scope="col">{% trans "Actor" %}</th>
@@ -72,6 +73,7 @@
     <tbody>
       {% for r in rows %}
       <tr>
+        {% include "components/_list_row_number_cell.html" %}
         <td><code class="rmc-kbd">{{ r.event_type }}</code></td>
         <td><code>{{ r.tenant_id_hash }}</code></td>
         <td>{% if r.actor_id_truncated %}<code>{{ r.actor_id_truncated }}…</code>{% else %}<span class="rmc-pill rmc-pill--muted">system</span>{% endif %}</td>

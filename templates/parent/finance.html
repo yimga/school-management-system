@@ -232,6 +232,7 @@
           <table class="table align-middle table-mobile-cards table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Your invoices: reference, student, due date, status, total, balance, and actions' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <thead class="table-light">
             <tr>
+              {% include "components/_list_row_number_head.html" %}
               <th scope="col">{% trans "Reference" %}</th>
               <th scope="col">{% trans_term "Student" key="student" %}</th>
               <th scope="col">{% trans "Due & status" %}</th>
@@ -247,6 +248,7 @@
                   data-rmc-row-title="{{ invoice.reference|default:invoice.id }}"
                   data-rmc-row-subtitle="{{ invoice.student|default:'-' }}"
                   data-rmc-row-meta='{"{% trans "MoMo code" %}":"{{ invoice.payment_code|default:"—"|escapejs }}","{% trans "Method" %}":"{{ row.preferred_method|escapejs }}","{% trans "Total" %}":"{{ invoice.total_amount|format_currency|escapejs }}","{% trans "Attachment" %}":"{% if row.attachment_url %}{% trans "Yes" %}{% else %}{% trans "N/A" %}{% endif %}"}'>
+                {% include "components/_list_row_number_cell.html" %}
                 <td data-label="{% trans 'Reference' %}">
                   {{ invoice.reference|default:invoice.id }}
                   {% if invoice.payment_code %}

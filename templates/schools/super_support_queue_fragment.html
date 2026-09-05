@@ -9,6 +9,7 @@
   <thead>
     <tr>
       <th scope="col"><input type="checkbox" data-rmc-bulk-select-all aria-label="{% trans 'Select all visible tickets' %}"></th>
+      {% include "components/_list_row_number_head.html" %}
       <th scope="col">{% trans_term "School" key="school" %}</th>
       <th scope="col">{% trans_term "Subject" key="subject" %}</th>
       <th scope="col">{% trans "Priority" %}</th>
@@ -23,6 +24,7 @@
   <tbody>
     {% for t in tickets %}
     <tr class="{% if t.sla_response_breach or t.sla_resolution_breach %}table-warning{% endif %}" data-ticket-id="{{ t.pk }}" data-ticket-url="{% url 'super:support_ticket_detail' t.pk %}">
+      {% include "components/_list_row_number_cell.html" %}
       <td><input type="checkbox" data-rmc-bulk-checkbox value="{{ t.pk }}" aria-label="{% trans 'Select ticket' %} {{ t.pk }}"></td>
       <td>{{ t.school.name }}</td>
       <td><a href="{% url 'super:support_ticket_detail' t.pk %}">{{ t.subject|truncatewords:8 }}</a></td>

@@ -200,6 +200,27 @@ ROLE_TEMPLATES: dict[str, list[str]] = {
     # granular check to False. The access roles are seeded alongside this map.
     User.Role.DPO: ["DPO"],
     User.Role.EMPLOYER: ["EMPLOYER"],
+    # Non-teaching staff (2026-09-04). Every one of these MUST have an entry:
+    # a User.Role with no template here is created with an empty ``roles`` M2M
+    # and resolves every granular check to False -- the exact defect the DPO /
+    # EMPLOYER comment above records. The AccessRole rows are seeded by
+    # accounts migration 0065 alongside this map.
+    #
+    # SUPPORT_STAFF maps to an access role that holds NO permissions. That is
+    # the point of it, not an oversight: it makes a person real and editable
+    # without granting anything the source document did not state.
+    User.Role.SUPPORT_STAFF: ["SUPPORT_STAFF"],
+    User.Role.COORDINATOR: ["COORDINATOR"],
+    User.Role.LIBRARIAN: ["LIBRARIAN"],
+    User.Role.NURSE: ["NURSE"],
+    User.Role.LAB_TECHNICIAN: ["LAB_TECHNICIAN"],
+    User.Role.STOREKEEPER: ["STOREKEEPER"],
+    User.Role.DRIVER: ["DRIVER"],
+    User.Role.SECURITY: ["SECURITY"],
+    User.Role.MAINTENANCE: ["MAINTENANCE"],
+    User.Role.CATERING_STAFF: ["CATERING_STAFF"],
+    User.Role.RECEPTIONIST: ["RECEPTIONIST"],
+    User.Role.COUNSELOR: ["COUNSELOR"],
 }
 
 

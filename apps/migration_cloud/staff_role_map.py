@@ -105,6 +105,91 @@ _ALIAS_TO_ROLE_NAME: dict[str, str] = {
     "sysadmin": "IT_ADMIN",
     "administrativeassistant": "SECRETARY",
     "adminassistant": "SECRETARY",
+    # Non-teaching staff (2026-09-04). Until the roles below existed in
+    # User.Role there was nowhere to send these labels, so a real directory's
+    # driver, security officer and coordinator were held and the people never
+    # entered the system. English + French, because a Cameroonian school
+    # directory mixes both in one column.
+    "supportstaff": "SUPPORT_STAFF",
+    "support": "SUPPORT_STAFF",
+    "nonteachingstaff": "SUPPORT_STAFF",
+    "generalstaff": "SUPPORT_STAFF",
+    "auxiliarystaff": "SUPPORT_STAFF",
+    "staff": "SUPPORT_STAFF",
+    "personnel": "SUPPORT_STAFF",
+    "coordinator": "COORDINATOR",
+    "coordinateur": "COORDINATOR",
+    "programmecoordinator": "COORDINATOR",
+    "programcoordinator": "COORDINATOR",
+    "librarian": "LIBRARIAN",
+    "bibliothecaire": "LIBRARIAN",
+    "library": "LIBRARIAN",
+    "libraryassistant": "LIBRARIAN",
+    "nurse": "NURSE",
+    "schoolnurse": "NURSE",
+    "infirmier": "NURSE",
+    "infirmiere": "NURSE",
+    "infirmary": "NURSE",
+    "clinician": "NURSE",
+    # A matron in a boarding school supervises the dormitory, which is the
+    # BOARDING_MANAGER job, not the clinic. Mapped deliberately, not by shape.
+    "matron": "BOARDING_MANAGER",
+    "dormitorysupervisor": "BOARDING_MANAGER",
+    "housemaster": "BOARDING_MANAGER",
+    "housemistress": "BOARDING_MANAGER",
+    "labtechnician": "LAB_TECHNICIAN",
+    "laboratorytechnician": "LAB_TECHNICIAN",
+    "labtech": "LAB_TECHNICIAN",
+    "labassistant": "LAB_TECHNICIAN",
+    "workshoptechnician": "LAB_TECHNICIAN",
+    "workshopassistant": "LAB_TECHNICIAN",
+    "technician": "LAB_TECHNICIAN",
+    "laborantin": "LAB_TECHNICIAN",
+    "storekeeper": "STOREKEEPER",
+    "storeman": "STOREKEEPER",
+    "stockkeeper": "STOREKEEPER",
+    "storesofficer": "STOREKEEPER",
+    "magasinier": "STOREKEEPER",
+    "driver": "DRIVER",
+    "busdriver": "DRIVER",
+    "schoolbusdriver": "DRIVER",
+    "chauffeur": "DRIVER",
+    "security": "SECURITY",
+    "securityofficer": "SECURITY",
+    "securityguard": "SECURITY",
+    "guard": "SECURITY",
+    "watchman": "SECURITY",
+    "gateman": "SECURITY",
+    "gardien": "SECURITY",
+    "vigile": "SECURITY",
+    "maintenance": "MAINTENANCE",
+    "maintenanceofficer": "MAINTENANCE",
+    "caretaker": "MAINTENANCE",
+    "janitor": "MAINTENANCE",
+    "cleaner": "MAINTENANCE",
+    "groundsman": "MAINTENANCE",
+    "groundskeeper": "MAINTENANCE",
+    "handyman": "MAINTENANCE",
+    "electrician": "MAINTENANCE",
+    "plumber": "MAINTENANCE",
+    "agentdentretien": "MAINTENANCE",
+    "catering": "CATERING_STAFF",
+    "cateringstaff": "CATERING_STAFF",
+    "canteen": "CATERING_STAFF",
+    "canteenstaff": "CATERING_STAFF",
+    "kitchenstaff": "CATERING_STAFF",
+    "cook": "CATERING_STAFF",
+    "cuisinier": "CATERING_STAFF",
+    "receptionist": "RECEPTIONIST",
+    "receptionniste": "RECEPTIONIST",
+    "frontdesk": "RECEPTIONIST",
+    "counselor": "COUNSELOR",
+    "counsellor": "COUNSELOR",
+    "guidancecounselor": "COUNSELOR",
+    "guidancecounsellor": "COUNSELOR",
+    "careercounselor": "COUNSELOR",
+    "conseiller": "COUNSELOR",
+    "conseillerdorientation": "COUNSELOR",
 }
 
 
@@ -139,6 +224,18 @@ ROLE_UNMAPPED: Final = "unmapped"
 #: STUDENT / EMPLOYER). The claim is legible, and refused.
 ROLE_FORBIDDEN: Final = "forbidden"
 
+#: The BASE staff identity: a real, editable member of staff who holds no
+#: capability at all. This is what an unreadable, forbidden or blank role cell
+#: becomes, and it is the reason such a row can now be imported instead of held.
+#:
+#: It must never be TEACHER. TEACHER is not an inert token -- the post_save in
+#: apps.accounts.signals attaches the TEACHER AccessRole, whose seeded codes
+#: include attendance.manage and grades.enter -- so defaulting to it turns a
+#: blank cell into a school-wide attendance and grade grant. SUPPORT_STAFF
+#: grants nothing, so the person exists, is editable, and reaches no data until
+#: somebody decides what they should reach.
+ROLE_SUPPORT_STAFF: Final = "SUPPORT_STAFF"
+
 
 def _match_staff_role(raw: object) -> tuple[str | None, str | None]:
     """Resolve a source role cell to ``(role, problem)``.
@@ -166,32 +263,67 @@ def _match_staff_role(raw: object) -> tuple[str | None, str | None]:
     alias = _ALIAS_TO_ROLE_NAME.get(_compact(token))
     if alias and alias in allowed and alias not in forbidden:
         return alias, None
-    # Compound cells -- "BURSAR/ PARTNER", "TEACHER /DRIVER" -- resolve ONLY when
-    # every segment that names a role names the SAME role. Two different roles in
-    # one cell ("ADMINISTRATIVE ASSISTANT / IT") is a claim this map must not
-    # arbitrate: picking either would grant a privilege the sheet did not clearly
-    # state, so the row stays held for a person. A forbidden segment forbids the
-    # whole cell. Split on strong delimiters only, never spaces.
-    raw_text = str(raw or "")
-    if any(d in raw_text for d in "/|,;"):
-        seen: set[str] = set()
-        for seg in re.split(r"[/|,;]+", raw_text):
-            seg_token = normalize_role(seg)
-            if not seg_token:
-                continue
-            if seg_token in forbidden:
-                return None, ROLE_FORBIDDEN
-            if seg_token in allowed:
-                seen.add(seg_token)
-                continue
-            seg_alias = _ALIAS_TO_ROLE_NAME.get(_compact(seg_token))
-            if seg_alias and seg_alias in forbidden:
-                return None, ROLE_FORBIDDEN
-            if seg_alias and seg_alias in allowed:
-                seen.add(seg_alias)
-        if len(seen) == 1:
-            return next(iter(seen)), None
+    # Compound cells -- "BURSAR/ PARTNER", "TEACHER /DRIVER",
+    # "ADMINISTRATIVE ASSISTANT / IT" -- resolve to the FIRST segment that names
+    # a role. A forbidden segment still forbids the whole cell.
+    #
+    # This rule replaced "every segment must name the SAME role" on 2026-09-04,
+    # and the reason is a change in what the map can express, not a relaxation of
+    # the safety rule. The old rule existed because a two-role cell had no honest
+    # answer while half the vocabulary was missing: with DRIVER unmapped,
+    # "TEACHER /DRIVER" happened to collapse to TEACHER, and once DRIVER exists
+    # the same cell would have gone from resolved to held -- an import getting
+    # WORSE because the system learned a word.
+    #
+    # First-segment-wins is how the source documents are actually written: the
+    # leading post is the person's substantive post and the rest is what else
+    # they do. Checked against every compound cell in a real 49-row directory:
+    # "TEACHER /DRIVER" -> TEACHER, "BURSAR/ PARTNER" -> BURSAR,
+    # "SCHOOL SYSTEM ADMINISTRATOR/IT" -> IT_ADMIN,
+    # "ADMINISTRATIVE ASSISTANT / IT" -> SECRETARY.
+    #
+    # It cannot over-grant relative to a single-value cell: the privilege granted
+    # is the one the sheet states FIRST, exactly as a one-role cell is trusted.
+    # The segments that did not win are not thrown away either -- they are
+    # returned by :func:`staff_role_segments` so the caller can record them and
+    # a person can grant the second role deliberately.
+    for role_name in staff_role_segments(raw):
+        if role_name == ROLE_FORBIDDEN:
+            return None, ROLE_FORBIDDEN
+        return role_name, None
     return None, ROLE_UNMAPPED
+
+
+def staff_role_segments(raw: object) -> list[str]:
+    """Every grantable role named in a compound cell, in the order written.
+
+    Returns ``[ROLE_FORBIDDEN]`` as soon as any segment names a role a staff
+    sheet may never grant, so the caller refuses the whole cell rather than
+    honouring the segments before it. An empty list means no segment named
+    anything this system knows.
+    """
+    raw_text = str(raw or "")
+    if not any(d in raw_text for d in "/|,;"):
+        return []
+    forbidden = _forbidden_roles()
+    allowed = _role_values()
+    found: list[str] = []
+    for seg in re.split(r"[/|,;]+", raw_text):
+        seg_token = normalize_role(seg)
+        if not seg_token:
+            continue
+        if seg_token in forbidden:
+            return [ROLE_FORBIDDEN]
+        if seg_token in allowed:
+            if seg_token not in found:
+                found.append(seg_token)
+            continue
+        seg_alias = _ALIAS_TO_ROLE_NAME.get(_compact(seg_token))
+        if seg_alias and seg_alias in forbidden:
+            return [ROLE_FORBIDDEN]
+        if seg_alias and seg_alias in allowed and seg_alias not in found:
+            found.append(seg_alias)
+    return found
 
 
 def unresolvable_staff_role(raw: object) -> str | None:

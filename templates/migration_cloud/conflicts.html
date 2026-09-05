@@ -43,6 +43,7 @@
         <caption class="visually-hidden">{% trans "Pending review" %} ({{ pending_src|length }})</caption>
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "Model" %}</th>
             <th scope="col">{% trans "Canonical PK" %}</th>
             <th scope="col">{% trans "Legacy ID" %}</th>
@@ -53,6 +54,7 @@
         <tbody>
           {% for c in pending %}
           <tr data-mc-conflict-id="{{ c.pk }}">
+            {% include "components/_list_row_number_cell.html" %}
             <td><code>{{ c.canonical_model }}</code></td>
             <td><code>{{ c.canonical_pk }}</code></td>
             <td>{{ c.legacy_id|default:"—" }}</td>

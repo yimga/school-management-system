@@ -64,6 +64,7 @@
             <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Applicants' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
               <thead>
                 <tr>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Email" %}</th>
                   <th scope="col">{% trans "Stage" %}</th>
@@ -78,6 +79,7 @@
                     data-rmc-row-title="{{ a.first_name }} {{ a.last_name }}"
                     data-rmc-row-subtitle="{{ a.get_stage_display|default:a.stage }}"
                     data-rmc-row-meta='{"{% trans "Email" %}":"{{ a.email|default:"—"|escapejs }}","{% trans "Lead source" %}":"{{ a.lead_source|default:"—"|escapejs }}"}'>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td><a href="{% url 'accounts:backend_applicant_detail' a.pk %}">{{ a.last_name }}, {{ a.first_name }}</a></td>
                   <td>{{ a.email|default:"-" }}</td>
                   <td>

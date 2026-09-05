@@ -1,0 +1,17 @@
+{% comment %}
+  Row-number column header. Pairs with components/_list_row_number_cell.html.
+
+  A list of 431 students with no row numbers cannot be talked about: nobody can
+  say "check number 218", and an operator reconciling a printed register against
+  the screen has to count. Measured 2026-09-04: of 389 list screens in this
+  codebase, 3 numbered their rows.
+
+  Deliberately carries no {% templatetag openblock %} trans {% templatetag closeblock %} tag. "#" is the same in every
+  language this platform ships, and a new msgid would put every adopting
+  template behind a catalog rebuild for a character that never changes.
+
+  Use:
+    <thead><tr>
+      {% templatetag openblock %} include "components/_list_row_number_head.html" {% templatetag closeblock %}
+      <th scope="col">Name</th>
+{% endcomment %}<th scope="col" class="rmc-row-num-th" abbr="#">#</th>

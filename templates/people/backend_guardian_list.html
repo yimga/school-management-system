@@ -57,9 +57,12 @@
         <div class="card-body">
           {% if guardians %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Guardians" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
+          {% url 'accounts:backend_guardian_list' as guardian_list_base_url %}
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Guardians" data-rmc-row-detail-table="1" data-rmc-list-bulk="1" data-rmc-bulk-export-base="{{ guardian_list_base_url }}" data-rmc-bulk-actions='[{"id":"ask","label":"{% trans "Ask copilot"|escapejs %}","kind":"copilot","variant":"primary"},{"id":"export-selected","label":"{% trans "Export selected CSV"|escapejs %}","kind":"export-ids","href":"{{ guardian_list_base_url|escapejs }}"}]' data-rmc-table-5col="1">
               <thead>
                 <tr>
+                  <th scope="col" class="rmc-list-bulk-th"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-select-all aria-label="{% trans 'Select all guardians on this page' %}"></th>
+                  {% include "components/_list_row_number_head.html" %}
                   <th scope="col">{% trans "Guardian" %}</th>
                   <th scope="col">{% trans "Email" %}</th>
                   <th scope="col">{% term "student" capitalize=True %}</th>
@@ -74,6 +77,8 @@
                     data-rmc-row-title="{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}"
                     data-rmc-row-subtitle="{{ g.student.get_full_name|default:g.student.admission_number }}"
                     data-rmc-row-meta='{"{% trans "Classroom" %}":"{{ g.student.classroom.name|default:"—"|escapejs }}","{% trans "Finance access" %}":"{% if g.can_view_finance %}yes{% else %}no{% endif %}"}'>
+                  <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ g.id }}" data-rmc-bulk-label="{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}" aria-label="{% blocktrans with name=g.guardian_user.username %}Select {{ name }}{% endblocktrans %}"></td>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td>{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}</td>
                   <td>{{ g.guardian_user.email|default:"-" }}</td>
                   <td>{{ g.student.get_full_name|default:g.student.admission_number }}</td>

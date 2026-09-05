@@ -653,6 +653,35 @@ def alumni_list(request):
     return HttpResponseRedirect(f"{base}?{qs.urlencode()}")
 
 
+def _filter_to_selected_ids(qs, request):
+    """Narrow a list queryset to the rows the operator ticked, if any.
+
+    The bulk grammar (static/js/rmc-list-bulk-select.js) sends a selection as
+    ``?ids=1,2,3`` against the SAME list view. That is why "export selected"
+    needs no endpoint of its own and cannot drift from what the list shows: it is
+    the list, filtered. Extracted from backend_student_list on 2026-09-04 so the
+    teacher and guardian lists mean exactly the same thing by it.
+
+    Non-numeric parts are dropped rather than raising: the ids come from a query
+    string, so a malformed one is a request to be ignored, not a 500.
+
+    KNOWN LIMIT, carried over deliberately rather than silently re-invented: the
+    cap is 200 and a longer selection is TRUNCATED with nothing said. Selecting
+    300 rows and exporting gives 200 rows in a file that claims to be the
+    selection. Raising it needs a matching bound in the client and a POST for
+    long selections (a query string has no useful length guarantee), so it is
+    left as it was and written down here instead of being spread quietly.
+    """
+    ids_raw = (request.GET.get("ids") or "").strip()
+    if not ids_raw:
+        return qs
+    id_list = [part.strip() for part in ids_raw.split(",")]
+    id_list = [int(part) for part in id_list if part.isdigit()]
+    if not id_list:
+        return qs
+    return qs.filter(pk__in=id_list[:200])
+
+
 @login_required
 @permission_required("people.view_studentprofile", raise_exception=True)
 def backend_student_list(request):
@@ -676,15 +705,7 @@ def backend_student_list(request):
     if status_filter:
         qs = qs.filter(status=status_filter)
 
-    ids_raw = request.GET.get("ids", "").strip()
-    if ids_raw:
-        id_list = []
-        for part in ids_raw.split(","):
-            part = part.strip()
-            if part.isdigit():
-                id_list.append(int(part))
-        if id_list:
-            qs = qs.filter(pk__in=id_list[:200])
+    qs = _filter_to_selected_ids(qs, request)
 
     # 26.5: Export as CSV when format=csv
     if request.GET.get("format") == "csv":
@@ -1015,6 +1036,7 @@ def backend_teacher_list(request):
     department_id = request.GET.get("department")
     if department_id:
         qs = qs.filter(department_id=department_id)
+    qs = _filter_to_selected_ids(qs, request)
 
     # 26.5: Export as CSV when format=csv
     if request.GET.get("format") == "csv":
@@ -1536,6 +1558,7 @@ def backend_guardian_list(request):
     year_id = request.GET.get("year")
     if year_id:
         qs = qs.filter(student__academic_year_id=year_id)
+    qs = _filter_to_selected_ids(qs, request)
 
     if request.GET.get("format") == "csv":
         response = HttpResponse(content_type="text/csv; charset=utf-8")

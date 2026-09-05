@@ -171,3 +171,29 @@ tr[data-rmc-bulk-selected="1"] {
 .rmc-copilot-answer-dialog__actions:empty {
   display: none;
 }
+
+
+/* Row numbering -- the "#" column rendered by
+   templates/components/_list_row_number_head.html and _list_row_number_cell.html.
+   The number is positional, not an identifier: it counts from the page's
+   start_index, so row 1 of page 2 reads 26 rather than 1. It is presentational
+   chrome for talking about a row out loud ("the third one down"), which is why
+   it is muted and why the header carries abbr="#" for screen readers rather
+   than a translated label. */
+
+.rmc-row-num-th {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--text-secondary, inherit);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.rmc-row-num {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-size-1, 0.8125rem);
+  color: var(--text-secondary, inherit);
+}

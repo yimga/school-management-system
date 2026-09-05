@@ -47,6 +47,7 @@
       <table class="table align-middle table-family rmc-data-table" aria-label="School ranking by average score" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col" style="width:72px">{% trans "Rank" %}</th>
             <th scope="col">{% trans "Student" %}</th>
             <th scope="col">{% trans "Class" %}</th>
@@ -56,6 +57,7 @@
         <tbody>
           {% for r in rows %}
             <tr>
+              {% include "components/_list_row_number_cell.html" %}
               <td><span class="badge text-bg-dark">#{{ r.rank }}</span></td>
               <td>{{ r.student }}</td>
               <td>{{ r.student.classroom.name }}</td>

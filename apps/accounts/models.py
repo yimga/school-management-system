@@ -204,6 +204,30 @@ class User(AbstractUser):
         ACCOUNTANT = "ACCOUNTANT", "Accountant"
         PROPRIETOR = "PROPRIETOR", "Proprietor"
         DISCIPLINE_MASTER = "DISCIPLINE_MASTER", "Discipline Master"
+        # Non-teaching staff (2026-09-04). A school is not only its teachers, and
+        # until now this enum could not NAME a driver, a security officer or a
+        # librarian at all. The consequence was measured on a real staff
+        # directory: `staff_role_map` had nowhere to send those labels, so the
+        # rows were held and the people did not exist in the system.
+        #
+        # SUPPORT_STAFF is the load-bearing one. It is the BASE staff identity --
+        # a real, editable person who holds NO capability -- and it is what an
+        # unreadable or blank role cell now becomes. That replaces a default of
+        # TEACHER, which is not an inert token: the post_save in signals.py
+        # attaches the TEACHER AccessRole, whose seeded codes include
+        # attendance.manage and grades.enter. A blank cell used to grant those.
+        SUPPORT_STAFF = "SUPPORT_STAFF", "Support Staff"
+        COORDINATOR = "COORDINATOR", "Coordinator"
+        LIBRARIAN = "LIBRARIAN", "Librarian"
+        NURSE = "NURSE", "School Nurse"
+        LAB_TECHNICIAN = "LAB_TECHNICIAN", "Laboratory / Workshop Technician"
+        STOREKEEPER = "STOREKEEPER", "Storekeeper"
+        DRIVER = "DRIVER", "Driver"
+        SECURITY = "SECURITY", "Security Officer"
+        MAINTENANCE = "MAINTENANCE", "Maintenance Officer"
+        CATERING_STAFF = "CATERING_STAFF", "Catering Staff"
+        RECEPTIONIST = "RECEPTIONIST", "Receptionist"
+        COUNSELOR = "COUNSELOR", "Guidance Counsellor"
         PARENT = "PARENT", "Parent"
         STUDENT = "STUDENT", "Student"
         EMPLOYER = "EMPLOYER", "Employer (apprentice portal)"

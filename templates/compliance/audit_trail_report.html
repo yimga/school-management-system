@@ -75,6 +75,7 @@
         <caption class="visually-hidden">{% trans "Audit log entries with date, user, action, target model, object id, and sensitivity." %}</caption>
         <thead class="table-light">
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "When" %}</th>
             <th scope="col">{% trans "User" %}</th>
             <th scope="col">{% trans "Action" %}</th>
@@ -87,6 +88,7 @@
         <tbody>
           {% for log in audit_logs %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td class="text-nowrap small">{{ log.timestamp|date:"Y-m-d H:i" }}</td>
             <td>{% if log.user %}{{ log.user.username }}{% else %}<span class="text-muted">{% trans "system" %}</span>{% endif %}</td>
             <td><code class="small">{{ log.get_action_display }}</code></td>

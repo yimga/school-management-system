@@ -169,6 +169,7 @@
         <caption class="visually-hidden">{% trans "Listings and installability" %}</caption>
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "App" %}</th>
             <th scope="col">{% trans "Publisher" %}</th>
             <th scope="col">{% trans "Listing" %}</th>
@@ -182,6 +183,7 @@
         <tbody>
           {% for listing in listings %}
           <tr data-rmc-mkt-gov-listing-row="1">
+            {% include "components/_list_row_number_cell.html" %}
             <td>
               <strong>{{ listing.app.name }}</strong>
               <div class="small text-muted">{{ listing.app.slug }} | {{ listing.app.kind|title }}</div>

@@ -62,6 +62,7 @@
     <caption class="visually-hidden">{% trans "Subscriber-side signature verifier SDK" %}</caption>
     <thead>
       <tr>
+        {% include "components/_list_row_number_head.html" %}
         <th scope="col">{% trans "ID" %}</th>
         <th scope="col">{% trans "Tenant" %}</th>
         <th scope="col">{% trans "URL" %}</th>
@@ -76,6 +77,7 @@
     <tbody>
       {% for r in rows %}
       <tr>
+        {% include "components/_list_row_number_cell.html" %}
         <td>{{ r.id }}</td>
         <td>{{ r.tenant_id }}</td>
         <td><code class="rmc-kbd">{{ r.url }}</code></td>

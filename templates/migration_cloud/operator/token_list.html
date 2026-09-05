@@ -39,6 +39,7 @@
     <caption class="visually-hidden">{% trans "Scoped API tokens" %}</caption>
     <thead>
       <tr>
+        {% include "components/_list_row_number_head.html" %}
         <th scope="col">{% trans "ID" %}</th>
         <th scope="col">{% trans "Name" %}</th>
         <th scope="col">{% trans "Preview" %}</th>
@@ -52,6 +53,7 @@
     <tbody>
       {% for r in rows %}
       <tr>
+        {% include "components/_list_row_number_cell.html" %}
         <td>{{ r.id }}</td>
         <td>{{ r.name }}</td>
         <td><code class="rmc-kbd">{{ r.preview }}</code></td>

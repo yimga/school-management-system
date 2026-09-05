@@ -36,6 +36,7 @@
         <caption class="visually-hidden">{% trans "Blueprint Packs" %}</caption>
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "Name" %}</th>
             <th scope="col">{% trans "Family" %}</th>
             <th scope="col">{% trans "Category" %}</th>
@@ -47,6 +48,7 @@
         <tbody>
           {% for p in packs %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td>{{ p.name }}</td>
             <td>{{ p.family|default:"—" }}</td>
             <td>{{ p.category|default:"—" }}</td>

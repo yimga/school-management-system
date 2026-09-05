@@ -35,6 +35,7 @@
         <caption class="visually-hidden">{{ entity.code }}.{{ field.field_name }} — {{ field.label|default:field.field_name }}</caption>
         <thead>
           <tr>
+            {% include "components/_list_row_number_head.html" %}
             <th scope="col">{% trans "Type" %}</th>
             <th scope="col">{% trans "Consumer" %}</th>
           </tr>
@@ -42,6 +43,7 @@
         <tbody>
           {% for d in dependencies %}
           <tr>
+            {% include "components/_list_row_number_cell.html" %}
             <td>{{ d.get_consumer_type_display }}</td>
             <td><code>{{ d.consumer_code }}</code></td>
           </tr>

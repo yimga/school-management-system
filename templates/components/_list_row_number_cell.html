@@ -1,0 +1,18 @@
+{% comment %}
+  Row-number cell. Pairs with components/_list_row_number_head.html.
+
+  Numbers CONTINUE across pages rather than restarting at 1 on page 2, which is
+  the whole reason this is a partial and not an inline forloop.counter: row 1 of
+  page 3 is student 51, and a list that calls it 1 is worse than a list with no
+  numbers at all, because it looks like an answer.
+
+  page_obj.start_index is the paginator's 1-based index of the first row on this
+  page. An unpaginated list has no page_obj, so it falls back to 1 and the
+  numbering is a plain 1..n.
+
+  Use INSIDE the row loop:
+    <tbody>
+      {% templatetag openblock %} for row in rows {% templatetag closeblock %}
+      <tr>
+        {% templatetag openblock %} include "components/_list_row_number_cell.html" {% templatetag closeblock %}
+{% endcomment %}<td class="rmc-row-num" data-rmc-row-num>{{ page_obj.start_index|default:1|add:forloop.counter0 }}</td>

@@ -121,14 +121,49 @@ not be remapped (`_insert_fk_targets` only remaps FKs onto registered entities) 
 
 ## Conditions to revisit
 
-1. **Offline-created staff (box -> cloud).** Still open. Would need a provisioning
-   handshake that is explicitly an authentication flow: the box submits a *request*, an
-   authorized human on the cloud approves it, and the User is minted there. That is a
-   feature, not a sync-policy change, and it must never be implicit in a bundle apply.
+1. **Offline-created staff (box -> cloud).** CLOSED 2026-09-04, by exactly the
+   handshake this entry specified: the box submits a *request*, an authorized human on
+   the cloud approves it, and the User is minted there. It is a feature, not a
+   sync-policy change, and it is not implicit in a bundle apply.
 
-   The **cloud -> box** half of this is now closed by `staff_portability`, and it was
-   always the easier half: the authentication decision has already been made, by a
-   human, on the cloud. All the box needs is to be handed the result.
+   This section said "Still open" while the mechanism was being built, and the reason it
+   is being updated in the same change rather than afterwards is on the record: commit
+   `38c45baea` exists because this file described a path that did not work, and an
+   operator followed it and waited for a sync that could never happen. A stale doc here
+   has already cost somebody a day.
+
+   **What actually happens now.** `apply_edge_inserts` still refuses the insert, still
+   returns 409 `insert_held_for_entity`, and still mints nobody — none of that moved. The
+   refusal additionally writes a `people.ProvisioningRequest` (see
+   `apps/people/provisioning_service.py`) carrying only portable DATA; `sanitize_payload`
+   drops anything credential-shaped, so no password, hash, session or `is_superuser`
+   crosses. Nothing is granted on arrival. `apps/people/views_provisioning.py` is the
+   screen where a person holding `staff.provision` answers it, and the 409 now carries a
+   `provisioning_request` block so the box can say "submitted for approval, asked N
+   times" instead of repeating a refusal with no next step.
+
+   Three properties are load-bearing, and each has a test:
+
+   * the request is unique per `(school, entity_type, client_offline_id)`. A box
+     re-submits every cycle; the measured Gilead case was 39 rows on 687 cycles in a
+     day, which without this constraint is 26,000 copies of the same question;
+   * approval carries the box's `client_offline_id` onto the created record, so the next
+     ordinary sync matches the two rows by anchor and converges them. Without it,
+     approval creates a SECOND person and the box keeps asking;
+   * the account is created with `set_unusable_password()` and never `is_staff` /
+     `is_superuser`. Approving a person and issuing them a credential stay two separate
+     acts — collapsing them would rebuild the hole this document exists to describe.
+
+   A `student_guardian` request is approvable too, but its student is **not** resolved in
+   code. The row names a child by the BOX's pk, and a box-created student is assigned a
+   fresh pk on the cloud, so that number may name a different child entirely. Approval
+   requires its caller to name the student and the queue shows a candidate — looked up by
+   that pk, within the school, by name — for a person to confirm. The ambiguous half is
+   decided by a human who can see a name; the machine does the unambiguous half.
+
+   The **cloud -> box** half was closed earlier by `staff_portability`, and it was always
+   the easier half: the authentication decision has already been made, by a human, on the
+   cloud. All the box needs is to be handed the result.
 2. **Per-field conflict resolution.** Would remove the extra round trip described above.
 3. **`custom_attributes` is two-way and whole-blob.** LWW on a JSON dict overwrites the
    whole value, so a cloud-side key added during an outage can be lost when the box's

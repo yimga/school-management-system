@@ -26,6 +26,7 @@
             <caption class="visually-hidden">{% trans "Finance Notifications" %}</caption>
             <thead>
               <tr>
+                {% include "components/_list_row_number_head.html" %}
                 <th scope="col" class="text-center" style="width:2.5rem;"><span class="visually-hidden">{% trans "Status" %}</span></th>
                 <th scope="col">{% trans "Details" %}</th>
                 <th scope="col">{% trans "Status" %}</th>
@@ -40,6 +41,7 @@
                     data-rmc-row-title="{{ notif.title|escapejs }}"
                     data-rmc-row-subtitle="{% if notif.is_read %}{% trans 'Read' %}{% else %}{% trans 'Unread' %}{% endif %}"
                     data-rmc-row-meta='{"{% trans "Received" %}":"{{ notif.created_at|date:"M d, Y H:i"|escapejs }}"}'>
+                  {% include "components/_list_row_number_cell.html" %}
                   <td class="text-center">
                     {% if notif.is_read %}
                       <i class="bi bi-bell text-muted" aria-hidden="true" title="{% trans 'Read' %}"></i>
