@@ -2749,6 +2749,68 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             }
             continue
 
+        # ENTITY-LEVEL POLICY ON THE UPSERT'S *UPDATE* ARM.
+        #
+        # This function is an UPSERT, and its second arm writes over a row the receiver
+        # already holds — which is an UPDATE, graded by `_conflict_decision` everywhere
+        # else. It was not graded here, so a protected (cloud-authoritative) entity —
+        # `evaluation` (marks) and `invoice` (money) are the two registered today — could
+        # be overwritten by a box push carrying a WEEK-OLD timestamp, in the exact
+        # direction `_apply_changes_inner` answers with a 409 and a Sync Center conflict.
+        #
+        # It is the same hole the per-FIELD direction guard above already names in its own
+        # comment — "without this the whole policy is bypassable by presenting an edit as a
+        # new row" — applied to FIELDS but never to the ENTITY. Anything anchored took the
+        # insert path, and the insert path asked no policy question at all.
+        #
+        # NARROW ON PURPOSE. Only `protected` / `ONLINE_REQUIRED` entities are graded, and
+        # only when the row ALREADY EXISTS here:
+        #   * CREATION is untouched. A mark or an invoice authored offline must still be
+        #     able to land the first time; refusing that would strand it, which is the
+        #     opposite of the intent.
+        #   * Benign LWW master data is untouched. Grading it would turn every ordinary
+        #     offline correction into a manual conflict for no safety gain.
+        #   * `cloud-pull` is untouched. Down is the authoritative direction.
+        #
+        # LATENT TODAY, NOT DEAD. No product path mints a `client_offline_id` on a rail
+        # model (see apps/sync_engine/delete_safety.py, which documents the same fact for
+        # deletions), so no protected row currently reaches this arm from a box. That is
+        # precisely why it must be closed BEFORE anchors are minted: minting them is the
+        # remedy for anchor-less rows stranding, and it would open this bypass the same day.
+        existing = (
+            model._default_manager.filter(school=school, client_offline_id=coid).first()
+            if updates
+            else None
+        )
+        if existing is not None and sync_origin != "cloud-pull":
+            from apps.sync_engine.policy_registry import MergeStrategy as _MS
+
+            _strategy, _protected = _sync_conflict_policy(entity_type)
+            if _protected or _strategy == _MS.ONLINE_REQUIRED:
+                _server_dt = getattr(existing, "updated_at", None)
+                if _server_dt is not None and timezone.is_naive(_server_dt):
+                    _server_dt = timezone.make_aware(
+                        _server_dt, timezone.get_current_timezone()
+                    )
+                _decision = _conflict_decision(
+                    entity_type, sync_origin, _incoming_at, _server_dt
+                )
+                if _decision != "apply":
+                    results_by_index[idx] = _hold_protected_upsert(
+                        school=school,
+                        user=user,
+                        idx=idx,
+                        entity_type=entity_type,
+                        instance=existing,
+                        allowed=allowed,
+                        updates=updates,
+                        decision=_decision,
+                        sync_origin=sync_origin,
+                        client_updated_at=_incoming_at,
+                        server_dt=_server_dt,
+                    )
+                    continue
+
         try:
             with transaction.atomic():  # savepoint: isolate a bad row from the batch
                 obj, was_created = model.objects.get_or_create(
