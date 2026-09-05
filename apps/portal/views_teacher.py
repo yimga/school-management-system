@@ -441,6 +441,23 @@ def _attendance_visible_classrooms(request: HttpRequest, year):
     return [c for c in base if c.id in assigned_ids]
 
 
+def _no_classrooms_reason(request: HttpRequest, year, classrooms) -> str:
+    """Why the roll-call class list is empty: ``""`` | year | assignment.
+
+    ``_attendance_visible_classrooms`` collapses two very different situations
+    to the same empty list, and the page then shows the same empty dropdown for
+    both. They are not the same problem and they are not fixed by the same
+    person: no active academic year is an administrator's setup task, while no
+    class assignment is a timetabling task. A teacher shown neither message has
+    no way to tell which, and no next action at all.
+    """
+    if classrooms:
+        return ""
+    if not year:
+        return "no_active_year"
+    return "no_assignment"
+
+
 @login_required
 def take_student_attendance(request: HttpRequest):
     """Student roll call: date + classroom, default present, one save. Requires attendance.manage."""
@@ -574,6 +591,11 @@ def take_student_attendance(request: HttpRequest):
             "status_choices": status_choices,
             "Attendance": Attendance,
             "qr_tokens_by_student": qr_tokens_by_student,
+            # WHY the class list is empty, so the page can say so. Rendering a
+            # bare empty <select> is correct scoping and a dead end: the two
+            # causes need different people to act, and the teacher can act on
+            # neither without being told which one they are looking at.
+            "no_classrooms_reason": _no_classrooms_reason(request, year, classrooms),
             "seating_chart_enabled": get_effective_flags(request).get(
                 "enable_seating_chart_beta", True
             ),

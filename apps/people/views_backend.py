@@ -604,7 +604,7 @@ def backend_classroom_create(request):
         blocked = block_if_wind_down_commerce(request)
         if blocked is not None:
             return blocked
-        form = ClassroomCreateForm(request.POST)
+        form = ClassroomCreateForm(request.POST, school=getattr(request, "school", None))
         if form.is_valid():
             try:
                 classroom = form.save()
@@ -620,7 +620,7 @@ def backend_classroom_create(request):
                 )
                 messages.error(request, f"Error creating classroom: {str(e)}")
     else:
-        form = ClassroomCreateForm()
+        form = ClassroomCreateForm(school=getattr(request, "school", None))
 
     list_url = reverse("accounts:backend_classroom_list")
     return render(
