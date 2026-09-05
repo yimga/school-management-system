@@ -15,7 +15,16 @@ def sync_enrollment_from_student_profile(student) -> Optional[Any]:
     if student is None:
         return None
     if getattr(student, "academic_year_id", None) is None:
-        return None
+        school = getattr(student, "school", None)
+        if school is not None:
+            from apps.migration_cloud.post_apply_provision import ensure_default_academic_year
+
+            year, _created = ensure_default_academic_year(school)
+            if year is not None:
+                student.academic_year = year
+                student.save(update_fields=["academic_year", "updated_at"])
+        if getattr(student, "academic_year_id", None) is None:
+            return None
 
     from apps.people.enrollment_services import ensure_enrollment, set_placement
 
@@ -57,8 +66,13 @@ def sync_all_enrollments_for_school(school, *, dry_run: bool = False) -> dict[st
     ):
         summary["examined"] += 1
         if getattr(student, "academic_year_id", None) is None:
-            summary["skipped"] += 1
-            continue
+            from apps.migration_cloud.post_apply_provision import ensure_default_academic_year
+
+            year, _created = ensure_default_academic_year(school)
+            if year is not None:
+                student.academic_year = year
+                if not dry_run:
+                    student.save(update_fields=["academic_year", "updated_at"])
         if dry_run:
             summary["synced"] += 1
             continue

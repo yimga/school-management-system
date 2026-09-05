@@ -256,6 +256,16 @@ any locale can't break the inline script's string literals.
     {% endif %}
   </p>
   {% endif %}
+  {% if teaching_graph_readiness and not teaching_graph_readiness.ready_for_grades %}
+  <form method="post" action="{{ review_url }}" class="mt-3">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="post_import_closure">
+    <button type="submit" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>{% trans "Connect classrooms, enrollments, and teaching grid" %}
+    </button>
+    <span class="text-muted small ms-2">{% trans "Places students into class rosters from saved form labels and builds gradebook links." %}</span>
+  </form>
+  {% endif %}
 </section>
 {% endif %}
 
@@ -620,6 +630,19 @@ persistent data failure routes to correction rather than an endless retry.
 <section class="rmc-card mb-4" aria-labelledby="mc-review-heading">
   <h2 id="mc-review-heading" class="h5">{% trans "We detected these files" %}</h2>
   <p class="text-muted small">{% trans "Auto-detected from your upload. If a record type is wrong, correct it below and we'll re-detect." %}</p>
+  {% if catalog_reimport_needed %}
+  <div class="alert alert-warning border-warning mb-3" role="alert">
+    <p class="mb-2 fw-semibold">{% trans "Record types were corrected but data has not been re-imported yet" %}</p>
+    <p class="small mb-3">{% trans "This import already ran with the wrong record types (for example a staff telephone directory stored as custom fields). Updating the tag alone does not move rows into Teachers, Students, or Classrooms — you must re-import with the corrected types." %}</p>
+    <form method="post" action="{{ review_url }}" class="d-inline">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="retag_reimport">
+      <button type="submit" class="btn btn-warning btn-sm">
+        <i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% trans "Re-import with corrected record types" %}
+      </button>
+    </form>
+  </div>
+  {% endif %}
   {% if catalog_fixable_count %}
   <form method="post" action="{{ review_url }}" class="mb-3">
     {% csrf_token %}

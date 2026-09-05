@@ -77,6 +77,12 @@ class Command(BaseCommand):
         with _tenant_schema(school):
             from apps.migration_cloud.enrollment_sync import sync_all_enrollments_for_school
             from apps.migration_cloud.guardian_directory import promote_unlinked_guardian_hints
+            from apps.migration_cloud.student_placement_backfill import (
+                backfill_student_classrooms_for_school,
+            )
+
+            classrooms = backfill_student_classrooms_for_school(school, dry_run=dry_run)
+            self.stdout.write(f"Classroom placement backfill: {classrooms}")
 
             enrollment = sync_all_enrollments_for_school(school, dry_run=dry_run)
             self.stdout.write(f"Enrollment sync: {enrollment}")

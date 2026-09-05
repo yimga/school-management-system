@@ -74286,3 +74286,30 @@ msgstr ""
 
 msgid "Use suggested: {{ label }}"
 msgstr "Use suggested: {{ label }}"
+
+msgid "Connect classrooms, enrollments, and teaching grid"
+msgstr "Connect classrooms, enrollments, and teaching grid"
+
+msgid ""
+"Places students into class rosters from saved form labels and builds "
+"gradebook links."
+msgstr ""
+"Places students into class rosters from saved form labels and builds "
+"gradebook links."
+
+msgid "Re-import with corrected record types"
+msgstr "Re-import with corrected record types"
+
+msgid "Record types were corrected but data has not been re-imported yet"
+msgstr "Record types were corrected but data has not been re-imported yet"
+
+msgid ""
+"This import already ran with the wrong record types (for example a staff "
+"telephone directory stored as custom fields). Updating the tag alone does "
+"not move rows into Teachers, Students, or Classrooms — you must re-import "
+"with the corrected types."
+msgstr ""
+"This import already ran with the wrong record types (for example a staff "
+"telephone directory stored as custom fields). Updating the tag alone does "
+"not move rows into Teachers, Students, or Classrooms — you must re-import "
+"with the corrected types."
