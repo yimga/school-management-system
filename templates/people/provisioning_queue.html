@@ -32,7 +32,7 @@ has asked 687 times is the number that makes a person act.{% endcomment %}
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
             <label for="req-status" class="form-label small">{% trans "Status" %}</label>
-            <select id="req-status" name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select id="req-status" name="status" class="form-select form-select-sm" data-rmc-submit-on-change>
               <option value="">{% trans "All" %}</option>
               {% for value, label in status_choices %}
               <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
@@ -78,6 +78,8 @@ has asked 687 times is the number that makes a person act.{% endcomment %}
                 <td><span class="rmc-badge{% if req.status == 'PENDING' %} rmc-badge--warning{% elif req.status == 'APPROVED' %} rmc-badge--success{% endif %}">{{ req.get_status_display }}</span></td>
                 <td>
                   {% if req.status == 'PENDING' %}
+                  <details>
+                    <summary class="btn btn-sm btn-outline-primary">{% trans "Decide" %}</summary>
                   <form method="post" action="{% url 'accounts:provisioning_approve' req.pk %}" class="d-flex flex-wrap gap-1 align-items-center mb-1">
                     {% csrf_token %}
                     <select name="role" class="form-select form-select-sm w-auto" aria-label="{% trans 'Role to grant' %}">
@@ -99,6 +101,7 @@ has asked 687 times is the number that makes a person act.{% endcomment %}
                     <input type="text" name="reason" class="form-control form-control-sm w-auto" style="max-width:11rem" placeholder="{% trans 'Reason (optional)' %}" aria-label="{% trans 'Reason for declining' %}">
                     <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Decline" %}</button>
                   </form>
+                  </details>
                   {% else %}
                   <div class="small text-muted">
                     {% if req.decided_by %}{{ req.decided_by.get_full_name|default:req.decided_by.username }}{% endif %}

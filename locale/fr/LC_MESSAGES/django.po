@@ -69863,3 +69863,6 @@ msgstr ""
 
 msgid "{{ counter }} time{% plural %}{{ counter }} times"
 msgstr ""
+
+msgid "Decide"
+msgstr ""
