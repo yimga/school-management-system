@@ -67002,3 +67002,9 @@ msgstr ""
 
 msgid "You have not been assigned to any {{ rc_class_lower }} yet."
 msgstr ""
+
+msgid "An expulsion must record the ground for it."
+msgstr ""
+
+msgid "Expelled (dismissed by the school)"
+msgstr ""

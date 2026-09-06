@@ -159,6 +159,18 @@ def carry_forward_promotion_mappings(
     for classroom in Classroom.objects.filter(academic_year=from_year):
         by_name.setdefault(classroom.name, classroom)
 
+    # ClassroomPromotionMapping.school is null=True, so a row authored in admin
+    # with the field left blank is owned by nobody. Adopt those FIRST, exactly
+    # as clone_academic_year adopts its own orphan Terms and Classrooms: the
+    # school-scoped lookup below cannot match a NULL row, so without this the
+    # get_or_create would try to INSERT alongside one and hit
+    # unique_together (source_year, source_classroom, target_year) instead.
+    # A row on this year pair can only belong to this year pair's school.
+    if school_id is not None:
+        ClassroomPromotionMapping.objects.filter(
+            source_year=from_year, target_year=to_year, school_id__isnull=True
+        ).update(school_id=school_id)
+
     created_count = 0
     for mapping in prior:
         source_name = getattr(mapping.source_classroom, "name", None)
@@ -171,16 +183,24 @@ def carry_forward_promotion_mappings(
         # row; and a school whose authored ladder maps a grade onto its own
         # name meant that, so carrying it forward is honouring a decision
         # rather than repeating a mistake.
+        owner_id = (
+            school_id
+            if school_id is not None
+            else getattr(new_source, "school_id", None)
+        )
         _, created = ClassroomPromotionMapping.objects.get_or_create(
+            # school goes in the LOOKUP, never in defaults. defaults is only
+            # written when the lookup has already decided no row matched, so a
+            # school in defaults re-parents whichever row an unscoped lookup
+            # happened to hit -- it would hand one school's ladder to another.
+            # The same reasoning is written out at length on the Classroom call
+            # in services_year_setup.clone_academic_year, and this function is
+            # called from inside it.
+            school_id=owner_id,
             source_year=from_year,
             source_classroom=new_source,
             target_year=to_year,
-            defaults={
-                "school_id": school_id
-                if school_id is not None
-                else getattr(new_source, "school_id", None),
-                "target_classroom": new_target,
-            },
+            defaults={"target_classroom": new_target},
         )
         if created:
             created_count += 1

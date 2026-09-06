@@ -172,6 +172,53 @@ class PromotionMappingCoverageTests(TestCase):
             1,
         )
 
+    def test_an_unowned_mapping_row_is_adopted_rather_than_collided_with(self):
+        """`ClassroomPromotionMapping.school` is nullable, so admin can leave it blank.
+
+        The carry-forward looks a row up BY SCHOOL -- school belongs in the
+        lookup, never in `defaults`, or a matched row gets re-parented to
+        whichever school asked last. The cost of that correctness is that a
+        school-scoped lookup cannot see a NULL-school row, so without adopting
+        orphans first the insert lands on
+        unique_together(source_year, source_classroom, target_year) and the
+        whole rollover dies with an IntegrityError.
+        """
+        form5 = self._classroom(self.y1, "Form 5A", "F5A")
+        lower6_y2 = self._classroom(self.y2, "Lower Sixth A", "L6A")
+        self._classroom(self.y2, "Form 5A", "F5A2")
+        ClassroomPromotionMapping.objects.create(
+            school=self.school,
+            source_year=self.y1,
+            source_classroom=form5,
+            target_year=self.y2,
+            target_classroom=lower6_y2,
+        )
+        y3 = self._new_year("2027/2028", 2027)
+        clone_academic_year(self.y2, y3)
+        carried = ClassroomPromotionMapping.objects.get(
+            source_year=self.y2, target_year=y3
+        )
+        # Exactly the shape admin produces when the school field is left blank.
+        ClassroomPromotionMapping.objects.filter(pk=carried.pk).update(school=None)
+
+        stats = clone_academic_year(self.y2, y3)
+
+        self.assertEqual(
+            stats["promotion_mappings_created"],
+            0,
+            "the orphan is the SAME ladder step -- adopt it, do not duplicate it",
+        )
+        carried.refresh_from_db()
+        self.assertEqual(
+            carried.school_id, self.school.pk, "and it must come back owned"
+        )
+        self.assertEqual(
+            ClassroomPromotionMapping.objects.filter(
+                source_year=self.y2, target_year=y3
+            ).count(),
+            1,
+        )
+
     # -- 2. and never invents one ----------------------------------------
 
     def test_a_clone_never_invents_a_ladder(self):
