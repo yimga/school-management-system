@@ -21,6 +21,8 @@ import unittest
 
 from django.test import LiveServerTestCase
 
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
+
 RUN_A11Y_TESTS = os.environ.get("RUN_A11Y_TESTS") == "1"
 
 
@@ -37,7 +39,7 @@ def _imports_available() -> bool:
     RUN_A11Y_TESTS and _imports_available(),
     "Set RUN_A11Y_TESTS=1 and install selenium + axe-selenium-python to enable.",
 )
-class HomepageAxeSmokeTests(LiveServerTestCase):
+class HomepageAxeSmokeTests(RestoresSeedCatalogMixin, LiveServerTestCase):
     """Smoke test: marketing landing must have zero serious / critical axe violations."""
 
     @classmethod

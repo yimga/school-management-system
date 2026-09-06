@@ -40,6 +40,15 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-09-06. TransactionTestCase truncates every table at teardown
+    # and does not roll it back, so with --keepdb the emptied seed catalog is
+    # PERSISTED into later runs: unrelated suites answer 403 and look like
+    # permission regressions in code that is fine. The 2026-09-03 audit closed
+    # 32 of 33 classes and told the survivor to be 'ordered last' -- advice
+    # pytest cannot honour, since it runs in collection order. There were 15
+    # again by 2026-09-06. The flush and the failure need not even be in the
+    # same run, so nothing short of a gate catches the sixteenth.
+    ("scripts/scan_unrestored_flush_testcase.py", "architectural-boundaries.yml"),
     # Added 2026-09-02. Both wizard gates below existed, were correct, and were
     # invoked by NOTHING -- verify_unified_wizard_framework.py was even named in
     # this workflow's `paths:` filter, which triggers the job without running the

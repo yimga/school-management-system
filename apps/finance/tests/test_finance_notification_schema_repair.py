@@ -13,9 +13,10 @@ from django.test import TransactionTestCase
 from apps.accounts.models import User
 from apps.finance.models import Notification
 from apps.finance.schema_repair import ensure_finance_notification_columns
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 
-class FinanceNotificationSchemaRepairTests(TransactionTestCase):
+class FinanceNotificationSchemaRepairTests(RestoresSeedCatalogMixin, TransactionTestCase):
     databases = {"default"}
 
     def setUp(self):

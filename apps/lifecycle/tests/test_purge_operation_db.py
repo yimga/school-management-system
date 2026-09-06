@@ -32,6 +32,7 @@ from django.utils import timezone
 from apps.lifecycle import purge_certificate as cert
 from apps.lifecycle import purge_operations as ops
 from apps.lifecycle.models_purge import PurgeOperation
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 STT = PurgeOperation.Status
 
@@ -106,7 +107,7 @@ class PurgeConstraintDBTests(TestCase):
         )
 
 
-class PurgeRaceDBTests(TransactionTestCase):
+class PurgeRaceDBTests(RestoresSeedCatalogMixin, TransactionTestCase):
     """The IntegrityError-recovery branch needs real autocommit semantics."""
 
     def test_begin_recovers_from_real_integrity_race(self):
