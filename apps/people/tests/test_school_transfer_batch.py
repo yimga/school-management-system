@@ -130,6 +130,32 @@ class SchoolBatchEngineTests(TestCase):
         record_batch_approval(batch, self.op2, batch.source_school.slug)
         self.assertEqual(batch.status, SchoolTransferBatch.Status.APPROVED)
 
+    def _advance_and_land(self, **kwargs):
+        """Advance one chunk, then land the Migration Cloud work it queued.
+
+        ``run_transfer_case`` returns as soon as the apply is QUEUED -- the
+        bundle lands later, when the heavy-work outbox drains, and only then may
+        the case leave APPLYING. Production drains from a kicked worker thread,
+        which cannot see a TestCase's uncommitted rows, so the repo's own
+        convention is to suppress the kick and drain in this thread; see
+        ``transfer_service.run_transfer_case_await_apply``, which does exactly
+        this for the single-case path.
+
+        Before this existed the tests called ``advance_batch`` once and expected
+        COMPLETED, which was true only while the apply was synchronous. Since it
+        went async they asserted against a batch that could not yet have
+        finished, and the failure looked like an engine bug rather than a test
+        that had not followed the redesign.
+        """
+        from apps.platform_runtime.heavy_work_outbox import drain_heavy_work_outbox
+
+        kwargs.setdefault("actor", self.op1)
+        kwargs.setdefault("max_cases", 10)
+        with patch("apps.platform_runtime.heavy_work_outbox.kick_heavy_work_drain"):
+            summary = advance_batch(self.batch, **kwargs)
+        drain_heavy_work_outbox(limit=50)
+        return summary
+
     def test_preview_counts_only_eligible_students(self):
         preview = preview_batch(self.batch)
         self.assertEqual(preview["to_move"], 2)
@@ -183,8 +209,12 @@ class SchoolBatchEngineTests(TestCase):
             notes = " ".join(e.get("note", "") for e in case.history)
             self.assertIn("institutional authority", notes)
 
-        summary = advance_batch(self.batch, actor=self.op1, max_cases=10)
+        summary = self._advance_and_land()
         self.assertEqual(summary["ran"], 2)
+        # Both cases are APPLYING now; the bundles landed in the drain above, so
+        # the next chunk continues them and the batch completes.
+        summary = self._advance_and_land()
+        self.assertEqual(summary["continued"], 2)
         self.batch.refresh_from_db()
         self.assertEqual(self.batch.status, SchoolTransferBatch.Status.COMPLETED)
         self.assertIsNotNone(self.batch.completed_at)
@@ -227,15 +257,17 @@ class SchoolBatchEngineTests(TestCase):
         start_batch(self.batch, actor=self.op1)
 
         # Attempt 1: student 2 moves, student 1 blocks on the offline guard.
-        summary = advance_batch(self.batch, actor=self.op1, max_cases=10)
+        summary = self._advance_and_land()
         self.assertEqual(summary["ran"], 1)
         self.assertEqual(summary["blocked"], 1)
         self.batch.refresh_from_db()
         self.assertEqual(self.batch.status, SchoolTransferBatch.Status.RUNNING)
 
-        # Exhaust the blocked case's attempt ledger.
+        # Exhaust the blocked case's attempt ledger. Each pass also continues
+        # the case that DID move, so the batch can finish on the issue count
+        # rather than sitting open behind an APPLYING row.
         for _ in range(MAX_CASE_ATTEMPTS - 1):
-            advance_batch(self.batch, actor=self.op1, max_cases=10)
+            self._advance_and_land()
         self.batch.refresh_from_db()
         self.assertEqual(
             self.batch.status, SchoolTransferBatch.Status.COMPLETED_WITH_ISSUES
@@ -334,12 +366,27 @@ class SchoolBatchEngineTests(TestCase):
             advance_batch(self.batch, actor=self.op1)
 
     def test_periodic_entry_advances_running_batches(self):
+        from apps.platform_runtime.heavy_work_outbox import drain_heavy_work_outbox
+
         self._approve()
         start_batch(self.batch, actor=self.op1)
+
+        with patch("apps.platform_runtime.heavy_work_outbox.kick_heavy_work_drain"):
+            outcome = advance_running_batches(max_cases=10)
+        self.assertEqual(outcome["advanced"], 1)
+        drain_heavy_work_outbox(limit=50)
+
         outcome = advance_running_batches(max_cases=10)
         self.assertEqual(outcome["advanced"], 1)
         self.batch.refresh_from_db()
         self.assertEqual(self.batch.status, SchoolTransferBatch.Status.COMPLETED)
+
+        # The tick after the batch is done must NOT claim to have advanced it.
+        # `advanced` used to be len(outcomes) -- the number of batches LOOKED AT
+        # -- so a livelocked batch reported a healthy 1 on every run forever.
+        outcome = advance_running_batches(max_cases=10)
+        self.assertEqual(outcome["advanced"], 0)
+        self.assertEqual(outcome["visited"], 0, "a completed batch is not re-visited")
 
     def test_periodic_job_registered_cron_only(self):
         from apps.platform_runtime import periodic

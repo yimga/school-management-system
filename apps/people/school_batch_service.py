@@ -387,6 +387,7 @@ def _advance_batch_locked(batch, *, actor, max_cases: int) -> dict[str, Any]:
 
     _reap_stale_compensating(batch)
     _heal_interrupted_fanout(batch)
+    continued = _continue_applying_cases(batch)
 
     ledger = dict(batch.ledger or {})
 
@@ -433,8 +434,61 @@ def _advance_batch_locked(batch, *, actor, max_cases: int) -> dict[str, Any]:
     batch.save(update_fields=["ledger", "updated_at"])
 
     summary = _maybe_complete(batch, ledger)
-    summary.update({"ran": ran, "blocked": blocked, "failed": failed})
+    summary.update(
+        {"ran": ran, "blocked": blocked, "failed": failed, "continued": continued}
+    )
     return summary
+
+
+def _continue_applying_cases(batch) -> int:
+    """Drive this batch's own APPLYING cases; return how many actually moved.
+
+    The advancer used to run APPROVED cases only. Leaving APPLYING was the job
+    of a SEPARATE periodic task (``people.continue_applying_transfers``), so a
+    batch whose cases had all reached APPLYING could not be finished by its own
+    advancer -- and because ``applying`` is an OPEN status, _maybe_complete
+    could never complete it either. If the other job was not scheduled, or was
+    scheduled at a slower cadence, the batch simply sat there while the advancer
+    reported a successful tick.
+
+    Calling it here does not duplicate that task or race it:
+    ``continue_transfer_case_if_ready`` re-reads the row, refuses anything that
+    is not APPLYING, and only moves a case whose bundle has genuinely landed. It
+    is documented as safe to call repeatedly. The worst case is that both
+    drivers try and one finds the work already done.
+    """
+    from django.core.exceptions import ValidationError
+    from django.db import Error as DatabaseError
+
+    from apps.people.models_transfer import TransferCase, TransferStateError
+    from apps.people.transfer_service import continue_transfer_case_if_ready
+
+    moved = 0
+    cases = TransferCase.objects.filter(  # tenant-isolation-allow: transfer-case-cross-tenant-by-design-batch-fk-scoped
+        batch=batch, status=TransferCase.Status.APPLYING
+    ).order_by("created_at")
+    for case in cases:
+        try:
+            if continue_transfer_case_if_ready(case).get("advanced"):
+                moved += 1
+        except (
+            TransferStateError,
+            DatabaseError,
+            ValidationError,
+            ValueError,
+            TypeError,
+            KeyError,
+        ):
+            # Named, not bare: these are the ways a single case can refuse and
+            # the next case still be worth trying. Anything outside this set is
+            # not swallowed here -- it propagates to the tick-level handler in
+            # _advance_running_batches_in_schema, which exists precisely so one
+            # broken batch cannot starve the rest of the tick, and which logs
+            # with a traceback rather than a one-line warning.
+            logger.warning(
+                "school_batch.continue_failed batch=%s case=%s", batch.pk, case.pk
+            )
+    return moved
 
 
 def _reap_stale_compensating(batch) -> None:
@@ -765,8 +819,32 @@ def advance_running_batches(*, max_batches: int = 5, max_cases: int = DEFAULT_CH
         part_outcomes = part.get("outcomes") or []
         totals["outcomes"].extend(part_outcomes)
         remaining -= len(part_outcomes)
-    totals["advanced"] = len(totals["outcomes"])
+    totals["advanced"] = sum(1 for o in totals["outcomes"] if _outcome_made_progress(o))
+    totals["visited"] = len(totals["outcomes"])
     return totals
+
+
+def _outcome_made_progress(outcome: dict[str, Any]) -> bool:
+    """Did this batch actually move, or was it merely looked at?
+
+    ``advanced`` used to be ``len(outcomes)`` -- the number of batches VISITED.
+    A tick that ran no case, continued no case and completed no batch still
+    reported ``advanced: 1``, which is how a livelocked batch produced a healthy
+    metric on every run for as long as it was stuck. A counter that cannot say
+    "nothing happened" cannot be used to notice that nothing is happening.
+
+    ``visited`` keeps the old number under an honest name, so a caller that
+    wants "how many batches did this tick look at" still has it.
+    """
+    from apps.people.models_school_batch import SchoolTransferBatch
+
+    if outcome.get("skipped") or outcome.get("error"):
+        return False
+    if any(int(outcome.get(k) or 0) for k in ("ran", "failed", "continued")):
+        return True
+    # A batch that reached a terminal status this tick moved, even if the work
+    # that got it there happened on an earlier one.
+    return outcome.get("status") not in (None, SchoolTransferBatch.Status.RUNNING)
 
 
 def _audit(batch, actor, note: str) -> None:

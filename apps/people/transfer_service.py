@@ -25,6 +25,22 @@ logger = logging.getLogger(__name__)
 
 TRANSFER_COMPUTATION = "student.transfer"
 
+#: How long an APPLYING case may wait on a Migration Cloud bundle that never
+#: reaches APPLIED before it is compensated and failed.
+#:
+#: Without this the case waits forever: leaving APPLYING requires the bundle to
+#: land, nothing re-drives a bundle that stalls in INGESTING, and ``applying`` is
+#: an OPEN status, so its batch can never complete either. Measured on the
+#: school-batch suite: eight consecutive advancer passes left the same two cases
+#: in ``applying`` while the periodic job reported it had advanced a batch each
+#: time -- a cron reporting success on a livelock.
+#:
+#: Generous on purpose. A real apply is a full export plus import and takes
+#: minutes; six hours means "this is not slow, it is stuck". Mirrors
+#: REAP_COMPENSATING_AFTER_SECONDS in school_batch_service, which solves the
+#: same shape of problem one state later.
+STALL_APPLYING_AFTER_SECONDS = 21600  # magic-number-allow: applying-bundle-stall-threshold-seconds
+
 
 class TransferBlockedError(RuntimeError):
     """A guard refused the transfer — the case FSM was NOT advanced."""
@@ -226,6 +242,27 @@ def continue_transfer_case_if_ready(case, *, actor=None) -> dict[str, Any]:
         _compensate(case, RuntimeError("migration bundle failed"))
         return {"advanced": True, "status": case.status, "reason": "bundle_failed"}
     if bundle.status not in (BundleStatus.APPLIED, BundleStatus.RECONCILED):
+        # Waiting is normal; waiting forever is not. `updated_at` is the moment
+        # the case entered APPLYING, because every return above this point
+        # leaves the row untouched -- the same property the COMPENSATING reaper
+        # relies on.
+        from datetime import timedelta
+
+        stalled_for = timezone.now() - case.updated_at
+        if stalled_for > timedelta(seconds=STALL_APPLYING_AFTER_SECONDS):
+            _compensate(
+                case,
+                RuntimeError(
+                    "migration bundle %s stalled in %s for %s"
+                    % (case.target_bundle_id, bundle.status, stalled_for)
+                ),
+            )
+            return {
+                "advanced": True,
+                "status": case.status,
+                "reason": "bundle_stalled",
+                "bundle_status": bundle.status,
+            }
         return {
             "advanced": False,
             "status": case.status,
