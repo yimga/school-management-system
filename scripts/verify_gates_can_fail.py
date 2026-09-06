@@ -1408,9 +1408,6 @@ def _tail(text: str, lines: int = 6) -> str:
     return "\n    ".join((text or "").strip().splitlines()[-lines:])
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
-
 
 # A TransactionTestCase truncates every table at teardown and does not roll it
 # back. Against the persisted --keepdb database that is permanent: the seed
@@ -1441,3 +1438,7 @@ MUTATIONS["unrestored-flush-testcase"] = Mutation(
         + b"        pass" + chr(10).encode()
     ),
 )
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
