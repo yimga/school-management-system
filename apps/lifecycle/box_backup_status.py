@@ -67,6 +67,17 @@ def _intish(value: Any) -> int:
         return 0
 
 
+def offbox_is_independent(state: Optional[dict[str, Any]]) -> bool:
+    """Is there a copy of the dumps on a filesystem this box could lose separately?
+
+    Public because two callers need the answer WITHOUT the verdict: the every-boot
+    readiness check reports it at its own severity, and a caller that only wants the
+    remaining risk should not have to string-match :func:`verdict_from_state`'s
+    prose to find it.
+    """
+    return _truthy((state or {}).get("offbox_independent"))
+
+
 def verdict_from_state(
     state: Optional[dict[str, Any]],
     *,
@@ -122,7 +133,7 @@ def verdict_from_state(
         f"newest dump {last_file or '<none>'} was read back in full "
         f"({toc} archive entries)"
     )
-    if not _truthy(state.get("offbox_independent")):
+    if not offbox_is_independent(state):
         detail += (
             ". off-box copy is NOT on a different filesystem -- a dead disk takes "
             "both unless RMC_BOX_BACKUP_OFFBOX_DIR points at a USB disk or NAS"
