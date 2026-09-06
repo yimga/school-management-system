@@ -894,8 +894,8 @@
     {% if SITE and SITE.is_preview %}
     {% comment %} preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css {% endcomment %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-preview-labels">{
-      "default": "{% trans 'Your changes affect this area' %}",
-      "dismiss": "{% trans 'Dismiss highlights' %}"
+      "default": "{% filter escapejs %}{% trans 'Your changes affect this area' %}{% endfilter %}",
+      "dismiss": "{% filter escapejs %}{% trans 'Dismiss highlights' %}{% endfilter %}"
     }</script>
     <script src="{% static 'js/rmc-preview-labels-loader.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>

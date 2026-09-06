@@ -94,7 +94,7 @@
   </div>
 </div>
 <script type="application/json" id="page-data-analytics__governed_report_builder-1">{
-  "trans_enter_a_report_name": "{% trans "Enter a report name." %}",
+  "trans_enter_a_report_name": "{% filter escapejs %}{% trans "Enter a report name." %}{% endfilter %}",
   "var_governed_catalog_json_safe": "{{ governed_catalog_json|safe|escapejs }}",
   "var_saved_run_magic": "{{ saved_run_magic|escapejs }}",
   "var_saved_run_url_magic_escapejs": "{{ saved_run_url_magic|escapejs|escapejs }}",

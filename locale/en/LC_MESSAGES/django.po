@@ -74452,3 +74452,27 @@ msgstr "{{ t }} teachers · {{ s }} students"
 
 msgid "Create records"
 msgstr "Create records"
+
+msgid ""
+"Attendance is limited to the groups you teach. Ask an administrator to add "
+"you to the teaching timetable; once that is done your groups appear here "
+"automatically."
+msgstr ""
+"Attendance is limited to the groups you teach. Ask an administrator to add "
+"you to the teaching timetable; once that is done your groups appear here "
+"automatically."
+
+msgid ""
+"Attendance is recorded against the active year, and this school does not "
+"have one set. Ask a school administrator to set up and activate the academic"
+" year, then reload this page."
+msgstr ""
+"Attendance is recorded against the active year, and this school does not "
+"have one set. Ask a school administrator to set up and activate the academic"
+" year, then reload this page."
+
+msgid "No active academic year yet."
+msgstr "No active academic year yet."
+
+msgid "You have not been assigned to any {{ rc_class_lower }} yet."
+msgstr "You have not been assigned to any {{ rc_class_lower }} yet."

@@ -230,18 +230,59 @@ class ClassroomCreateForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, *args, **kwargs):
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    def __init__(self, *args, school=None, **kwargs):
+        """Scope the choices to ``school`` and remember it for ``save()``.
+
+        The previous markers claimed these querysets were "scoped via
+        surrounding tenant context". They were not scoped by anything: under
+        RLS (``USE_DJANGO_TENANTS=0``) every school shares one table, so the
+        dropdowns listed every tenant's active years and departments, and a
+        posted foreign id was accepted because the field's queryset is also the
+        validator.
+
+        ``school`` is optional so the form is still constructible without a
+        request (management commands, the admin, existing tests). When it is
+        omitted nothing is scoped -- the caller is trusted, exactly as before --
+        but the tenant-facing view now always passes it.
+        """
         super().__init__(*args, **kwargs)
-        self.fields["academic_year"].queryset = AcademicYear.objects.filter(
-            is_active=True
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        )
+        self.school = school
+        if school is not None:
+            years = AcademicYear.objects.filter(school=school, is_active=True)
+            departments = Department.objects.filter(school=school)
+        else:
+            # tenant-isolation-allow: unbound-form-is-cli-or-admin-caller-not-a-tenant-request
+            years = AcademicYear.objects.filter(is_active=True)
+            # tenant-isolation-allow: unbound-form-is-cli-or-admin-caller-not-a-tenant-request
+            departments = Department.objects.all()
+        self.fields["academic_year"].queryset = years.order_by("-start_date")
         self.fields["academic_year"].empty_label = "Select academic year"
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        self.fields["department"].queryset = Department.objects.all().order_by("name")
+        self.fields["department"].queryset = departments.order_by("name")
         self.fields["department"].empty_label = "Select department"
         self.fields["allows_third_term"].initial = True
+
+    def save(self, commit=True):
+        """Stamp the school onto the row.
+
+        ``Classroom.school`` is nullable and no signal backfills it, so without
+        this every classroom created through this page landed with
+        ``school_id`` NULL. That is not cosmetic: ``uniq_classroom_school_code``
+        is ``(school, code)`` and NULLs compare distinct, so the constraint
+        meant to stop a duplicate "F1A" silently stops enforcing, the row is
+        invisible to every ``filter(school=...)`` read, and
+        ``roster_webhook_on_classroom_save`` returns early without emitting the
+        OneRoster ``class.created`` event.
+        """
+        classroom = super().save(commit=False)
+        if classroom.school_id is None:
+            # Prefer the bound tenant; fall back to the year the user picked,
+            # which is already scoped to that tenant by __init__.
+            classroom.school = self.school or getattr(
+                classroom.academic_year, "school", None
+            )
+        if commit:
+            classroom.save()
+        return classroom
 
 
 class ApplicantCreateForm(forms.ModelForm):

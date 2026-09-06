@@ -12,11 +12,11 @@ this way. No endpoint means no chip: the feature is tenant-only, so absence is c
 {% if request.user.is_authenticated and rmc_sqc_endpoint %}
 <script nonce="{{ csp_nonce }}" id="rmc-support-quick-create-config" type="application/json">
 {
-  "endpoint": "{{ rmc_sqc_endpoint }}",
-  "kbSearchEndpoint": "{{ rmc_sqc_kb_endpoint }}",
+  "endpoint": "{{ rmc_sqc_endpoint|escapejs }}",
+  "kbSearchEndpoint": "{{ rmc_sqc_kb_endpoint|escapejs }}",
   "shortcutHint": "Shift+?",
-  "roleLabel": "{{ rmc_shell.role_label|default:request.user.get_role_display|default:'' }}",
-  "voiceLocale": "{{ LANGUAGE_CODE|default:'en' }}",
+  "roleLabel": "{{ rmc_shell.role_label|default:request.user.get_role_display|default:''|escapejs }}",
+  "voiceLocale": "{{ LANGUAGE_CODE|default:'en'|escapejs }}",
   "staticPrefix": "{% get_static_prefix %}"
 }
 </script>

@@ -46,15 +46,15 @@ _SUGGESTIONS: dict[str, tuple[WizardSuggestion, ...]] = {
         WizardSuggestion("account_migration", "wizards.next.import_existing_data", 30, "operator"),
     ),
     "custom_domain_setup": (
-        WizardSuggestion("cross_platform_whitelabel_branding", "wizards.next.match_brand", 10, "tenant_admin"),
+        WizardSuggestion("cross_platform_whitelabel_branding", "wizards.next.match_brand", 10, "operator"),
     ),
     "account_migration": (
-        WizardSuggestion("legacy_data_extraction_pipeline", "wizards.next.scale_pipeline", 10, "tenant_admin"),
+        WizardSuggestion("legacy_data_extraction_pipeline", "wizards.next.scale_pipeline", 10, "operator"),
     ),
 
     # Tenant-admin graph
     "cross_platform_whitelabel_branding": (
-        WizardSuggestion("custom_domain_setup", "wizards.next.add_custom_domain", 20, "tenant_admin"),
+        WizardSuggestion("custom_domain_setup", "wizards.next.add_custom_domain", 20, "operator"),
     ),
     "polymorphic_grading_curricula": (
         WizardSuggestion("report_card_template_studio", "wizards.next.build_report_cards", 10, "tenant_admin"),

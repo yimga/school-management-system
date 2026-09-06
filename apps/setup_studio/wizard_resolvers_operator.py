@@ -419,6 +419,17 @@ def write_academic_year_setup(
             ay.save(update_fields=["start_date", "end_date", "is_active"])
         AcademicYear.objects.filter(school=school).exclude(pk=ay.pk).update(is_active=False)
 
+        # Adopt terms an EARLIER run of this writer left with school_id NULL.
+        # Without this the school-scoped get_or_create below misses them and
+        # tries to INSERT, which collides on Term's ``(academic_year, name)``
+        # unique_together and takes down the whole step with an IntegrityError.
+        # ``clone_academic_year`` carries the same adoption for the same reason
+        # (see apps/academics/services_year_setup.py) -- a year is reachable by
+        # both paths, so both have to be able to pick these rows up.
+        Term.objects.filter(academic_year=ay, school__isnull=True).update(
+            school_id=ay.school_id
+        )
+
         months_per_term = 12 // term_count
         for i in range(term_count):
             t_start = date(
@@ -432,11 +443,60 @@ def write_academic_year_setup(
                 next_month = ((start_date.month - 1 + (i + 1) * months_per_term) % 12) + 1
                 next_year = start_date.year + ((start_date.month - 1 + (i + 1) * months_per_term) // 12)
                 t_end = date(next_year, next_month, 1) - timedelta(days=1)
-            Term.objects.get_or_create(
+            # ``school`` and ``position`` are not decoration. Every downstream
+            # consumer reads one of the three columns set here, and each one
+            # fails SILENTLY when it is missing:
+            #   * ``provision_teaching_grid_for_school`` and
+            #     ``provision_per_specialty_grid`` look terms up with
+            #     ``Term.objects.filter(school=school, academic_year=year)``, so
+            #     an unstamped term yields an empty teaching grid -- no
+            #     SubjectAssignment, therefore no TeacherAssignment, therefore
+            #     an empty class list for every teacher.
+            #   * both of those ``.order_by("position")``, and
+            #     ``SubjectAssignment.clean`` gates the third term on
+            #     ``term.position == 3``, which can never fire when position is
+            #     NULL.
+            #   * ``get_active_year_and_term`` filters ``is_active=True``, and
+            #     with no active term it returns ``(year, None)`` --
+            #     ``teacher_marks_entry`` then answers 403 "No active academic
+            #     year/term set by admin yet." to an admin who had just set one.
+            # ``ensure_terms`` (the other producer of these rows) has always set
+            # all three; this writer is the odd one out.
+            term_obj, _term_created = Term.objects.get_or_create(
+                school=school,
                 academic_year=ay,
                 name=f"Term {i + 1}",
-                defaults={"start_date": t_start, "end_date": t_end},
+                defaults={
+                    "position": i + 1,
+                    "start_date": t_start,
+                    "end_date": t_end,
+                    "is_active": i == 0,
+                },
             )
+            # A term adopted from an earlier run exists, so ``defaults`` was
+            # ignored and its position is still NULL. Backfill it -- but only
+            # when it is unset, so an admin who deliberately reordered the year
+            # is never overwritten.
+            if term_obj.position is None:
+                Term.objects.filter(pk=term_obj.pk, position__isnull=True).update(
+                    position=i + 1
+                )
+
+        # ``get_or_create`` IGNORES ``defaults`` when the row already exists, so
+        # a year part-seeded by an earlier run (or one whose terms were
+        # deactivated by a year-close) would keep zero active terms forever.
+        # Heal explicitly rather than trusting the create path, exactly as
+        # ``apps.academics.structure_provisioning.ensure_terms`` does.
+        if not Term.objects.filter(
+            school=school, academic_year=ay, is_active=True
+        ).exists():
+            first = (
+                Term.objects.filter(school=school, academic_year=ay)
+                .order_by("position", "start_date", "id")
+                .first()
+            )
+            if first is not None:
+                Term.objects.filter(school=school, pk=first.pk).update(is_active=True)
 
 
 def write_student_self_onboarding_step(*, school: Any, wizard_key: str, step_key: str, payload: dict[str, Any], actor_user_id: int | None) -> None:

@@ -92,9 +92,9 @@
     <p class="setup-studio-muted small mt-2 mb-0"><span data-coach-source></span></p>
   </section>
   <script type="application/json" id="page-data-customersuccess__guided_onboarding-1">{
-  "trans_powered_by_ai_gateway": "{% trans 'Powered by AI gateway' %}",
-  "trans_ai_enhanced_suggestions": "{% trans 'AI-enhanced suggestions' %}",
-  "trans_based_on_your_setup_progress": "{% trans 'Based on your setup progress' %}"
+  "trans_powered_by_ai_gateway": "{% filter escapejs %}{% trans 'Powered by AI gateway' %}{% endfilter %}",
+  "trans_ai_enhanced_suggestions": "{% filter escapejs %}{% trans 'AI-enhanced suggestions' %}{% endfilter %}",
+  "trans_based_on_your_setup_progress": "{% filter escapejs %}{% trans 'Based on your setup progress' %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/customersuccess__guided_onboarding-1.js' %}"></script>
   {% endif %}
 

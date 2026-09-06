@@ -264,6 +264,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # M9 CSP enforce seal: no inline on*= event handlers on served (non-admin)
     # templates — strict script-src blocks them, so the enforce flip needs 0.
     ("scripts/scan_inline_event_handlers.py", "architectural-boundaries.yml"),
+    # Hand-built JSON islands must escape their interpolations. Silent console.warn
+    # failure mode, locale-dependent, invisible to every status-code sweep.
+    ("scripts/scan_json_island_escaping.py", "architectural-boundaries.yml"),
     # Eager filter-arg VariableDoesNotExist 500 class (ops_surface / slice / add).
     # Static scanner stays deps-free; completion verifier (static-only in boundaries,
     # full Django run in ci.yml) is the only allowed "done" proof.

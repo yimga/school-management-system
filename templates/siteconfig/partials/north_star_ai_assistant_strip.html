@@ -54,10 +54,10 @@
     <p class="text-muted mt-2 mb-0 small" id="northstar-ai-status-{{ strip_id }}" role="status"></p>
   </div>
   <script type="application/json" id="page-data-siteconfig__partials__north_star_ai_assistant_strip-1">{
-  "trans_requesting_draft": "{% trans 'Requesting draft…' %}",
-  "trans_draft_request_failed": "{% trans 'Draft request failed.' %}",
-  "trans_draft_ready_review_before_use": "{% trans 'Draft ready — review before use.' %}",
-  "trans_network_error": "{% trans 'Network error.' %}",
+  "trans_requesting_draft": "{% filter escapejs %}{% trans 'Requesting draft…' %}{% endfilter %}",
+  "trans_draft_request_failed": "{% filter escapejs %}{% trans 'Draft request failed.' %}{% endfilter %}",
+  "trans_draft_ready_review_before_use": "{% filter escapejs %}{% trans 'Draft ready — review before use.' %}{% endfilter %}",
+  "trans_network_error": "{% filter escapejs %}{% trans 'Network error.' %}{% endfilter %}",
   "var_strip_id_escapejs": "{{ strip_id|escapejs|escapejs }}",
   "var_northstar_ai_draft_url_escapejs": "{{ northstar_ai_draft_url|escapejs|escapejs }}"
 }</script><script src="{% static 'js/_pages/siteconfig__partials__north_star_ai_assistant_strip-1.js' %}"></script>
