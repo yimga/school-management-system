@@ -74450,6 +74450,9 @@ msgstr "{{ n }} student(s) without classroom"
 msgid "{{ t }} teachers · {{ s }} students"
 msgstr "{{ t }} teachers · {{ s }} students"
 
+msgid "Create records"
+msgstr "Create records"
+
 msgid ""
 "Attendance is limited to the groups you teach. Ask an administrator to add "
 "you to the teaching timetable; once that is done your groups appear here "

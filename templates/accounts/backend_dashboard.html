@@ -319,6 +319,34 @@ backend-shell dashboard-page-backend
 
   <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
     {% include "partials/_resumable_wizards_banner.html" with banner_variant="compact" %}
+    {% comment %}
+    Persistent create affordances. These existed ONLY inside the Recent Admissions
+    panel and only for students, so a school that hid that module had no way to add a
+    student, teacher or classroom without leaving the product for /admin/.
+    quick_teacher_create_url was computed by the view and consumed by no template at
+    all. Each link is gated on the SAME model permission its target view enforces, so
+    nothing is offered that would then be refused.
+    {% endcomment %}
+    {% if perms.people.add_studentprofile or perms.people.add_teacherprofile or perms.academics.add_classroom %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="{% trans 'Create records' %}" data-widget-id="backend-quick-create">
+      <span class="small text-muted">{% trans "Add" %}</span>
+      {% if perms.people.add_studentprofile and quick_student_create_url %}
+      <a href="{{ quick_student_create_url }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-mortarboard" aria-hidden="true"></i> {% term "student" capitalize=True %}
+      </a>
+      {% endif %}
+      {% if perms.people.add_teacherprofile and quick_teacher_create_url %}
+      <a href="{{ quick_teacher_create_url }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-easel" aria-hidden="true"></i> {% term "teacher" capitalize=True %}
+      </a>
+      {% endif %}
+      {% if perms.academics.add_classroom and quick_classroom_create_url %}
+      <a href="{{ quick_classroom_create_url }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-easel2" aria-hidden="true"></i> {% term "classroom" capitalize=True %}
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
     {% if backend_intent_emphasize_setup %}
     <div class="rmc-banner rmc-banner--info py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" role="region" aria-label="{% trans 'Setup focus' %}">
       <span>{% trans "Focus: Setup — Complete your school setup for the best experience." %}</span>

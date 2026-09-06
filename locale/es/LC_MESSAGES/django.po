@@ -67601,6 +67601,9 @@ msgstr ""
 msgid "{{ t }} teachers · {{ s }} students"
 msgstr ""
 
+msgid "Create records"
+msgstr ""
+
 msgid ""
 "Attendance is limited to the groups you teach. Ask an administrator to add "
 "you to the teaching timetable; once that is done your groups appear here "
