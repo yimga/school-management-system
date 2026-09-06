@@ -279,8 +279,12 @@ class AdminNavigationPreferenceService:
 
     @classmethod
     def _legacy_state(cls, *, user, host: str, admin_site: str) -> dict[str, Any] | None:
+        # Same savepoint contract as read_envelope below: this runs AFTER that
+        # read on the fallback path, so without its own savepoint it is the
+        # second query to die on an already-aborted Postgres transaction.
         try:
-            legacy = cls._legacy_model().objects.filter(user=user).only("dashboard_layout").first()
+            with transaction.atomic(savepoint=True):
+                legacy = cls._legacy_model().objects.filter(user=user).only("dashboard_layout").first()
         except DatabaseError:
             return None
         layout = legacy.dashboard_layout if legacy else {}
@@ -311,8 +315,17 @@ class AdminNavigationPreferenceService:
             return {"revision": 0, "state": dict(DEFAULT_STATE)}
         host = _safe_host_value(host)
         admin_site = str(admin_site).strip().lower()[:64]
+        # savepoint=True is load-bearing, not decoration. Catching a database
+        # error does NOT make the connection usable again on PostgreSQL: the
+        # transaction stays aborted and EVERY later query raises
+        # InFailedSqlTransaction, so swallowing this read turns one missing
+        # table into a 500 further down the request. SQLite does not behave
+        # that way, which is exactly why this survived local testing: the
+        # admin add page renders 200 on SQLite and dies on Postgres. Rolling
+        # back to a savepoint is what actually lets the request continue.
         try:
-            preference = cls._preference_model().objects.filter(user=user, host=host, admin_site=admin_site).only("revision", "state").first()
+            with transaction.atomic(savepoint=True):
+                preference = cls._preference_model().objects.filter(user=user, host=host, admin_site=admin_site).only("revision", "state").first()
         except DatabaseError:
             logger.warning("admin navigation preferences unavailable", exc_info=True)
             return {"revision": 0, "state": dict(DEFAULT_STATE)}
