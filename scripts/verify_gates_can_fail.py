@@ -316,6 +316,22 @@ MUTATIONS: dict[str, Mutation] = {
         defect="JS that does not parse: the tag 200s, the console throws, one feature is dead and nothing else notices",
         content=b"function broken( {\n  return 1;\n}\n",
     ),
+    # A JSON island is assembled as TEXT, so an unescaped value carrying a double
+    # quote closes the string early and the island stops parsing. The page is
+    # still 200 and still renders -- one feature is simply dead, in the locale
+    # whose catalog happens to hold the quote, which is why English never shows
+    # it. The planted template puts a bare {% trans %} inside a JSON string,
+    # exactly the shape the cmdk palette shipped on every shell.
+    "json-island-escaping": Mutation(
+        kind="create",
+        path=f"templates/portal/{_PROOF}_json_island.html",
+        defect="an unescaped {% trans %} inside a JSON island: one quoted translation empties the feature silently",
+        content=(
+            b'<script type="application/json" id="rmc-gateproof-island">{\n'
+            b'  "label": "{% trans "Open command palette" %}"\n'
+            b"}</script>\n"
+        ),
+    ),
     "template-html-structure": Mutation(
         kind="create",
         # A partial, not a root-level file, and an unclosed DIV rather than a

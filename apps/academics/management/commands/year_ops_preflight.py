@@ -43,7 +43,9 @@ from __future__ import annotations
 
 import json
 
+from django.core.exceptions import FieldError, ObjectDoesNotExist
 from django.core.management.base import BaseCommand
+from django.db import DatabaseError
 
 BLOCKER = "BLOCKER"
 WARN = "WARN"
@@ -357,9 +359,24 @@ class Command(BaseCommand):
     def _check_scale(self, school) -> Check:
         from apps.evals.grading_provisioning import resolve_school_score_scale
 
+        # A preflight reports rather than crashes, but it still names what it
+        # catches. Catching everything here would swallow an ordinary programming
+        # error and report it to a head teacher as "mark scale unresolved",
+        # sending them off to seed weights that were never the problem. These are
+        # the ways a resolver legitimately fails: absent config, a missing related
+        # row, a malformed profile.
         try:
             scale = resolve_school_score_scale(school)
-        except Exception as exc:  # noqa: BLE001 - a preflight reports, never crashes
+        except (
+            AttributeError,
+            KeyError,
+            LookupError,
+            TypeError,
+            ValueError,
+            ObjectDoesNotExist,
+            FieldError,
+            DatabaseError,
+        ) as exc:
             return Check(
                 "mark_scale",
                 BLOCKER,
