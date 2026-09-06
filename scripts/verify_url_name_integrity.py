@@ -322,8 +322,24 @@ def _print_summary(findings: list[dict], scanned: int) -> None:
 
 def _write_baseline(findings: list[dict]) -> None:
     BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    payload = _baseline_payload(findings)
+    # Keep the ORIGINAL generated_at when the finding set has not changed.
+    #
+    # This gate runs in CI and in the pre-push hook, and a fresh timestamp on
+    # every run left a tracked file permanently modified with an identical
+    # finding_count. That is not cosmetic: the pre-push hook rewrites the
+    # artifact, so a retry-merge-push loop aborts on its own byproduct with
+    # "Your local changes would be overwritten by merge" and deadlocks after one
+    # iteration. Three other generators had already been fixed for exactly this;
+    # this was the fourth. The timestamp still answers "when did this set last
+    # change", which is the only question it was ever useful for.
+    existing = _load_baseline()
+    if existing is not None and existing.get("findings") == payload["findings"]:
+        prior = existing.get("generated_at")
+        if prior:
+            payload["generated_at"] = prior
     BASELINE_PATH.write_text(
-        json.dumps(_baseline_payload(findings), indent=2, sort_keys=True) + "\n",
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     print(f"  wrote baseline -> {BASELINE_PATH.relative_to(REPO_ROOT)}")
