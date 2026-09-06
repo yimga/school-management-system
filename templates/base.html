@@ -429,8 +429,8 @@
     {% if SITE and SITE.is_preview %}
     {% comment %} preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); folded into design-system-unified.css {% endcomment %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="page-data-base-1">{
-  "trans_your_changes_affect_this_area": "{% trans "Your changes affect this area" %}",
-  "trans_dismiss_highlights": "{% trans "Dismiss highlights" %}"
+  "trans_your_changes_affect_this_area": "{% filter escapejs %}{% trans "Your changes affect this area" %}{% endfilter %}",
+  "trans_dismiss_highlights": "{% filter escapejs %}{% trans "Dismiss highlights" %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/base-1.js' %}"></script>
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}

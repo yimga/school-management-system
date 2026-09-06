@@ -139,7 +139,7 @@
 {{ block.super }}
 <script src="{% static 'js/package-dependency-graph.js' %}"></script>
 <script type="application/json" id="page-data-siteconfig__installed_packages_rollback-1">{
-  "trans_could_not_load_graph": "{% trans 'Could not load graph.' %}",
+  "trans_could_not_load_graph": "{% filter escapejs %}{% trans 'Could not load graph.' %}{% endfilter %}",
   "var_package_impact_fetch_url_escapejs": "{{ package_impact_fetch_url|escapejs|escapejs }}",
   "var_school_pk": "{{ school.pk|escapejs }}"
 }</script><script src="{% static 'js/_pages/siteconfig__installed_packages_rollback-1.js' %}"></script>

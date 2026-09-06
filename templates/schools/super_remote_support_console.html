@@ -54,17 +54,17 @@
   "end_url_template": "{{ end_url_template|escapejs }}",
   "placeholder": "00000000-0000-0000-0000-000000000000",
   "labels": {
-    "accept": "{% trans 'Accept' %}",
-    "end": "{% trans 'End' %}",
-    "needs_consent": "{% trans 'Awaiting consent' %}",
-    "consent_ok": "{% trans 'Ready' %}",
-    "empty": "{% trans 'No open remote-support sessions.' %}",
-    "error": "{% trans 'Could not load sessions — will retry.' %}",
-    "loaded": "{% trans 'Updated just now.' %}",
-    "end_prompt": "{% trans 'Optional summary for this support session:' %}",
-    "accepting": "{% trans 'Accepting session…' %}",
-    "ending": "{% trans 'Ending session…' %}",
-    "school": "{% trans 'School' %}"
+    "accept": "{% filter escapejs %}{% trans 'Accept' %}{% endfilter %}",
+    "end": "{% filter escapejs %}{% trans 'End' %}{% endfilter %}",
+    "needs_consent": "{% filter escapejs %}{% trans 'Awaiting consent' %}{% endfilter %}",
+    "consent_ok": "{% filter escapejs %}{% trans 'Ready' %}{% endfilter %}",
+    "empty": "{% filter escapejs %}{% trans 'No open remote-support sessions.' %}{% endfilter %}",
+    "error": "{% filter escapejs %}{% trans 'Could not load sessions — will retry.' %}{% endfilter %}",
+    "loaded": "{% filter escapejs %}{% trans 'Updated just now.' %}{% endfilter %}",
+    "end_prompt": "{% filter escapejs %}{% trans 'Optional summary for this support session:' %}{% endfilter %}",
+    "accepting": "{% filter escapejs %}{% trans 'Accepting session…' %}{% endfilter %}",
+    "ending": "{% filter escapejs %}{% trans 'Ending session…' %}{% endfilter %}",
+    "school": "{% filter escapejs %}{% trans 'School' %}{% endfilter %}"
   }
 }</script>
 <script src="{% static 'js/rmc-super-remote-support.js' %}" defer></script>

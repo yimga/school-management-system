@@ -53,9 +53,10 @@ def backend_staff_bulk_role(request):
     """
     payload = _parse_json_body(request)
     role = str(payload.get("role") or request.POST.get("role") or "").strip()
-    staff_ids = parse_staff_id_list(payload.get("ids") or request.POST.getlist("ids"))
-
     try:
+        staff_ids = parse_staff_id_list(
+            payload.get("ids") or request.POST.getlist("ids")
+        )
         outcome = bulk_set_staff_role(
             staff_ids=staff_ids, role=role, school=getattr(request, "school", None)
         )

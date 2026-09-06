@@ -3,10 +3,10 @@
 <script type="application/json" id="page-data-rmc-nav-sidebar" nonce="{{ csp_nonce }}">{
   "enabled": true,
   "default_mode": "{{ cockpit.nav_sidebar.default_mode|default:'normal'|escapejs }}",
-  "default_width": {{ cockpit.nav_sidebar.default_width|default:280 }},
-  "min_width": {{ cockpit.nav_sidebar.min_width|default:200 }},
-  "max_width": {{ cockpit.nav_sidebar.max_width|default:420 }},
-  "rail_width": {{ cockpit.nav_sidebar.rail_width|default:44 }}
+  "default_width": {{ cockpit.nav_sidebar.default_width|default:280|escapejs }},
+  "min_width": {{ cockpit.nav_sidebar.min_width|default:200|escapejs }},
+  "max_width": {{ cockpit.nav_sidebar.max_width|default:420|escapejs }},
+  "rail_width": {{ cockpit.nav_sidebar.rail_width|default:44|escapejs }}
 }</script>
 {% endif %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

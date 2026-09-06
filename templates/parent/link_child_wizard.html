@@ -373,7 +373,7 @@
 {% comment %} FormDraftSave.init is called by the page script after the library loads. {% endcomment %}
 {% comment %} Wizard config emitted as a JSON data island; reader is _pages/parent__link_child_wizard.js {% endcomment %}
 <script type="application/json" id="link-child-wizard-config">{
-  "step": {{ step|default:0 }},
+  "step": {{ step|default:0|escapejs }},
   "admissionFieldId": "{{ form.admission_number.id_for_label|default:''|escapejs }}"
 }</script>
 <script src="{% static 'js/_pages/parent__link_child_wizard.js' %}"></script>

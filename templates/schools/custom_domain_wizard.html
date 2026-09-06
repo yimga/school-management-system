@@ -89,7 +89,7 @@
 </div>
 <script type="application/json" id="page-data-schools__custom_domain_wizard-1">{
   "url_api_domains_list_or_create": "{% url "api_domains_list_or_create" %}",
-  "trans_request_failed": "{% trans "Request failed" %}",
+  "trans_request_failed": "{% filter escapejs %}{% trans "Request failed" %}{% endfilter %}",
   "var_api_domains_url_default_api_tenant_domains": "{{ api_domains_url|default:"/api/tenant/domains/"|escapejs }}"
 }</script><script src="{% static 'js/_pages/schools__custom_domain_wizard-1.js' %}"></script>
 {% endblock %}

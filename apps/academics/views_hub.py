@@ -48,7 +48,21 @@ def academics_hub(request):
     actions = [
         ("Academic years & terms", "Create the calendar that powers timetables, grading and reporting.", "siteconfig:academic_years_setup_evidence", "academic_years"),
         ("Classes & subjects", "Review the teaching structure and the subjects available to this school.", "accounts:backend_classroom_list", "classes"),
-        ("Teaching assignments", "Connect teachers, classes and subjects with tenant-scoped records.", "accounts:backend_subject_list", "assignments"),
+        # This card counts SubjectAssignment rows and promises to "connect
+        # teachers, classes and subjects", so it must open somewhere that can
+        # actually create one. It used to open ``accounts:backend_subject_list``
+        # -- a surface whose own docstring calls it "a read-only browse
+        # surface" -- so the one entry point in the product for the single most
+        # load-bearing link in the year (no TeacherAssignment => every teacher
+        # gets an empty class list on roll call and a 403 on mark entry) led to
+        # a list of subjects and no way to assign anybody.
+        # The teaching grid has no bespoke page; the tenant admin changelist is
+        # where this work is really done, and it is mounted on the tenant host
+        # (``config/tenant_urls.py`` -> ``tenant_admin_site.urls``). On a host
+        # that does not mount it ``_tenant_url`` returns "" and the card renders
+        # its existing "Route unavailable" badge rather than a wrong link.
+        ("Teaching assignments", "Connect teachers, classes and subjects — assign who teaches what.", "tenant_admin:academics_subjectassignment_changelist", "assignments"),
+        ("Subjects", "Review the subjects and courses available to this school.", "accounts:backend_subject_list", "subjects"),
         ("Timetable", "Generate, review conflicts and publish a real school timetable.", "accounts:ops_timetabling", "terms"),
         ("Attendance", "Open the operational attendance capture workflow.", "portal:teacher_attendance", "classes"),
         ("Grading rules", "Configure the rules used by assessment and report surfaces.", "siteconfig:grading_settings", "subjects"),

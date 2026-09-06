@@ -604,7 +604,7 @@ def backend_classroom_create(request):
         blocked = block_if_wind_down_commerce(request)
         if blocked is not None:
             return blocked
-        form = ClassroomCreateForm(request.POST)
+        form = ClassroomCreateForm(request.POST, school=getattr(request, "school", None))
         if form.is_valid():
             try:
                 classroom = form.save()
@@ -620,7 +620,7 @@ def backend_classroom_create(request):
                 )
                 messages.error(request, f"Error creating classroom: {str(e)}")
     else:
-        form = ClassroomCreateForm()
+        form = ClassroomCreateForm(school=getattr(request, "school", None))
 
     list_url = reverse("accounts:backend_classroom_list")
     return render(
@@ -665,12 +665,20 @@ def _filter_to_selected_ids(qs, request):
     Non-numeric parts are dropped rather than raising: the ids come from a query
     string, so a malformed one is a request to be ignored, not a 500.
 
-    KNOWN LIMIT, carried over deliberately rather than silently re-invented: the
-    cap is 200 and a longer selection is TRUNCATED with nothing said. Selecting
-    300 rows and exporting gives 200 rows in a file that claims to be the
-    selection. Raising it needs a matching bound in the client and a POST for
-    long selections (a query string has no useful length guarantee), so it is
-    left as it was and written down here instead of being spread quietly.
+    There is deliberately NO cap on the selection, and the reason is worth
+    keeping because the cap that used to be here looked prudent. It was 200, and
+    a longer selection was truncated with nothing said -- ticking 300 rows and
+    exporting produced 200 rows in a file that called itself the selection.
+
+    It protected nothing. The unrestricted export on this SAME view, reached by
+    dropping the ids entirely, bounds itself at ``qs[:10000]``; the capped path
+    was fifty times stricter than the uncapped one behind identical permissions,
+    so anyone inconvenienced by it could get MORE data by selecting less. Nor was
+    it protecting the URL: a query string too long to carry the ids is rejected by
+    the web server with 414 before Django is reached, so any ids that arrive here
+    arrived whole. What remains is the export's own 10000-row bound and the
+    paginator on the HTML path, both of which apply to a selection as they do to
+    everything else.
     """
     ids_raw = (request.GET.get("ids") or "").strip()
     if not ids_raw:
@@ -679,7 +687,7 @@ def _filter_to_selected_ids(qs, request):
     id_list = [int(part) for part in id_list if part.isdigit()]
     if not id_list:
         return qs
-    return qs.filter(pk__in=id_list[:200])
+    return qs.filter(pk__in=id_list)
 
 
 @login_required

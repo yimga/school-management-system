@@ -106,6 +106,7 @@ on:
       - "templates/**/*.html"
       - "scripts/scan_inline_style_off_token.py"
       - "scripts/scan_inline_event_handlers.py"
+      - "scripts/scan_json_island_escaping.py"
       - "scripts/scan_undefined_css_classes.py"
       - "scripts/verify_python_files_parse.py"
       - "scripts/verify_javascript_files_parse.py"
@@ -747,6 +748,10 @@ jobs:
             python scripts/scan_inline_event_handlers.py --compare
           }
 
+          u_json_island_escaping() {
+            python scripts/scan_json_island_escaping.py
+          }
+
           u_off_token_colors() {
             python scripts/scan_off_token_colors.py --strict
           }
@@ -964,6 +969,7 @@ jobs:
           run_unit u_template_tag_loads "Template custom tag {% load %} integrity"
           run_unit u_inline_style_off_token "Apple HIG: inline styles off the token system"
           run_unit u_inline_event_handlers "CSP enforce seal: no inline on*= event handlers"
+          run_unit u_json_island_escaping "Unescaped interpolations in hand-built JSON islands"
           run_unit u_off_token_colors "Off-token color literals in CSS (theme switching safety)"
           run_unit u_theme_locked_token_text "Theme-locked token references in CSS (subtle invisibility bugs)"
           run_unit u_undefined_css_classes "Undefined CSS classes (typos & silent layout bugs)"

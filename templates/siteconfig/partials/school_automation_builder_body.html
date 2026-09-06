@@ -99,7 +99,7 @@
   "url_siteconfig_school_automation_simulate_api": "{% url "siteconfig:school_automation_simulate_api" %}",
   "url_siteconfig_school_automation_execution_logs_api": "{% url "siteconfig:school_automation_execution_logs_api" %}",
   "url_siteconfig_school_automation_retry_api": "{% url "siteconfig:school_automation_retry_api" %}",
-  "trans_connect_mode_on": "{% trans "Connect mode: on" %}",
-  "trans_connect_mode_off": "{% trans "Connect mode: off" %}",
-  "trans_confirm_publish": "{% trans "Validate & publish this workflow? It will become live for the school." %}"
+  "trans_connect_mode_on": "{% filter escapejs %}{% trans "Connect mode: on" %}{% endfilter %}",
+  "trans_connect_mode_off": "{% filter escapejs %}{% trans "Connect mode: off" %}{% endfilter %}",
+  "trans_confirm_publish": "{% filter escapejs %}{% trans "Validate & publish this workflow? It will become live for the school." %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/siteconfig__school_automation_builder-1.js' %}"></script>

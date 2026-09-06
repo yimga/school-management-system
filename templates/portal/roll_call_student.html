@@ -20,6 +20,18 @@
     <span class="text-muted">|</span>
     <a href="{% url 'portal:student_attendance_export' %}">{% trans "Export attendance (CSV)" %}</a>
   </p>
+  {% if no_classrooms_reason == "no_active_year" %}
+    <div class="alert alert-warning" role="status">
+      <strong>{% trans "No active academic year yet." %}</strong>
+      {% blocktrans %}Attendance is recorded against the active year, and this school does not have one set. Ask a school administrator to set up and activate the academic year, then reload this page.{% endblocktrans %}
+    </div>
+  {% elif no_classrooms_reason == "no_assignment" %}
+    {% term_lower "class" as rc_class_lower %}
+    <div class="alert alert-info" role="status">
+      <strong>{% blocktrans %}You have not been assigned to any {{ rc_class_lower }} yet.{% endblocktrans %}</strong>
+      {% blocktrans %}Attendance is limited to the groups you teach. Ask an administrator to add you to the teaching timetable; once that is done your groups appear here automatically.{% endblocktrans %}
+    </div>
+  {% endif %}
   <div class="card mb-3">
     <div class="card-body">
       <form method="get" action="{% url 'portal:take_student_attendance' %}" class="row g-2 align-items-end mb-3" data-rmc-autosubmit="1">

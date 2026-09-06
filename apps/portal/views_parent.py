@@ -299,8 +299,19 @@ def parent_workflow_center(request: HttpRequest):
         if can_view_finance
         else (
             [
+                # Link the PAGE that hosts the request form, not the endpoint.
+                # `finance:finance_request_access` is @require_POST, and these
+                # workflow steps render as plain `<a href>` anchors
+                # (templates/partials/tenant/workflow_portal.html:128), so the
+                # click issued a GET and the guardian got a bare 405. This was
+                # the only route out of the "finance hidden" state offered on
+                # this page. Every other surface already POSTs from a form
+                # (parent/finance.html, finance/invoices.html,
+                # finance/invoice_detail.html, parent/_rmc_dh_family_home.html);
+                # parent_finance renders that same form whenever
+                # can_request_finance_access is true.
                 _parent_workflow_link(
-                    "Request finance access", "finance:finance_request_access"
+                    "Request finance access", "portal:parent_finance"
                 )
             ]
             if can_request_finance_access

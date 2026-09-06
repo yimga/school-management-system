@@ -32,9 +32,9 @@
 </div>
 
 <script type="application/json" id="page-data-portal__photo_upload_phone-1">{
-  "trans_please_take_or_choose_a_photo_first": "{% trans "Please take or choose a photo first." %}",
-  "trans_upload_failed_try_again": "{% trans "Upload failed. Try again." %}",
-  "trans_upload_failed_check_your_connection_and_try_again": "{% trans "Upload failed. Check your connection and try again." %}"
+  "trans_please_take_or_choose_a_photo_first": "{% filter escapejs %}{% trans "Please take or choose a photo first." %}{% endfilter %}",
+  "trans_upload_failed_try_again": "{% filter escapejs %}{% trans "Upload failed. Try again." %}{% endfilter %}",
+  "trans_upload_failed_check_your_connection_and_try_again": "{% filter escapejs %}{% trans "Upload failed. Check your connection and try again." %}{% endfilter %}"
 }</script><script src="{% static 'js/_pages/portal__photo_upload_phone-1.js' %}"></script>
 <script src="{% static 'js/photo-capture-id.js' %}"></script>
 {% endblock %}

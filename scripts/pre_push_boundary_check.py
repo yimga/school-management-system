@@ -106,6 +106,13 @@ GATES: list[tuple[str, list[str]]] = [
     # reparents everything after the unclosed element. Nine served templates were
     # found this way on 2026-08-20, one of them shipping a </motion> end tag.
     ("template-html-structure", ["verify_template_html_structure.py"]),
+    # A JSON <script> island is assembled as TEXT, so an unescaped {% trans %} or
+    # {{ var }} carrying a double quote closes the string early and the island stops
+    # parsing. The failure is a console.warn, not a 500: the page is 200, renders
+    # normally, and one feature is silently dead — in the locale that has the quote,
+    # so English never shows it. 169 were live across 27 templates on 2026-09-05,
+    # including the cmdk command palette on every shell.
+    ("json-island-escaping", ["scan_json_island_escaping.py"]),
     # And the fourth floor gate, for code that parses, imports, and never runs.
     # EdgeAutosyncMiddleware was defined, correct, and referenced NOWHERE but its own
     # class statement — written to keep a LAN box syncing when nothing pings /health/,

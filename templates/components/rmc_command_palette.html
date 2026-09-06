@@ -59,21 +59,21 @@
   },
   "groups": [
     {
-      "label": "{% trans 'Navigate' %}",
+      "label": "{% filter escapejs %}{% trans 'Navigate' %}{% endfilter %}",
       "items": [
         {% if request.user.is_authenticated %}
           {% url 'portal_console' as cmdk_portal_console_url %}
           {% url 'portal_configure' as cmdk_portal_configure_url %}
-          {% if cmdk_portal_console_url %}{"label": "{% trans 'Console (everyday)' %}", "url": "{{ cmdk_portal_console_url }}", "icon": "bi-speedometer2", "keywords": "dashboard backend operator"},{% endif %}
-          {% if cmdk_portal_configure_url %}{"label": "{% trans 'Configure (settings)' %}", "url": "{{ cmdk_portal_configure_url }}", "icon": "bi-sliders", "keywords": "settings configuration runtime"},{% endif %}
-          {"label": "{% trans 'My Profile' %}", "url": "{% url 'accounts:user_profile' %}", "icon": "bi-person-circle", "keywords": "account user"},
-          {"label": "{% trans 'Notifications' %}", "url": "{% url 'accounts:user_notifications' %}", "icon": "bi-bell", "keywords": "alerts"}
+          {% if cmdk_portal_console_url %}{"label": "{% filter escapejs %}{% trans 'Console (everyday)' %}{% endfilter %}", "url": "{{ cmdk_portal_console_url|escapejs }}", "icon": "bi-speedometer2", "keywords": "dashboard backend operator"},{% endif %}
+          {% if cmdk_portal_configure_url %}{"label": "{% filter escapejs %}{% trans 'Configure (settings)' %}{% endfilter %}", "url": "{{ cmdk_portal_configure_url|escapejs }}", "icon": "bi-sliders", "keywords": "settings configuration runtime"},{% endif %}
+          {"label": "{% filter escapejs %}{% trans 'My Profile' %}{% endfilter %}", "url": "{% url 'accounts:user_profile' %}", "icon": "bi-person-circle", "keywords": "account user"},
+          {"label": "{% filter escapejs %}{% trans 'Notifications' %}{% endfilter %}", "url": "{% url 'accounts:user_notifications' %}", "icon": "bi-bell", "keywords": "alerts"}
           {% if request.public_host_kind == 'manager' %}
             {% url 'manager_help_center' as cmdk_help_center_url %}
           {% else %}
             {% url 'feedback:help_center' as cmdk_help_center_url %}
           {% endif %}
-          {% if cmdk_help_center_url %},{"label": "{% trans 'Help Center' %}", "url": "{{ cmdk_help_center_url }}", "icon": "bi-life-preserver", "keywords": "support docs feedback contact hub"}{% endif %}
+          {% if cmdk_help_center_url %},{"label": "{% filter escapejs %}{% trans 'Help Center' %}{% endfilter %}", "url": "{{ cmdk_help_center_url|escapejs }}", "icon": "bi-life-preserver", "keywords": "support docs feedback contact hub"}{% endif %}
           {% if request.public_host_kind == 'manager' %}
             {% url 'manager_feature_center' as cmdk_feature_center_url %}
             {% url 'manager_contact_us' as cmdk_contact_us_url %}
@@ -83,15 +83,15 @@
             {% url 'feedback:contact_us' as cmdk_contact_us_url %}
             {% url 'portal:support_request' as cmdk_support_url %}
           {% endif %}
-          {% if cmdk_feature_center_url %},{"label": "{% trans 'Request a feature' %}", "url": "{{ cmdk_feature_center_url }}", "icon": "bi-lightbulb", "keywords": "feature request product idea roadmap"}{% endif %}
-          {% if cmdk_contact_us_url %},{"label": "{% trans 'Contact us' %}", "url": "{{ cmdk_contact_us_url }}", "icon": "bi-chat-dots", "keywords": "contact support help message"}{% endif %}
-          {% if cmdk_support_url %},{"label": "{% trans 'Urgent support' %}", "url": "{{ cmdk_support_url }}", "icon": "bi-envelope-exclamation", "keywords": "support ticket urgent blocked"}{% endif %}
+          {% if cmdk_feature_center_url %},{"label": "{% filter escapejs %}{% trans 'Request a feature' %}{% endfilter %}", "url": "{{ cmdk_feature_center_url|escapejs }}", "icon": "bi-lightbulb", "keywords": "feature request product idea roadmap"}{% endif %}
+          {% if cmdk_contact_us_url %},{"label": "{% filter escapejs %}{% trans 'Contact us' %}{% endfilter %}", "url": "{{ cmdk_contact_us_url|escapejs }}", "icon": "bi-chat-dots", "keywords": "contact support help message"}{% endif %}
+          {% if cmdk_support_url %},{"label": "{% filter escapejs %}{% trans 'Urgent support' %}{% endfilter %}", "url": "{{ cmdk_support_url|escapejs }}", "icon": "bi-envelope-exclamation", "keywords": "support ticket urgent blocked"}{% endif %}
           {% url 'feedback:release_notes_public' as cmdk_release_notes_url %}
-          {% if cmdk_release_notes_url %},{"label": "{% trans 'Release notes' %}", "url": "{{ cmdk_release_notes_url }}", "icon": "bi-stars", "keywords": "changelog whats new updates"}{% endif %}
+          {% if cmdk_release_notes_url %},{"label": "{% filter escapejs %}{% trans 'Release notes' %}{% endfilter %}", "url": "{{ cmdk_release_notes_url|escapejs }}", "icon": "bi-stars", "keywords": "changelog whats new updates"}{% endif %}
           {% url 'compliance:data_quality_center' as cmdk_data_quality_url %}
-          {% if cmdk_data_quality_url %},{"label": "{% trans 'Data Quality Center' %}", "url": "{{ cmdk_data_quality_url }}", "icon": "bi-shield-check", "keywords": "data quality completeness reachability issues"}{% endif %}
+          {% if cmdk_data_quality_url %},{"label": "{% filter escapejs %}{% trans 'Data Quality Center' %}{% endfilter %}", "url": "{{ cmdk_data_quality_url|escapejs }}", "icon": "bi-shield-check", "keywords": "data quality completeness reachability issues"}{% endif %}
           {% url 'siteconfig:ai_center' as cmdk_ai_center_url %}
-          {% if cmdk_ai_center_url %},{"label": "{% trans 'AI Center' %}", "url": "{{ cmdk_ai_center_url }}", "icon": "bi-stars", "keywords": "ai assistant chat copilot domain help"}{% endif %}
+          {% if cmdk_ai_center_url %},{"label": "{% filter escapejs %}{% trans 'AI Center' %}{% endfilter %}", "url": "{{ cmdk_ai_center_url|escapejs }}", "icon": "bi-stars", "keywords": "ai assistant chat copilot domain help"}{% endif %}
           {% comment %} `kb` is mounted on config/{urls,tenant_urls,manager_urls}.py but NOT on
              config/public_urls.py, which serves the base/verify/support hosts and any
              unknown school subdomain. base.html includes this palette for every
@@ -99,9 +99,9 @@
              school-not-found page into a 500 for signed-in visitors. Use the same
              guarded idiom as every neighbouring entry. {% endcomment %}
           {% url 'kb:kb_home' as cmdk_kb_home_url %}
-          {% if cmdk_kb_home_url %},{"label": "{% trans 'Knowledge base' %}", "url": "{{ cmdk_kb_home_url }}", "icon": "bi-book", "keywords": "docs guide articles runbooks"}{% endif %}
+          {% if cmdk_kb_home_url %},{"label": "{% filter escapejs %}{% trans 'Knowledge base' %}{% endfilter %}", "url": "{{ cmdk_kb_home_url|escapejs }}", "icon": "bi-book", "keywords": "docs guide articles runbooks"}{% endif %}
           {% url 'kb:kb_search' as cmdk_kb_search_url %}
-          {% if request.public_host_kind == 'manager' and cmdk_kb_search_url %},{"label": "{% trans 'Search help (KB)' %}", "url": "{{ cmdk_kb_search_url }}?q=", "icon": "bi-search", "keywords": "search help faq articles"}{% endif %}
+          {% if request.public_host_kind == 'manager' and cmdk_kb_search_url %},{"label": "{% filter escapejs %}{% trans 'Search help (KB)' %}{% endfilter %}", "url": "{{ cmdk_kb_search_url|escapejs }}?q=", "icon": "bi-search", "keywords": "search help faq articles"}{% endif %}
           {% comment %} The `manager_*` namespace is mounted only on config/manager_urls.py, and
              base.html includes this palette on every authenticated request. Keep the
              reverses themselves inside the host guard, not just their output: the
@@ -110,23 +110,23 @@
              exists to catch, and the guard belongs around the reference. {% endcomment %}
           {% if request.public_host_kind == 'manager' %}
             {% url 'manager_help_analytics' as cmdk_help_analytics_url %}
-            {% if cmdk_help_analytics_url %},{"label": "{% trans 'Help analytics' %}", "url": "{{ cmdk_help_analytics_url }}", "icon": "bi-graph-up", "keywords": "deflection csat north star metrics export"}{% endif %}
+            {% if cmdk_help_analytics_url %},{"label": "{% filter escapejs %}{% trans 'Help analytics' %}{% endfilter %}", "url": "{{ cmdk_help_analytics_url|escapejs }}", "icon": "bi-graph-up", "keywords": "deflection csat north star metrics export"}{% endif %}
             {% url 'manager_ai_review_queue' as cmdk_ai_review_url %}
-            {% if cmdk_ai_review_url %},{"label": "{% trans 'AI review queue' %}", "url": "{{ cmdk_ai_review_url }}", "icon": "bi-shield-check", "keywords": "hitl failed ai support review"}{% endif %}
+            {% if cmdk_ai_review_url %},{"label": "{% filter escapejs %}{% trans 'AI review queue' %}{% endfilter %}", "url": "{{ cmdk_ai_review_url|escapejs }}", "icon": "bi-shield-check", "keywords": "hitl failed ai support review"}{% endif %}
             {% url 'manager_kb_locale_families' as cmdk_locale_families_url %}
-            {% if cmdk_locale_families_url %},{"label": "{% trans 'KB translation families' %}", "url": "{{ cmdk_locale_families_url }}", "icon": "bi-translate", "keywords": "locale translation kb i18n"}{% endif %}
+            {% if cmdk_locale_families_url %},{"label": "{% filter escapejs %}{% trans 'KB translation families' %}{% endfilter %}", "url": "{{ cmdk_locale_families_url|escapejs }}", "icon": "bi-translate", "keywords": "locale translation kb i18n"}{% endif %}
           {% endif %}
         {% endif %}
       ]
     },
     {
-      "label": "{% trans 'Actions' %}",
+      "label": "{% filter escapejs %}{% trans 'Actions' %}{% endfilter %}",
       "items": [
-        {"label": "{% trans 'Toggle theme' %}", "action": "rmc:cmdk:toggle-theme", "icon": "bi-circle-half", "keywords": "dark light system appearance"},
-        {"label": "{% trans 'Open AI Copilot' %}", "action": "rmc:cmdk:open-ai", "icon": "bi-stars", "keywords": "assistant chat"}
+        {"label": "{% filter escapejs %}{% trans 'Toggle theme' %}{% endfilter %}", "action": "rmc:cmdk:toggle-theme", "icon": "bi-circle-half", "keywords": "dark light system appearance"},
+        {"label": "{% filter escapejs %}{% trans 'Open AI Copilot' %}{% endfilter %}", "action": "rmc:cmdk:open-ai", "icon": "bi-stars", "keywords": "assistant chat"}
         {% url 'siteconfig:ai_center' as cmdk_ai_center_action_url %}
-        {% if cmdk_ai_center_action_url %},{"label": "{% trans 'Open AI Center (all assistants)' %}", "url": "{{ cmdk_ai_center_action_url }}", "icon": "bi-stars", "keywords": "ai center gateway assistants engine room"}{% endif %}
-        {% if cmdk_gw %},{"label": "{% trans 'AI Gateway Console (operators)' %}", "url": "{{ cmdk_gw }}", "icon": "bi-cpu", "keywords": "ai gateway console operator ollama audit metrics"}{% endif %}
+        {% if cmdk_ai_center_action_url %},{"label": "{% filter escapejs %}{% trans 'Open AI Center (all assistants)' %}{% endfilter %}", "url": "{{ cmdk_ai_center_action_url|escapejs }}", "icon": "bi-stars", "keywords": "ai center gateway assistants engine room"}{% endif %}
+        {% if cmdk_gw %},{"label": "{% filter escapejs %}{% trans 'AI Gateway Console (operators)' %}{% endfilter %}", "url": "{{ cmdk_gw|escapejs }}", "icon": "bi-cpu", "keywords": "ai gateway console operator ollama audit metrics"}{% endif %}
       ]
     }
   ]

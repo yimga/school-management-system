@@ -23,6 +23,30 @@ def create_default_themes_and_reports(apps, schema_editor):
     ThemePack = apps.get_model("siteconfig", "ThemePack")
     ReportTemplate = apps.get_model("siteconfig", "ReportTemplate")
 
+    # Claim the default ONLY when nothing else holds it.
+    #
+    # This step is not re-entrant on its own, and re-running the chain on a
+    # populated database is ordinary: `migrate` on an existing DB, a repair pass,
+    # and the test runner's own second setup pass all do it. By then 0076 has
+    # added the partial unique index `siteconfig_one_default_themepack`
+    # (UNIQUE(is_default) WHERE is_default) and has normalised the default onto
+    # whichever pack SiteSettings points at -- which 0155 then renames to
+    # `runmycampus-gradient`. Forcing is_default=True on `gilead-modern` at that
+    # point makes a SECOND default row and the index rejects it, so the whole
+    # migration chain dies here with
+    # `IntegrityError: UNIQUE constraint failed: siteconfig_themepack.is_default`.
+    #
+    # That is not a theoretical replay: it aborts test-database creation, so
+    # pytest exits 3 (INTERNALERROR) and NOT ONE TEST RUNS in any app -- a suite
+    # that cannot start is indistinguishable from a suite that passes unless
+    # somebody reads the exit code.
+    #
+    # On a genuinely fresh database the behaviour is unchanged: no other default
+    # exists, so this still resolves to True exactly as before.
+    another_default_exists = (
+        ThemePack.objects.filter(is_default=True).exclude(slug="gilead-modern").exists()
+    )
+
     ThemePack.objects.update_or_create(
         slug="gilead-modern",
         defaults={
@@ -34,7 +58,7 @@ def create_default_themes_and_reports(apps, schema_editor):
             "font_family": "Inter, system-ui, sans-serif",
             "layout": "CARD",
             "is_active": True,
-            "is_default": True,
+            "is_default": not another_default_exists,
         },
     )
 

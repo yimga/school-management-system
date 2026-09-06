@@ -47,7 +47,17 @@ ALLOWED_STAFF_ROLES = frozenset(
 
 
 def parse_staff_id_list(raw_ids: Any) -> list[int]:
-    """Ids of the TeacherProfile rows the operator ticked."""
+    """Ids of the TeacherProfile rows the operator ticked.
+
+    Refuses an oversized selection instead of trimming it. This used to ``break``
+    at MAX_BULK_IDS, which on a READ would merely return the wrong rows -- but
+    this list feeds a WRITE. Ticking 250 people and pressing "Mark as Driver"
+    changed 200 of them and reported success, leaving 50 on their old role with
+    nothing in the response to say which 50 or that it had happened at all. A
+    half-applied bulk mutation is worse than a refused one, because the operator
+    believes it finished and the remainder is invisible until somebody notices a
+    driver who cannot reach the transport module.
+    """
     if not raw_ids or not isinstance(raw_ids, (list, tuple)):
         return []
     out: list[int] = []
@@ -58,8 +68,11 @@ def parse_staff_id_list(raw_ids: Any) -> list[int]:
             text = str(item or "").strip()
             if text.isdigit():
                 out.append(int(text))
-        if len(out) >= MAX_BULK_IDS:
-            break
+    if len(out) > MAX_BULK_IDS:
+        raise ValueError(
+            "Select %d or fewer people to change at once (you selected %d). "
+            "Nothing was changed." % (MAX_BULK_IDS, len(out))
+        )
     return out
 
 

@@ -29,7 +29,7 @@ Defensive: works even when the `assist_dock` context key is missing
       "shortcut": "{{ slot.shortcut|default:''|escapejs }}",
       "aria_keyshortcuts": "{{ slot.aria_keyshortcuts|default:''|escapejs }}",
       "pinned_default": {% if slot.pinned_default %}true{% else %}false{% endif %},
-      "order": {{ slot.order|default:100 }},
+      "order": {{ slot.order|default:100|escapejs }},
       "description": "{{ slot.description|default:''|escapejs }}"
     }{% if not forloop.last %},{% endif %}{% endfor %}
   ]
