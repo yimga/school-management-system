@@ -457,7 +457,10 @@ def _continue_applying_cases(batch) -> int:
     is documented as safe to call repeatedly. The worst case is that both
     drivers try and one finds the work already done.
     """
-    from apps.people.models_transfer import TransferCase
+    from django.core.exceptions import ValidationError
+    from django.db import Error as DatabaseError
+
+    from apps.people.models_transfer import TransferCase, TransferStateError
     from apps.people.transfer_service import continue_transfer_case_if_ready
 
     moved = 0
@@ -468,7 +471,20 @@ def _continue_applying_cases(batch) -> int:
         try:
             if continue_transfer_case_if_ready(case).get("advanced"):
                 moved += 1
-        except Exception:  # noqa: BLE001 — one stuck case must not starve the chunk
+        except (
+            TransferStateError,
+            DatabaseError,
+            ValidationError,
+            ValueError,
+            TypeError,
+            KeyError,
+        ):
+            # Named, not bare: these are the ways a single case can refuse and
+            # the next case still be worth trying. Anything outside this set is
+            # not swallowed here -- it propagates to the tick-level handler in
+            # _advance_running_batches_in_schema, which exists precisely so one
+            # broken batch cannot starve the rest of the tick, and which logs
+            # with a traceback rather than a one-line warning.
             logger.warning(
                 "school_batch.continue_failed batch=%s case=%s", batch.pk, case.pk
             )
