@@ -219,7 +219,7 @@ class BoxAuthoredRowIdentityTests(TestCase):
     # ------------------------------------------------------------------
     # 3. The insert path applies NO conflict policy.
     # ------------------------------------------------------------------
-    def test_anchored_upsert_overwrites_a_protected_entity_with_no_conflict(self):
+    def test_anchored_upsert_refuses_a_stale_protected_entity_with_a_conflict(self):
         """`apply_edge_inserts` never calls `_conflict_decision`.
 
         A protected (cloud-authoritative) row that carries an anchor is therefore
@@ -251,15 +251,23 @@ class BoxAuthoredRowIdentityTests(TestCase):
             ],
             sync_origin="edge-push",
         )
-        self.assertEqual(out["results"][0]["status"], 200, out["results"])
+        self.assertEqual(out["results"][0]["status"], 409, out["results"])
+        self.assertEqual(
+            out["results"][0]["data"]["error"], "protected_entity_conflict"
+        )
+        self.assertIsNotNone(
+            out["results"][0]["data"]["conflict_id"],
+            "a refusal must be durable -- Sync Center has to be able to show it",
+        )
         ev.refresh_from_db()
         self.assertEqual(
             ev.seq1_score,
-            Decimal("3.00"),
-            "a STALE box push overwrote a protected mark through the insert path",
+            Decimal("15.00"),
+            "a STALE box push must not overwrite a protected mark through the "
+            "insert path; the server value stands",
         )
 
-    def test_anchored_upsert_overwrites_a_protected_invoice_with_no_conflict(self):
+    def test_anchored_upsert_refuses_a_stale_protected_invoice_with_a_conflict(self):
         student = self._student(code_suffix="I")
         anchor = f"box-inv-{uuid.uuid4().hex[:10]}"
         inv = self._invoice(student, anchor=anchor)
@@ -277,10 +285,17 @@ class BoxAuthoredRowIdentityTests(TestCase):
             ],
             sync_origin="edge-push",
         )
-        self.assertEqual(out["results"][0]["status"], 200, out["results"])
-        inv.refresh_from_db()
+        self.assertEqual(out["results"][0]["status"], 409, out["results"])
         self.assertEqual(
+            out["results"][0]["data"]["error"], "protected_entity_conflict"
+        )
+        self.assertIsNotNone(
+            out["results"][0]["data"]["conflict_id"],
+            "a refused money write must leave a durable record",
+        )
+        inv.refresh_from_db()
+        self.assertNotEqual(
             inv.total_amount,
             Decimal("1.00"),
-            "a STALE box push moved money through the insert path",
+            "a STALE box push must not move money through the insert path",
         )

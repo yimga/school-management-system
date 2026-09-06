@@ -2486,6 +2486,86 @@ def _settable_field_names(model) -> set:
     return names
 
 
+def _hold_protected_upsert(
+    *,
+    school,
+    user,
+    idx,
+    entity_type,
+    instance,
+    allowed,
+    updates,
+    decision,
+    sync_origin,
+    client_updated_at,
+    server_dt,
+):
+    """Refuse an anchored upsert's UPDATE arm and record it for Sync Center.
+
+    The upsert's second arm writes over a row the receiver already holds, which is
+    an UPDATE. `_apply_changes_inner` grades exactly that with `_conflict_decision`
+    and answers 409 plus a durable SyncConflict; this arm did neither, so a
+    protected (cloud-authoritative) entity could be overwritten by a box push
+    carrying an older timestamp. This is the same answer, in the same shape, so a
+    refusal looks identical to an operator wherever it came from.
+
+    Persisting the conflict is wrapped in its own savepoint for the reason the
+    other site documents: recording WHY a row was refused must never be able to
+    abort the batch that refused it. If the record cannot be written the row is
+    still refused -- the answer degrades to a 409 without a conflict id, never to
+    a silent apply.
+    """
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import DataError, IntegrityError, transaction
+
+    conflict_id = None
+    if school is not None:
+        try:
+            from apps.siteconfig.models import SyncConflict
+
+            server_data = _serialize_instance_for_conflict(
+                instance, entity_type, allowed
+            )
+            with transaction.atomic():
+                sc = SyncConflict.objects.create(
+                    school=school,
+                    entity_type=entity_type,
+                    entity_id=getattr(instance, "pk", None),
+                    client_data=dict(updates),
+                    server_data=server_data,
+                    conflict_fields=sorted(updates.keys()),
+                    origin=sync_origin or "",
+                    client_updated_at=client_updated_at,
+                    server_updated_at=server_dt,
+                    reported_by=user,
+                    status=SyncConflict.Status.PENDING,
+                )
+            conflict_id = sc.pk
+        except (
+            IntegrityError,
+            DataError,
+            ValidationError,
+            ValueError,
+            TypeError,
+            FieldError,
+        ) as exc:
+            logger.warning(
+                "protected upsert refused but conflict record failed: %s",
+                str(exc)[:200],
+            )
+
+    return {
+        "index": idx,
+        "status": 409,
+        "data": {
+            "error": "protected_entity_conflict",
+            "entity_type": entity_type,
+            "decision": decision,
+            "conflict_id": conflict_id,
+        },
+    }
+
+
 def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     """Upsert offline-CREATED rows by ``(school, client_offline_id)`` — edge-only.
 

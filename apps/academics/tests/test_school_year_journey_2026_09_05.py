@@ -605,7 +605,18 @@ class AcademicsHubDestinationTests(TestCase):
 
         from apps.academics import views_hub
 
-        source = inspect.getsource(views_hub.academics_hub)
+        # Read the MODULE, not the function. `academics_hub` is wrapped by the
+        # school-context guard, which is hand-rolled without functools.wraps --
+        # so it exposes no `__wrapped__` to unwrap, and `getsource` on the bare
+        # name returns the WRAPPER: four lines of `if getattr(request, "school",
+        # None) is None`. The positive control then fails while the card is
+        # present and correct, which is a test that lies in the safe direction
+        # but lies all the same.
+        #
+        # The card table is a module-level constant (see this class's docstring),
+        # so the module source is both the honest subject and immune to however
+        # the view is decorated next.
+        source = inspect.getsource(views_hub)
         self.assertIn(
             "Teaching assignments",
             source,
