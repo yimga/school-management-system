@@ -93,14 +93,42 @@ DATABASES = {
 }
 
 # The schoolops + siteconfig test paths import the `preview` alias
-# defensively even though they don't write to it. Mirror default so a
-# `using="preview"` call doesn't trip a KeyError mid-test.
-DATABASES["preview"] = DATABASES["default"].copy()
+# defensively even though they don't write to it, and the border-lock tests
+# reference the regional aliases under @override_settings. They exist so a
+# `using="preview"` call doesn't trip a KeyError mid-test -- nothing more.
+#
+# THEY MUST DECLARE TEST["MIRROR"], and a bare `.copy()` is not that.
+#
+# `setup_databases` creates and MIGRATES every alias that is not a mirror. A
+# plain copy therefore made these independent databases, so the full migration
+# chain ran once per alias -- and the second pass replayed migrations whose
+# historical field sets no longer match the table the first pass had already
+# built and populated. It died in siteconfig/0004 with
+# `UNIQUE constraint failed: siteconfig_themepack.is_default` (0076 had by then
+# added the one-default partial index and moved the default onto another pack),
+# and immediately after with
+# `NOT NULL constraint failed: siteconfig_themepack.logo_background_mode`
+# (a column added by a later migration that 0004's historical model cannot know
+# to populate). Fixing those one at a time is whack-a-mole: replaying a
+# migration chain over an already-migrated database is unsound in general.
+#
+# The cost was total and silent: test-database creation aborts, so pytest exits
+# 3 (INTERNALERROR) and NOT ONE TEST RUNS -- in any app. A suite that cannot
+# start looks exactly like a suite that passes unless somebody reads the exit
+# code, and `pytest | tail` reports the pipe's status, not pytest's.
+#
+# MIRROR is precisely the "same data as default, do not create or migrate it"
+# declaration Django provides for read replicas, which is what these are. Each
+# needs its OWN TEST dict: `.copy()` is shallow, so the copies share default's.
+def _mirror_of_default() -> dict:
+    alias = DATABASES["default"].copy()
+    alias["TEST"] = {**DATABASES["default"].get("TEST", {}), "MIRROR": "default"}
+    return alias
 
-# Stub regional aliases so border-lock tests can reference real DATABASES
-# entries under @override_settings without touching production config.
-DATABASES["replica_eu_central"] = DATABASES["default"].copy()
-DATABASES["replica_us_east"] = DATABASES["default"].copy()
+
+DATABASES["preview"] = _mirror_of_default()
+DATABASES["replica_eu_central"] = _mirror_of_default()
+DATABASES["replica_us_east"] = _mirror_of_default()
 
 # Disable router fan-out during tests. The tenant + preview routers
 # add overhead and surface lookup failures that have nothing to do
