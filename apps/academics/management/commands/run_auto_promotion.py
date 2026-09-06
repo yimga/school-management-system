@@ -26,9 +26,10 @@ Usage: python manage.py run_auto_promotion --from-year=2024/2025 --to-year=2025/
 
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.academics.models import AcademicYear, ClassroomPromotionMapping
+from apps.academics.promotion_mappings import promotion_mapping_coverage
 from apps.people.enrollment_services import (
     NO_DATA_POLICIES,
     NO_DATA_PROMOTE,
@@ -111,14 +112,44 @@ class Command(BaseCommand):
         if school_id:
             qs = qs.filter(school_id=school_id)
         mappings = {m.source_classroom_id: m for m in qs}
-        if not mappings:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"No promotion mappings from {from_name} to {to_name}. "
-                    "Configure ClassroomPromotionMapping in admin."
+
+        # Coverage is checked BEFORE the run, and a gap is an error, not a
+        # warning. The old code printed a warning here and returned -- exit
+        # code 0 -- so a scheduler, a CI step, or an operator reading a status
+        # saw a promotion run that moved nobody and called it success.
+        coverage = promotion_mapping_coverage(
+            from_year, to_year, school=school_id or None
+        )
+        if coverage["unmapped"]:
+            for room in coverage["unmapped_classrooms"]:
+                self.stderr.write(
+                    self.style.ERROR(
+                        f"  unmapped: {room['name']} ({room['code']}) -- advancing "
+                        "students here have nowhere to go"
+                    )
                 )
+            named = ", ".join(
+                r["name"] for r in coverage["unmapped_classrooms"][:5]
             )
-            return
+            if coverage["unmapped"] > 5:
+                named += ", ..."
+            raise CommandError(
+                f"{coverage['unmapped']} of {coverage['total']} populated "
+                f"classroom(s) have no promotion mapping from {from_name} to "
+                f"{to_name}: {named}. Map them (admin > Classroom promotion "
+                "mappings), or roll over from a year that already has a ladder so "
+                "the clone can carry it forward. Refusing to run a promotion that "
+                "would silently skip students."
+            )
+        if not mappings:
+            raise CommandError(
+                f"No promotion mappings from {from_name} to {to_name}, and no "
+                "populated classroom to check. Nothing to promote."
+            )
+        self.stdout.write(
+            f"Promotion mapping coverage: {coverage['mapped']}/{coverage['total']} "
+            "populated classroom(s) mapped."
+        )
 
         def report(student, decision, enrollment, skip_reason):
             if skip_reason:
