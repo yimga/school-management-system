@@ -945,6 +945,38 @@ MUTATIONS["dangling-static-reference"] = Mutation(
     ),
 )
 
+MUTATIONS["super-route-authorization"] = Mutation(
+    kind="patch",
+    path="apps/schools/super_urls.py",
+    defect=(
+        "a /super/ route mounted with no authorization gate -- the operator "
+        "control plane is the one surface where that is unrecoverable, and "
+        "nothing else in the repository can see it: audit_role_permission_matrix "
+        "discovers urlconfs with a PREFIX glob that never matches super_urls.py, "
+        "so all 255 entries are absent from the matrix rather than filtered out"
+    ),
+    # Deliberately a `patch` where this file prefers `create`: the scanner reads
+    # ONE named urlconf, so a new file carrying the violation would never be
+    # opened and the gate would report DEAD while working perfectly. The
+    # urlpatterns opener is the most stable anchor the file has.
+    #
+    # RedirectView.as_view(...) is scored UNRESOLVED, which this scanner counts
+    # as unclassified rather than safe -- exactly so a resolver gap makes it
+    # louder, not quieter. A plant pointing at any real view would be scored
+    # AUTHZ_PROVEN (all 224 common-wrapper routes also carry a def-site
+    # decorator) and would prove nothing.
+    anchor=b"urlpatterns = [\n",
+    replacement=(
+        b"urlpatterns = [\n"
+        b"    path(\n"
+        b'        "gate-proof-unguarded/",\n'
+        b'        RedirectView.as_view(pattern_name="super:super_dashboard"),\n'
+        b'        name="gate_proof_unguarded",\n'
+        b"    ),\n"
+    ),
+)
+
+
 MUTATIONS["tenant-queryset-safety"] = Mutation(
     kind="create",
     path=f"apps/schools/{_PROOF}_unscoped_queryset.py",
