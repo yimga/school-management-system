@@ -954,7 +954,12 @@ class Command(BaseCommand):
 
             _backup_state = load_backup_state()
             _backup_ok, _backup_detail = evaluate_box_backup()
-        except Exception as _backup_error:  # noqa: BLE001 — readiness must not crash
+        except ImportError as _backup_error:
+            # Narrow ON PURPOSE. Both helpers are documented never-raise and their
+            # bodies hold that: load_backup_state catches OSError/UnicodeError and
+            # TypeError/ValueError, evaluate_box_backup wraps the whole verdict. So
+            # the only thing here that can fail is the import, and catching Exception
+            # would be a 7th broad except in this file for a risk that does not exist.
             _backup_state, _backup_ok = None, False
             _backup_detail = f"the backup record could not be read: {_backup_error}"
 
