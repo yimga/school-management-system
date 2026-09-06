@@ -324,6 +324,13 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-09-02. Stdlib-only (re + pathlib), so it rides the deps-free
     # boundary workflow rather than ci.yml::django-tests.
     ("scripts/scan_dangling_static_reference.py", "architectural-boundaries.yml"),
+    # Added 2026-09-06. The operator control plane had no authorization
+    # inventory at all: audit_role_permission_matrix.py discovers urlconfs with
+    # APPS.rglob("urls*.py"), which is a prefix match that never sees
+    # super_urls.py, so all 255 /super/ entries were absent from the matrix --
+    # not filtered out, never read. Stdlib-only (ast + pathlib), so it rides
+    # the deps-free boundary workflow rather than ci.yml::django-tests.
+    ("scripts/scan_super_route_authorization.py", "architectural-boundaries.yml"),
     # Added 2026-09-02. Rewritten the same day to stop pinning a frozen June
     # service-worker literal -- which made it go red on EVERY cache bump and kept
     # it red for three months -- and to assert instead that the shipped cache

@@ -24,6 +24,8 @@ on:
       - "scripts/scan_unrestored_flush_testcase.py"
       - "scripts/scan_test_host_fidelity.py"
       - "scripts/scan_dangling_static_reference.py"
+      - "scripts/scan_super_route_authorization.py"
+      - "var/super-route-authorization-baseline.json"
       - "scripts/verify_theme_experience_dual_plane_shell.py"
       - "scripts/verify_platform_back_to_top.py"
       - "scripts/verify_cp_v8_operator_closeout.py"
@@ -878,6 +880,21 @@ jobs:
           }
 
           run_unit u_dangling_static_reference "Static references point at files that exist"
+
+          # apps/schools/super_urls.py is invisible to the role/permission
+          # matrix: that audit discovers urlconfs with APPS.rglob("urls*.py"),
+          # a PREFIX glob that never matches super_urls.py, and the four-entry
+          # EXTRA_URLS_FILES allowlist does not rescue it. So the whole operator
+          # control plane sat outside the one artifact that is supposed to prove
+          # who may reach what. --strict also ratchets METHOD_ONLY, because a
+          # route carrying only @require_GET or @csrf_exempt is not authorized:
+          # those constrain a request that has already been let through.
+          u_super_route_authorization() {
+            python scripts/scan_super_route_authorization.py --compare --strict
+            python -m unittest scripts.tests.test_scan_super_route_authorization -v
+          }
+
+          run_unit u_super_route_authorization "Every /super/ route has a discoverable authorization gate"
 
           # The shipped service-worker cache generation must be at least the wave
           # this stylesheet declares, or a returning browser keeps serving the

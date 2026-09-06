@@ -391,6 +391,7 @@ GATES: list[tuple[str, list[str]]] = [
     # the same level. Zero-tolerance, no baseline -- the tree measured 0 on
     # introduction (899 files, 9 dev-only .map, 0 gaps).
     ("dangling-static-reference", ["scan_dangling_static_reference.py", "--compare"]),
+    ("super-route-authorization", ["scan_super_route_authorization.py", "--compare", "--strict", "--quiet"]),
     # Pins transaction.atomic on four named money mutators. Deliberately NARROW
     # -- it is a hand-maintained list, not coverage of apps/finance/, and its own
     # docstring says so at length. Wired because four enforced invariants beat

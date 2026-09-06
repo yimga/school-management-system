@@ -477,6 +477,21 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("CSP_EXTRA_SCRIPT_SRC", "tuple[str]", "()", "security", "Additional script-src origins (vendor SDKs / analytics)."),
     SettingSpec("CSP_EXTRA_STYLE_SRC", "tuple[str]", "()", "security", "Additional style-src origins."),
 
+    # ---- Admin-surface CSP (separate policy, Report-Only rollout) -----------
+    # /admin/ was previously exempt from CSP entirely. It now carries its own,
+    # looser policy so the violation set can be LEARNED before any enforcement.
+    SettingSpec("CSP_ADMIN_ENABLED", "bool", "True", "security", "Emit a CSP header on the /admin/ surface. False restores the pre-rollout behaviour (no header at all) as an escape hatch."),
+    SettingSpec("CSP_ADMIN_ENFORCE", "bool", "False", "security", "Enforce (not Report-Only) the admin CSP. Explicit opt-in, independent of CSP_ENFORCE: flipping the site to enforcing must never promote the admin surface. Requires the Alpine CSP-safe build first."),
+    SettingSpec("CSP_ADMIN_PATH_PREFIXES", "tuple[str]", '("/admin/",)', "security", "Path prefixes treated as the admin surface for CSP purposes."),
+    SettingSpec("CSP_ADMIN_REPORT_URI", "str", '""', "security", "URI browsers POST admin CSP violation reports to. Blank falls back to CSP_REPORT_URI."),
+    SettingSpec("CSP_ADMIN_EXTRA_SCRIPT_SRC", "tuple[str]", "()", "security", "Additional admin script-src origins."),
+    SettingSpec("CSP_ADMIN_EXTRA_STYLE_SRC", "tuple[str]", "()", "security", "Additional admin style-src origins."),
+    SettingSpec("CSP_ADMIN_EXTRA_IMG_SRC", "tuple[str]", "()", "security", "Additional admin img-src origins."),
+    SettingSpec("CSP_ADMIN_EXTRA_FONT_SRC", "tuple[str]", "()", "security", "Additional admin font-src origins."),
+    SettingSpec("CSP_ADMIN_EXTRA_CONNECT_SRC", "tuple[str]", "()", "security", "Additional admin connect-src origins."),
+    SettingSpec("CSP_ADMIN_EXTRA_FRAME_SRC", "tuple[str]", "()", "security", "Additional admin frame-src origins."),
+    SettingSpec("CSP_ADMIN_EXTRA_FRAME_ANCESTORS", "tuple[str]", "()", "security", "Additional admin frame-ancestors entries."),
+
     # ---- Marketing content + visuals ----------------------------------------
     SettingSpec("MARKETING_ANALYTICS_ENDPOINT_URL", "str", '""', "marketing", "Endpoint the marketing analytics beacon posts to (synonym for MARKETING_ANALYTICS_ENDPOINT)."),
     SettingSpec("MARKETING_ANALYTICS_SCRIPT_URL", "str", '""', "marketing", "External analytics script URL injected into the marketing shell when configured."),
