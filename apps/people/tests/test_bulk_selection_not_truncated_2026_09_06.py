@@ -18,6 +18,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.people.bulk_staff_actions import MAX_BULK_IDS, parse_staff_id_list
+from apps.people.bulk_student_actions import parse_student_id_list
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
 from apps.test_utils.http_clients import login_tenant_admin_client
@@ -101,6 +102,15 @@ class OversizedMutationIsRefusedNotTrimmedTests(TestCase):
     def test_a_selection_within_the_cap_is_returned_whole(self):
         ids = list(range(1, MAX_BULK_IDS + 1))
         self.assertEqual(parse_staff_id_list(ids), ids)
+
+    def test_the_student_parser_carries_the_same_cure(self):
+        """The idiom was copied, so the defect was too. Both refuse now."""
+        self.assertEqual(
+            len(parse_student_id_list(list(range(1, MAX_BULK_IDS + 1)))), MAX_BULK_IDS
+        )
+        with self.assertRaises(ValueError) as ctx:
+            parse_student_id_list(list(range(1, OVER + 1)))
+        self.assertIn("Nothing was changed", str(ctx.exception))
 
     def test_an_oversized_selection_raises_instead_of_trimming(self):
         with self.assertRaises(ValueError) as ctx:
