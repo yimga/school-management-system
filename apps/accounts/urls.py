@@ -247,8 +247,11 @@ try:
         backend_classroom_create,
         backend_classroom_detail,
         backend_subject_list,
+        backend_subject_create,
         backend_specialty_list,
+        backend_specialty_create,
         backend_guardian_list,
+        backend_guardian_create,
         backend_applicant_list,
         backend_applicant_create,
         backend_applicant_detail,
@@ -276,6 +279,9 @@ except ImportError:
         backend_applicant_list
     ) = None
     backend_subject_list = backend_specialty_list = None
+    backend_subject_create = backend_specialty_create = (
+        backend_guardian_create
+    ) = None
 
 app_name = "accounts"
 
@@ -1083,6 +1089,13 @@ urlpatterns = [
     path("backend/guardians/", backend_guardian_list, name="backend_guardian_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,
+    path(
+        "backend/guardians/create/",
+        backend_guardian_create,
+        name="backend_guardian_create",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
     path("backend/applicants/", backend_applicant_list, name="backend_applicant_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,
@@ -1134,7 +1147,21 @@ urlpatterns = [
     path("backend/subjects/", backend_subject_list, name="backend_subject_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,
+    path(
+        "backend/subjects/create/",
+        backend_subject_create,
+        name="backend_subject_create",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
     path("backend/specialties/", backend_specialty_list, name="backend_specialty_list")
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/specialties/create/",
+        backend_specialty_create,
+        name="backend_specialty_create",
+    )
     if BACKEND_PEOPLE_AVAILABLE
     else None,
 ]

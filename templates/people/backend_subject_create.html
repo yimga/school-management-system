@@ -1,0 +1,48 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% comment %} Backend UI: create a subject/course. Mirrors people/backend_applicant_create.html. {% endcomment %}
+{% block backend_title %}{% trans "Create subject" %} - Backend{% endblock %}
+
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="record-create" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <div class="row">
+    <div class="col-12">
+      {% url 'accounts:backend_subject_list' as list_url %}
+      {% include "studio_os/components/page_header.html" with title=_("Create subject") subtitle=_("Add a course or subject to your school.") action_url=list_url action_text=_("Back to list") %}
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert" aria-live="assertive" tabindex="-1">
+            {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+          </div>
+          {% endif %}
+          <form method="post" novalidate id="backend-subject-create-form"
+                data-rmc-offline-form="field_capture"
+                data-rmc-offline-workflow="academics_subject_create"
+                data-offline-hint="{% trans 'Subject details stay on this device until you reconnect and sync.' %}">
+            {% csrf_token %}
+            {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
+            <div class="row">
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.name %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.code %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.category %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.credits %}</div>
+            </div>
+            <div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 justify-content-end">
+              <a href="{% url 'accounts:backend_subject_list' %}" class="btn btn-outline-secondary ds-btn">{% trans "Cancel" %}</a>
+              <button type="submit" class="btn btn-primary ds-btn">
+                <i class="bi bi-check-circle me-2" aria-hidden="true"></i>{% trans "Create subject" %}
+              </button>
+            </div>
+            <p class="form-text small text-muted mt-2 mb-0">{% trans "The name has to be unique within your school. The board code and credits are optional." %}</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
