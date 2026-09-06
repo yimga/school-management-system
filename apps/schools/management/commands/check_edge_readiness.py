@@ -931,6 +931,58 @@ class Command(BaseCommand):
                     "This makes the TLS decision irreversible from the browser side.",
                 ))
 
+        # --- The school's own records ----------------------------------------
+        # Until now this every-boot check said nothing about the one artefact a
+        # rebuild cannot regenerate: the school's data. box-audit.sh knows, but it
+        # is run by hand; the onboarding engine knows, but that runs once at
+        # bring-up. So a box whose backup stopped in March passes every boot in
+        # June, and the first anyone hears of it is the day the disk dies.
+        #
+        # The record is already mounted here read-only (backupdata:/backups:ro on
+        # the shared app anchor), so this costs one file read and no new plumbing.
+        #
+        # WARN, NEVER FAIL -- deliberately, and including under --strict. A FAIL
+        # stops the boot, and taking a school offline over a missing dump is
+        # strictly worse than the missing dump. Same house rule as the entrypoint's
+        # other boot helpers: a helper must not fail the boot.
+        try:
+            from apps.lifecycle.box_backup_status import (
+                evaluate_box_backup,
+                load_backup_state,
+                offbox_is_independent,
+            )
+
+            _backup_state = load_backup_state()
+            _backup_ok, _backup_detail = evaluate_box_backup()
+        except ImportError as _backup_error:
+            # Narrow ON PURPOSE. Both helpers are documented never-raise and their
+            # bodies hold that: load_backup_state catches OSError/UnicodeError and
+            # TypeError/ValueError, evaluate_box_backup wraps the whole verdict. So
+            # the only thing here that can fail is the import, and catching Exception
+            # would be a 7th broad except in this file for a risk that does not exist.
+            _backup_state, _backup_ok = None, False
+            _backup_detail = f"the backup record could not be read: {_backup_error}"
+
+        if not _backup_ok:
+            findings.append((
+                WARN,
+                "School database backup: " + _backup_detail + " This box holds the "
+                "fee ledger, the marks and the attendance for a whole school, and "
+                "most of that reaches no cloud.",
+            ))
+        else:
+            findings.append((OK, "School database backup: " + _backup_detail))
+            # Reported separately rather than folded into the line above: a caveat
+            # printed inside an OK is a caveat nobody reads.
+            if not offbox_is_independent(_backup_state):
+                findings.append((
+                    WARN,
+                    "The backup copy is on the SAME filesystem as the box. Every "
+                    "dump is verified and restorable, and a dead disk still takes "
+                    "the school's records and every copy of them in one go. Point "
+                    "RMC_BOX_BACKUP_OFFBOX_DIR at a USB disk or a NAS share.",
+                ))
+
         # --- Report ---------------------------------------------------------
         styles = {OK: self.style.SUCCESS, WARN: self.style.WARNING, FAIL: self.style.ERROR}
         for level, msg in findings:
