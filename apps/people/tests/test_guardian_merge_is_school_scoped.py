@@ -35,6 +35,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from apps.people.merge_service import (
+    _KIND_SCHOOL_PATHS,
     MergeBlockedError,
     apply_merge,
     preview_merge,
@@ -89,14 +90,51 @@ class GuardianMergeSchoolScopeTests(TestCase):
             secondary_pk=str(self.link_b.pk),  # <- belongs to School B
         )
 
-    def test_studentguardian_really_has_no_school_field(self):
-        """Pins the premise: this is why the getattr guard was unreachable."""
+    def test_studentguardian_now_has_a_school_field_and_the_path_still_ignores_it(self):
+        """The canary fired; this is the answer, and the answer is "keep going".
+
+        StudentGuardian gained its own ``school`` FK (people/0075, for the edge
+        sync rail, which scopes every entity by school and could not carry a
+        link row that had none). The canary asked for the transitive
+        student->school path to be revisited. It was, and it stays -- because
+        the row's own column is the WEAKER of the two answers.
+
+        ``StudentGuardian.save()`` fills ``school_id`` only ``if self.student_id
+        and not self.school_id``: it fills a blank and never corrects a value.
+        So a row written with an explicit school -- a sync apply, a bulk_create,
+        a queryset update -- keeps that school even when the student it points
+        at belongs to a different one. Reading the guard off that column would
+        let a wrong or stale stamp answer a question about a child, whereas
+        ``student.school_id`` asks the record that actually owns the child.
+
+        The test below proves the distinction is not theoretical.
+        """
         names = {f.name for f in StudentGuardian._meta.get_fields()}
-        self.assertNotIn(
-            "school", names,
-            "StudentGuardian gained a school field -- the transitive "
-            "student->school path in _KIND_SCHOOL_PATHS should be revisited",
+        self.assertIn("school", names, "premise changed again -- re-read this test")
+        self.assertEqual(
+            _KIND_SCHOOL_PATHS["guardian"], ("student", "school_id"),
+            "the guardian path must resolve through the STUDENT, not through the "
+            "link row's own school column",
         )
+
+    def test_a_stale_school_stamp_cannot_talk_the_guard_across_the_boundary(self):
+        """A row whose own school disagrees with its student's is still refused.
+
+        Written with a queryset update precisely because ``save()`` would not
+        produce this state -- and neither would a careful caller. A sync apply
+        or a hand-repaired row can, and the guard must not believe it.
+        """
+        StudentGuardian.objects.filter(pk=self.link_b.pk).update(  # tenant-isolation-allow: test-fixture-forges-a-mismatched-stamp
+            school=self.school_a
+        )
+        self.link_b.refresh_from_db()
+        self.assertEqual(self.link_b.school_id, self.school_a.pk)
+        self.assertNotEqual(self.link_b.student.school_id, self.school_a.pk)
+
+        op = self._cross_school_op()
+        with self.assertRaises(MergeBlockedError) as ctx:
+            preview_merge(op)
+        self.assertIn("different school", str(ctx.exception))
 
     def test_preview_refuses_a_cross_school_guardian_merge(self):
         op = self._cross_school_op()

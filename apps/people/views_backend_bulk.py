@@ -28,10 +28,11 @@ def _parse_json_body(request) -> dict:
 def backend_student_bulk_status(request):
     payload = _parse_json_body(request)
     status = str(payload.get("status") or request.POST.get("status") or "").strip()
-    student_ids = parse_student_id_list(payload.get("ids") or request.POST.getlist("ids"))
-
     school = getattr(request, "school", None)
     try:
+        student_ids = parse_student_id_list(
+            payload.get("ids") or request.POST.getlist("ids")
+        )
         outcome = bulk_set_student_status(
             student_ids=student_ids, status=status, school=school
         )
@@ -53,9 +54,10 @@ def backend_staff_bulk_role(request):
     """
     payload = _parse_json_body(request)
     role = str(payload.get("role") or request.POST.get("role") or "").strip()
-    staff_ids = parse_staff_id_list(payload.get("ids") or request.POST.getlist("ids"))
-
     try:
+        staff_ids = parse_staff_id_list(
+            payload.get("ids") or request.POST.getlist("ids")
+        )
         outcome = bulk_set_staff_role(
             staff_ids=staff_ids, role=role, school=getattr(request, "school", None)
         )

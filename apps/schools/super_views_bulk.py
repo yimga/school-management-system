@@ -74,8 +74,6 @@ def api_bulk_schools(request):
     confirm_phrase = str(
         payload.get("confirm_phrase") or request.POST.get("confirm_phrase") or ""
     ).strip()
-    school_ids = parse_school_id_list(payload.get("ids") or request.POST.getlist("ids"))
-
     if action in _SECURITY_WRITE_ACTIONS and not user_has_platform_scope(
         request.user, PLATFORM_SCOPE_SECURITY_WRITE
     ):
@@ -85,6 +83,9 @@ def api_bulk_schools(request):
         )
 
     try:
+        school_ids = parse_school_id_list(
+            payload.get("ids") or request.POST.getlist("ids")
+        )
         outcome = bulk_apply_school_actions(
             school_ids=school_ids,
             action=action,
@@ -115,11 +116,10 @@ def api_bulk_operators(request):
         payload.get("confirm_phrase") or request.POST.get("confirm_phrase") or ""
     ).strip()
     tier = str(payload.get("tier") or request.POST.get("tier") or "").strip()
-    user_ids = parse_operator_user_id_list(
-        payload.get("ids") or request.POST.getlist("ids")
-    )
-
     try:
+        user_ids = parse_operator_user_id_list(
+            payload.get("ids") or request.POST.getlist("ids")
+        )
         outcome = bulk_apply_operator_team_actions(
             user_ids=user_ids,
             action=action,

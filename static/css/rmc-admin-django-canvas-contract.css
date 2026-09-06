@@ -4344,7 +4344,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   border-collapse: separate !important;
   border-spacing: 0 !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > thead {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > thead:not(.hidden) {
   display: table-header-group !important;
 }
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > :is(tbody, tfoot) {
@@ -4607,12 +4607,24 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-
    Specificity is deliberate: CDP showed the winning rule at (0,6,3)
    !important, so these repeat its selector plus the row class to reach
    (0,7,3). A plain `.empty-form { display: none }` cannot win and was
-   measured doing nothing. Unfold wraps the row in <tbody class="template">,
+   measured doing nothing. Unfold wraps each inline form in its own <tbody>,
    so both the tbody and the tr are covered, as are pages that never gain
    the runtime `unfold` / `.inline-group` hooks. */
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody.template,
+/* 2026-09-06: `tbody.template` over-reached. Unfold stamps `template` on EVERY
+   inline form without an `original` (edit_inline/tabular.html), not just the
+   `__prefix__` prototype -- so this also hid the real `extra=` rows. Measured in
+   Chrome via CDP on people.StudentProfile/add: tbody `guardian_links-0`, holding
+   12 live inputs, computed `display: none`. The add form offered a guardian
+   header with no row under it. Only the prototype must hide, and it is the one
+   carrying `tr.empty-form`; `:has()` keeps hiding it at tbody level (which the
+   note above shows is required) without touching its siblings. Kept in its own
+   block: an invalid selector voids a whole selector list, so if `:has()` is ever
+   unsupported the `tr.empty-form` rule below still hides the prototype. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody:has(> tr.empty-form),
+[data-rmc-shell-root="django-admin"] table > tbody:has(> tr.empty-form) {
+  display: none !important;
+}
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table tr.empty-form,
-[data-rmc-shell-root="django-admin"] table > tbody.template,
 [data-rmc-shell-root="django-admin"] table > :is(tbody, tfoot) > tr.empty-form {
   display: none !important;
 }

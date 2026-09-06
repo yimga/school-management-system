@@ -64,8 +64,16 @@ def parse_school_id_list(raw_ids: Any) -> list[uuid.UUID]:
             if not text:
                 continue
             out.append(uuid.UUID(text))
-        if len(out) >= MAX_BULK_IDS:
-            break
+    if len(out) > MAX_BULK_IDS:
+        # Refuse rather than trim. This list drives a bulk WRITE, and trimming it
+        # applied the change to the first MAX_BULK_IDS rows while reporting
+        # success -- the remainder kept its old value with nothing in the
+        # response naming what had been left behind. Same defect, and the same
+        # cure, as apps/people/bulk_staff_actions.py (2026-09-06).
+        raise ValueError(
+            "Select %d or fewer at once (you selected %d). Nothing was changed."
+            % (MAX_BULK_IDS, len(out))
+        )
     return out
 
 

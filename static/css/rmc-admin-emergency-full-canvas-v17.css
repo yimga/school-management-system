@@ -216,7 +216,13 @@ html[data-rmc-admin-html="unfold"] body,
   table-layout: fixed !important;
   min-inline-size: 100% !important;
 }
-[data-rmc-shell-root="django-admin"] table > thead { display: table-header-group !important; }
+/* 2026-09-06: `:not(.hidden)` -- the force must not resurrect a thead that markup
+   deliberately hid. Unfold's tabular inline heads carry `hidden lg:table-header-group`
+   and stack the column names into each cell via `::before` below `lg`. Forcing the
+   head visible left BOTH layers painted under 1024px, i.e. a doubled header row
+   (measured in Chrome via CDP at 900px). Changelist heads carry no `hidden`, so they
+   keep the force. */
+[data-rmc-shell-root="django-admin"] table > thead:not(.hidden) { display: table-header-group !important; }
 [data-rmc-shell-root="django-admin"] table > :is(tbody, tfoot) { display: table-row-group !important; }
 [data-rmc-shell-root="django-admin"] table > :is(tbody, tfoot) > tr { display: table-row !important; }
 [data-rmc-shell-root="django-admin"] table tr > :is(th, td) { display: table-cell !important; float: none !important; }
