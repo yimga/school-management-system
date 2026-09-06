@@ -889,6 +889,28 @@ MUTATIONS["test-host-fidelity"] = Mutation(
     ),
 )
 
+# Re-introduces the defect verbatim: `tbody.template` is EVERY inline form
+# without an `original`, not just the __prefix__ prototype, so hiding it takes
+# the row the admin just offered. A patch, not a create -- the gate renders
+# from the live admin registry, so a planted file is never reached.
+#
+# It must be the LONG selector. The same file forces `table > :is(tbody, tfoot)
+# { display: table-row-group !important }` at (0,5,3) two hundred lines above,
+# so restoring `tbody.template` on the short `[data-rmc-shell-root=...]`
+# selector at (0,2,2) is overridden and plants nothing -- measured, the gate
+# stayed green on it. The selector that shipped, and that CDP measured winning,
+# is this one at (0,6,3).
+MUTATIONS["admin-rendered-form-layout"] = Mutation(
+    kind="patch",
+    path="static/css/rmc-admin-django-canvas-contract.css",
+    defect="a rule that hides every NEW inline row, not just the prototype:"
+           " the add form offers a column header with no row under it",
+    anchor=b".inline-group :is(.tabular, .inline-related.tabular)"
+           b" table > tbody:has(> tr.empty-form),",
+    replacement=b".inline-group :is(.tabular, .inline-related.tabular)"
+                b" table > tbody.template,",
+)
+
 MUTATIONS["workflow-swallowed-exit-codes"] = Mutation(
     kind="create",
     path=f".github/workflows/{_PROOF}-swallowed-exit-code.yml",
