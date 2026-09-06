@@ -1168,6 +1168,10 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             return self._post_apply_catalog_recommendations(request, bundle)
         if action == "apply_catalog_recommendation":
             return self._post_apply_catalog_recommendation(request, bundle)
+        if action == "retag_reimport":
+            return self._post_retag_reimport(request, bundle)
+        if action == "post_import_closure":
+            return self._post_post_import_closure(request, bundle)
 
         changed = 0
         for artifact in bundle.artifacts.all():
@@ -1189,6 +1193,16 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             # column edits submitted alongside it — so re-detect wins and column
             # overrides are intentionally not applied in the same pass.
             _sync_tenant_domain_overrides(bundle)
+            bundle.refresh_from_db()
+            if bundle.status in (BundleStatus.APPLIED, BundleStatus.RECONCILED):
+                from apps.migration_cloud.retag_reimport import retag_and_reimport_bundle
+
+                return self._finish_retag_reimport(
+                    request,
+                    bundle,
+                    retag_and_reimport_bundle(bundle, apply_catalog=False, off_http=True),
+                    prefix=f"Updated {changed} file(s)",
+                )
             _advance(bundle.pk)
             messages.success(request, f"Updated {changed} file(s) and re-detected.")
             return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
@@ -1225,10 +1239,19 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
 
     def _post_apply_catalog_recommendations(self, request, bundle):
         from apps.migration_cloud.catalog_preflight import apply_catalog_recommendations
+        from apps.migration_cloud.retag_reimport import retag_and_reimport_bundle
 
         changed = apply_catalog_recommendations(bundle)
         if changed:
             _sync_tenant_domain_overrides(bundle)
+            bundle.refresh_from_db()
+            if bundle.status in (BundleStatus.APPLIED, BundleStatus.RECONCILED):
+                return self._finish_retag_reimport(
+                    request,
+                    bundle,
+                    retag_and_reimport_bundle(bundle, apply_catalog=False, off_http=True),
+                    prefix=f"Updated {changed} file(s)",
+                )
             _advance(bundle.pk)
             messages.success(
                 request,
@@ -1236,6 +1259,60 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             )
         else:
             messages.info(request, "No catalog tag corrections were needed.")
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+    def _post_retag_reimport(self, request, bundle):
+        from apps.migration_cloud.retag_reimport import retag_and_reimport_bundle
+
+        result = retag_and_reimport_bundle(bundle, apply_catalog=True, off_http=True)
+        return self._finish_retag_reimport(request, bundle, result)
+
+    def _finish_retag_reimport(self, request, bundle, result, prefix=""):
+        bundle.refresh_from_db()
+        if result.ok:
+            if result.repair and result.repair.queued:
+                msg = result.message
+                if prefix:
+                    msg = f"{prefix}. {msg}"
+                messages.info(request, msg)
+            else:
+                msg = result.message or "Re-import started with corrected record types."
+                if prefix:
+                    msg = f"{prefix}. {msg}"
+                messages.success(request, msg)
+        else:
+            messages.error(request, result.message or "Re-import could not start.")
+            if result.blockers:
+                messages.warning(request, "Blockers: " + ", ".join(result.blockers))
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+    def _post_post_import_closure(self, request, bundle):
+        """Wire classrooms, enrollments, and teaching grid after a landed import."""
+        school = getattr(bundle, "school", None)
+        if school is None:
+            messages.error(request, "This import is not bound to a school.")
+            return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+        from apps.migration_cloud.post_import_graph_closure import (
+            run_post_import_graph_closure,
+        )
+
+        outcome = run_post_import_graph_closure(school, bundle=bundle, dry_run=False)
+        classrooms = outcome.get("classroom_backfill") or {}
+        enrollments = outcome.get("enrollment_sync") or {}
+        graph = outcome.get("teaching_graph") or {}
+        messages.success(
+            request,
+            (
+                f"Connected import data: {classrooms.get('placed', 0)} students placed in "
+                f"classrooms, {enrollments.get('synced', 0)} enrollments synced, "
+                f"teaching grid updated."
+            ),
+        )
+        if graph.get("skipped"):
+            messages.warning(
+                request,
+                str(graph.get("reason") or "Teaching grid closure was skipped."),
+            )
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
 
     def _post_apply_catalog_recommendation(self, request, bundle):
@@ -1250,6 +1327,16 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         changed = apply_catalog_recommendations(bundle, artifact_id=artifact_id)
         if changed:
             _sync_tenant_domain_overrides(bundle)
+            bundle.refresh_from_db()
+            if bundle.status in (BundleStatus.APPLIED, BundleStatus.RECONCILED):
+                from apps.migration_cloud.retag_reimport import retag_and_reimport_bundle
+
+                return self._finish_retag_reimport(
+                    request,
+                    bundle,
+                    retag_and_reimport_bundle(bundle, apply_catalog=False, off_http=True),
+                    prefix="Applied the suggested record type",
+                )
             _advance(bundle.pk)
             messages.success(request, "Applied the suggested record type and re-detected.")
         else:
@@ -1545,11 +1632,15 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             and not source_archived
             and source_blobs_remaining > 0
         )
+        from apps.migration_cloud.retag_reimport import bundle_needs_reimport_after_retag
+
+        catalog_reimport_needed = bundle_needs_reimport_after_retag(bundle)
         return {
             "page_title": "Review & import",
             "bundle": bundle,
             "artifact_rows": rows,
             "catalog_fixable_count": catalog_fixable_count,
+            "catalog_reimport_needed": catalog_reimport_needed,
             "domain_choices": canonical_domain_choices(),
             "name_order_choices": NAME_ORDER_CHOICES,
             "name_order_selected": selected_name_order(bundle),
@@ -1790,13 +1881,21 @@ def _build_migration_closure_summary(bundle):
             BundleStatus.RECONCILED,
         ):
             return None
-        from apps.migration_cloud.closure_status import build_migration_closure_report
+        from apps.migration_cloud.closure_status import build_import_graph_health_report
 
-        report = build_migration_closure_report(school, bundle=bundle)
+        report = build_import_graph_health_report(school, bundle=bundle)
         quarantine = report.get("quarantine") or {}
+        layers = report.get("import_graph_layers") or {}
         return {
             "playbook_ready": bool(report.get("playbook_ready")),
+            "import_graph_ready": bool(report.get("import_graph_ready")),
             "held_rows_pending": int(quarantine.get("held_rows_pending") or 0),
+            "layers": layers,
+            "teachers": (layers.get("people") or {}).get("teachers"),
+            "students_active": (layers.get("people") or {}).get("students_active"),
+            "missing_classroom": (layers.get("placement") or {}).get("missing_classroom"),
+            "evaluation_rows": (layers.get("grades") or {}).get("evaluation_rows"),
+            "needs_reimport": (layers.get("detection") or {}).get("needs_reimport"),
         }
     except Exception:  # noqa: BLE001 — panel must never break review
         logger.debug(

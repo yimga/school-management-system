@@ -66939,5 +66939,75 @@ msgstr ""
 msgid "Decide"
 msgstr ""
 
+msgid ""
+"All import graph layers pass — teachers, placement, enrollments, teaching "
+"grid, and quarantine are wired."
+msgstr ""
+
+msgid "Classroom placement"
+msgstr ""
+
+msgid "Connect classrooms, enrollments, and teaching grid"
+msgstr ""
+
+msgid "Counts"
+msgstr ""
+
+msgid "Detection / re-import"
+msgstr ""
+
+msgid "Gap"
+msgstr ""
+
+msgid "Grades / evaluations"
+msgstr ""
+
+msgid "Import graph health"
+msgstr ""
+
+msgid "Layer"
+msgstr ""
+
+msgid "None yet"
+msgstr ""
+
+msgid ""
+"Places students into class rosters from saved form labels and builds "
+"gradebook links."
+msgstr ""
+
+msgid "Re-import needed"
+msgstr ""
+
+msgid "Re-import with corrected record types"
+msgstr ""
+
+msgid "Record types changed after apply"
+msgstr ""
+
+msgid "Record types were corrected but data has not been re-imported yet"
+msgstr ""
+
+msgid ""
+"Some import graph layers still have gaps. Use Re-import or Connect below, "
+"then re-check this panel."
+msgstr ""
+
+msgid ""
+"This import already ran with the wrong record types (for example a staff "
+"telephone directory stored as custom fields). Updating the tag alone does "
+"not move rows into Teachers, Students, or Classrooms — you must re-import "
+"with the corrected types."
+msgstr ""
+
+msgid "{{ n }} evaluation row(s)"
+msgstr ""
+
+msgid "{{ n }} student(s) without classroom"
+msgstr ""
+
+msgid "{{ t }} teachers · {{ s }} students"
+msgstr ""
+
 msgid "Create records"
 msgstr ""

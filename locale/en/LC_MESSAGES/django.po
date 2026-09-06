@@ -74370,5 +74370,85 @@ msgstr "{{ counter }} time{% plural %}{{ counter }} times"
 msgid "Decide"
 msgstr "Decide"
 
+msgid "Connect classrooms, enrollments, and teaching grid"
+msgstr "Connect classrooms, enrollments, and teaching grid"
+
+msgid ""
+"Places students into class rosters from saved form labels and builds "
+"gradebook links."
+msgstr ""
+"Places students into class rosters from saved form labels and builds "
+"gradebook links."
+
+msgid "Re-import with corrected record types"
+msgstr "Re-import with corrected record types"
+
+msgid "Record types were corrected but data has not been re-imported yet"
+msgstr "Record types were corrected but data has not been re-imported yet"
+
+msgid ""
+"This import already ran with the wrong record types (for example a staff "
+"telephone directory stored as custom fields). Updating the tag alone does "
+"not move rows into Teachers, Students, or Classrooms — you must re-import "
+"with the corrected types."
+msgstr ""
+"This import already ran with the wrong record types (for example a staff "
+"telephone directory stored as custom fields). Updating the tag alone does "
+"not move rows into Teachers, Students, or Classrooms — you must re-import "
+"with the corrected types."
+
+msgid ""
+"All import graph layers pass — teachers, placement, enrollments, teaching "
+"grid, and quarantine are wired."
+msgstr ""
+"All import graph layers pass — teachers, placement, enrollments, teaching "
+"grid, and quarantine are wired."
+
+msgid "Classroom placement"
+msgstr "Classroom placement"
+
+msgid "Counts"
+msgstr "Counts"
+
+msgid "Detection / re-import"
+msgstr "Detection / re-import"
+
+msgid "Gap"
+msgstr "Gap"
+
+msgid "Grades / evaluations"
+msgstr "Grades / evaluations"
+
+msgid "Import graph health"
+msgstr "Import graph health"
+
+msgid "Layer"
+msgstr "Layer"
+
+msgid "None yet"
+msgstr "None yet"
+
+msgid "Re-import needed"
+msgstr "Re-import needed"
+
+msgid "Record types changed after apply"
+msgstr "Record types changed after apply"
+
+msgid ""
+"Some import graph layers still have gaps. Use Re-import or Connect below, "
+"then re-check this panel."
+msgstr ""
+"Some import graph layers still have gaps. Use Re-import or Connect below, "
+"then re-check this panel."
+
+msgid "{{ n }} evaluation row(s)"
+msgstr "{{ n }} evaluation row(s)"
+
+msgid "{{ n }} student(s) without classroom"
+msgstr "{{ n }} student(s) without classroom"
+
+msgid "{{ t }} teachers · {{ s }} students"
+msgstr "{{ t }} teachers · {{ s }} students"
+
 msgid "Create records"
 msgstr "Create records"

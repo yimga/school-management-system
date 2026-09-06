@@ -127,3 +127,5 @@ class MigrationClosureSummaryBuilderTests(TestCase):
         self.assertIsNotNone(summary)
         self.assertIn("playbook_ready", summary)
         self.assertIn("held_rows_pending", summary)
+        self.assertIn("import_graph_ready", summary)
+        self.assertIn("layers", summary)
