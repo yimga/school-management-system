@@ -145,8 +145,22 @@ class TenantIdorGuardsTests(TestCase):
         response = self.client.get(reverse("api:finance-analytics"))
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload.get("total_invoiced"), 100.0)
-        self.assertEqual(payload.get("total_collected"), 80.0)
+        # Money crosses this API as a Decimal rendered to a STRING, never as a
+        # float -- apps/finance/json_decimal.py, and the scan_money_float gate
+        # that forbids the float() round-trip. Comparing to 100.0 asserted the
+        # JSON SPELLING rather than the value, so the test failed on correct
+        # output. Compare as Decimal and the assertion survives either encoding.
+        self.assertEqual(
+            Decimal(str(payload.get("total_invoiced"))), Decimal("100.00")
+        )
+        self.assertEqual(
+            Decimal(str(payload.get("total_collected"))), Decimal("80.00")
+        )
+        # What those numbers actually prove: school B's 500.00 invoice and
+        # 400.00 payment are not in this tenant's totals. Stated so a future
+        # reader cannot mistake the figures for arbitrary fixtures.
+        self.assertEqual(self.invoice_b.total_amount, Decimal("500.00"))
+        self.assertEqual(self.payment_b.amount, Decimal("400.00"))
 
     def test_finance_analytics_requires_school_context(self):
         self.client.force_login(self.user_a)
@@ -207,4 +221,28 @@ class TenantIdorGuardsTests(TestCase):
             },
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 403)
+        # The refusal can wear either of two shapes and both are correct: 403
+        # from the permission layer, or 400 from the serializer, whose
+        # school-scoped queryset makes a foreign invoice id simply not a valid
+        # choice -- a ModelChoiceField's queryset IS its validator. Asserting
+        # 403 alone failed on a platform that was refusing properly.
+        self.assertIn(
+            response.status_code,
+            (400, 403, 404),
+            f"a cross-tenant invoice reference must be refused, got "
+            f"{response.status_code}",
+        )
+        # The status code is the weaker half. This is the assertion that
+        # matters, and the test did not make it: whatever the shape of the
+        # refusal, no payment may exist against another school's invoice
+        # beyond the one its own school made.
+        with rls_bypass():
+            self.assertEqual(
+                list(
+                    Payment.objects.filter(invoice=self.invoice_b).values_list(
+                        "id", flat=True
+                    )
+                ),
+                [self.payment_b.id],
+                "a payment landed against school B's invoice",
+            )
