@@ -66,7 +66,36 @@ class BOLAIdorMatrixTests(TestCase):
             user=cls.admin_b, school=cls.school_b, role="ADMIN", is_primary=True
         )
 
+    #: Surfaces a refusal is allowed to send the caller to. Anything else is a
+    #: redirect AWAY from a deny and must fail.
+    AUTH_SURFACES = ("/authentication/login", "/mfa/", "/authentication/mfa")
+
     def _assert_denied(self, resp, msg: str = ""):
+        """Refused -- by status OR by being bounced to an auth surface.
+
+        Measured 2026-09-06: on a tenant host a user with NO membership there is
+        not authenticated at all. Every endpoint -- tenant-scoped and global
+        reference alike -- answers 302 to
+        ``https://runmycampus.com/authentication/login/``. That is a refusal, and
+        a stricter one than 403: the caller is not merely unauthorized for the
+        resource, they have no session on that host to be unauthorized WITH.
+
+        Asserting only (403, 404, 400) therefore reported a deny as a failure,
+        and these 14 tests sat red long enough to stop being read.
+
+        Widening this to "302 is fine" would be the wrong repair -- it is how a
+        security test stops being able to fail. The Location has to name an auth
+        surface, so a redirect that hands the caller ONWARD (to the resource, to
+        another tenant) still fails, and a 200 always fails.
+        """
+        if resp.status_code in (301, 302):
+            location = resp.headers.get("Location") or ""
+            self.assertTrue(
+                any(surface in location for surface in self.AUTH_SURFACES),
+                f"{msg}: redirected somewhere that is not an auth surface, so "
+                f"this is not a deny: {location!r}",
+            )
+            return
         self.assertIn(
             resp.status_code,
             (403, 404, 400),
@@ -286,7 +315,11 @@ class BOLAIdorMatrixTests(TestCase):
 
     def test_integration_catalog_global_no_tenant_leak(self):
         """Platform catalog is auth-gated but not host-scoped (no school A data)."""
-        client = _tenant_client(self.school_a, self.admin_b)
+        # admin_A, not admin_B: a non-member has no session on this host, so
+        # the request 302s to login and the no-leak assertion below can never
+        # run. The claim under test is that a GLOBAL catalog carries no school
+        # data -- that needs a caller who can actually reach it.
+        client = _tenant_client(self.school_a, self.admin_a)
         url = reverse("api_v1:config-integration-catalog")
         resp = client.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -295,7 +328,11 @@ class BOLAIdorMatrixTests(TestCase):
         self.assertNotIn(str(self.school_a.pk), json.dumps(body))
 
     def test_education_templates_global_no_tenant_leak(self):
-        client = _tenant_client(self.school_a, self.admin_b)
+        # admin_A, not admin_B: a non-member has no session on this host, so
+        # the request 302s to login and the no-leak assertion below can never
+        # run. The claim under test is that a GLOBAL catalog carries no school
+        # data -- that needs a caller who can actually reach it.
+        client = _tenant_client(self.school_a, self.admin_a)
         url = reverse("api_v1:config-education-templates")
         resp = client.get(url)
         self.assertEqual(resp.status_code, 200)
@@ -308,7 +345,11 @@ class BOLAIdorMatrixTests(TestCase):
         self._assert_denied(resp, "tenants-children")
 
     def test_rosetta_scales_auth_only_global_reference(self):
-        client = _tenant_client(self.school_a, self.admin_b)
+        # admin_A, not admin_B: a non-member has no session on this host, so
+        # the request 302s to login and the no-leak assertion below can never
+        # run. The claim under test is that a GLOBAL catalog carries no school
+        # data -- that needs a caller who can actually reach it.
+        client = _tenant_client(self.school_a, self.admin_a)
         url = reverse("api_v1:rosetta-scales")
         resp = client.get(url)
         self.assertEqual(resp.status_code, 200)
