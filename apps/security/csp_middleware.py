@@ -33,8 +33,24 @@ Settings (declared in ``config/settings_registry.py``):
 - ``CSP_EXTRA_CONNECT_SRC``        — tuple[str], extra connect-src origins
 - ``CSP_EXTRA_FRAME_ANCESTORS``    — tuple[str], extra frame-ancestors
 
-Bypass: paths under ``/admin/`` and ``/static/`` keep the default Django
-behavior to avoid breaking the admin or static asset delivery.
+Admin-surface settings (separate policy — see ``_ADMIN_*`` below):
+
+- ``CSP_ADMIN_ENABLED``            — bool, default True (emit a header on /admin/)
+- ``CSP_ADMIN_ENFORCE``            — bool, default False (Report-Only; explicit opt-in)
+- ``CSP_ADMIN_PATH_PREFIXES``      — tuple[str], default ("/admin/",)
+- ``CSP_ADMIN_REPORT_URI``         — str, default "" (falls back to ``CSP_REPORT_URI``)
+- ``CSP_ADMIN_EXTRA_SCRIPT_SRC``   — tuple[str], extra admin script-src origins
+- ``CSP_ADMIN_EXTRA_STYLE_SRC``    — tuple[str], extra admin style-src origins
+- ``CSP_ADMIN_EXTRA_IMG_SRC``      — tuple[str], extra admin img-src origins
+- ``CSP_ADMIN_EXTRA_FONT_SRC``     — tuple[str], extra admin font-src origins
+- ``CSP_ADMIN_EXTRA_CONNECT_SRC``  — tuple[str], extra admin connect-src origins
+- ``CSP_ADMIN_EXTRA_FRAME_SRC``    — tuple[str], extra admin frame-src origins
+- ``CSP_ADMIN_EXTRA_FRAME_ANCESTORS`` — tuple[str], extra admin frame-ancestors
+
+Bypass: paths under ``/static/`` and ``/media/`` keep the default Django
+behavior — they are asset bytes, not HTML documents, so a CSP header on them
+governs nothing. ``/admin/`` is NO LONGER bypassed: it receives its own,
+deliberately looser policy in Report-Only mode (see ``_build_admin_policy``).
 """
 
 from __future__ import annotations
@@ -56,6 +72,102 @@ _DEFAULT_DIRECTIVES: dict[str, tuple[str, ...]] = {
     "form-action": ("'self'",),
     "object-src": ("'none'",),
 }
+
+
+# ---------------------------------------------------------------------------
+# Admin-surface policy
+# ---------------------------------------------------------------------------
+# Until this change ``/admin/`` sat in ``BYPASS_PREFIXES`` and received NO CSP
+# header at all — the highest-privilege surface on the platform was the only one
+# with zero CSP telemetry, while the deployed Render services ran the main site
+# in Report-Only. ``/admin/`` now gets its OWN policy, emitted Report-Only, so
+# operators can LEARN the real violation set before any enforcement decision.
+#
+# The admin genuinely cannot run the main policy. Each addition below was
+# verified against the shipped assets, not assumed:
+#
+# * ``'unsafe-eval'`` — Unfold bundles the STANDARD (non-CSP) Alpine.js build.
+#   Its expression evaluator is literally
+#   ``Object.getPrototypeOf(async function(){}).constructor`` — the
+#   AsyncFunction constructor — in ``unfold/static/unfold/js/alpine/alpine.js``.
+#   That is eval-equivalent and every Alpine directive dies without
+#   ``'unsafe-eval'``. Alpine publishes a CSP-safe build that removes this need;
+#   adopting it is the burndown this Report-Only rollout exists to justify.
+# * ``'unsafe-inline'`` (script-src) — ``templates/admin/`` still carries inline
+#   event-handler attributes (``onclick=`` …), which a nonce CANNOT authorize.
+# * ``https://fonts.googleapis.com`` (style-src) —
+#   ``templates/admin/base_site.html`` links a Google Fonts stylesheet, which the
+#   main policy's ``style-src 'self' 'unsafe-inline'`` would block.
+#
+# ⚠️ The per-request nonce is deliberately NOT added to the admin ``script-src``.
+# Per CSP3, a directive carrying BOTH a nonce and ``'unsafe-inline'`` makes
+# browsers IGNORE ``'unsafe-inline'`` — which would re-block every inline handler
+# above. A policy that only "passes" because nothing is enforced is exactly the
+# policy that breaks the admin the moment an operator flips it, so the admin
+# policy is written to be flip-safe as it stands. (The nonce is still set on the
+# request, so ``nonce="{{ csp_nonce }}"`` keeps rendering; under
+# ``'unsafe-inline'`` those attributes are inert but harmless.)
+#
+# The additions are expressed as DELTAS over ``_DEFAULT_DIRECTIVES`` rather than
+# a parallel table, so any future hardening of the base policy is inherited by
+# the admin policy automatically — the exact drift that once made
+# ``csp_readiness.py`` report on a policy that never shipped.
+_ADMIN_SCRIPT_SRC_ADDITIONS: tuple[str, ...] = ("'unsafe-inline'", "'unsafe-eval'")
+_ADMIN_STYLE_SRC_ADDITIONS: tuple[str, ...] = ("https://fonts.googleapis.com",)
+
+_ADMIN_EXTRA_SETTINGS: dict[str, str] = {
+    "script-src": "CSP_ADMIN_EXTRA_SCRIPT_SRC",
+    "style-src": "CSP_ADMIN_EXTRA_STYLE_SRC",
+    "img-src": "CSP_ADMIN_EXTRA_IMG_SRC",
+    "font-src": "CSP_ADMIN_EXTRA_FONT_SRC",
+    "connect-src": "CSP_ADMIN_EXTRA_CONNECT_SRC",
+    "frame-src": "CSP_ADMIN_EXTRA_FRAME_SRC",
+    "frame-ancestors": "CSP_ADMIN_EXTRA_FRAME_ANCESTORS",
+}
+
+
+def admin_default_directives() -> dict[str, list[str]]:
+    """Return the admin baseline: the main policy plus the verified admin deltas."""
+    directives = {k: list(v) for k, v in _DEFAULT_DIRECTIVES.items()}
+    for token in _ADMIN_SCRIPT_SRC_ADDITIONS:
+        if token not in directives["script-src"]:
+            directives["script-src"].append(token)
+    for token in _ADMIN_STYLE_SRC_ADDITIONS:
+        if token not in directives["style-src"]:
+            directives["style-src"].append(token)
+    return directives
+
+
+def _build_admin_policy() -> str:
+    """Compose the ``/admin/`` CSP header value.
+
+    Same assembly as ``_build_policy`` (baseline + ``CSP_ADMIN_EXTRA_*``
+    overrides + ``report-uri``) over the admin baseline. No nonce is applied —
+    see the CSP3 nonce/'unsafe-inline' note above.
+
+    ``report-uri`` falls back to the site-wide ``CSP_REPORT_URI`` when
+    ``CSP_ADMIN_REPORT_URI`` is unset, so admin reports reach the existing sink
+    (``apps/security/csp_report_view.py``) without extra configuration. The
+    report's own ``document-uri`` is what distinguishes an admin violation from
+    a site one.
+    """
+    directives = admin_default_directives()
+
+    for directive, setting_name in _ADMIN_EXTRA_SETTINGS.items():
+        for value in getattr(settings, setting_name, ()) or ():
+            token = str(value).strip()
+            if token and token not in directives.setdefault(directive, []):
+                directives[directive].append(token)
+
+    parts = [f"{d} {' '.join(s)}" for d, s in directives.items() if s]
+
+    report_uri = (getattr(settings, "CSP_ADMIN_REPORT_URI", "") or "").strip()
+    if not report_uri:
+        report_uri = (getattr(settings, "CSP_REPORT_URI", "") or "").strip()
+    if report_uri:
+        parts.append(f"report-uri {report_uri}")
+
+    return "; ".join(parts)
 
 
 def _build_policy(nonce: str = "") -> str:
@@ -112,30 +224,67 @@ def _build_policy(nonce: str = "") -> str:
 class ContentSecurityPolicyMiddleware:
     """Adds the CSP header to every HTML response.
 
-    Enforce mode is default (``CSP_ENFORCE=True``). Set ``CSP_ENFORCE=0`` to
-    emit ``Content-Security-Policy-Report-Only`` instead.
+    Two surfaces, two policies:
+
+    * **Site** — ``_build_policy`` with the per-request nonce. Enforce mode is
+      default (``CSP_ENFORCE=True``); ``CSP_ENFORCE=0`` emits
+      ``Content-Security-Policy-Report-Only`` instead. Unchanged by the admin
+      rollout.
+    * **Admin** (``CSP_ADMIN_PATH_PREFIXES``, default ``/admin/``) —
+      ``_build_admin_policy``, emitted **Report-Only** unless the operator sets
+      the separate ``CSP_ADMIN_ENFORCE=1`` opt-in. ``CSP_ENFORCE`` does NOT
+      promote the admin policy to enforcing: the site switch must never flip the
+      admin surface as a side effect.
+
+    ``/static/`` and ``/media/`` stay bypassed — asset bytes, not HTML
+    documents.
     """
 
-    BYPASS_PREFIXES = ("/admin/", "/static/", "/media/")
+    BYPASS_PREFIXES = ("/static/", "/media/")
+    ADMIN_PREFIXES = ("/admin/",)
 
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def _is_bypassed(self, path: str) -> bool:
-        """True when ``path`` is under a bypass prefix.
+    @staticmethod
+    def _matches(path: str, prefixes) -> bool:
+        """True when ``path`` is the exact root of a prefix, or a descendant.
 
-        Matches the prefix root exactly AND any descendant — so the bare
-        ``/admin/`` index is bypassed, not just ``/admin/<app>/...``. The
-        previous ``path.rstrip('/').startswith('/admin/')`` form silently
-        FAILED for the exact index (``/admin/`` → ``/admin`` which does not
-        start with the trailing-slash prefix), leaking the strict CSP onto the
-        admin home and breaking Unfold's Alpine.js (needs ``eval``).
+        Matching the root exactly AND any descendant is load-bearing: an earlier
+        ``path.rstrip('/').startswith('/admin/')`` form silently FAILED for the
+        exact index (``/admin/`` → ``/admin``, which does not start with the
+        trailing-slash prefix). A lookalike sibling such as ``/administrators/``
+        must NOT match ``/admin/``, which is why the comparison is
+        root-or-root-plus-slash rather than a bare ``startswith``.
         """
-        for prefix in self.BYPASS_PREFIXES:
-            root = prefix.rstrip("/")
+        for prefix in prefixes:
+            root = str(prefix).rstrip("/")
+            if not root:
+                continue
             if path == root or path.startswith(root + "/"):
                 return True
         return False
+
+    def _is_bypassed(self, path: str) -> bool:
+        """True for ``/static/`` and ``/media/`` — asset bytes, never HTML."""
+        return self._matches(path, self.BYPASS_PREFIXES)
+
+    def _admin_prefixes(self) -> tuple[str, ...]:
+        """Admin path prefixes, operator-overridable via settings.
+
+        An EMPTY override falls back to the class default rather than meaning
+        "no admin surface". Honouring an empty list would drop ``/admin/``
+        through to the site policy — which can be ENFORCING — and break the
+        admin outright. Use ``CSP_ADMIN_ENABLED=0`` to opt the admin out of CSP;
+        this knob only relocates the surface.
+        """
+        configured = getattr(settings, "CSP_ADMIN_PATH_PREFIXES", None) or ()
+        cleaned = tuple(str(p).strip() for p in configured if str(p).strip())
+        return cleaned or self.ADMIN_PREFIXES
+
+    def _is_admin(self, path: str) -> bool:
+        """True when ``path`` is on the admin surface (its own policy applies)."""
+        return self._matches(path, self._admin_prefixes())
 
     def __call__(self, request):
         # Generate the per-request nonce BEFORE the view/template renders so the
@@ -150,6 +299,20 @@ class ContentSecurityPolicyMiddleware:
         # Only apply CSP to HTML / XHTML — adding it to JSON responses is noise.
         ct = (response.get("Content-Type") or "").lower()
         if not (ct.startswith("text/html") or ct.startswith("application/xhtml")):
+            return response
+
+        if self._is_admin(request.path or "/"):
+            # Admin surface: its own policy, Report-Only unless the operator
+            # explicitly opts in via CSP_ADMIN_ENFORCE. Deliberately does NOT
+            # consult CSP_ENFORCE — flipping the site to enforcing must not drag
+            # the admin along with it.
+            if not getattr(settings, "CSP_ADMIN_ENABLED", True):
+                return response
+            admin_policy = _build_admin_policy()
+            if getattr(settings, "CSP_ADMIN_ENFORCE", False):
+                response["Content-Security-Policy"] = admin_policy
+            else:
+                response["Content-Security-Policy-Report-Only"] = admin_policy
             return response
 
         policy = _build_policy(nonce=nonce)
@@ -170,4 +333,10 @@ def csp_nonce(request):
     return {"csp_nonce": getattr(request, "csp_nonce", "")}
 
 
-__all__ = ["ContentSecurityPolicyMiddleware", "_build_policy", "csp_nonce"]
+__all__ = [
+    "ContentSecurityPolicyMiddleware",
+    "_build_admin_policy",
+    "_build_policy",
+    "admin_default_directives",
+    "csp_nonce",
+]

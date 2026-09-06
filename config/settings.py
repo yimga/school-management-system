@@ -537,6 +537,47 @@ MIDDLEWARE += [
 # Override to Report-Only with CSP_ENFORCE=0 if a regression surfaces.
 CSP_ENFORCE = os.getenv("CSP_ENFORCE", "1") == "1"
 
+
+def _csp_admin_env_tuple(name: str, default: str = "") -> tuple[str, ...]:
+    """Parse a comma-separated CSP source list from the environment."""
+    return tuple(
+        item.strip()
+        for item in (os.getenv(name, default) or "").split(",")
+        if item.strip()
+    )
+
+
+# --- Admin-surface CSP (Report-Only rollout) --------------------------------
+# Until this change ``/admin/`` sat in ContentSecurityPolicyMiddleware's
+# BYPASS_PREFIXES and received NO CSP header at all — the highest-privilege
+# surface on the platform was the only one with zero CSP telemetry, while the
+# deployed Render services ran the main site in Report-Only. ``/admin/`` now
+# gets its OWN policy (apps.security.csp_middleware._build_admin_policy),
+# looser than the site policy because the admin genuinely needs it: Unfold
+# bundles the standard Alpine.js build, whose evaluator is the AsyncFunction
+# constructor ('unsafe-eval'), templates/admin/ still carries inline event
+# handlers ('unsafe-inline'), and admin/base_site.html links a Google Fonts
+# stylesheet.
+#
+# CSP_ADMIN_ENFORCE is a SEPARATE, explicitly-off opt-in. CSP_ENFORCE=1 must
+# never promote the admin surface to enforcing as a side effect. Flip it only
+# after the violation stream at CSP_REPORT_URI is quiet AND the Alpine CSP-safe
+# build has replaced the eval-dependent one.
+CSP_ADMIN_ENABLED = os.getenv("CSP_ADMIN_ENABLED", "1") == "1"
+CSP_ADMIN_ENFORCE = os.getenv("CSP_ADMIN_ENFORCE", "0") == "1"
+# Blank => fall back to CSP_REPORT_URI (the report's own document-uri is what
+# distinguishes an admin violation from a site one).
+CSP_ADMIN_REPORT_URI = os.getenv("CSP_ADMIN_REPORT_URI", "").strip()
+# Both admin sites mount at "admin/" (config/tenant_urls.py, config/manager_urls.py).
+CSP_ADMIN_PATH_PREFIXES = _csp_admin_env_tuple("CSP_ADMIN_PATH_PREFIXES", "/admin/")
+CSP_ADMIN_EXTRA_SCRIPT_SRC = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_SCRIPT_SRC")
+CSP_ADMIN_EXTRA_STYLE_SRC = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_STYLE_SRC")
+CSP_ADMIN_EXTRA_IMG_SRC = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_IMG_SRC")
+CSP_ADMIN_EXTRA_FONT_SRC = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_FONT_SRC")
+CSP_ADMIN_EXTRA_CONNECT_SRC = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_CONNECT_SRC")
+CSP_ADMIN_EXTRA_FRAME_SRC = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_FRAME_SRC")
+CSP_ADMIN_EXTRA_FRAME_ANCESTORS = _csp_admin_env_tuple("CSP_ADMIN_EXTRA_FRAME_ANCESTORS")
+
 # Wave E — G4 (Gap 3, 2026-05-15): data residency enforcement toggle.
 # False (default): DataResidencyMiddleware soft-logs cross-region mismatches.
 # True: same middleware raises CrossRegionWriteError on mismatch, bubbling to a 500.
