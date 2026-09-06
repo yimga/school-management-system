@@ -9,10 +9,12 @@ from unittest.mock import AsyncMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
+
 User = get_user_model()
 
 
-class AIChatConsumerGatewayTests(TransactionTestCase):
+class AIChatConsumerGatewayTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def setUp(self):
         suffix = __import__("uuid").uuid4().hex[:8]
         self.user = User.objects.create_user(

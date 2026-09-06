@@ -889,6 +889,28 @@ MUTATIONS["test-host-fidelity"] = Mutation(
     ),
 )
 
+# Re-introduces the defect verbatim: `tbody.template` is EVERY inline form
+# without an `original`, not just the __prefix__ prototype, so hiding it takes
+# the row the admin just offered. A patch, not a create -- the gate renders
+# from the live admin registry, so a planted file is never reached.
+#
+# It must be the LONG selector. The same file forces `table > :is(tbody, tfoot)
+# { display: table-row-group !important }` at (0,5,3) two hundred lines above,
+# so restoring `tbody.template` on the short `[data-rmc-shell-root=...]`
+# selector at (0,2,2) is overridden and plants nothing -- measured, the gate
+# stayed green on it. The selector that shipped, and that CDP measured winning,
+# is this one at (0,6,3).
+MUTATIONS["admin-rendered-form-layout"] = Mutation(
+    kind="patch",
+    path="static/css/rmc-admin-django-canvas-contract.css",
+    defect="a rule that hides every NEW inline row, not just the prototype:"
+           " the add form offers a column header with no row under it",
+    anchor=b".inline-group :is(.tabular, .inline-related.tabular)"
+           b" table > tbody:has(> tr.empty-form),",
+    replacement=b".inline-group :is(.tabular, .inline-related.tabular)"
+                b" table > tbody.template,",
+)
+
 MUTATIONS["workflow-swallowed-exit-codes"] = Mutation(
     kind="create",
     path=f".github/workflows/{_PROOF}-swallowed-exit-code.yml",
@@ -1438,6 +1460,38 @@ def main(argv: list[str] | None = None) -> int:
 
 def _tail(text: str, lines: int = 6) -> str:
     return "\n    ".join((text or "").strip().splitlines()[-lines:])
+
+
+
+# A TransactionTestCase truncates every table at teardown and does not roll it
+# back. Against the persisted --keepdb database that is permanent: the seed
+# migrations stay recorded as applied and never re-run, so the RBAC catalog is
+# gone for every later test AND every later run. The failure surfaces as 403s in
+# unrelated suites, and the flush need not even be in the same run as the
+# failure -- which is why bisecting the failing file never finds it.
+#
+# The plant is a bare TransactionTestCase with no mixin and no marker: the exact
+# shape all fifteen classes had before 2026-09-06. It must be `create` plus the
+# harness's `git add -N`, because the scanner discovers candidates with
+# `git grep` -- an untracked plant would be invisible and this gate would look
+# dead while working perfectly.
+MUTATIONS["unrestored-flush-testcase"] = Mutation(
+    kind="create",
+    path=f"apps/schools/tests/{_PROOF}_unrestored_flush.py",
+    defect=(
+        "a test class that truncates the seeded RBAC catalog at teardown and does "
+        "not put it back, poisoning the persisted keepdb database for every later "
+        "run on that machine"
+    ),
+    content=(
+        b"from django.test import TransactionTestCase" + chr(10).encode()
+        + chr(10).encode()
+        + chr(10).encode()
+        + b"class GateProofUnrestoredFlushTests(TransactionTestCase):" + chr(10).encode()
+        + b"    def test_nothing(self):" + chr(10).encode()
+        + b"        pass" + chr(10).encode()
+    ),
+)
 
 
 if __name__ == "__main__":

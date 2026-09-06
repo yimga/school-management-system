@@ -6,6 +6,7 @@ Phase 1.2: Complete Evaluation Module
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -17,6 +18,34 @@ from apps.people.models import StudentProfile
 
 from .models import Evaluation, MockExamSetting
 from .mock_exams import calculate_blended_score
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_ranking_school(
+    term: Term, classroom: Optional[Classroom] = None
+) -> Optional[object]:
+    """The School a ranking belongs to: classroom -> term -> the term's year.
+
+    Every one of those FKs is nullable, so the chain is walked rather than
+    assumed. Returning None is meaningful, not a shrug: it says the platform
+    cannot name the school, and the caller must NOT answer that by querying
+    every school.
+    """
+    school = getattr(classroom, "school", None)
+    if school is not None:
+        return school
+    school = getattr(term, "school", None)
+    if school is not None:
+        return school
+    school = getattr(getattr(term, "academic_year", None), "school", None)
+    if school is None:
+        logger.warning(
+            "ranking: term %s names no school on its classroom, itself, or its "
+            "academic year -- ranking only students that are equally unattributed",
+            getattr(term, "pk", None),
+        )
+    return school
 
 
 @dataclass(frozen=True)
@@ -124,16 +153,25 @@ def _compute_rankings(
     - Percentile calculation
     """
 
+    # Resolved BEFORE the roll is queried. Under RLS (USE_DJANGO_TENANTS=0,
+    # which is what an edge box runs) every school shares one schema, so an
+    # unscoped roll is every school's roll -- see
+    # apps/evals/tests/test_ranking_school_scope_2026_09_06.py.
+    school = _resolve_ranking_school(term, classroom)
+
     # Get students to rank
     if classroom:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+        # tenant-isolation-allow: classroom-fk-pins-the-roll-to-one-school-2026-09-06
         students = StudentProfile.objects.filter(
             classroom=classroom,
             is_active=True,
         ).select_related("classroom")
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     else:
+        # school=None resolves to school__isnull=True, so a term with no school
+        # anywhere in its ancestry ranks only the equally unattributed students
+        # rather than silently ranking the whole database.
         students = StudentProfile.objects.filter(
+            school=school,
             is_active=True,
         ).select_related("classroom")
 
@@ -158,8 +196,6 @@ def _compute_rankings(
 
     for eval_obj in evaluations:
         student_evals_map.setdefault(eval_obj.student_id, []).append(eval_obj)
-
-    school = getattr(classroom, "school", None) or getattr(term, "school", None)
 
     student_averages: dict[int, float] = {}
     for student_id, eval_list in student_evals_map.items():

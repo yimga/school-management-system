@@ -39,6 +39,7 @@ from apps.finance.notification_realtime import (
     wants_realtime_notification,
 )
 from apps.schools.channels_tenant_middleware import tenant_sync_room_name
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 User = get_user_model()
 
@@ -47,7 +48,7 @@ def _channels_ready() -> bool:
     return bool(getattr(consumers, "CHANNELS_AVAILABLE", False))
 
 
-class NotificationRealtimeFanoutTests(TransactionTestCase):
+class NotificationRealtimeFanoutTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def setUp(self):
         from apps.schools.models import School
 

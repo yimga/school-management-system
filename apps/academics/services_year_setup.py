@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import AcademicYear, Term, Classroom, SubjectAssignment
+from .promotion_mappings import carry_forward_promotion_mappings
 from apps.reports.models import PromotionRule
 
 if TYPE_CHECKING:
@@ -31,6 +32,7 @@ def clone_academic_year(
     copy_classrooms: bool = True,
     copy_subject_assignments: bool = True,
     copy_promotion_rules: bool = True,
+    copy_promotion_mappings: bool = True,
 ) -> dict:
     """
     Copy structure from from_year to to_year.
@@ -40,8 +42,15 @@ def clone_academic_year(
       school, not globally). Every cloned row is stamped with the owning school.
     - SubjectAssignments: recreated for to_year using new term/classroom mapping.
     - PromotionRule: copied for to_year (classroom=None or mapped to new classroom).
+    - ClassroomPromotionMapping: last year's LADDER shifted forward one year, so a
+      school authors "Form 5A advances into Lower Sixth A" once and every later
+      rollover inherits it. Never invented: a clone reproduces the same grades, so
+      an identity mapping would place advancing students back in their own grade
+      and call it a promotion. A school that has never mapped a ladder gets 0 rows
+      and a named blocker on the close scorecard instead.
 
-    Returns dict with counts: terms_created, classrooms_created, subject_assignments_created, promotion_rules_created.
+    Returns dict with counts: terms_created, classrooms_created,
+    subject_assignments_created, promotion_rules_created, promotion_mappings_created.
     """
     # Defence in depth against a cross-school clone. The view scopes both years to
     # request.school, but this service is also reachable from management commands and
@@ -69,6 +78,7 @@ def clone_academic_year(
         "classrooms_created": 0,
         "subject_assignments_created": 0,
         "promotion_rules_created": 0,
+        "promotion_mappings_created": 0,
     }
 
     # The school that owns this rollover. The guard above already refused a
@@ -236,5 +246,13 @@ def clone_academic_year(
                 )
                 if created:
                     stats["promotion_rules_created"] += 1
+
+        if copy_promotion_mappings and old_to_new_classroom:
+            stats["promotion_mappings_created"] = carry_forward_promotion_mappings(
+                from_year,
+                to_year,
+                old_to_new_classroom,
+                school_id=target_school_id,
+            )
 
     return stats

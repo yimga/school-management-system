@@ -204,6 +204,11 @@ GATES: list[tuple[str, list[str]]] = [
     # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
     # a dict that discards one of its own entries is never what was meant.
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
+    # A test class that truncates the seed catalog and leaves it truncated
+    # poisons the persisted --keepdb file for every later run on that machine.
+    # Zero-tolerance and WITHOUT --compare: there is no baseline, because
+    # leaving the catalog flushed is never what was meant.
+    ("unrestored-flush-testcase", ["scan_unrestored_flush_testcase.py"]),
     # Every ISO country must compile an offline ingestion manifest (249 × 2 profiles).
     ("global-country-ingestion-coverage", ["verify_global_country_ingestion_coverage.py"]),
     # Portal config + client JS + IndexedDB must carry ingestion lexicon for local-first MC upload.
@@ -496,6 +501,15 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # only shrink: a NEW dead path fails, and so does an entry that has started to
     # resolve, which stops the list decaying into a number nobody rereads.
     ("companion-server-contract", ["verify_companion_server_contract.py"]),
+    # The only gate here that asks a browser. Measured 225s against the ~8s
+    # this list is otherwise budgeted at, and it earns that: on 2026-09-06 an
+    # admin inline row carrying 12 live inputs computed display:none, 'Add
+    # another' was inert while TOTAL_FORMS still incremented, and the column
+    # head painted twice below 1024px -- with every one of the 166 file-reading
+    # gates green, because none of it exists in a file. Reports SKIP in about a
+    # second when no Chromium is present, so it costs nothing on a machine that
+    # cannot run it.
+    ("admin-rendered-form-layout", ["verify_admin_rendered_form_layout.py"]),
     # Country pack -> ingestion lexicon -> tenant offline manifest -> portal offline config.
     ("global-local-first-ingestion-chain", ["verify_global_local_first_ingestion_chain.py"]),
     ("global-platform-country-readiness-django", ["verify_global_platform_country_readiness.py"]),

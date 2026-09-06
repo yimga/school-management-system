@@ -35,9 +35,10 @@ from apps.portal.services import (
     _attendance_snapshot,
     _analytics_insights,
 )
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 
-class PerformanceOptimizationTest(TransactionTestCase):
+class PerformanceOptimizationTest(RestoresSeedCatalogMixin, TransactionTestCase):
     """Test suite for Phase 1.1 optimizations."""
 
     @classmethod

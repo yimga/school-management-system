@@ -17,10 +17,12 @@ from uuid import uuid4
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
 
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
+
 User = get_user_model()
 
 
-class SupportChatConsumerTests(TransactionTestCase):
+class SupportChatConsumerTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def setUp(self):
         from apps.schools.models import School
 

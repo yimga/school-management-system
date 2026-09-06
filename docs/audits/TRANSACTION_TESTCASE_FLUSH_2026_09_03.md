@@ -1,6 +1,33 @@
 # TransactionTestCase flushes the whole database - audit 2026-09-03
 
-**Status: CLOSED for 32 of 33 classes. One stays, with its reason measured and recorded below.**
+**Status: SUPERSEDED 2026-09-06. Fixed systemically; read the note below before
+acting on anything else in this file.**
+
+The line this heading used to carry -- *CLOSED for 32 of 33 classes* -- was true when
+it was written and was wrong by 2026-09-06. There were **fifteen** flushing classes
+again, in twelve files, one of them a `LiveServerTestCase`
+(`apps/compliance/tests/test_a11y_axe_smoke.py`) that a search for the obvious base
+class does not find.
+
+The remedy recorded below -- *order it last* -- was never enforceable. pytest runs in
+COLLECTION order and does not reorder, so nothing made it happen; and because
+`--keepdb` persists the truncation, the flush and the failure need not even be in the
+same run, which is why bisecting the failing file never finds it.
+
+Every flushing class now mixes in `apps/test_utils/seed_preserving.py::
+RestoresSeedCatalogMixin`, which restores the post-migration snapshot in
+`tearDownClass`. `scripts/scan_unrestored_flush_testcase.py` (zero baseline, no
+allowlist) stops the sixteenth from arriving. Measured across all 13 converted files:
+identical verdicts to the unfixed tree (1 failed / 107 passed / 6 skipped either way),
+**+3.18s total**, and the seeded catalog survives (39 roles / 59 permissions) where it
+was previously destroyed (1 / 0).
+
+The per-class analysis below is still worth reading. Only its conclusion changed.
+
+---
+
+*(original 2026-09-03 status)* **CLOSED for 32 of 33 classes. One stays, with its
+reason measured and recorded below.**
 
 ## What happens
 

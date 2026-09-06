@@ -26,7 +26,8 @@ def evaluate_year_close_blockers(
     Read-only blocker scorecard for year-end rollover.
     Safe to call with dry_run=True semantics (no writes).
     """
-    from apps.academics.models import Term
+    from apps.academics.models import Classroom, Term
+    from apps.academics.promotion_mappings import promotion_mapping_coverage
     from apps.people.models import StudentProfile
     from apps.reports.models import TermPublishStatus
     from apps.reports.services import (
@@ -55,38 +56,54 @@ def evaluate_year_close_blockers(
             }
         )
 
+    # Terms are carried as OBJECTS, not ids, so a blocker can say WHICH term is
+    # not ready. "1 term(s) not published" and "Grade approvals incomplete for
+    # one or more terms" are both true and neither tells a head teacher where to
+    # go; a rollover is only as automatic as its refusals are specific.
     terms = list(
         Term.objects.filter(  # tenant-isolation-allow: terms-scoped-via-validated-academic-year-fk
             academic_year=source_year
-        ).values_list("id", flat=True)
+        ).order_by("position", "start_date")
     )
     unpublished_terms: list[int] = []
     approval_blockers: list[str] = []
-    for term_id in terms:
+    unpublished_labels: list[str] = []
+    approval_labels: list[str] = []
+    for term in terms:
+        label = term.custom_label or term.name
         published = TermPublishStatus.objects.filter(
             academic_year_id=source_year.pk,
-            term_id=term_id,
+            term_id=term.pk,
             classroom__isnull=True,
             is_published=True,
         ).exists()
         if not published:
-            unpublished_terms.append(term_id)
-        readiness = grade_approval_publish_readiness(source_year.pk, term_id)
+            unpublished_terms.append(term.pk)
+            unpublished_labels.append(label)
+        readiness = grade_approval_publish_readiness(source_year.pk, term.pk)
         if not readiness.get("ready_for_publish"):
-            approval_blockers.append(str(term_id))
+            approval_blockers.append(str(term.pk))
+            approval_labels.append(label)
 
     if unpublished_terms:
         blockers.append(
             {
                 "code": "terms_unpublished",
-                "message": f"{len(unpublished_terms)} term(s) not published for year-end.",
+                "message": (
+                    f"{len(unpublished_terms)} term(s) not published for "
+                    f"year-end: {', '.join(unpublished_labels)}."
+                ),
             }
         )
     if approval_blockers:
         blockers.append(
             {
                 "code": "grades_not_approved",
-                "message": "Grade approvals incomplete for one or more terms.",
+                "message": (
+                    "Grade approvals incomplete for "
+                    f"{len(approval_blockers)} term(s): "
+                    f"{', '.join(approval_labels)}."
+                ),
             }
         )
 
@@ -100,6 +117,37 @@ def evaluate_year_close_blockers(
             student, source_year
         ):
             finance_blocked += 1
+
+    # Can every populated classroom actually move its students forward? An
+    # advancing student whose classroom has no ClassroomPromotionMapping is
+    # SKIPPED by the promotion run -- one warning line among many -- so the
+    # question has to be asked before the source year is locked behind them.
+    #
+    # Only asked once the target year has been structured. Before the clone the
+    # target has no classrooms to map ONTO, so the answer would be "none of
+    # them" for every school, every time, which is a blocker nobody can clear.
+    target_structured = Classroom.objects.filter(  # tenant-isolation-allow: bounded-by-the-school-owned-academic-year-fk
+        academic_year=target_year
+    ).exists()
+    coverage = (
+        promotion_mapping_coverage(source_year, target_year, school=school)
+        if target_structured
+        else {"total": 0, "mapped": 0, "unmapped": 0, "unmapped_classrooms": []}
+    )
+    if coverage["unmapped"]:
+        named = ", ".join(c["name"] for c in coverage["unmapped_classrooms"][:5])
+        if coverage["unmapped"] > 5:
+            named += ", ..."
+        blockers.append(
+            {
+                "code": "promotion_mapping_missing",
+                "message": (
+                    f"{coverage['unmapped']} of {coverage['total']} classroom(s) "
+                    f"have no promotion mapping into the target year ({named}). "
+                    "Advancing students in them would be skipped."
+                ),
+            }
+        )
 
     if returns_blocked:
         blockers.append(
@@ -124,9 +172,14 @@ def evaluate_year_close_blockers(
         "blockers": blockers,
         "counts": {
             "unpublished_terms": len(unpublished_terms),
+            "terms_missing_approval": len(approval_blockers),
             "returns_blocked_students": returns_blocked,
             "finance_blocked_students": finance_blocked,
+            "populated_classrooms": coverage["total"],
+            "mapped_classrooms": coverage["mapped"],
+            "unmapped_classrooms": coverage["unmapped"],
         },
+        "promotion_mapping_coverage": coverage,
     }
 
 

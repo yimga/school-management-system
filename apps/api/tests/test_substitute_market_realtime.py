@@ -45,6 +45,7 @@ from apps.schoolops.substitute_market import (
     substitute_market_room_name,
 )
 from apps.schools.channels_tenant_middleware import tenant_sync_room_name
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 User = get_user_model()
 
@@ -53,7 +54,7 @@ def _channels_ready() -> bool:
     return bool(getattr(consumers, "CHANNELS_AVAILABLE", False))
 
 
-class SubstituteMarketRealtimeFanoutTests(TransactionTestCase):
+class SubstituteMarketRealtimeFanoutTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def setUp(self):
         cache.clear()
         from apps.academics.models import Department
@@ -264,7 +265,7 @@ class SubstituteMarketRealtimeFanoutTests(TransactionTestCase):
         )
 
 
-class SubstituteMarketBrowserClientWiringTests(TransactionTestCase):
+class SubstituteMarketBrowserClientWiringTests(RestoresSeedCatalogMixin, TransactionTestCase):
     """Metric 12 residual — browser client must bind the live WS path.
 
     Producer + consumer were already proven; without a page-scoped JS client the

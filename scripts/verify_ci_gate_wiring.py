@@ -40,6 +40,15 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-09-06. TransactionTestCase truncates every table at teardown
+    # and does not roll it back, so with --keepdb the emptied seed catalog is
+    # PERSISTED into later runs: unrelated suites answer 403 and look like
+    # permission regressions in code that is fine. The 2026-09-03 audit closed
+    # 32 of 33 classes and told the survivor to be 'ordered last' -- advice
+    # pytest cannot honour, since it runs in collection order. There were 15
+    # again by 2026-09-06. The flush and the failure need not even be in the
+    # same run, so nothing short of a gate catches the sixteenth.
+    ("scripts/scan_unrestored_flush_testcase.py", "architectural-boundaries.yml"),
     # Added 2026-09-02. Both wizard gates below existed, were correct, and were
     # invoked by NOTHING -- verify_unified_wizard_framework.py was even named in
     # this workflow's `paths:` filter, which triggers the job without running the
@@ -441,6 +450,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # large_collection child could only pass at zero findings while the detector
     # under it was crediting a section-navigator attribute as a row bound.
     ("scripts/verify_cp_v8_operator_closeout.py", "architectural-boundaries.yml"),
+    # Added 2026-09-06. The only gate in this repo that asks a BROWSER what a
+    # page does. Every other gate reads files, and on 2026-09-06 an admin
+    # inline row holding 12 live inputs computed display:none while all 166 of
+    # them were green -- one <thead>, one formset, valid HTML, nothing to read.
+    # Rides ci.yml::e2e-smoke, the one job that already installs a browser.
+    ("scripts/verify_admin_rendered_form_layout.py", "ci.yml"),
 )
 
 
