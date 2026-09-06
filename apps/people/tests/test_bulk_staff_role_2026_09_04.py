@@ -33,8 +33,18 @@ class ParseStaffIdListTests(TestCase):
         self.assertEqual(parse_staff_id_list("1,2,3"), [])
         self.assertEqual(parse_staff_id_list(None), [])
 
-    def test_capped(self):
-        self.assertEqual(len(parse_staff_id_list(list(range(1, 500)))), 200)
+    def test_an_oversized_selection_is_refused(self):
+        """This test asserted the bug on 2026-09-04, and it is worth saying why.
+
+        It read ``assertEqual(len(parse_staff_id_list(range(1, 500))), 200)`` and
+        passed, which made the silent trim look like a designed cap rather than
+        what it was: a bulk WRITE quietly applying to 200 of 499 people and
+        reporting success. A test that pins the current behaviour without asking
+        whether the behaviour is right will defend a defect indefinitely.
+        """
+        with self.assertRaises(ValueError) as ctx:
+            parse_staff_id_list(list(range(1, 500)))
+        self.assertIn("Nothing was changed", str(ctx.exception))
 
 
 class BulkSetStaffRoleTests(TestCase):
