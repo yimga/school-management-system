@@ -227,6 +227,23 @@ jobs:
         # was protecting nothing and would have hidden a partial migration:
         # later steps would then read an incomplete schema as green.
         run: python manage.py migrate --noinput
+      - name: Seed a superuser for the browser proof
+        # The gate renders admin pages as a real superuser and never creates
+        # one itself, because a local run points at the shared dev database.
+        # A fresh CI database has none, so without this the gate would report
+        # SKIP on every run -- wired, and never actually answering.
+        run: >
+          python manage.py shell -c "from django.contrib.auth import
+          get_user_model as g; U=g();
+          U.objects.filter(is_superuser=True).exists() or
+          U.objects.create_superuser(username='rmc-browser-proof',
+          email='proof@example.invalid', password='rmc-browser-proof-unused')"
+      - name: Admin rendered-form browser proof
+        # Renders every admin registration carrying a tabular inline and asks
+        # Chromium what it painted, at a desktop width and below the lg
+        # breakpoint. Exits 2 (SKIP) if no browser is found rather than
+        # reporting a pass it did not earn.
+        run: python scripts/verify_admin_rendered_form_layout.py
       - name: Start server
         run: python manage.py runserver 0.0.0.0:8000 & sleep 6
       - name: Run smoke E2E (login page load)

@@ -443,6 +443,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # large_collection child could only pass at zero findings while the detector
     # under it was crediting a section-navigator attribute as a row bound.
     ("scripts/verify_cp_v8_operator_closeout.py", "architectural-boundaries.yml"),
+    # Added 2026-09-06. The only gate in this repo that asks a BROWSER what a
+    # page does. Every other gate reads files, and on 2026-09-06 an admin
+    # inline row holding 12 live inputs computed display:none while all 166 of
+    # them were green -- one <thead>, one formset, valid HTML, nothing to read.
+    # Rides ci.yml::e2e-smoke, the one job that already installs a browser.
+    ("scripts/verify_admin_rendered_form_layout.py", "ci.yml"),
 )
 
 
