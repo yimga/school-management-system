@@ -27,6 +27,7 @@ from apps.migration_cloud.spreadsheet_headers import pick_header_row_index
 from apps.people.models import TeacherProfile
 from apps.people.views_backend import backend_teacher_list
 from apps.schools.models import School
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 User = get_user_model()
 MAMA_NOVI = Path(
@@ -269,7 +270,7 @@ class BackendTeacherListPhoneRoleTests(TestCase):
 # Measured 2026-09-03: converted -> that failure; reverted -> 6 passed.
 # It therefore FLUSHES the seeded catalog at teardown; order this module last.
 # See docs/audits/TRANSACTION_TESTCASE_FLUSH_2026_09_03.md
-class MamaNoviFullBundleTests(TransactionTestCase):
+class MamaNoviFullBundleTests(RestoresSeedCatalogMixin, TransactionTestCase):
     """End-to-end proof for all four Mama Novi fixtures when present locally."""
 
     _FILES: tuple[tuple[str, str], ...] = (

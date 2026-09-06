@@ -21,6 +21,7 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/scan_unrestored_flush_testcase.py"
       - "scripts/scan_test_host_fidelity.py"
       - "scripts/scan_dangling_static_reference.py"
       - "scripts/verify_theme_experience_dual_plane_shell.py"
@@ -351,6 +352,17 @@ jobs:
           u_duplicate_dict_keys() {
             python scripts/scan_duplicate_dict_keys.py --strict
             python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
+          }
+
+          # A TransactionTestCase truncates every table at teardown and does not
+          # roll it back, so a persisted --keepdb database keeps the emptied seed
+          # catalog for every later run. The symptom is 403s in unrelated suites.
+          # The 2026-09-03 audit closed 32 of 33 and told the survivor to be
+          # 'ordered last'; pytest runs in collection order and cannot honour that,
+          # and there were 15 again by 2026-09-06.
+          u_unrestored_flush_testcase() {
+            python scripts/scan_unrestored_flush_testcase.py
+            python -m unittest scripts.tests.test_scan_unrestored_flush_testcase -v
           }
 
           # A test naming config.tenant_urls that never sets a Host header is
@@ -854,6 +866,7 @@ jobs:
           run_unit u_ota_pipeline_wiring "The OTA pipeline is still connected end to end"
           run_unit u_raw_token_in_ui "No internal identifier is shown to a human as words"
           run_unit u_duplicate_dict_keys "No dict literal silently discards an entry"
+          run_unit u_unrestored_flush_testcase "No test class leaves the seed catalog truncated"
           run_unit u_test_host_fidelity "Tests reach the host urlconf they name"
 
           # A referenced asset that was never shipped does not fail the deploy --

@@ -11,11 +11,12 @@ from apps.people.schema_repair import (
     ensure_people_merge_tombstone_columns,
     ensure_people_schema_current,
 )
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 User = get_user_model()
 
 
-class PeopleMergeTombstoneColumnsHealTests(TransactionTestCase):
+class PeopleMergeTombstoneColumnsHealTests(RestoresSeedCatalogMixin, TransactionTestCase):
     databases = {"default"}
 
     def test_ensure_merge_columns_idempotent(self):

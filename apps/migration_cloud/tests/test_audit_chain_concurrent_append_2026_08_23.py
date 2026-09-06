@@ -37,12 +37,13 @@ from apps.migration_cloud.models_audit import (
     GENESIS_SENTINEL,
     MigrationCloudAuditEvent,
 )
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 TENANT = "chainfork0001"
 PARK_TIMEOUT = 3.0  # seconds A waits for B before giving up and committing
 
 
-class AuditChainConcurrentAppendTests(TransactionTestCase):
+class AuditChainConcurrentAppendTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def _run_two_writers(self):
         a_parked = threading.Event()
         b_reached_hash = threading.Event()

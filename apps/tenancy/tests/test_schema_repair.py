@@ -10,6 +10,7 @@ from django.db import connection
 from django.test import TransactionTestCase
 
 from apps.tenancy.schema_repair import _is_school_fk, ensure_app_school_id_columns
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
 
 
 def _columns(table: str) -> set[str]:
@@ -17,7 +18,7 @@ def _columns(table: str) -> set[str]:
         return {c.name for c in connection.introspection.get_table_description(cursor, table)}
 
 
-class IsSchoolFkTests(TransactionTestCase):
+class IsSchoolFkTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def test_detects_school_fk_and_rejects_others(self):
         from apps.academics.models import AcademicYear, Incident
 
@@ -28,7 +29,7 @@ class IsSchoolFkTests(TransactionTestCase):
         self.assertFalse(_is_school_fk(AcademicYear._meta.get_field("start_date")))
 
 
-class EnsureAppSchoolIdColumnsTests(TransactionTestCase):
+class EnsureAppSchoolIdColumnsTests(RestoresSeedCatalogMixin, TransactionTestCase):
     def test_unknown_app_is_noop(self):
         self.assertEqual(ensure_app_school_id_columns("definitely_not_an_app"), [])
 

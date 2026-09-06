@@ -204,6 +204,11 @@ GATES: list[tuple[str, list[str]]] = [
     # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
     # a dict that discards one of its own entries is never what was meant.
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
+    # A test class that truncates the seed catalog and leaves it truncated
+    # poisons the persisted --keepdb file for every later run on that machine.
+    # Zero-tolerance and WITHOUT --compare: there is no baseline, because
+    # leaving the catalog flushed is never what was meant.
+    ("unrestored-flush-testcase", ["scan_unrestored_flush_testcase.py"]),
     # Every ISO country must compile an offline ingestion manifest (249 × 2 profiles).
     ("global-country-ingestion-coverage", ["verify_global_country_ingestion_coverage.py"]),
     # Portal config + client JS + IndexedDB must carry ingestion lexicon for local-first MC upload.

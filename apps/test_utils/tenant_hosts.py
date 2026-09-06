@@ -33,6 +33,8 @@ import uuid
 
 from django.test import Client, TestCase, TransactionTestCase, override_settings
 
+from apps.test_utils.seed_preserving import RestoresSeedCatalogMixin
+
 BASE_DOMAIN = "runmycampus.com"
 MANAGER_HOST = f"manager.{BASE_DOMAIN}"
 PUBLIC_HOST = BASE_DOMAIN
@@ -187,10 +189,17 @@ class TenantHostTestCase(_TenantHostMixin, TestCase):
 
 
 @host_routed
-class TenantHostTransactionTestCase(_TenantHostMixin, TransactionTestCase):
+class TenantHostTransactionTestCase(
+    RestoresSeedCatalogMixin, _TenantHostMixin, TransactionTestCase
+):
     """``TransactionTestCase`` variant.
 
-    Prefer ``TenantHostTestCase``. A ``TransactionTestCase`` truncates tables on
-    teardown, which flushes seeded catalog rows for every test that runs after it in
-    the same process -- order these last, or use the wrapped ``TestCase``.
+    Prefer ``TenantHostTestCase``: a real transaction is only worth its cost when
+    the test needs one (threads, a live server, DDL).
+
+    A ``TransactionTestCase`` truncates every table on teardown and does not roll
+    it back, which used to mean 'order these last' -- advice that pytest cannot
+    honour, since it runs in collection order. ``RestoresSeedCatalogMixin`` removes
+    the need for the ordering entirely by restoring the post-migration snapshot
+    after the flush; see ``apps/test_utils/seed_preserving.py``.
     """
