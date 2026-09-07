@@ -1,0 +1,80 @@
+{% extends "backend_base.html" %}
+{% load i18n compliance_tags %}
+{% comment %} Backend UI: one guardian link -- read the record and correct it in place.
+Chrome mirrors people/backend_classroom_detail.html; the form mirrors
+people/backend_guardian_create.html. The list rows link here. {% endcomment %}
+{% block backend_title %}{% trans "Guardian" %} - {{ guardian_display_name }}{% endblock %}
+
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{{ list_url }}">{% trans "Guardians" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ guardian_display_name }}</li>
+    </ol>
+  </nav>
+  {% include "studio_os/components/page_header.html" with title=guardian_display_name subtitle=_("Guardian link — contact details and access") action_url=list_url action_text=_("Back to list") %}
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rmc-glass-surface h-100">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Record" %}</p>
+          <p class="mb-1 small"><strong>{% trans "Sign-in email" %}:</strong> {{ link.guardian_user.email|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Student" %}:</strong> {% if student_detail_url %}<a href="{{ student_detail_url }}">{{ student_display_name|default:"—" }}</a>{% else %}{{ student_display_name|default:"—" }}{% endif %}</p>
+          <p class="mb-1 small"><strong>{% trans "Classroom" %}:</strong> {{ link.student.classroom.name|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Academic year" %}:</strong> {{ link.student.academic_year.name|default:"—" }}</p>
+          <p class="mb-0 small"><strong>{% trans "Relationship" %}:</strong> {{ link.get_relationship_display|default:"—" }}</p>
+        </div>
+        <div class="card-footer bg-transparent border-0">
+          <p class="small text-muted mb-0">{% trans "Which student and which sign-in account this link points at are fixed. Remove the link and add a new one to change either." %}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert" aria-live="assertive" tabindex="-1">
+            {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+          </div>
+          {% endif %}
+          <form method="post" novalidate id="backend-guardian-detail-form">
+            {% csrf_token %}
+            <h2 class="h6 text-uppercase text-muted fw-semibold mb-3">{% trans "Contact details" %}</h2>
+            <div class="row">
+              <div class="col-md-4">{% include "components/form_field.html" with field=form.relationship %}</div>
+              <div class="col-md-4">{% include "components/form_field.html" with field=form.phone %}</div>
+              <div class="col-md-4">{% include "components/form_field.html" with field=form.whatsapp_number %}</div>
+              <div class="col-md-8">{% include "components/form_field.html" with field=form.address %}</div>
+              <div class="col-md-4">{% include "components/form_field.html" with field=form.preferred_contact %}</div>
+            </div>
+
+            <h2 class="h6 text-uppercase text-muted fw-semibold mb-3 mt-3">{% trans "Notifications and access" %}</h2>
+            <div class="row">
+              <div class="col-md-4 form-check ms-2">{{ form.receives_email }}<label class="form-check-label ms-1" for="{{ form.receives_email.id_for_label }}">{{ form.receives_email.label }}</label></div>
+              <div class="col-md-4 form-check ms-2">{{ form.receives_sms }}<label class="form-check-label ms-1" for="{{ form.receives_sms.id_for_label }}">{{ form.receives_sms.label }}</label></div>
+              <div class="col-md-3 form-check ms-2">{{ form.receives_whatsapp }}<label class="form-check-label ms-1" for="{{ form.receives_whatsapp.id_for_label }}">{{ form.receives_whatsapp.label }}</label></div>
+              <div class="col-md-4 form-check ms-2 mt-2">{{ form.can_view_results }}<label class="form-check-label ms-1" for="{{ form.can_view_results.id_for_label }}">{{ form.can_view_results.label }}</label></div>
+              <div class="col-md-4 form-check ms-2 mt-2">{{ form.can_view_finance }}<label class="form-check-label ms-1" for="{{ form.can_view_finance.id_for_label }}">{{ form.can_view_finance.label }}</label></div>
+            </div>
+
+            <div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 justify-content-end">
+              <a href="{{ list_url }}" class="btn btn-outline-secondary ds-btn">{% trans "Cancel" %}</a>
+              <button type="submit" class="btn btn-primary ds-btn">
+                <i class="bi bi-check-circle me-2" aria-hidden="true"></i>{% trans "Save changes" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% comment %} Per-record audit drill-down, same as the student/teacher/classroom records. {% endcomment %}
+  {% if link %}{% recent_activity_for "StudentGuardian" link.pk %}{% endif %}
+</div>
+{% endblock %}

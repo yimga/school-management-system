@@ -16,7 +16,7 @@
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_list' as back_url %}
-      {% url 'accounts:backend_guardian_create' as create_url %}
+      {% if perms.people.add_studentguardian %}{% url 'accounts:backend_guardian_create' as create_url %}{% endif %}
       {% blocktrans asvar guardian_subtitle with p=parent_sg g=guardian_sg s=student_pl_lc %}{{ p }} and {{ g }} links to {{ s }}{% endblocktrans %}
       {% blocktrans asvar back_text with t=student_pl_lc %}Back to {{ t }}{% endblocktrans %}
       {% blocktrans asvar guardian_add_text with g=guardian_sg %}Add {{ g }}{% endblocktrans %}
@@ -82,7 +82,7 @@
                     data-rmc-row-meta='{"{% trans "Classroom" %}":"{{ g.student.classroom.name|default:"—"|escapejs }}","{% trans "Finance access" %}":"{% if g.can_view_finance %}yes{% else %}no{% endif %}"}'>
                   <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ g.id }}" data-rmc-bulk-label="{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}" aria-label="{% blocktrans with name=g.guardian_user.username %}Select {{ name }}{% endblocktrans %}"></td>
                   {% include "components/_list_row_number_cell.html" %}
-                  <td>{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}</td>
+                  <td><a href="{% url 'accounts:backend_guardian_detail' g.pk %}">{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}</a></td>
                   <td>{{ g.guardian_user.email|default:"-" }}</td>
                   <td>{{ g.student.get_full_name|default:g.student.admission_number }}</td>
                   <td>{{ g.student.classroom.name|default:"-" }}</td>

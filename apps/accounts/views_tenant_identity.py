@@ -12,8 +12,13 @@ from django.contrib.sessions.models import Session
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from apps.siteconfig.list_search import (
+    apply_bounded_icontains,
+    normalize_list_search_query,
+)
 from django.db import transaction
-from django.http import HttpResponseForbidden
+import csv
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -241,6 +246,18 @@ def _revoke_user_sessions(user_id) -> int:
     return revoked
 
 
+def _roster_extra_query(request):
+    """Carry the active filters onto every pagination link.
+
+    Without this, page 2 of a filtered roster silently becomes page 2 of
+    the unfiltered one -- the reader sees rows that do not match the
+    filter they are still looking at.
+    """
+    params = request.GET.copy()
+    params.pop("page", None)
+    return params.urlencode()
+
+
 @login_required
 @require_school
 @require_GET
@@ -254,8 +271,81 @@ def tenant_identity_roster(request):
         .select_related("user")
         .order_by("-is_primary", "user__username")
     )
-    page_obj = Paginator(qs, 25).get_page(request.GET.get("page"))
-    mfa_rows = {r["user"].pk: r["mfa_ok"] for r in school_mfa_compliance_rows(school)}
+
+    # Every other people-shaped list in the backend can be searched, filtered
+    # and exported; this roster could only be paged, so finding one person in
+    # a large school meant walking the pages. Same bounded-icontains helper the
+    # people lists use, so the min-length and wildcard-stripping rules match.
+    search = normalize_list_search_query(request.GET.get("q"))
+    qs = apply_bounded_icontains(
+        qs, search, "user__username", "user__email", "user__first_name", "user__last_name"
+    )
+    selected_role = (request.GET.get("role") or "").strip()
+    if selected_role:
+        qs = qs.filter(role=selected_role)
+
+    # Computed ONCE. The roster called school_mfa_compliance_rows(school) twice
+    # per request -- once for the row badges and again for the header count.
+    compliance = school_mfa_compliance_rows(school)
+    mfa_rows = {r["user"].pk: r["mfa_ok"] for r in compliance}
+
+    # The MFA filter has to bite BEFORE pagination, or page 1 of 'not enrolled'
+    # would silently be page 1 of everyone, filtered afterwards.
+    mfa_filter = (request.GET.get("mfa") or "").strip().lower()
+    if mfa_filter in ("yes", "no"):
+        want = mfa_filter == "yes"
+        matching = [pk for pk, ok in mfa_rows.items() if bool(ok) is want]
+        qs = qs.filter(user_id__in=matching)
+
+    if request.GET.get("format") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        stamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+        response["Content-Disposition"] = (
+            f'attachment; filename="staff_identity_roster_{stamp}.csv"'
+        )
+        writer = csv.writer(response)
+        # Both roles, deliberately. The ?role= filter matches
+        # SchoolMembership.role, while the UI column shows the localized
+        # effective role; exporting only the latter made a role=TEACHER
+        # export come back reading "Parent", which looks like the filter
+        # ignored the request.
+        writer.writerow(
+            [
+                "username",
+                "email",
+                "full_name",
+                "membership_role",
+                "effective_role",
+                "is_owner",
+                "is_primary",
+                "mfa_enrolled",
+            ]
+        )
+        for membership in qs.select_related("user")[:10000]:
+            member_user = membership.user
+            writer.writerow(
+                [
+                    member_user.username or "",
+                    member_user.email or "",
+                    (member_user.get_full_name() or "").strip(),
+                    membership.role or "",
+                    localized_role_for_user(member_user, school),
+                    "Yes" if membership.is_school_owner else "No",
+                    "Yes" if membership.is_primary else "No",
+                    "Yes" if mfa_rows.get(member_user.pk) else "No",
+                ]
+            )
+        return response
+
+    def _page_size(raw):
+        """A junk ?page_size= must not 500 the roster."""
+        try:
+            return min(100, max(10, int(raw)))
+        except (TypeError, ValueError):
+            return 25
+
+    per_page = _page_size(request.GET.get("page_size", 25))
+    page_obj = Paginator(qs, per_page).get_page(request.GET.get("page"))
     rows = []
     for membership in page_obj.object_list:
         user = membership.user
@@ -272,7 +362,6 @@ def tenant_identity_roster(request):
                 ),
             }
         )
-    compliance = school_mfa_compliance_rows(school)
     enrolled = sum(1 for r in compliance if r["mfa_ok"])
     return render(
         request,
@@ -280,6 +369,17 @@ def tenant_identity_roster(request):
         {
             "school": school,
             "page_obj": page_obj,
+            "search": search,
+            "selected_role": selected_role,
+            "selected_mfa": mfa_filter,
+            "role_choices": sorted(
+                {
+                    (m.role or "")
+                    for m in SchoolMembership.objects.filter(school=school)
+                    if (m.role or "").strip()
+                }
+            ),
+            "pagination_extra_query": _roster_extra_query(request),
             "rows": rows,
             "mfa_enrolled_count": enrolled,
             "mfa_total_count": len(compliance),

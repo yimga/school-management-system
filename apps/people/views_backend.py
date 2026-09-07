@@ -35,6 +35,7 @@ from .forms_backend import (
     ClassroomCreateForm,
     ApplicantCreateForm,
     GuardianCreateForm,
+    GuardianEditForm,
     SpecialtyCreateForm,
     SubjectCreateForm,
 )
@@ -47,7 +48,11 @@ from apps.siteconfig.admissions_services import (
 
 User = get_user_model()
 
-from services.post_delete_navigation import mutation_return_url, redirect_after_save
+from services.post_delete_navigation import (
+    mutation_return_url,
+    redirect_after_detail_mutation,
+    redirect_after_save,
+)
 
 
 def _backend_save_redirect(request, list_url_name: str):
@@ -1846,5 +1851,211 @@ def backend_subject_create(request):
             "form": form,
             "title": _("Create subject"),
             "return_url": mutation_return_url(request, list_url, list_url=list_url),
+        },
+    )
+
+
+@login_required
+@permission_required("people.change_studentguardian", raise_exception=True)
+def backend_guardian_detail(request, guardian_id):
+    """Open one guardian link and correct it.
+
+    The guardian list rendered inert rows -- no detail route existed -- so a link
+    created with the wrong relationship, phone number or finance access could
+    only be fixed in Django Admin, which a school admin does not reach.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect("accounts:backend_dashboard")
+    # Scoped by the STUDENT's school, exactly as backend_guardian_list is: the
+    # link's own ``school`` column is nullable (people/0075 stamps it going
+    # forward, save() aligns it from the student), so scoping on it alone would
+    # 404 on every link written before that migration.
+    link = (
+        StudentGuardian.objects.select_related(
+            "guardian_user", "student", "student__classroom", "student__academic_year"
+        )
+        .filter(pk=guardian_id, student__school_id=school.id)
+        .first()
+    )
+    if not link:
+        raise Http404("Guardian link not found")
+
+    list_url = reverse("accounts:backend_guardian_list")
+    detail_url = reverse("accounts:backend_guardian_detail", args=[link.pk])
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+        form = GuardianEditForm(request.POST, instance=link)
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(
+                    request,
+                    _("Guardian details saved for %(student)s.")
+                    % {"student": str(link.student)},
+                )
+                # Stay on the record so the saved values are visible; redirecting
+                # to the list would make a no-op save indistinguishable from a
+                # real one.
+                return redirect_after_detail_mutation(request, detail_url)
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "backend_guardian_detail save failed",
+                    extra={"step": "guardian_edit"},
+                )
+                messages.error(request, _("Error saving guardian: %s") % str(e))
+    else:
+        form = GuardianEditForm(instance=link)
+
+    guardian_user = link.guardian_user
+    guardian_display_name = (
+        guardian_user.get_full_name().strip()
+        or guardian_user.username
+        or link.email
+        or str(link.pk)
+    )
+    student_detail_url = ""
+    try:
+        student_detail_url = reverse(
+            "accounts:backend_student_detail", args=[link.student_id]
+        )
+    except NoReverseMatch:
+        pass
+    return render(
+        request,
+        "people/backend_guardian_detail.html",
+        {
+            "link": link,
+            "form": form,
+            "guardian_display_name": guardian_display_name,
+            "student_display_name": f"{link.student.first_name} {link.student.last_name}".strip(),
+            "student_detail_url": student_detail_url,
+            "list_url": list_url,
+            "title": guardian_display_name,
+        },
+    )
+
+
+@login_required
+@permission_required("academics.change_subject", raise_exception=True)
+def backend_subject_detail(request, subject_id):
+    """Open one subject/course and correct it.
+
+    ``SubjectCreateForm`` is reused as the edit form on purpose: its
+    ``clean_name`` already excludes ``self.instance.pk`` from the
+    ``academics_subject_school_name_uniq`` check and its ``save()`` only stamps
+    ``school`` when the row has none, so an ``instance=`` bind is a correct
+    update path.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect("accounts:backend_dashboard")
+    subject = Subject.objects.filter(pk=subject_id, school_id=school.id).first()
+    if not subject:
+        raise Http404("Subject not found")
+
+    list_url = reverse("accounts:backend_subject_list")
+    detail_url = reverse("accounts:backend_subject_detail", args=[subject.pk])
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+        form = SubjectCreateForm(request.POST, instance=subject, school=school)
+        if form.is_valid():
+            try:
+                subject = form.save()
+                messages.success(
+                    request, _("Subject '%(name)s' saved.") % {"name": subject.name}
+                )
+                return redirect_after_detail_mutation(request, detail_url)
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "backend_subject_detail save failed",
+                    extra={"step": "subject_edit"},
+                )
+                messages.error(request, _("Error saving subject: %s") % str(e))
+    else:
+        form = SubjectCreateForm(instance=subject, school=school)
+
+    assignment_count = subject.subject_assignments.filter(school_id=school.id).count()
+    return render(
+        request,
+        "people/backend_subject_detail.html",
+        {
+            "subject": subject,
+            "form": form,
+            "assignment_count": assignment_count,
+            "list_url": list_url,
+            "title": subject.name,
+        },
+    )
+
+
+@login_required
+@permission_required("academics.change_specialty", raise_exception=True)
+def backend_specialty_detail(request, specialty_id):
+    """Open one specialty/stream and correct it.
+
+    ``SpecialtyCreateForm`` is reused as the edit form: its ``clean_code``
+    already excludes ``self.instance.pk`` from the ``uniq_specialty_school_code``
+    check, so re-saving a row without changing its code is not a false duplicate.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect("accounts:backend_dashboard")
+    specialty = (
+        Specialty.objects.select_related("department")
+        .filter(pk=specialty_id, school_id=school.id)
+        .first()
+    )
+    if not specialty:
+        raise Http404("Specialty not found")
+
+    list_url = reverse("accounts:backend_specialty_list")
+    detail_url = reverse("accounts:backend_specialty_detail", args=[specialty.pk])
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+        form = SpecialtyCreateForm(request.POST, instance=specialty, school=school)
+        if form.is_valid():
+            try:
+                specialty = form.save()
+                messages.success(
+                    request, _("Specialty '%(name)s' saved.") % {"name": specialty.name}
+                )
+                return redirect_after_detail_mutation(request, detail_url)
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "backend_specialty_detail save failed",
+                    extra={"step": "specialty_edit"},
+                )
+                messages.error(request, _("Error saving specialty: %s") % str(e))
+    else:
+        form = SpecialtyCreateForm(instance=specialty, school=school)
+
+    student_count = StudentProfile.objects.filter(
+        specialty_id=specialty.pk, school_id=school.id
+    ).count()
+    return render(
+        request,
+        "people/backend_specialty_detail.html",
+        {
+            "specialty": specialty,
+            "form": form,
+            "student_count": student_count,
+            "list_url": list_url,
+            "title": specialty.name,
         },
     )

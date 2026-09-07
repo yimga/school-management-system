@@ -1742,7 +1742,60 @@ def backend_entity_console(request):
             return HttpResponseForbidden(
                 "You are not allowed to access Entity Console."
             )
-    return render(request, "accounts/entity_console.html", {})
+    # The console edits students through the headless entity APIs, but it named
+    # none of the record surfaces those students actually live in -- and its
+    # closest sibling, the entity importer, had no inbound link anywhere in the
+    # repo. Every row is gated by the DESTINATION's own check, so the panel
+    # never offers a page that answers 403: the importer repeats this view's
+    # flag pair, the people lists carry their Django model permissions.
+    related_surfaces = []
+    _import_roles = [
+        str(r).upper() for r in (flags.get("allowed_roles_entity_import") or [])
+    ]
+    _role = (getattr(request.user, "role", "") or "").upper()
+    _is_staffish = request.user.is_staff or request.user.is_superuser
+    if flags.get("enable_entity_import", True) and not (
+        _import_roles and _role not in _import_roles and not _is_staffish
+    ):
+        related_surfaces.append(
+            {
+                "label": "Entity import (CSV)",
+                "icon": "bi-filetype-csv",
+                "url": reverse("accounts:backend_entity_import"),
+            }
+        )
+    for _label, _icon, _url_name, _perm in (
+        (
+            "Student records",
+            "bi-person-lines-fill",
+            "accounts:backend_student_list",
+            "people.view_studentprofile",
+        ),
+        (
+            "Admissions & applicants",
+            "bi-inboxes",
+            "accounts:backend_applicant_list",
+            "people.view_applicant",
+        ),
+        (
+            "Alumni",
+            "bi-mortarboard",
+            "accounts:backend_alumni_list",
+            "people.view_studentprofile",
+        ),
+    ):
+        if not request.user.has_perm(_perm):
+            continue
+        try:
+            _url = reverse(_url_name)
+        except NoReverseMatch:
+            continue
+        related_surfaces.append({"label": _label, "icon": _icon, "url": _url})
+    return render(
+        request,
+        "accounts/entity_console.html",
+        {"related_surfaces": related_surfaces},
+    )
 
 
 def _owner_onboarding_resume_name(request, user):

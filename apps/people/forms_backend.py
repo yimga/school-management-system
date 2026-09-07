@@ -618,3 +618,60 @@ class SubjectCreateForm(forms.ModelForm):
         if commit:
             subject.save()
         return subject
+
+
+class GuardianEditForm(forms.ModelForm):
+    """Edit an existing guardian link from its detail page.
+
+    Deliberately narrower than ``GuardianCreateForm``: neither *which student*
+    nor *which account* is editable here. ``student`` is half of
+    ``unique_together("guardian_user", "student")`` -- re-pointing a link is a
+    different operation from correcting one -- and ``email`` on the create form
+    is the *account selector*, so an edit that changed it would silently mint or
+    swap a login that grants access to a child's records. What an admin needs
+    after the fact is the contact details and the access flags, and those are
+    what this exposes.
+
+    ``StudentGuardian.clean()`` still runs through ``_post_clean`` and re-checks
+    the linked account's role, so a link whose account was later demoted to a
+    staff role surfaces as a form error rather than being silently re-saved.
+    """
+
+    class Meta:
+        model = StudentGuardian
+        fields = [
+            "relationship",
+            "phone",
+            "whatsapp_number",
+            "address",
+            "preferred_contact",
+            "receives_email",
+            "receives_sms",
+            "receives_whatsapp",
+            "can_view_results",
+            "can_view_finance",
+        ]
+        widgets = {
+            "relationship": forms.Select(attrs={"class": "form-select"}),
+            "phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Phone number")}
+            ),
+            "whatsapp_number": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("WhatsApp number")}
+            ),
+            "address": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": _("Home address")}
+            ),
+            "preferred_contact": forms.Select(attrs={"class": "form-select"}),
+            "receives_email": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "receives_sms": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "receives_whatsapp": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "can_view_results": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "can_view_finance": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+        }

@@ -26,5 +26,26 @@
     </div>
     {% endfor %}
   </div>
+
+  {% comment %}Always-on ops tools: no module-market code to enable, so they
+     cannot be a card above without claiming a module the school does not have.
+     The view gates the list; an empty list renders nothing.{% endcomment %}
+  {% if utility_cards %}
+  <h2 class="h6 mt-4 mb-1">{% trans "Ops utilities" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Always available - no module to switch on." %}</p>
+  <div class="row g-3">
+    {% for u in utility_cards %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h3 class="h6"><i class="bi {{ u.icon }} me-1" aria-hidden="true"></i>{{ u.label }}</h3>
+          <p class="text-muted small">{{ u.hint }}</p>
+          <a href="{{ u.url }}" class="btn btn-outline-primary btn-sm d-block">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

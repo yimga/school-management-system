@@ -1086,6 +1086,39 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
+        # Admissions funnel: /authentication/backend/applicants/ renders a full
+        # list (Add, stage filter, CSV export, row detail) but had ZERO inbound
+        # links anywhere in the tenant backend -- its only referrers were its own
+        # create and detail pages, so five routes were reachable only by typing
+        # the URL. Gated on the SAME Django model permission the view enforces.
+        _applicant_list_url = _safe_reverse("accounts:backend_applicant_list")
+        if _applicant_list_url and _safe_has_perm(user, "people.view_applicant"):
+            items.append(
+                {
+                    "id": "admissions",
+                    "label": "Admissions & Applicants",
+                    "url": _applicant_list_url,
+                    "icon": "bi-inboxes",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
+        # Alumni deliberately 302s to the student list filtered status=ALUMNI.
+        # The redirect is by design; what was missing is any way in. It is usable
+        # exactly when the student list is, so it carries the student list's
+        # permission rather than a stricter one of its own.
+        _alumni_url = _safe_reverse("accounts:backend_alumni_list")
+        if _alumni_url and _safe_has_perm(user, "people.view_studentprofile"):
+            items.append(
+                {
+                    "id": "alumni",
+                    "label": "Alumni",
+                    "url": _alumni_url,
+                    "icon": "bi-mortarboard",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
         if is_superuser and not in_backend:
             items.append(
                 {
@@ -1212,6 +1245,68 @@ def build_portal_sidebar_items(request, site):
                     "label": "Payroll",
                     "url": _safe_reverse("payroll:dashboard"),
                     "icon": "bi-cash-stack",
+                    "section": "Financial Management",
+                    "badge": None,
+                }
+            )
+        # Advancement (donors / donations / grants / gifts) was a closed island:
+        # nine routes whose only inbound links were each other. TWO rows, not
+        # one -- the donor list is a leaf that links only back to itself, so a
+        # single donors entry would still leave donations and grants with no
+        # way in. Donations & funding is the cluster's real hub (it links both
+        # donors and grants), and together the pair reaches all nine routes.
+        # Staff-only, matching the views' own _staff_only.
+        if is_staff and _advancement_enabled_for(request):
+            for _adv_id, _adv_label, _adv_name, _adv_icon in (
+                (
+                    "advancement_donors",
+                    "Advancement & Donors",
+                    "accounts:advancement_donor_list",
+                    "bi-gift",
+                ),
+                (
+                    "advancement_donations",
+                    "Donations & funding",
+                    "accounts:donations_dashboard",
+                    "bi-heart",
+                ),
+            ):
+                _adv_url = _safe_reverse(_adv_name)
+                if not _adv_url:
+                    continue
+                items.append(
+                    {
+                        "id": _adv_id,
+                        "label": _adv_label,
+                        "url": _adv_url,
+                        "icon": _adv_icon,
+                        "section": "Financial Management",
+                        "badge": None,
+                    }
+                )
+        # Permission-to-pay approval queue -- 0 inbound links. Its only mention
+        # in the repo was ui_route_help.py, a help-text catalog: that DOCUMENTS a
+        # page, it does not navigate to one. Role set mirrors the view's
+        # _finance_roles_ok exactly (ACCOUNTANT is deliberately excluded there).
+        _permission_to_pay_url = _safe_reverse("accounts:permission_to_pay_open")
+        if _permission_to_pay_url and (
+            is_staff
+            or is_superuser
+            or role
+            in (
+                User.Role.ADMIN,
+                User.Role.FINANCE_STAFF,
+                User.Role.BURSAR,
+                User.Role.PRINCIPAL,
+                User.Role.LEADERSHIP,
+            )
+        ):
+            items.append(
+                {
+                    "id": "permission_to_pay",
+                    "label": "Permission to pay",
+                    "url": _permission_to_pay_url,
+                    "icon": "bi-cash-coin",
                     "section": "Financial Management",
                     "badge": None,
                 }
@@ -1397,6 +1492,85 @@ def build_portal_sidebar_items(request, site):
                         "badge": None,
                     }
                 )
+        # Entity console + entity import: both render 200 and both had ZERO
+        # inbound links. The console's only reference in the whole repo was
+        # templates/admin/index.html (the OTHER shell), and the importer's only
+        # reference was templates/accounts/import_hub.html -- whose own route
+        # 302s away to Studio, so the in-backend importer was dead while the
+        # rail's "Import & bulk" row went somewhere else entirely. The gate is
+        # the views' full stack: settings.manage, an admin-ish hat, the
+        # per-tenant enable flag, and the operator's allowed_roles_* override.
+        _entity_hat = can_manage_site and (
+            is_staff or is_superuser or role == User.Role.ADMIN
+        )
+
+        def _entity_surface_allowed(enable_flag, roles_flag):
+            if not backend_flags.get(enable_flag, True):
+                return False
+            allowed = [
+                str(r).upper() for r in (backend_flags.get(roles_flag) or [])
+            ]
+            if allowed and role not in allowed and not (is_staff or is_superuser):
+                return False
+            return True
+
+        _entity_console_url = _safe_reverse("accounts:backend_entity_console")
+        if (
+            _entity_console_url
+            and _entity_hat
+            and _entity_surface_allowed(
+                "enable_entity_console", "allowed_roles_entity_console"
+            )
+        ):
+            items.append(
+                {
+                    "id": "entity_console",
+                    "label": "Entity console",
+                    "url": _entity_console_url,
+                    "icon": "bi-boxes",
+                    "section": "Integrations & Data",
+                    "badge": None,
+                }
+            )
+        _entity_import_url = _safe_reverse("accounts:backend_entity_import")
+        if (
+            _entity_import_url
+            and _entity_hat
+            and _entity_surface_allowed(
+                "enable_entity_import", "allowed_roles_entity_import"
+            )
+        ):
+            items.append(
+                {
+                    "id": "entity_import",
+                    "label": "Entity import (CSV)",
+                    "url": _entity_import_url,
+                    "icon": "bi-filetype-csv",
+                    "section": "Integrations & Data",
+                    "badge": None,
+                }
+            )
+        # Migration runs -- and, through it, the legacy data cleaner, which the
+        # run list links -- were reachable only from each other. The rail's
+        # single migration row is the wizard, and that 302s OUT of the backend
+        # to Studio, so nothing in the tenant backend reached either page.
+        # Same gate as the view: settings.manage + an admin hat.
+        _migration_runs_url = _safe_reverse("accounts:migration_run_list")
+        if (
+            _migration_runs_url
+            and can_manage_site
+            and (is_staff or is_superuser or role == User.Role.ADMIN)
+        ):
+            items.append(
+                {
+                    "id": "migration_runs",
+                    "label": "Migration runs",
+                    "url": _migration_runs_url,
+                    "icon": "bi-clock-history",
+                    "section": "Operations",
+                    "badge": None,
+                }
+            )
         # Studio OS as single entry: Workflow Center and Approval Hub open from Studio (legacy URLs redirect when not from_studio=1).
         # Workflow Center → its OWN procedural-checklist view (distinct destination);
         # Workflow Hub below → the automation builder. Prioritising workflow_center
@@ -1870,6 +2044,40 @@ _BASELINE_ADMIN = (
 
 # ADMIN is canonical (User.Role); remaining hats match nav_engine.STAFF_PRIMARY_ROLES.
 from apps.platform_runtime.nav_engine import STAFF_PRIMARY_ROLES as _BASELINE_ADMIN_ROLES
+
+
+def _safe_has_perm(user, codename):
+    """Django MODEL permission check that never raises.
+
+    The backend people / admissions lists are gated with Django's own
+    ``@permission_required("app.view_model", raise_exception=True)``, so the
+    rail has to ask that same question: a nav row that answers 403 is worse
+    than no nav row. Sidebar unit tests build users as ``SimpleNamespace``
+    with no ``has_perm`` at all -- those users simply do not get the row.
+    """
+    checker = getattr(user, "has_perm", None)
+    if not callable(checker):
+        return False
+    try:
+        return bool(checker(codename))
+    except OPTIONAL_SIDEBAR_ERRORS:
+        return False
+
+
+def _advancement_enabled_for(request):
+    """Per-tenant advancement toggle (apps.schools.advancement_services).
+
+    Advancement is enabled-by-DEFAULT: only an explicit
+    ``School.features["advancement"] = False`` turns it off. Gating the nav row
+    on the opt-in ``is_feature_enabled`` union instead would hide the module
+    from every tenant that never ticked a box -- i.e. from everyone using it.
+    """
+    try:
+        from apps.schools.advancement_services import advancement_enabled
+
+        return bool(advancement_enabled(getattr(request, "school", None)))
+    except OPTIONAL_SIDEBAR_ERRORS:
+        return False
 
 
 def _safe_has_feature_permission(user, codename):

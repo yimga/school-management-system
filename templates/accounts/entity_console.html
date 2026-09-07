@@ -99,6 +99,21 @@
         </div>
       </div>
     </div>
+    {% if related_surfaces %}
+    <div class="col-12 rmc-reveal" data-widget-id="entity-related-surfaces">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-1">{% trans "Record surfaces" %}</h2>
+          <p class="text-muted small mb-3">{% trans "The full lists these entities are stored in, and the bulk importer." %}</p>
+          <div class="d-flex flex-wrap gap-2">
+            {% for s in related_surfaces %}
+            <a class="btn btn-outline-secondary btn-sm" href="{{ s.url }}"><i class="bi {{ s.icon }} me-1" aria-hidden="true"></i>{{ s.label }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     <div class="col-lg-6 rmc-reveal" data-widget-id="entity-student-table">
       <div class="card shadow-sm h-100">
         <div class="card-body">

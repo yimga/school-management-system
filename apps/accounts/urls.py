@@ -249,10 +249,13 @@ try:
         backend_classroom_detail,
         backend_subject_list,
         backend_subject_create,
+        backend_subject_detail,
         backend_specialty_list,
         backend_specialty_create,
+        backend_specialty_detail,
         backend_guardian_list,
         backend_guardian_create,
+        backend_guardian_detail,
         backend_applicant_list,
         backend_applicant_create,
         backend_applicant_detail,
@@ -282,6 +285,9 @@ except ImportError:
     backend_subject_list = backend_specialty_list = None
     backend_subject_create = backend_specialty_create = (
         backend_guardian_create
+    ) = None
+    backend_subject_detail = backend_specialty_detail = (
+        backend_guardian_detail
     ) = None
 
 app_name = "accounts"
@@ -1102,6 +1108,13 @@ urlpatterns = [
     )
     if BACKEND_PEOPLE_AVAILABLE
     else None,
+    path(
+        "backend/guardians/<int:guardian_id>/",
+        backend_guardian_detail,
+        name="backend_guardian_detail",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
     path("backend/applicants/", backend_applicant_list, name="backend_applicant_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,
@@ -1160,6 +1173,13 @@ urlpatterns = [
     )
     if BACKEND_PEOPLE_AVAILABLE
     else None,
+    path(
+        "backend/subjects/<int:subject_id>/",
+        backend_subject_detail,
+        name="backend_subject_detail",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
     path("backend/specialties/", backend_specialty_list, name="backend_specialty_list")
     if BACKEND_PEOPLE_AVAILABLE
     else None,
@@ -1167,6 +1187,13 @@ urlpatterns = [
         "backend/specialties/create/",
         backend_specialty_create,
         name="backend_specialty_create",
+    )
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/specialties/<int:specialty_id>/",
+        backend_specialty_detail,
+        name="backend_specialty_detail",
     )
     if BACKEND_PEOPLE_AVAILABLE
     else None,

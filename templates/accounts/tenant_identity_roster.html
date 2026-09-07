@@ -31,6 +31,38 @@
     {% blocktrans with enrolled=mfa_enrolled_count total=mfa_total_count %}MFA enrolled: <strong>{{ enrolled }}</strong> / {{ total }} staff with membership.{% endblocktrans %}
   </div>
 
+  <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label for="roster-q" class="form-label small">{% trans "Search" %}</label>
+        <input type="search" id="roster-q" name="q" class="form-control form-control-sm" placeholder="{% trans 'Name, username or email…' %}" value="{{ search }}">
+      </div>
+      <div class="col-md-3">
+        <label for="roster-role" class="form-label small">{% trans "Role" %}</label>
+        <select id="roster-role" name="role" class="form-select form-select-sm">
+          <option value="">{% trans "All roles" %}</option>
+          {% for role in role_choices %}
+          <option value="{{ role }}" {% if selected_role == role %}selected{% endif %}>{{ role }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label for="roster-mfa" class="form-label small">{% trans "MFA" %}</label>
+        <select id="roster-mfa" name="mfa" class="form-select form-select-sm">
+          <option value="">{% trans "Any" %}</option>
+          <option value="yes" {% if selected_mfa == "yes" %}selected{% endif %}>{% trans "Enrolled" %}</option>
+          <option value="no" {% if selected_mfa == "no" %}selected{% endif %}>{% trans "Not enrolled" %}</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary btn-sm w-100">{% trans "Filter" %}</button>
+      </div>
+      <div class="col-md-2">
+        <a href="?format=csv{% if search %}&amp;q={{ search|urlencode }}{% endif %}{% if selected_role %}&amp;role={{ selected_role|urlencode }}{% endif %}{% if selected_mfa %}&amp;mfa={{ selected_mfa|urlencode }}{% endif %}" class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-download me-1"></i>{% trans "Export CSV" %}</a>
+      </div>
+    </div>
+  </form>
+
   <div class="card shadow-sm border-0">
     <div class="card-body p-0 table-responsive">
       <table class="table table-hover mb-0 align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
