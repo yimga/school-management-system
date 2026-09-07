@@ -33,6 +33,7 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.db import DatabaseError, transaction
+from django.db import models
 from django.http import HttpRequest, JsonResponse
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
@@ -292,6 +293,61 @@ def _name_split_datetime_subwidgets(db_field, formfield) -> None:
     for subwidget, part in zip(subwidgets, (gettext("date"), gettext("time"))):
         subwidget.attrs = dict(subwidget.attrs or {})
         subwidget.attrs.setdefault("aria-label", f"{label} {part}")
+
+
+def _json_empty_means_default(db_field, formfield) -> None:
+    """Clearing a NOT NULL JSON box must mean "the default", never NULL.
+
+    ``JSONField(default=dict, blank=True)`` is the platform's standard shape --
+    496 fields across 42 apps carry it.  ``blank=True`` makes the form field
+    optional, and ``forms.JSONField`` returns **None** for empty input, so the
+    ModelForm assigns None over the model default and the INSERT sends NULL to
+    a NOT NULL column.  The request dies in ``ModelAdmin._changeform_view``,
+    inside the ``transaction.atomic`` Django 5.2 wraps every non-GET changeform
+    in, as an uncaught ``IntegrityError`` -- a 500, not a form error.
+
+    Reproduced 2026-09-06 on ``/admin/people/studentprofile/add/``:
+
+    ======================================  ==========================
+    ``custom_attributes`` submitted         result
+    ======================================  ==========================
+    omitted                                 302, row created
+    ``{}`` (the rendered initial value)     302, row created
+    empty (the box was cleared)             **500 IntegrityError**
+    whitespace                              200, validation error
+    ======================================  ==========================
+
+    So the page is healthy until someone empties a box that renders holding
+    ``{}`` and is labelled optional -- which is simply how you say "no custom
+    attributes".  Only the cleared case breaks, which is why the surface passes
+    every add-form smoke test.
+
+    The coercion is applied to the bound field rather than through
+    ``formfield_overrides`` deliberately: overrides live in a class attribute
+    that a subclass's own ``formfield_overrides`` shadows entirely (
+    ``apps/siteconfig/admin.py`` defines one), whereas this mixin is injected as
+    the FIRST base by ``BaseRunMyCampusAdminSite.register``, so wrapping the
+    method composes with whatever the registered class does.
+
+    Restricted to fields that can actually take the default: ``null=True`` JSON
+    fields legitimately store NULL and are left exactly as they are.
+    """
+
+    if not isinstance(db_field, models.JSONField):
+        return
+    if db_field.null or not db_field.has_default():
+        return
+    original_clean = getattr(formfield, "clean", None)
+    if original_clean is None:  # pragma: no cover - upstream shape changed
+        return
+
+    def clean(value, _original=original_clean, _default=db_field.get_default):
+        cleaned = _original(value)
+        if cleaned is None:
+            return _default()
+        return cleaned
+
+    formfield.clean = clean
 
 
 @dataclass(frozen=True)
@@ -718,6 +774,7 @@ class AdminFormAutomationMixin:
         formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
         if formfield is not None:
             _name_split_datetime_subwidgets(db_field, formfield)
+            _json_empty_means_default(db_field, formfield)
         return formfield
 
     def get_form(self, request, obj=None, change=False, **kwargs):
@@ -919,6 +976,7 @@ class AdminInlineAutomationMixin:
         formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
         if formfield is not None:
             _name_split_datetime_subwidgets(db_field, formfield)
+            _json_empty_means_default(db_field, formfield)
         return formfield
 
     def get_formset(self, request, obj=None, **kwargs):
