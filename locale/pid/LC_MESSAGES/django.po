@@ -68376,3 +68376,98 @@ msgstr ""
 
 msgid "Expelled (dismissed by the school)"
 msgstr ""
+
+msgid "%(guardian)s is now linked to %(student)s."
+msgstr ""
+
+msgid "A specialty with this code already exists at your school."
+msgstr ""
+
+msgid "A subject with this name already exists at your school."
+msgstr ""
+
+msgid "Add guardian"
+msgstr ""
+
+msgid "Add specialty"
+msgstr ""
+
+msgid "Add subject"
+msgstr ""
+
+msgid "Add {{ g }}"
+msgstr ""
+
+msgid "Contact details"
+msgstr ""
+
+msgid "Create specialty"
+msgstr ""
+
+msgid "Create subject"
+msgstr ""
+
+msgid "Error creating specialty: %s"
+msgstr ""
+
+msgid "Error creating subject: %s"
+msgstr ""
+
+msgid "Error linking guardian: %s"
+msgstr ""
+
+msgid ""
+"Guardian account created for %(email)s. Send them their sign-in details."
+msgstr ""
+
+msgid "Guardian details stay on this device until you reconnect and sync."
+msgstr ""
+
+msgid ""
+"If no account exists for that email, a parent account is created and the "
+"guardian claims it with a password reset."
+msgstr ""
+
+msgid "Notifications and access"
+msgstr ""
+
+msgid "Select department"
+msgstr ""
+
+msgid "Specialty '%(name)s' created successfully!"
+msgstr ""
+
+msgid "Specialty details stay on this device until you reconnect and sync."
+msgstr ""
+
+msgid "Subject '%(name)s' created successfully!"
+msgstr ""
+
+msgid "Subject details stay on this device until you reconnect and sync."
+msgstr ""
+
+msgid ""
+"That address belongs to an account with a different role. Guardian access "
+"must be a parent or teacher account."
+msgstr ""
+
+msgid ""
+"The code has to be unique within your school — it is what timetables and "
+"report cards match on."
+msgstr ""
+
+msgid ""
+"The guardian signs in with this address. An account is created if none "
+"exists."
+msgstr ""
+
+msgid ""
+"The name has to be unique within your school. The board code and credits are"
+" optional."
+msgstr ""
+
+msgid "This guardian is already linked to that student."
+msgstr ""
+
+msgid "Who is being linked"
+msgstr ""

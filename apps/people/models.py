@@ -1386,7 +1386,13 @@ class StudentGuardian(models.Model):
 
     def clean(self):
         # Allow PARENT or TEACHER (dual-role: teacher who is also a parent uses same account)
-        if self.guardian_user and self.guardian_user.role not in (
+        # Guard on guardian_user_id (the raw FK column), NOT self.guardian_user:
+        # the backend add-guardian form identifies the account by EMAIL and the
+        # view attaches it after validation, so ModelForm._post_clean() runs
+        # full_clean() while the FK is still unset -- and the descriptor then
+        # raises RelatedObjectDoesNotExist, an uncaught 500 rather than a
+        # ValidationError. Same guard TeacherProfile.clean() uses above.
+        if self.guardian_user_id and self.guardian_user.role not in (
             User.Role.PARENT,
             User.Role.TEACHER,
         ):
