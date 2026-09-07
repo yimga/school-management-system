@@ -1,0 +1,64 @@
+{% extends "backend_base.html" %}
+{% load i18n compliance_tags %}
+{% comment %} Backend UI: one specialty/stream -- read the record and correct it in place.
+Chrome mirrors people/backend_classroom_detail.html; the form mirrors
+people/backend_specialty_create.html. The list rows link here. {% endcomment %}
+{% block backend_title %}{% trans "Specialty" %} - {{ specialty.name }}{% endblock %}
+
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{{ list_url }}">{% trans "Specialties" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ specialty.name }}</li>
+    </ol>
+  </nav>
+  {% include "studio_os/components/page_header.html" with title=specialty.name subtitle=_("Specialty record — edit the name, code and department") action_url=list_url action_text=_("Back to list") %}
+
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rmc-glass-surface h-100">
+        <div class="card-body">
+          <p class="text-uppercase small text-muted mb-2 fw-semibold">{% trans "Record" %}</p>
+          <p class="mb-1 small"><strong>{% trans "Name" %}:</strong> {{ specialty.name }}</p>
+          <p class="mb-1 small"><strong>{% trans "Code" %}:</strong> {{ specialty.code|default:"—" }}</p>
+          <p class="mb-1 small"><strong>{% trans "Department" %}:</strong> {{ specialty.department.name|default:"—" }}</p>
+          <p class="mb-0 small"><strong>{% trans "Students on this stream" %}:</strong> {{ student_count }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert" aria-live="assertive" tabindex="-1">
+            {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+          </div>
+          {% endif %}
+          <form method="post" novalidate id="backend-specialty-detail-form">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.name %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.code %}</div>
+              <div class="col-md-6">{% include "components/form_field.html" with field=form.department %}</div>
+            </div>
+            <div class="form-actions d-flex flex-wrap align-items-center mt-4 gap-2 justify-content-end">
+              <a href="{{ list_url }}" class="btn btn-outline-secondary ds-btn">{% trans "Cancel" %}</a>
+              <button type="submit" class="btn btn-primary ds-btn">
+                <i class="bi bi-check-circle me-2" aria-hidden="true"></i>{% trans "Save changes" %}
+              </button>
+            </div>
+            <p class="form-text small text-muted mt-2 mb-0">{% trans "The code has to stay unique within your school — it is what timetables and report cards match on." %}</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% comment %} Per-record audit drill-down, same as the student/teacher/classroom records. {% endcomment %}
+  {% if specialty %}{% recent_activity_for "Specialty" specialty.pk %}{% endif %}
+</div>
+{% endblock %}
