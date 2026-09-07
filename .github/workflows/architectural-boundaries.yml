@@ -22,6 +22,7 @@ on:
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
       - "scripts/scan_unrestored_flush_testcase.py"
+      - "scripts/scan_refusal_only_assertions.py"
       - "scripts/scan_test_host_fidelity.py"
       - "scripts/scan_dangling_static_reference.py"
       - "scripts/scan_super_route_authorization.py"
@@ -362,6 +363,10 @@ jobs:
           # The 2026-09-03 audit closed 32 of 33 and told the survivor to be
           # 'ordered last'; pytest runs in collection order and cannot honour that,
           # and there were 15 again by 2026-09-06.
+          u_refusal_only_authorization() {
+            python scripts/scan_refusal_only_assertions.py --compare
+            python -m unittest scripts.tests.test_scan_refusal_only_assertions -v
+          }
           u_unrestored_flush_testcase() {
             python scripts/scan_unrestored_flush_testcase.py
             python -m unittest scripts.tests.test_scan_unrestored_flush_testcase -v
@@ -869,6 +874,7 @@ jobs:
           run_unit u_raw_token_in_ui "No internal identifier is shown to a human as words"
           run_unit u_duplicate_dict_keys "No dict literal silently discards an entry"
           run_unit u_unrestored_flush_testcase "No test class leaves the seed catalog truncated"
+          run_unit u_refusal_only_authorization "No new authorization test asserts only a refusal code"
           run_unit u_test_host_fidelity "Tests reach the host urlconf they name"
 
           # A referenced asset that was never shipped does not fail the deploy --
