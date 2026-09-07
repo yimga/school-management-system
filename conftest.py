@@ -199,6 +199,75 @@ def pytest_configure() -> None:
         opts.setdefault("timeout", 30)
 
 
+def _seed_fingerprint_gate(session) -> None:
+    """Fingerprint a freshly built test DB, or refuse a damaged reused one.
+
+    The flush damage is permanent and invisible: a data migration recorded as
+    applied never re-seeds, so a truncated catalog stays truncated for every
+    later run of that file. Measured cost on five known-red files: 21 failures
+    against 4. Every one of the 17 read as a code regression, and some tests
+    PASS on a damaged DB only because a request is refused before reaching the
+    assertion. So the database has to say so itself, before any test runs.
+    """
+    if _using_inmemory_test_settings():
+        return
+    try:
+        from django.db import connections
+
+        from apps.test_utils import seed_fingerprint
+    except Exception:
+        # Never let the guard be the reason a suite cannot start.
+        return
+
+    try:
+        connection = connections["default"]
+        if not getattr(session, "_django_db_keepdb", False):
+            # Built this session, so its state is known-good by construction.
+            seed_fingerprint.record(connection)
+            return
+        damaged = seed_fingerprint.damaged_tables(connection)
+    except Exception as exc:  # noqa: BLE001
+        print(
+            "[pytest bootstrap] seed fingerprint check skipped: %s" % exc,
+            file=sys.stderr,
+        )
+        return
+
+    if damaged is None:
+        # "Unknown" is not "clean". This DB predates the guard, so say so rather
+        # than let a silent pass read as a verified one.
+        print(
+            "[pytest bootstrap] NOTICE: this reused test database has no seed "
+            "fingerprint, so its integrity is unverified. One rebuild "
+            "establishes the baseline and every later run is checked.",
+            file=sys.stderr,
+        )
+        return
+    if not damaged:
+        return
+
+    print(
+        seed_fingerprint.report(
+            damaged, str(connection.settings_dict.get("NAME") or "?")
+        ),
+        file=sys.stderr,
+    )
+    if seed_fingerprint.escape_hatch_engaged():
+        print(
+            "[pytest bootstrap] %s is set; continuing against a damaged database."
+            % seed_fingerprint.ESCAPE_ENV,
+            file=sys.stderr,
+        )
+        return
+    import pytest
+
+    pytest.exit(
+        "test database is damaged (%d seeded table(s) empty); see above"
+        % len(damaged),
+        returncode=1,
+    )
+
+
 def pytest_sessionstart(session) -> None:
     """Mirror DiscoverRunner: point default connection at TEST database.
 
@@ -246,6 +315,7 @@ def pytest_sessionstart(session) -> None:
             interactive=False,
             keepdb=keepdb,
         )
+        _seed_fingerprint_gate(session)
     except Exception as exc:
         if not (
             keepdb
@@ -266,6 +336,7 @@ def pytest_sessionstart(session) -> None:
             interactive=False,
             keepdb=False,
         )
+        _seed_fingerprint_gate(session)
 
 
 def pytest_sessionfinish(session, exitstatus) -> None:
