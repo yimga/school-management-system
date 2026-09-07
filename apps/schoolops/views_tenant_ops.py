@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import DatabaseError, IntegrityError, transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.permissions import (
@@ -139,12 +139,54 @@ def ops_hub(request):
                 "url": url,
             }
         )
+    # Ops surfaces that carry no module-market feature code. They cannot ride
+    # MODULE_CODES: is_feature_enabled() would report them Inactive and send
+    # staff to the Module Market to switch on a module that does not exist.
+    # Both lost-belongings pages had ZERO inbound links anywhere in the
+    # rendered tenant backend -- this hub links 11 ops pages and named neither,
+    # so the only way in was to type the URL.
+    #
+    # The visibility test is imported from the destination view rather than
+    # restated here: the hub admits DEAN and lost-belongings does not, and a
+    # hub card that answers 403 is exactly how two role sets drift apart.
+    from .views_lost_belongings import _staff_roles_ok as _lost_belongings_ok
+
+    utility_cards = []
+    if _lost_belongings_ok(request.user):
+        for _label, _url_name, _icon, _hint in (
+            (
+                "Lost belongings - mint a tag",
+                "accounts:lost_belongings_mint",
+                "bi-qr-code",
+                "Issue a QR tag for an asset so a finder can report it.",
+            ),
+            (
+                "Lost belongings - record a recovery",
+                "accounts:lost_belongings_recover",
+                "bi-bag-check",
+                "Close a tag out when the item reaches its owner.",
+            ),
+        ):
+            try:
+                _url = reverse(_url_name)
+            except NoReverseMatch:
+                continue
+            utility_cards.append(
+                {
+                    "label": _label,
+                    "url": _url,
+                    "icon": _icon,
+                    "hint": _hint,
+                }
+            )
+
     return render(
         request,
         "schoolops/ops_hub.html",
         {
             "school": school,
             "cards": cards,
+            "utility_cards": utility_cards,
             "module_market_url": reverse("siteconfig:module_market"),
         },
     )
@@ -802,6 +844,9 @@ def ops_substitutes(request):
         .order_by("-work_date", "-created_at")[:200]
     )
     from apps.schoolops.substitute_market import list_open_shifts
+    from .views_substitute_handover import (
+        _substitute_handover_roles_ok as _handover_roles_ok,
+    )
 
     open_shifts = list_open_shifts(school_id=int(school.pk))
     teacher_by_id = {tp.user_id: tp.user for tp in teachers_qs}
@@ -820,6 +865,12 @@ def ops_substitutes(request):
             "can_self_claim": request.user.pk in teacher_ids,
             "broker_results": broker_results,
             "hub_url": reverse("accounts:ops_hub"),
+            # The handover packet builder sits one path segment below this
+            # page and nothing linked it -- not even its own parent. Its role
+            # set is NARROWER than this page's (IT_ADMIN may record cover but
+            # may not build a packet), so the flag comes from that view's own
+            # predicate rather than being re-derived from is_ops_admin.
+            "can_create_handover": _handover_roles_ok(request.user),
         },
     )
 

@@ -14,6 +14,14 @@
      data-rmc-sub-msg-open="{% trans 'A cover shift opened — refreshing…' %}"
      data-rmc-sub-msg-claimed="{% trans 'A cover shift was claimed — refreshing…' %}">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
+  {% if can_create_handover %}
+  <p class="mb-3">
+    <a href="{% url 'accounts:substitute_handover_create' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-clipboard-plus me-1" aria-hidden="true"></i>{% trans "Build a handover packet" %}
+    </a>
+    <span class="small text-muted ms-2">{% trans "Lesson plans, seating and duties for whoever covers the class." %}</span>
+  </p>
+  {% endif %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       {% if is_ops_admin %}
