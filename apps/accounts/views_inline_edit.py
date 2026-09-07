@@ -38,8 +38,8 @@ import logging
 
 from django.apps import apps
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.core.exceptions import FieldDoesNotExist, ValidationError
+from django.db import DatabaseError, transaction
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -79,7 +79,7 @@ def resolve_editable_model(app_label: str, model_name: str):
         raise Http404("No such record type.")
     try:
         model._meta.get_field(TENANT_FIELD)
-    except Exception:  # noqa: BLE001 -- FieldDoesNotExist: try the membership path
+    except FieldDoesNotExist:
         # A school owns people who carry no school column. ``accounts.User`` is
         # the case that matters: a person belongs to a school through
         # SchoolMembership (and three other membership-shaped tables), and a
@@ -144,7 +144,12 @@ def _audit(request, instance, field_name, before, after) -> None:
             old_values={field_name: before},
             new_values={field_name: after},
         )
-    except Exception:  # noqa: BLE001 -- an audit failure must not undo the edit
+    except (DatabaseError, ImportError, TypeError, ValueError):
+        # Named rather than bare: the realistic failures are the app being absent,
+        # the insert being refused, and a value the JSON field will not take. The
+        # save is already committed by this point, so a raise here would 500 AFTER
+        # a successful write -- the worst of both. Anything outside this tuple is
+        # a bug worth surfacing rather than swallowing.
         logger.exception("inline edit: audit write failed for %s", instance._meta.label)
 
 
@@ -176,7 +181,7 @@ def inline_edit_save(request, app_label: str, model_name: str, pk: int):
         return JsonResponse({"ok": False, "error": "No field named."}, status=400)
     try:
         field = model._meta.get_field(field_name)
-    except Exception:  # noqa: BLE001 -- FieldDoesNotExist
+    except FieldDoesNotExist:
         raise Http404("No such field.") from None
     reason = structural_lock(field)
     if reason:

@@ -364,7 +364,7 @@ def is_staff_directory_shape(
     # A person column, however the exporter spells it. Requiring a header
     # literally called "name" is what made this detector blind to the platform's
     # OWN canonical staff template (first_name + last_name + role + department +
-    # phone): on 2026-09-07 a canonically-exported Gilead staff file was routed to
+    # phone): on 2026-09-07 a canonically-exported staff file was routed to
     # `academics` because this returned False, and the guard in catalog_preflight
     # that exists precisely to stop that ("if staff_dir and recommended in
     # (academics, specialties): continue") could never fire.

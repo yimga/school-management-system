@@ -44,7 +44,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import models
 
 logger = logging.getLogger(__name__)
@@ -218,7 +218,9 @@ def scoped_queryset(related_model, *, school):
     qs = manager.all()
     try:
         related_model._meta.get_field(TENANT_FIELD)
-    except Exception:  # noqa: BLE001 -- FieldDoesNotExist means school-agnostic
+    except FieldDoesNotExist:
+        # No school column: the model is school-agnostic by construction (a country
+        # registry, say), so an unscoped queryset is the right answer.
         return qs
     if school is None:
         return qs.none()
@@ -433,8 +435,8 @@ def membership_joins(model) -> list:
             continue
         try:
             candidate._meta.get_field(TENANT_FIELD)
-        except Exception:  # noqa: BLE001 -- no school column: not a membership
-            continue
+        except FieldDoesNotExist:
+            continue  # no school column: cannot be a membership join
         links = [
             f.name
             for f in candidate._meta.get_fields()
@@ -485,7 +487,7 @@ def scoped_instance(model, pk, *, school):
         return None
     try:
         model._meta.get_field(TENANT_FIELD)
-    except Exception:  # noqa: BLE001 -- FieldDoesNotExist: try the membership path
+    except FieldDoesNotExist:
         joins = membership_joins(model)
         if not joins:
             return None

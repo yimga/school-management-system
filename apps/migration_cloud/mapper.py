@@ -164,7 +164,7 @@ def _domain_synonym_index(domain: str) -> dict[str, str]:
     """Exact-synonym reverse map for one domain. Colliding synonyms are dropped.
 
     A CANONICAL FIELD'S OWN NAME IS REGISTERED TOO, and wins. This was the defect
-    behind the 2026-09-07 Gilead staff import: the index carried ``staff_id``,
+    behind the 2026-09-07 staff import incident: the index carried ``staff_id``,
     ``staff_code``, ``staff_number``, ``staff_ref`` and ``staffuniqueid`` -> 
     ``staff_external_id``, but not ``staff_external_id`` itself, because
     ``all_synonyms`` returns a field's aliases and never the field. A file whose
