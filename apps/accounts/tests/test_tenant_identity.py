@@ -230,3 +230,94 @@ class TenantIdentityUrlSmokeTests(SimpleTestCase):
                 "/backend/identity/regulator-grant/"
             )
         )
+
+
+class TenantIdentityRosterFilterTests(TestCase):
+    """The roster could only be PAGED: no search, no filter, no export.
+
+    Every other people-shaped list in the tenant backend has all three, so
+    finding one person in a large school meant walking the pages by eye.
+
+    These assertions deliberately check that a filter NARROWS the result rather
+    than that it returns 200. A filter that is silently ignored still returns
+    200 with every row, which is the failure that matters and the one a status
+    check cannot see.
+    """
+
+    def setUp(self) -> None:
+        self.school = School.objects.create(
+            name="Roster School",
+            slug=f"ros-{uuid.uuid4().hex[:10]}",
+            subdomain=f"ros-{uuid.uuid4().hex[:10]}",
+            is_active=True,
+        )
+        self.admin = User.objects.create_user(
+            username=f"rosadm-{uuid.uuid4().hex[:6]}",
+            email="ros-admin@example.com",
+            password="pass12345678",
+            role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=True,
+        )
+        SchoolMembership.objects.create(
+            user=self.admin, school=self.school, role=User.Role.ADMIN, is_primary=True
+        )
+        self.teacher = User.objects.create_user(
+            username="zzteacher",
+            email="zzteacher@example.com",
+            password="pass12345678",
+            role=User.Role.TEACHER,
+        )
+        SchoolMembership.objects.create(
+            user=self.teacher, school=self.school, role=User.Role.TEACHER
+        )
+        self.factory = RequestFactory()
+
+    def _get(self, query: str = ""):
+        request = self.factory.get("/authentication/backend/identity/" + query)
+        request.user = self.admin
+        request.school = self.school
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        return tenant_identity_roster(request)
+
+    def _csv_data_rows(self, query: str) -> list[str]:
+        response = self._get(query)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response.headers.get("Content-Type", ""))
+        body = response.content.decode("utf-8", "replace")
+        return [line for line in body.strip().splitlines()[1:] if line.strip()]
+
+    def test_roster_offers_search_role_and_mfa_controls(self):
+        body = self._get().content.decode("utf-8", "replace")
+        for control in ("roster-q", "roster-role", "roster-mfa", "format=csv"):
+            self.assertIn(control, body, f"the roster is missing the {control} control")
+
+    def test_export_returns_csv_with_a_row_per_member(self):
+        rows = self._csv_data_rows("?format=csv")
+        self.assertEqual(len(rows), 2, "both memberships must appear in the export")
+
+    def test_search_narrows_the_export(self):
+        """Narrows -- not merely 'returns 200'. An ignored filter also returns 200."""
+        rows = self._csv_data_rows("?format=csv&q=zzteacher")
+        self.assertEqual(len(rows), 1)
+        self.assertIn("zzteacher", rows[0])
+
+    def test_role_filter_narrows_the_export(self):
+        rows = self._csv_data_rows("?format=csv&role=%s" % User.Role.TEACHER)
+        self.assertEqual(len(rows), 1)
+        self.assertIn("zzteacher", rows[0])
+
+    def test_export_carries_the_role_the_filter_matched(self):
+        """?role= matches membership.role, so the export must show that column.
+
+        Exporting only the localized effective role made a role=TEACHER export
+        come back reading "Parent", which looks like the filter was ignored.
+        """
+        response = self._get("?format=csv")
+        header = response.content.decode("utf-8", "replace").splitlines()[0]
+        self.assertIn("membership_role", header)
+        self.assertIn("effective_role", header)
+
+    def test_a_junk_page_size_does_not_500_the_roster(self):
+        self.assertEqual(self._get("?page_size=notanumber").status_code, 200)
