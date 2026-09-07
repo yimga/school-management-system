@@ -70,6 +70,7 @@ from apps.schools.views_tenant_performance import (
     tenant_performance_dashboard,
     tenant_performance_json,
 )
+from .views_inline_edit import inline_edit_options, inline_edit_save
 from .views_dashboard import backend_dashboard, backend_dashboard_status_fragment
 from .views_onboarding import (
     dismiss_first_login_checklist,
@@ -379,6 +380,11 @@ urlpatterns = [
     path("documentation/", user_documentation, name="user_documentation"),
     path("rbac/", rbac_dashboard, name="rbac"),
     path("backend/", backend_dashboard, name="backend_dashboard"),
+    # In-place record editing for the backend shell. Field-level; every decision
+    # (which fields, which permission, which cascade) is derived in
+    # apps.metadata.inline_edit rather than written per model.
+    path("backend/inline-edit/<str:app_label>/<str:model_name>/<int:pk>/", inline_edit_save, name="inline_edit_save"),  # tenant-surface-staff-allow: request.school-scoped row lookup + per-model change permission enforced in-view
+    path("backend/inline-edit/<str:app_label>/<str:model_name>/<int:pk>/options/", inline_edit_options, name="inline_edit_options"),  # tenant-surface-staff-allow: request.school-scoped choice list, same queryset the save validates against
     path("backend/request-waiver/", request_waiver, name="request_waiver"),
     path(
         "backend/district-lms-interop/",

@@ -154,6 +154,28 @@ class TeacherProfile(models.Model):
         blank=True,
         related_name="teachers",
     )
+    # The trade/filiere a staff member teaches in. Cameroonian technical schools
+    # publish this as the SPECIALTY column of their staff directory -- CARPENTRY
+    # AND JOINERY, ELECTRICAL POWER SYSTEMS, FASHION DESIGN -- and until now a
+    # TeacherProfile had nowhere to put it, so every staff import folded specialty
+    # into ``department`` and lost the distinction. StudentProfile, Enrollment and
+    # FeePlan all carry Specialty already; staff were the gap.
+    #
+    # SET_NULL rather than StudentProfile's PROTECT: retiring a filiere must not be
+    # blocked by a teacher who once taught it, and a teacher with no specialty is a
+    # normal state (the bursar, the driver, the security post).
+    #
+    # Because Specialty carries its own FK to Department, this field also makes the
+    # derived cascade in apps.metadata.inline_edit real for staff: choosing a
+    # specialty now implies its department, which is the rule the school asked for
+    # and which the schema can answer without anyone configuring it.
+    specialty = models.ForeignKey(
+        Specialty,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="teachers",
+    )
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="teacher_profile"
     )
