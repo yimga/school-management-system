@@ -49,6 +49,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # again by 2026-09-06. The flush and the failure need not even be in the
     # same run, so nothing short of a gate catches the sixteenth.
     ("scripts/scan_unrestored_flush_testcase.py", "architectural-boundaries.yml"),
+    # Added 2026-09-06. A test asserting ONLY a refusal status code cannot fail
+    # when the thing it claims to test breaks: any early refusal satisfies it.
+    ("scripts/scan_refusal_only_assertions.py", "architectural-boundaries.yml"),
     # Added 2026-09-02. Both wizard gates below existed, were correct, and were
     # invoked by NOTHING -- verify_unified_wizard_framework.py was even named in
     # this workflow's `paths:` filter, which triggers the job without running the

@@ -1493,6 +1493,30 @@ MUTATIONS["unrestored-flush-testcase"] = Mutation(
     ),
 )
 
+# MUST stay ABOVE the __main__ guard. An entry appended below it is present on
+# import and DEAD when the file runs as a script, so gates-can-fail-coverage
+# reports the gate as registered-with-no-mutation and aborts the push. That
+# happened with the entry above on 2026-09-06; do not repeat it.
+MUTATIONS["refusal-only-authorization"] = Mutation(
+    kind="create",
+    path=f"apps/schools/tests/{_PROOF}_refusal_only.py",
+    defect=(
+        "an authorization test whose only assertion is a refusal status code, so "
+        "it passes when the request is refused for ANY reason -- a permission "
+        "gap, an MFA redirect, a renamed URL -- and cannot fail when the thing it "
+        "claims to test breaks"
+    ),
+    content=(
+        b"from django.test import TestCase" + chr(10).encode()
+        + chr(10).encode()
+        + chr(10).encode()
+        + b"class GateProofRefusalOnlyTests(TestCase):" + chr(10).encode()
+        + b"    def test_cross_tenant_blocked(self):" + chr(10).encode()
+        + b"        self.assertEqual(self.client.get(chr(47)).status_code, 403)"
+        + chr(10).encode()
+    ),
+)
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

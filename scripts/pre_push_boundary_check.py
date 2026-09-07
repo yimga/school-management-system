@@ -209,6 +209,9 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no baseline, because
     # leaving the catalog flushed is never what was meant.
     ("unrestored-flush-testcase", ["scan_unrestored_flush_testcase.py"]),
+    # Ratchet, not zero: the 249 existing ones each need a judgement about what
+    # effect to assert instead, and a zero baseline would be switched off.
+    ("refusal-only-authorization", ["scan_refusal_only_assertions.py", "--compare"]),
     # Every ISO country must compile an offline ingestion manifest (249 × 2 profiles).
     ("global-country-ingestion-coverage", ["verify_global_country_ingestion_coverage.py"]),
     # Portal config + client JS + IndexedDB must carry ingestion lexicon for local-first MC upload.
