@@ -13,7 +13,7 @@
 <div class="container-fluid py-2 rmc-tenant-exception-task" data-rmc-tenant-exception-task="1" data-page-archetype="task-list" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-copilot-page-lens="tenant-student-roster" data-page-critical-read="1">
   <div class="row">
     <div class="col-12">
-      {% url 'accounts:backend_student_create' as create_url %}
+      {% if perms.people.add_studentprofile %}{% url 'accounts:backend_student_create' as create_url %}{% endif %}
       {% term "student" plural=True capitalize=True as student_pl %}
       {% term "student" capitalize=True as student_sg %}
       {% blocktrans asvar student_add_text with t=student_sg %}Add {{ t }}{% endblocktrans %}
@@ -154,7 +154,7 @@
             </table>
           </div>
           {% else %}
-          {% url 'accounts:backend_student_create' as empty_action_url %}
+          {% if perms.people.add_studentprofile %}{% url 'accounts:backend_student_create' as empty_action_url %}{% endif %}
           {% include "components/dashboard_empty_state.html" with icon="bi-people" title=_("No students found") message=_("Students you add will appear here. Add your first student to get started.") action_url=empty_action_url action_text=_("Add your first student") %}
           {% endif %}
           {% if page_obj %}

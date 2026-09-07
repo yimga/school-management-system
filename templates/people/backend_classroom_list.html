@@ -16,7 +16,7 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="row">
     <div class="col-12">
-      {% url 'accounts:backend_classroom_create' as add_url %}
+      {% if perms.academics.add_classroom %}{% url 'accounts:backend_classroom_create' as add_url %}{% endif %}
       {% url 'accounts:backend_student_list' as back_url %}
       {% blocktrans asvar classroom_add_text with t=classroom_lc %}Add {{ t }}{% endblocktrans %}
       {% blocktrans asvar classroom_subtitle with t=classroom_pl %}{{ t }} and sections by year and department.{% endblocktrans %}

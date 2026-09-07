@@ -16,7 +16,7 @@ Mirrors people/backend_classroom_list.html (search + CSV + pagination).{% endcom
         <h1 class="h3 mb-1">{% trans "Subjects" %}</h1>
         <p class="text-muted small mb-0">{% trans "Courses and subjects at your school — including everything imported via Migration Cloud." %}</p>
       </div>
-      <p class="mb-3 d-flex flex-wrap gap-2"><a href="{{ create_url }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add subject" %}</a><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to student profiles" %}</a></p>
+      <p class="mb-3 d-flex flex-wrap gap-2">{% if perms.academics.add_subject %}<a href="{{ create_url }}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add subject" %}</a>{% endif %}<a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to student profiles" %}</a></p>
 
       <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search">
         <div class="row g-2 align-items-end">
@@ -44,15 +44,17 @@ Mirrors people/backend_classroom_list.html (search + CSV + pagination).{% endcom
                   <th scope="col">{% trans "Name" %}</th>
                   <th scope="col">{% trans "Category" %}</th>
                   <th scope="col">{% trans "Credits" %}</th>
+                  <th scope="col">{% trans "Actions" %}</th>
                 </tr>
               </thead>
               <tbody>
                 {% for s in subjects %}
                 <tr>
                   {% include "components/_list_row_number_cell.html" %}
-                  <td>{{ s.name }}</td>
+                  <td><a href="{% url 'accounts:backend_subject_detail' s.pk %}">{{ s.name }}</a>{% if s.code %}<div class="small text-muted">{{ s.code }}</div>{% endif %}</td>
                   <td>{{ s.get_category_display|default:"—" }}</td>
                   <td>{{ s.credits|default:"—" }}</td>
+                  <td><a href="{% url 'accounts:backend_subject_detail' s.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Open" %}</a></td>
                 </tr>
                 {% endfor %}
               </tbody>
