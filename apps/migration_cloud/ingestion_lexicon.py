@@ -361,7 +361,26 @@ def is_staff_directory_shape(
     """
     del sample_rows  # shape is header-driven; row trade vocab must not override
     headers = _header_set(normalized_headers)
-    if "name" not in headers:
+    # A person column, however the exporter spells it. Requiring a header
+    # literally called "name" is what made this detector blind to the platform's
+    # OWN canonical staff template (first_name + last_name + role + department +
+    # phone): on 2026-09-07 a canonically-exported Gilead staff file was routed to
+    # `academics` because this returned False, and the guard in catalog_preflight
+    # that exists precisely to stop that ("if staff_dir and recommended in
+    # (academics, specialties): continue") could never fire.
+    #
+    # Widening this cannot swallow the neighbouring templates, and that is checked
+    # rather than assumed: students, guardians and alumni all carry first_name +
+    # last_name + phone too, and all three are excluded by the role-or-department
+    # requirement below -- students offer section/grade_level, guardians offer
+    # relationship, alumni offer current_role, and none of those are in
+    # _STAFF_DIRECTORY_ROLE_HEADERS or _STAFF_DIRECTORY_DEPT_HEADERS.
+    has_person = (
+        "name" in headers
+        or "full_name" in headers
+        or ("first_name" in headers and "last_name" in headers)
+    )
+    if not has_person:
         return False
     if not (headers & _STAFF_DIRECTORY_PHONE_HEADERS):
         return False

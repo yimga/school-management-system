@@ -151,8 +151,42 @@ def _lookup_synonym_field(label: str, index: dict[str, str]) -> str:
     return ""
 
 
+def _canonical_name_keys(field: str) -> set[str]:
+    """Lookup keys for a canonical field's OWN name."""
+    keys = {(field or "").strip().lower()}
+    compact = re.sub(r"[^a-z0-9]+", "", (field or "").lower())
+    if compact:
+        keys.add(compact)
+    return {k for k in keys if k}
+
+
 def _domain_synonym_index(domain: str) -> dict[str, str]:
-    """Exact-synonym reverse map for one domain. Colliding synonyms are dropped."""
+    """Exact-synonym reverse map for one domain. Colliding synonyms are dropped.
+
+    A CANONICAL FIELD'S OWN NAME IS REGISTERED TOO, and wins. This was the defect
+    behind the 2026-09-07 Gilead staff import: the index carried ``staff_id``,
+    ``staff_code``, ``staff_number``, ``staff_ref`` and ``staffuniqueid`` -> 
+    ``staff_external_id``, but not ``staff_external_id`` itself, because
+    ``all_synonyms`` returns a field's aliases and never the field. A file whose
+    header was the exact name the platform's own canonical template publishes
+    therefore failed to map; the identity column fell through to
+    ``custom_fields.staff_external_id``, the staff lander found no id on the row
+    and minted ``auto-staff-<hash>``, and 48 rows that should have matched 20
+    existing people were created as duplicates instead.
+
+    Swept across every domain the same day: 150 published canonical headers in 28
+    of 30 domains could not be looked up, and they were overwhelmingly the
+    ``*_external_id`` identity columns -- student, guardian, teacher, section,
+    subject, recipient, item. Every one of those domains had the same duplicate
+    bug latent in it.
+
+    The own-name pass runs AFTER the synonym pass and overwrites rather than
+    colliding. That direction is deliberate: an exact canonical name is the most
+    authoritative header a file can carry, so when it clashes with some other
+    field's alias the canonical reading must win instead of both being dropped.
+    Two canonical fields cannot share a name within a domain, so the pass cannot
+    collide with itself.
+    """
     index: dict[str, str] = {}
     collisions: set[str] = set()
     for cf in iter_canonical_fields(domain):
@@ -173,6 +207,12 @@ def _domain_synonym_index(domain: str) -> dict[str, str]:
                     index.pop(key, None)
                     continue
                 index[key] = field
+    for cf in iter_canonical_fields(domain):
+        field = cf.get("canonical_field") or ""
+        if not field:
+            continue
+        for key in _canonical_name_keys(field):
+            index[key] = field
     return index
 
 
