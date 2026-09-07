@@ -71,9 +71,32 @@
     return "nav:" + Date.now().toString(36) + ":" + Math.random().toString(36).slice(2, 12);
   }
 
+  // CSRF for the preference writes below. Read the DOM FIRST, then both cookie
+  // names. Until 2026-09-06 this read only a cookie literally named
+  // "csrftoken", and the regex requires start-of-string or "; " before the
+  // name -- so on the manager host, where ManagerCookieIsolationMiddleware
+  // issues "rmc_manager_csrftoken" instead, it matched nothing and returned "".
+  // An EMPTY header is not a missing one: Django rejects it with
+  // "CSRF token from the 'X-Csrftoken' HTTP header has incorrect length"
+  // (a valid token is 32 or 64 chars). Every PATCH to
+  // /admin/navigation-preferences/ 403'd, so no operator's sidebar state ever
+  // saved on the manager host -- silently, because the only symptom is a
+  // console error on a fire-and-forget fetch. Measured in a real browser:
+  // 8 admin page loads, 8 403s.
+  // The rendered csrfmiddlewaretoken input and <meta name="csrf-token"> are
+  // host-independent and survive CSRF_COOKIE_HTTPONLY=True, so they come first.
   function csrfToken() {
-    var match = (document.cookie || "").match(/(?:^|;\s*)csrftoken=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : "";
+    var input = document.querySelector('input[name=csrfmiddlewaretoken]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== "NOTPROVIDED") return meta.content;
+    var names = ["csrftoken", "rmc_manager_csrftoken"];
+    var cookie = document.cookie || "";
+    for (var i = 0; i < names.length; i++) {
+      var match = cookie.match(new RegExp("(?:^|;\s*)" + names[i] + "=([^;]+)"));
+      if (match) return decodeURIComponent(match[1]);
+    }
+    return "";
   }
 
   function entryFor(destinationId) {

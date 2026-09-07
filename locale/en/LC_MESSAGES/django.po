@@ -74476,3 +74476,115 @@ msgstr "No active academic year yet."
 
 msgid "You have not been assigned to any {{ rc_class_lower }} yet."
 msgstr "You have not been assigned to any {{ rc_class_lower }} yet."
+
+msgid "An expulsion must record the ground for it."
+msgstr "An expulsion must record the ground for it."
+
+msgid "Expelled (dismissed by the school)"
+msgstr "Expelled (dismissed by the school)"
+
+msgid "%(guardian)s is now linked to %(student)s."
+msgstr "%(guardian)s is now linked to %(student)s."
+
+msgid "A specialty with this code already exists at your school."
+msgstr "A specialty with this code already exists at your school."
+
+msgid "A subject with this name already exists at your school."
+msgstr "A subject with this name already exists at your school."
+
+msgid "Add guardian"
+msgstr "Add guardian"
+
+msgid "Add specialty"
+msgstr "Add specialty"
+
+msgid "Add subject"
+msgstr "Add subject"
+
+msgid "Add {{ g }}"
+msgstr "Add {{ g }}"
+
+msgid "Contact details"
+msgstr "Contact details"
+
+msgid "Create specialty"
+msgstr "Create specialty"
+
+msgid "Create subject"
+msgstr "Create subject"
+
+msgid "Error creating specialty: %s"
+msgstr "Error creating specialty: %s"
+
+msgid "Error creating subject: %s"
+msgstr "Error creating subject: %s"
+
+msgid "Error linking guardian: %s"
+msgstr "Error linking guardian: %s"
+
+msgid ""
+"Guardian account created for %(email)s. Send them their sign-in details."
+msgstr ""
+"Guardian account created for %(email)s. Send them their sign-in details."
+
+msgid "Guardian details stay on this device until you reconnect and sync."
+msgstr "Guardian details stay on this device until you reconnect and sync."
+
+msgid ""
+"If no account exists for that email, a parent account is created and the "
+"guardian claims it with a password reset."
+msgstr ""
+"If no account exists for that email, a parent account is created and the "
+"guardian claims it with a password reset."
+
+msgid "Notifications and access"
+msgstr "Notifications and access"
+
+msgid "Select department"
+msgstr "Select department"
+
+msgid "Specialty '%(name)s' created successfully!"
+msgstr "Specialty '%(name)s' created successfully!"
+
+msgid "Specialty details stay on this device until you reconnect and sync."
+msgstr "Specialty details stay on this device until you reconnect and sync."
+
+msgid "Subject '%(name)s' created successfully!"
+msgstr "Subject '%(name)s' created successfully!"
+
+msgid "Subject details stay on this device until you reconnect and sync."
+msgstr "Subject details stay on this device until you reconnect and sync."
+
+msgid ""
+"That address belongs to an account with a different role. Guardian access "
+"must be a parent or teacher account."
+msgstr ""
+"That address belongs to an account with a different role. Guardian access "
+"must be a parent or teacher account."
+
+msgid ""
+"The code has to be unique within your school — it is what timetables and "
+"report cards match on."
+msgstr ""
+"The code has to be unique within your school — it is what timetables and "
+"report cards match on."
+
+msgid ""
+"The guardian signs in with this address. An account is created if none "
+"exists."
+msgstr ""
+"The guardian signs in with this address. An account is created if none "
+"exists."
+
+msgid ""
+"The name has to be unique within your school. The board code and credits are"
+" optional."
+msgstr ""
+"The name has to be unique within your school. The board code and credits are"
+" optional."
+
+msgid "This guardian is already linked to that student."
+msgstr "This guardian is already linked to that student."
+
+msgid "Who is being linked"
+msgstr "Who is being linked"

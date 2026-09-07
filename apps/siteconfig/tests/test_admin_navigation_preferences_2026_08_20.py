@@ -5,6 +5,9 @@ from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
+from unittest import skipUnless
+
+from django.db import DatabaseError, connection, transaction
 from django.test import RequestFactory, TestCase
 
 from apps.schools.models import School
@@ -202,3 +205,80 @@ class AdminNavigationPreferenceTests(TestCase):
         self.assertNotIn("rmc-tenant-admin-sidebar-v2.js", base)
         self.assertNotIn("rmc-operator-admin-sidebar-v2.js", base)
         self.assertNotIn("admin-qa-setup-advanced", template)
+
+
+class AdminNavigationPreferenceSavepointTests(TestCase):
+    """Swallowing a DatabaseError must not poison the caller's transaction.
+
+    THE BUG THIS SEALS. ``read_envelope`` and ``_legacy_state`` each catch
+    ``DatabaseError`` and carry on with defaults, which reads as defensive and
+    is correct on SQLite. On PostgreSQL it is not: once a statement fails, the
+    transaction is aborted and EVERY subsequent statement raises
+    ``InternalError: current transaction is aborted, commands ignored until end
+    of transaction block``. Catching the exception does not clear that state --
+    only rolling back to a savepoint does.
+
+    Measured on a real PostgreSQL 17 cluster, one atomic block containing a
+    doomed query that is swallowed, then a healthy query:
+
+        PostgreSQL  without savepoint -> 500, transaction is aborted
+        PostgreSQL  with savepoint    -> OK, request continues
+        SQLite      without savepoint -> OK, request continues
+        SQLite      with savepoint    -> OK, request continues
+
+    The third row is why this shipped: the whole local suite runs on SQLite, so
+    the defect is invisible to every existing test. Django 5.2 wraps the admin
+    changeform in ``transaction.atomic`` for non-GET only, which is why the
+    add page LOADS and then 500s on Save.
+
+    The behavioural half of this pair only discriminates on PostgreSQL, so it
+    is skipped elsewhere rather than passing vacuously. The source half runs
+    everywhere and stops the savepoint being deleted again.
+    """
+
+    def _read_source(self) -> str:
+        return (
+            ROOT / "apps/siteconfig/admin_navigation_preferences.py"
+        ).read_text(encoding="utf-8")
+
+    def test_read_paths_wrap_their_query_in_a_savepoint(self):
+        source = self._read_source()
+        self.assertEqual(
+            source.count("with transaction.atomic(savepoint=True):"),
+            2,
+            "read_envelope and _legacy_state must EACH wrap their query in a "
+            "savepoint; without it a swallowed DatabaseError leaves the "
+            "PostgreSQL transaction aborted and the rest of the request 500s",
+        )
+
+    def test_swallowing_handlers_still_return_defaults(self):
+        """The recovery behaviour itself must survive the savepoint change."""
+        envelope = AdminNavigationPreferenceService.read_envelope(
+            user=self.user, host="tenant.example.com", admin_site="tenant_admin"
+        )
+        self.assertIn("revision", envelope)
+        self.assertIn("state", envelope)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(
+            username="savepoint-probe", password="x"
+        )
+
+    @skipUnless(
+        connection.vendor == "postgresql",
+        "the aborted-transaction failure mode only exists on PostgreSQL; on "
+        "SQLite this assertion passes whether or not the savepoint is there, "
+        "which is exactly how the bug reached production",
+    )
+    def test_a_swallowed_error_leaves_the_transaction_usable(self):
+        with transaction.atomic():
+            try:
+                with transaction.atomic(savepoint=True):
+                    with connection.cursor() as cursor:
+                        cursor.execute("SELECT 1 FROM table_that_does_not_exist")
+            except DatabaseError:
+                pass
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                self.assertEqual(cursor.fetchone()[0], 1)

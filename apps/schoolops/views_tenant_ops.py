@@ -1058,9 +1058,16 @@ def ops_facilities(request):
         {
             "school": school,
             "tickets": tickets,
-            "status_choices": MaintenanceRequest.Status,
+            # .choices, not the TextChoices class. ops_facilities.html does
+            # `{% for val, label in resource_type_choices %}`, and iterating the
+            # CLASS yields members -- each a str subclass -- so unpacking one gave
+            # "Need 2 values to unpack in for loop; got 4" (the 4 characters of
+            # "room"). That was a hard 500 on every tenant, on a page the Ops hub
+            # links to directly. status_choices had the same defect and was simply
+            # not unpacked by the template yet.
+            "status_choices": MaintenanceRequest.Status.choices,
             "resources": resources,
-            "resource_type_choices": BookableResource.ResourceType,
+            "resource_type_choices": BookableResource.ResourceType.choices,
             "bookings": bookings,
             "hostel_rooms": hostel_rooms,
             "hub_url": reverse("accounts:ops_hub"),

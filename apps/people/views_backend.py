@@ -24,6 +24,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse, NoReverseMatch
 from django.http import HttpResponse, Http404
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.compliance.decorators import audit_pii_view
@@ -33,6 +34,9 @@ from .forms_backend import (
     TeacherCreateForm,
     ClassroomCreateForm,
     ApplicantCreateForm,
+    GuardianCreateForm,
+    SpecialtyCreateForm,
+    SubjectCreateForm,
 )
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty, Subject
 from apps.siteconfig.models import FormDraft
@@ -1633,5 +1637,214 @@ def backend_guardian_list(request):
             "page_size": per_page,
             "page_size_options": [20, 50, 100],
             "show_page_size": True,
+        },
+    )
+
+
+@login_required
+@permission_required("people.add_studentguardian", raise_exception=True)
+def backend_guardian_create(request):
+    """Link a guardian/parent account to a student via the backend UI.
+
+    The guardian list had no Add control because this route did not exist: the
+    only way to create a link was the optional ``parent_email`` on the student
+    create form, so an admin could never add a second guardian to an existing
+    student from the backend.
+    """
+    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+    school = resolve_request_school(request)
+    if not school:
+        messages.warning(request, _("No school context."))
+        return redirect(reverse("accounts:backend_dashboard"))
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+        form = GuardianCreateForm(request.POST, school=school)
+        if form.is_valid():
+            try:
+                email = form.cleaned_data["email"]
+                created = False
+                with transaction.atomic():
+                    guardian_user = form.existing_guardian_user
+                    if guardian_user is None:
+                        guardian_user, created = User.objects.get_or_create(
+                            username=email,
+                            defaults={
+                                "email": email,
+                                "role": User.Role.PARENT,
+                                "is_active": True,
+                                "first_name": form.cleaned_data.get(
+                                    "guardian_first_name"
+                                )
+                                or "",
+                                "last_name": form.cleaned_data.get("guardian_last_name")
+                                or "",
+                            },
+                        )
+                        if created:
+                            # No password is minted here: the guardian claims the
+                            # account through the normal reset/invite flow.
+                            guardian_user.set_unusable_password()
+                            guardian_user.save()
+                    if getattr(guardian_user, "role", None) not in (
+                        User.Role.PARENT,
+                        User.Role.TEACHER,
+                    ):
+                        # StudentGuardian.clean() forbids this but save() never
+                        # calls it, so refuse here rather than grant a staff
+                        # account access to a child's records.
+                        raise ValidationError(
+                            _(
+                                "That address belongs to an account with a different role. Guardian access must be a parent or teacher account."
+                            )
+                        )
+                    link = form.save(commit=False)
+                    link.guardian_user = guardian_user
+                    link.email = email
+                    # StudentGuardian.save() aligns `school` from the student.
+                    link.save()
+                if created:
+                    messages.info(
+                        request,
+                        _("Guardian account created for %(email)s. Send them their sign-in details.")
+                        % {"email": email},
+                    )
+                messages.success(
+                    request,
+                    _("%(guardian)s is now linked to %(student)s.")
+                    % {
+                        "guardian": guardian_user.get_full_name() or email,
+                        "student": str(link.student),
+                    },
+                )
+                return _backend_save_redirect(request, "accounts:backend_guardian_list")
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "backend_guardian_create failed",
+                    extra={"step": "guardian_create"},
+                )
+                messages.error(request, _("Error linking guardian: %s") % str(e))
+    else:
+        form = GuardianCreateForm(school=school)
+
+    list_url = reverse("accounts:backend_guardian_list")
+    return render(
+        request,
+        "people/backend_guardian_create.html",
+        {
+            "form": form,
+            "title": _("Add guardian"),
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
+        },
+    )
+
+
+@login_required
+@permission_required("academics.add_specialty", raise_exception=True)
+def backend_specialty_create(request):
+    """Create a specialty/stream via the backend UI.
+
+    The specialty list was read-only browse with no Add control; every specialty
+    had to be created in Django Admin or imported.
+    """
+    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+    school = resolve_request_school(request)
+    if not school:
+        messages.warning(request, _("No school context."))
+        return redirect(reverse("accounts:backend_dashboard"))
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+        form = SpecialtyCreateForm(request.POST, school=school)
+        if form.is_valid():
+            try:
+                specialty = form.save()
+                messages.success(
+                    request,
+                    _("Specialty '%(name)s' created successfully!")
+                    % {"name": specialty.name},
+                )
+                return _backend_save_redirect(
+                    request, "accounts:backend_specialty_list"
+                )
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "backend_specialty_create failed",
+                    extra={"step": "specialty_create"},
+                )
+                messages.error(request, _("Error creating specialty: %s") % str(e))
+    else:
+        form = SpecialtyCreateForm(school=school)
+
+    list_url = reverse("accounts:backend_specialty_list")
+    return render(
+        request,
+        "people/backend_specialty_create.html",
+        {
+            "form": form,
+            "title": _("Create specialty"),
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
+        },
+    )
+
+
+@login_required
+@permission_required("academics.add_subject", raise_exception=True)
+def backend_subject_create(request):
+    """Create a subject/course via the backend UI.
+
+    The subject list was read-only browse with no Add control; every subject had
+    to be created in Django Admin or imported via Migration Cloud.
+    """
+    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+    school = resolve_request_school(request)
+    if not school:
+        messages.warning(request, _("No school context."))
+        return redirect(reverse("accounts:backend_dashboard"))
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+        form = SubjectCreateForm(request.POST, school=school)
+        if form.is_valid():
+            try:
+                subject = form.save()
+                messages.success(
+                    request,
+                    _("Subject '%(name)s' created successfully!")
+                    % {"name": subject.name},
+                )
+                return _backend_save_redirect(request, "accounts:backend_subject_list")
+            except _PEOPLE_BACKEND_SAVE_ERRORS as e:
+                log_view_exception(
+                    request,
+                    "backend_subject_create failed",
+                    extra={"step": "subject_create"},
+                )
+                messages.error(request, _("Error creating subject: %s") % str(e))
+    else:
+        form = SubjectCreateForm(school=school)
+
+    list_url = reverse("accounts:backend_subject_list")
+    return render(
+        request,
+        "people/backend_subject_create.html",
+        {
+            "form": form,
+            "title": _("Create subject"),
+            "return_url": mutation_return_url(request, list_url, list_url=list_url),
         },
     )

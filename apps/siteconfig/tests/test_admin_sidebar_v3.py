@@ -93,3 +93,64 @@ class AdminSidebarV3SourceTests(SimpleTestCase):
         self.assertTrue(ok, explanation)
         self.assertIn("/static/css/rmc-admin-sidebar-v3.css", worker)
         self.assertIn("/static/js/rmc-admin-sidebar-v3.js", worker)
+
+
+class AdminSidebarV3CsrfTests(SimpleTestCase):
+    """The preference writer must be able to authenticate on BOTH admin hosts.
+
+    Found in a real browser on 2026-09-06, not by any test: every load of
+    /admin/ on manager.runmycampus.com fired a PATCH to
+    /admin/navigation-preferences/ that came back 403, so no operator's sidebar
+    state was ever saved there. 8 admin page loads, 8 rejections.
+
+    The cause was a single hardcoded cookie name. The reader matched only a
+    cookie literally called "csrftoken", and its regex requires start-of-string
+    or "; " before the name -- so "rmc_manager_csrftoken", which
+    ManagerCookieIsolationMiddleware issues on the manager host, did not match
+    and the function returned "".
+
+    An EMPTY token is not a missing one, and that is why this was silent: Django
+    rejects it as "CSRF token from the 'X-Csrftoken' HTTP header has incorrect
+    length" (valid tokens are 32 or 64 chars) rather than as an absent header,
+    and the caller is a fire-and-forget fetch whose only symptom is a console
+    error nobody reads.
+
+    These assertions are a source guard, not the proof -- a browser run is the
+    proof, and it is reproducible via
+    artifacts/cplane-browser-evidence/capture_control_plane_evidence.js. What a
+    source guard CAN do is stop the specific regression from returning.
+    """
+
+    def _client_source(self) -> str:
+        return (ROOT / "static/js/rmc-admin-sidebar-v3.js").read_text(encoding="utf-8")
+
+    def test_preference_writer_knows_the_manager_cookie_name(self):
+        source = self._client_source()
+        self.assertIn(
+            "rmc_manager_csrftoken",
+            source,
+            "the sidebar preference writer only knows the tenant CSRF cookie "
+            "name, so every write from the manager admin will 403 with an "
+            "empty token -- silently, on a fire-and-forget fetch",
+        )
+
+    def test_preference_writer_prefers_the_rendered_token(self):
+        """The DOM token is host-independent and survives CSRF_COOKIE_HTTPONLY.
+
+        Cookies are the fallback precisely because both of those can take them
+        away; a reader that consults only cookies is one setting change from
+        being empty again on every host at once.
+        """
+        source = self._client_source()
+        self.assertIn("csrfmiddlewaretoken", source)
+        dom_read = source.find("csrfmiddlewaretoken")
+        cookie_read = source.find("document.cookie")
+        self.assertNotEqual(dom_read, -1)
+        self.assertNotEqual(cookie_read, -1)
+        self.assertLess(
+            dom_read,
+            cookie_read,
+            "the rendered csrfmiddlewaretoken input must be consulted BEFORE "
+            "document.cookie, or an httponly cookie deployment silently "
+            "reintroduces the empty-token 403",
+        )

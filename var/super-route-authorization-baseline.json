@@ -1,0 +1,9 @@
+{
+  "_comment": "Routes under /super/ with no discoverable authorization gate. Ratchet DOWN only. scripts/scan_super_route_authorization.py --compare fails on anything not listed here.",
+  "unclassified": [
+    "super_urls.py::marketplace_governance_alias::marketplace-governance/"
+  ],
+  "partially_classified": [
+    "super_urls.py::email_provider_webhook::email/webhook/<str:provider>/"
+  ]
+}

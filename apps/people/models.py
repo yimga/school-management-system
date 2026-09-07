@@ -1000,6 +1000,13 @@ class Enrollment(models.Model):
         TRANSFERRED_OUT = "TRANSFERRED_OUT", _("Transferred out")
         GRADUATED = "GRADUATED", _("Graduated")
         WITHDRAWN = "WITHDRAWN", _("Withdrawn")
+        # A school's decision, not a family's. Kept SEPARATE from WITHDRAWN on
+        # purpose: the two look alike in a list and behave differently
+        # everywhere it matters -- re-admission, a transfer certificate, a
+        # ministry return, and what a school has to be able to show years later
+        # if the decision is challenged. Folding an expulsion into "withdrawn"
+        # loses the distinction precisely where it is needed.
+        EXPELLED = "EXPELLED", _("Expelled (dismissed by the school)")
 
     #: Outcomes that keep the student in the SAME grade next year.
     RETENTION_OUTCOMES = frozenset({Outcome.RETAINED})
@@ -1009,8 +1016,18 @@ class Enrollment(models.Model):
     )
     #: Outcomes that end the student's presence at this school.
     EXIT_OUTCOMES = frozenset(
-        {Outcome.GRADUATED, Outcome.TRANSFERRED_OUT, Outcome.WITHDRAWN}
+        {
+            Outcome.GRADUATED,
+            Outcome.TRANSFERRED_OUT,
+            Outcome.WITHDRAWN,
+            Outcome.EXPELLED,
+        }
     )
+    #: Exits the SCHOOL decided, not the family. A narrower set inside
+    #: EXIT_OUTCOMES, so "did this student leave" and "was this student made to
+    #: leave" are two different questions with two different answers -- which is
+    #: the whole reason EXPELLED is not a label on WITHDRAWN.
+    INVOLUNTARY_EXIT_OUTCOMES = frozenset({Outcome.EXPELLED})
 
     school = models.ForeignKey(
         "schools.School",
@@ -1192,6 +1209,21 @@ class Enrollment(models.Model):
         """Close this enrollment with a recorded outcome. Never deletes."""
         if outcome not in dict(self.Outcome.choices):
             raise ValidationError(f"Unknown enrollment outcome: {outcome!r}")
+        # An expulsion with no recorded ground is a record the school cannot
+        # defend, to a parent or to a ministry, and the moment it is written is
+        # the only moment anyone still knows why. Every other outcome is
+        # derivable from marks or is the family's own decision; this one is
+        # neither, so it is the one that must carry its reason.
+        if outcome == self.Outcome.EXPELLED and not (
+            reason or self.outcome_reason
+        ):
+            raise ValidationError(
+                {
+                    "outcome_reason": _(
+                        "An expulsion must record the ground for it."
+                    )
+                }
+            )
         self.outcome = outcome
         self.outcome_reason = reason or self.outcome_reason
         self.outcome_recorded_at = timezone.now()
@@ -1199,10 +1231,17 @@ class Enrollment(models.Model):
             self.decision_average = decision_average
         self.exit_date = exit_date or self.exit_date or timezone.now().date()
         if status is None:
+            # The ROW's lifecycle, not the academic result: a year that
+            # ended early -- for any reason, the school's or the family's --
+            # leaves the enrollment WITHDRAWN rather than COMPLETED.
             status = (
                 self.Status.WITHDRAWN
                 if outcome
-                in (self.Outcome.WITHDRAWN, self.Outcome.TRANSFERRED_OUT)
+                in (
+                    self.Outcome.WITHDRAWN,
+                    self.Outcome.TRANSFERRED_OUT,
+                    self.Outcome.EXPELLED,
+                )
                 else self.Status.COMPLETED
             )
         self.status = status
@@ -1325,7 +1364,13 @@ class StudentGuardian(models.Model):
 
     def clean(self):
         # Allow PARENT or TEACHER (dual-role: teacher who is also a parent uses same account)
-        if self.guardian_user and self.guardian_user.role not in (
+        # Guard on guardian_user_id (the raw FK column), NOT self.guardian_user:
+        # the backend add-guardian form identifies the account by EMAIL and the
+        # view attaches it after validation, so ModelForm._post_clean() runs
+        # full_clean() while the FK is still unset -- and the descriptor then
+        # raises RelatedObjectDoesNotExist, an uncaught 500 rather than a
+        # ValidationError. Same guard TeacherProfile.clean() uses above.
+        if self.guardian_user_id and self.guardian_user.role not in (
             User.Role.PARENT,
             User.Role.TEACHER,
         ):

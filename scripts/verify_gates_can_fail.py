@@ -889,6 +889,28 @@ MUTATIONS["test-host-fidelity"] = Mutation(
     ),
 )
 
+# Re-introduces the defect verbatim: `tbody.template` is EVERY inline form
+# without an `original`, not just the __prefix__ prototype, so hiding it takes
+# the row the admin just offered. A patch, not a create -- the gate renders
+# from the live admin registry, so a planted file is never reached.
+#
+# It must be the LONG selector. The same file forces `table > :is(tbody, tfoot)
+# { display: table-row-group !important }` at (0,5,3) two hundred lines above,
+# so restoring `tbody.template` on the short `[data-rmc-shell-root=...]`
+# selector at (0,2,2) is overridden and plants nothing -- measured, the gate
+# stayed green on it. The selector that shipped, and that CDP measured winning,
+# is this one at (0,6,3).
+MUTATIONS["admin-rendered-form-layout"] = Mutation(
+    kind="patch",
+    path="static/css/rmc-admin-django-canvas-contract.css",
+    defect="a rule that hides every NEW inline row, not just the prototype:"
+           " the add form offers a column header with no row under it",
+    anchor=b".inline-group :is(.tabular, .inline-related.tabular)"
+           b" table > tbody:has(> tr.empty-form),",
+    replacement=b".inline-group :is(.tabular, .inline-related.tabular)"
+                b" table > tbody.template,",
+)
+
 MUTATIONS["workflow-swallowed-exit-codes"] = Mutation(
     kind="create",
     path=f".github/workflows/{_PROOF}-swallowed-exit-code.yml",
@@ -944,6 +966,38 @@ MUTATIONS["dangling-static-reference"] = Mutation(
         + b"src:url(fonts/gateproof-never-shipped.woff2) format(woff2)}" + chr(10).encode()
     ),
 )
+
+MUTATIONS["super-route-authorization"] = Mutation(
+    kind="patch",
+    path="apps/schools/super_urls.py",
+    defect=(
+        "a /super/ route mounted with no authorization gate -- the operator "
+        "control plane is the one surface where that is unrecoverable, and "
+        "nothing else in the repository can see it: audit_role_permission_matrix "
+        "discovers urlconfs with a PREFIX glob that never matches super_urls.py, "
+        "so all 255 entries are absent from the matrix rather than filtered out"
+    ),
+    # Deliberately a `patch` where this file prefers `create`: the scanner reads
+    # ONE named urlconf, so a new file carrying the violation would never be
+    # opened and the gate would report DEAD while working perfectly. The
+    # urlpatterns opener is the most stable anchor the file has.
+    #
+    # RedirectView.as_view(...) is scored UNRESOLVED, which this scanner counts
+    # as unclassified rather than safe -- exactly so a resolver gap makes it
+    # louder, not quieter. A plant pointing at any real view would be scored
+    # AUTHZ_PROVEN (all 224 common-wrapper routes also carry a def-site
+    # decorator) and would prove nothing.
+    anchor=b"urlpatterns = [\n",
+    replacement=(
+        b"urlpatterns = [\n"
+        b"    path(\n"
+        b'        "gate-proof-unguarded/",\n'
+        b'        RedirectView.as_view(pattern_name="super:super_dashboard"),\n'
+        b'        name="gate_proof_unguarded",\n'
+        b"    ),\n"
+    ),
+)
+
 
 MUTATIONS["tenant-queryset-safety"] = Mutation(
     kind="create",

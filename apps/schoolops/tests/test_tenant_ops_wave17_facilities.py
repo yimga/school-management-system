@@ -308,3 +308,74 @@ class TenantOpsWave17FacilitiesTests(TestCase):
         self.school.save(update_fields=["features"])
         resp = ops_facilities(self._req("GET", "/f/"))
         self.assertEqual(resp.status_code, 403)
+
+
+class TenantOpsFacilitiesRendersTests(TestCase):
+    """The facilities page must RENDER. It did not, for every tenant, unnoticed.
+
+    `ops_facilities` passed the TextChoices CLASS (`BookableResource.ResourceType`)
+    where ops_facilities.html does `{% for val, label in resource_type_choices %}`.
+    Iterating the class yields members, each a `str` subclass, so unpacking one
+    raised `ValueError: Need 2 values to unpack in for loop; got 4` -- the four
+    characters of "room". A hard 500 on a page the Ops hub links to directly.
+
+    WHY THE EXISTING TESTS IN THIS FILE DID NOT CATCH IT. Six of them pass, and
+    every one asserts a 302 from a POST -- a redirect never renders the template.
+    The only two that GET the page and assert 200 open with
+
+        if connection.vendor != "postgresql":
+            self.skipTest("Resource booking insert requires PostgreSQL")
+
+    and the whole suite runs on SQLite, so those assertions have never executed
+    on any run that mattered. The file reported 6 passed / 2 skipped while the
+    page was dead. A skip is not a pass, and a bucket excluded from the count
+    flatters the result.
+
+    So this class deliberately takes NO database vendor branch and asserts only
+    what a GET must always do: come back 200 with the choices rendered as pairs.
+    """
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Render School",
+            slug=f"rnd-{uuid.uuid4().hex[:10]}",
+            subdomain=f"rnd-{uuid.uuid4().hex[:10]}",
+            features={"facilities_ops": True},
+        )
+        self.admin = User.objects.create_user(
+            username=f"rnd-{uuid.uuid4().hex[:8]}",
+            email="r@f.test",
+            password="x",
+            role=User.Role.ADMIN,
+        )
+
+    def _get(self):
+        request = self.factory.get("/authentication/backend/ops/facilities/")
+        request.user = self.admin
+        request.school = self.school
+        SessionMiddleware(lambda x: None).process_request(request)
+        request.session.save()
+        setattr(request, "_messages", FallbackStorage(request))
+        return ops_facilities(request)
+
+    def test_facilities_page_renders_on_a_plain_get(self):
+        response = self._get()
+        self.assertEqual(
+            response.status_code,
+            200,
+            "GET /ops/facilities/ must render; a non-200 here is the 500 every "
+            "tenant hit from the Ops hub",
+        )
+
+    def test_resource_type_choices_are_pairs_not_the_enum_class(self):
+        """Pin the actual defect, so passing `.ResourceType` again fails here."""
+        body = self._get().content.decode("utf-8", "replace")
+        for value, label in BookableResource.ResourceType.choices:
+            self.assertIn(
+                f'value="{value}"',
+                body,
+                f"resource type {value!r} is missing from the rendered form, "
+                "which means the choices were not passed as (value, label) pairs",
+            )
+            del label
