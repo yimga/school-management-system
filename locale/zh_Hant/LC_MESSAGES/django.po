@@ -67103,3 +67103,72 @@ msgstr ""
 
 msgid "Who is being linked"
 msgstr ""
+
+msgid "All roles"
+msgstr ""
+
+msgid "Always available - no module to switch on."
+msgstr ""
+
+msgid "Build a handover packet"
+msgstr ""
+
+msgid "Error saving guardian: %s"
+msgstr ""
+
+msgid "Error saving specialty: %s"
+msgstr ""
+
+msgid "Error saving subject: %s"
+msgstr ""
+
+msgid "Guardian details saved for %(student)s."
+msgstr ""
+
+msgid "Lesson plans, seating and duties for whoever covers the class."
+msgstr ""
+
+msgid "Name, username or email…"
+msgstr ""
+
+msgid "Ops utilities"
+msgstr ""
+
+msgid "Record surfaces"
+msgstr ""
+
+msgid "Relationship"
+msgstr ""
+
+msgid "Sign-in email"
+msgstr ""
+
+msgid "Specialty '%(name)s' saved."
+msgstr ""
+
+msgid "Students on this stream"
+msgstr ""
+
+msgid "Subject '%(name)s' saved."
+msgstr ""
+
+msgid "Teaching slots"
+msgstr ""
+
+msgid ""
+"The code has to stay unique within your school — it is what timetables and "
+"report cards match on."
+msgstr ""
+
+msgid "The full lists these entities are stored in, and the bulk importer."
+msgstr ""
+
+msgid ""
+"The name has to stay unique within your school. The board code and credits "
+"are optional."
+msgstr ""
+
+msgid ""
+"Which student and which sign-in account this link points at are fixed. "
+"Remove the link and add a new one to change either."
+msgstr ""
