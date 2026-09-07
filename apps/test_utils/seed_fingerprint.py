@@ -97,6 +97,10 @@ def record(connection) -> Path | None:
     with connection.cursor() as cursor:
         for table in _table_names(connection):
             try:
+                # Introspects the TEST database only: counts rows in every table to
+                # detect flush damage. There is no tenant context at session
+                # start, and a school scope would defeat the check outright.
+                # rls-bypass-allow: test-DB introspection, unscoped by design
                 cursor.execute('SELECT COUNT(*) FROM "%s"' % table)
                 n = cursor.fetchone()[0]
             except Exception:
@@ -135,6 +139,10 @@ def damaged_tables(connection) -> list[str] | None:
             try:
                 # EXISTS, not COUNT: the question is "any row at all", and on a
                 # large table COUNT would make this guard cost real time.
+                # Introspects the TEST database only: counts rows in every table to
+                # detect flush damage. There is no tenant context at session
+                # start, and a school scope would defeat the check outright.
+                # rls-bypass-allow: test-DB introspection, unscoped by design
                 cursor.execute('SELECT EXISTS(SELECT 1 FROM "%s")' % table)
                 if not cursor.fetchone()[0]:
                     empty.append(table)
